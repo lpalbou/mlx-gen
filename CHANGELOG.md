@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Qwen Image Edit conditioning resolution**: Encode the transformer’s image-conditioning latents at the VAE target resolution (≈1024px by area), not the vision-language conditioning resolution (≈384px by area), preventing patchy/tiled artifacts in edit outputs.
 - **Qwen Image Edit CLI scheduler**: Forward `--scheduler` to the Qwen edit pipeline (previously ignored).
 - **Qwen Image Edit q4 saving**: Use mixed q4 quantization for Qwen transformers by keeping conditioning, modulation, and output projections at higher precision while quantizing the bulk attention and feed-forward layers.
-- **FLUX.2 Klein Edit guidance**: Allow `--guidance > 1.0` for distilled Klein edits (CFG) to improve prompt adherence without forcing any resizing; defaults remain unchanged.
+- **FLUX.2 Klein Edit guidance**: Allow `--guidance > 1.0` for distilled Klein edits (CFG) to improve prompt adherence without forcing any resizing; defaults remain unchanged, and FLUX.2 CLI commands now reject non-FLUX.2 model configs before loading.
 
 ---
 
