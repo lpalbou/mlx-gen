@@ -9,7 +9,7 @@ MLX-Gen is an MLX-native generative image runtime forked from mflux and publishe
 - [docs/architecture.md](docs/architecture.md): package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
 - [docs/api.md](docs/api.md): public `mlxgen` command surface, generation router behavior, model-management commands, and Python integration boundary.
 - [docs/model-management.md](docs/model-management.md): cache-only runtime policy, explicit `mlxgen download` and `mlxgen prepare` flows, Depth Pro download command, and `DownloadRequiredError`.
-- [docs/quantization.md](docs/quantization.md): q4/q8 prepare behavior, including Qwen and ERNIE mixed q4/q8 checkpoints.
+- [docs/quantization.md](docs/quantization.md): q4/q8 compatibility by model family, including Qwen and ERNIE mixed q4/q8 checkpoints.
 - [docs/huggingface-publishing.md](docs/huggingface-publishing.md): generated model cards, source license/access wording, default `AbstractFramework/<repo-name>` usage, upload flow, and optional Hugging Face collection membership.
 - [docs/python-integration.md](docs/python-integration.md): current Python API expectations, AbstractVision integration notes, progress limitations, and threading guidance.
 - [docs/release.md](docs/release.md): GitHub Release and PyPI trusted publishing workflow.

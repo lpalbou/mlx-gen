@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.5] - 2026-05-26
+
 ### Added
 
 - **ERNIE q8/q4 preparation and generation**: `mlxgen prepare --model baidu/ERNIE-Image-Turbo --quantize 8|4` now creates loadable prepared folders, and ERNIE generation can run from those q8/q4 folders.
@@ -16,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Output replacement default**: Generation saves now replace the requested output path by default. Use `--replace false` or `--no-replace` to preserve existing files and write a suffixed output.
 - **ERNIE q4 policy**: ERNIE q4 now uses a model-specific mixed q4/q8 policy. q8 is used for Mistral3 text/Prompt Enhancer linears plus ERNIE transformer V/O attention, conditioning/output linears, and VAE attention, while transformer Q/K and feed-forward modules remain q4.
+
+### Documentation
+
+- Advertise the current quantized-model compatibility surface and document that Qwen and ERNIE q4 checkpoints use model-specific mixed q4/q8 policies validated for generation quality.
 
 ## [0.18.4] - 2026-05-25
 

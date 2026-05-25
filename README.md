@@ -19,6 +19,7 @@ Run state-of-the-art generative image models locally with native MLX.
 - [💡 Philosophy](#-philosophy)
 - [💿 Installation](#-installation)
 - [Model Downloads And Preparation](#model-downloads-and-preparation)
+- [Quantized Model Compatibility](#quantized-model-compatibility)
 - [Documentation](#documentation)
 - [🎨 Models](#-models)
 - [✨ Features](#-features)
@@ -145,6 +146,20 @@ The commands have different outputs:
 `mlxgen prepare` also writes a Hugging Face `README.md` model card into the prepared folder. The generated card cites the original model, mflux, MLX-Gen, the `mlx-gen` version that generated the card, the quantization policy, and the default contributor attribution. Public card examples default to `AbstractFramework/<repo-name>` and include `python -m pip install -U mlx-gen` so Hugging Face readers can copy and paste a complete baseline setup.
 
 If a required artifact is missing, MLX-Gen raises `DownloadRequiredError` with the exact command to run. See [docs/model-management.md](docs/model-management.md) for details and [docs/python-integration.md](docs/python-integration.md) for in-process usage.
+
+### Quantized Model Compatibility
+
+MLX-Gen supports reusable prepared folders for these primary quantized model families:
+
+| Model family | q8 | q4 | Notes |
+| --- | --- | --- | --- |
+| Qwen Image and Qwen Image Edit | Supported | Mixed q4/q8 | Covers Qwen Image, Qwen Image 2512, Qwen Image Edit, 2509, and 2511. |
+| ERNIE Image Turbo | Supported | Mixed q4/q8 | Text-to-image only. Prompt Enhancer is optional from a full source snapshot. |
+| FLUX.2 Klein | Supported | Supported | Standard MLX quantization. 9B derivatives follow the source gated/non-commercial access requirements. |
+| Z-Image and Z-Image Turbo | Supported | Supported | Standard MLX quantization with model-specific generation defaults. |
+| FIBO | Supported with source access | Supported with source access | Source repositories may require access approval before download or preparation. |
+
+q4 is not treated as a blind size-only conversion. Qwen and ERNIE use mixed q4/q8 policies because fully q4 checkpoints can lose generation quality; the higher-precision paths are kept where validation shows they matter. See [Quantization](docs/quantization.md) for the current rules and measurements.
 
 ### Documentation
 

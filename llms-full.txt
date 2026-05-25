@@ -13,7 +13,7 @@ Some internals currently remain under `mflux.*`; new application code should use
 - `docs/architecture.md`: package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
 - `docs/api.md`: public `mlxgen` command surface, generation router, model-management commands, and Python integration boundary.
 - `docs/model-management.md`: cache-only runtime policy, `download` versus `prepare`, Depth Pro, and `DownloadRequiredError`.
-- `docs/quantization.md`: MLX-Gen prepared folder compatibility and current Qwen/ERNIE mixed q4/q8 policies.
+- `docs/quantization.md`: MLX-Gen prepared folder compatibility by model family and current Qwen/ERNIE mixed q4/q8 policies.
 - `docs/huggingface-publishing.md`: generated model cards, source license/access wording, default `AbstractFramework/<repo-name>` usage, upload flow, and optional collection membership.
 - `docs/python-integration.md`: in-process use, AbstractVision integration, progress limitations, and threading guidance.
 - `docs/faq.md`: common questions about `prepare`, downloads, package naming, and compatibility.
@@ -173,6 +173,8 @@ Generation commands replace the requested `--output` path by default. Use `--rep
 ## Quantization
 
 MLX-Gen prepares quantized model folders with the mflux/MLX layout used for local inference. These folders are designed for MLX-Gen and compatible mflux code, not Diffusers or Transformers `from_pretrained()` checkpoints.
+
+The primary q8/q4 prepared-folder compatibility surface covers Qwen Image, Qwen Image Edit, ERNIE Image Turbo, FLUX.2 Klein, Z-Image/Z-Image Turbo, and FIBO when source access is available. Qwen and ERNIE q4 folders use mixed q4/q8 policies because fully q4 checkpoints showed unacceptable generation-quality loss. FLUX.2 and Z-Image use standard MLX quantization policies. q8 remains the closest quantized option to BF16 when memory allows.
 
 Qwen Image and Qwen Image Edit use a mixed q4/q8 policy when prepared with `--quantize 4`:
 

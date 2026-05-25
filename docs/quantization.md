@@ -2,6 +2,21 @@
 
 MLX-Gen prepares quantized model folders with the same mflux/MLX layout used for local inference. Use `mlxgen prepare --model ... --path ... --quantize ...` to create those folders. They are designed for MLX-Gen and are not Diffusers or Transformers `from_pretrained()` checkpoints.
 
+## Compatibility Summary
+
+The current quantized-model compatibility surface is:
+
+| Model family | q8 prepared folders | q4 prepared folders | Notes |
+| --- | --- | --- | --- |
+| Qwen Image | Supported | Supported with mixed q4/q8 | Applies to Qwen Image and Qwen Image 2512 text-to-image checkpoints. |
+| Qwen Image Edit | Supported | Supported with mixed q4/q8 | Applies to Qwen Image Edit, 2509, and 2511 image-edit checkpoints. |
+| ERNIE Image Turbo | Supported | Supported with mixed q4/q8 | Text-to-image only. Prompt Enhancer is optional and requires a full source snapshot. |
+| FLUX.2 Klein | Supported | Supported | Standard MLX quantization policy. 9B derivatives follow the source gated/non-commercial access requirements. |
+| Z-Image / Z-Image Turbo | Supported | Supported | Standard MLX quantization policy with model-specific generation defaults. |
+| FIBO | Supported when source access is available | Supported when source access is available | Source repositories may require access approval before download or preparation. |
+
+MLX-Gen treats q4 quality as model-specific, not automatic. Qwen and ERNIE use mixed q4/q8 policies because fully q4 checkpoints showed unacceptable quality loss in generation validation. q8 remains the closest quantized option to BF16 when memory allows.
+
 ## Qwen q4
 
 Qwen Image and Qwen Image Edit use a mixed q4/q8 policy when prepared with `--quantize 4`. Fully q4 Qwen checkpoints can lose coherent generative behavior, so MLX-Gen keeps only the sensitive paths at higher precision:
