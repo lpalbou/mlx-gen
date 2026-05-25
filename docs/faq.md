@@ -45,6 +45,10 @@ No. It is optional acceleration for explicit Hugging Face downloads and prepare 
 
 No. Prepared MLX-Gen folders use the MLX/mflux saved-weight layout and MLX quantization tensors. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers `from_pretrained()` loading.
 
+## Can I Quantize ERNIE Image Turbo?
+
+Not yet. The initial ERNIE Image Turbo port supports BF16 text-to-image generation. MLX-Gen rejects ERNIE `--quantize` requests until q4/q8 layouts have been tested and documented.
+
 ## Why Do Some Imports Or Paths Still Say `mflux`?
 
 MLX-Gen is currently built on the mflux codebase. Some internal modules and compatibility entry points still use `mflux.*` names while the public package and command surface evolve under `mlx-gen` and `mlxgen`.

@@ -471,8 +471,7 @@ class TokenizerLoader:
                 template=definition.template,
                 image_token=definition.image_token,
             )
-        else:
-            # Default to LanguageTokenizer for all text-only cases
+        if encoder_class is None or encoder_class is LanguageTokenizer:
             return LanguageTokenizer(
                 tokenizer=raw_tokenizer,
                 max_length=definition.max_length,
@@ -482,3 +481,13 @@ class TokenizerLoader:
                 chat_template_kwargs=definition.chat_template_kwargs or {},
                 add_special_tokens=definition.add_special_tokens,
             )
+
+        return encoder_class(
+            tokenizer=raw_tokenizer,
+            max_length=definition.max_length,
+            padding=definition.padding,
+            template=definition.template,
+            use_chat_template=definition.use_chat_template,
+            chat_template_kwargs=definition.chat_template_kwargs or {},
+            add_special_tokens=definition.add_special_tokens,
+        )

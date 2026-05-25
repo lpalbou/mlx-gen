@@ -63,7 +63,7 @@ mlxgen generate \
   --output image.png
 ```
 
-If the local folder name does not clearly identify the model family, add `--family` during generation. The supported router families are `qwen`, `flux2`, `fibo`, and `z-image`.
+If the local folder name does not clearly identify the model family, add `--family` during generation. The supported router families are `qwen`, `flux2`, `fibo`, `z-image`, and `ernie-image`.
 
 The generated card records the source model, MLX-Gen compatibility, mflux attribution, generator version, quantization policy, and default contributor attribution. See [Hugging Face Publishing](huggingface-publishing.md) for upload and collection guidance.
 
@@ -81,6 +81,15 @@ Use `mlxgen prepare` when:
 - you want quantized weights with `--quantize 4` or `--quantize 8`;
 - you want a generated Hugging Face model card;
 - you want a folder that another application, such as AbstractVision, can reference without depending on the original repository name.
+
+ERNIE Image Turbo can be downloaded or prepared in BF16:
+
+```sh
+mlxgen download --model baidu/ERNIE-Image-Turbo
+mlxgen prepare --model baidu/ERNIE-Image-Turbo --path ./models/ernie-image-turbo
+```
+
+Do not pass `--quantize` for ERNIE yet. MLX-Gen rejects ERNIE quantized prepare/generation until the quantization policy has been validated.
 
 ## Depth Pro
 

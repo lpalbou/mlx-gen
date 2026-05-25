@@ -20,6 +20,16 @@ The q8 path was not changed by the mixed-q4 work. Qwen q8 uses the standard MLX-
 
 Other model families use their existing model-specific quantization predicates.
 
+## ERNIE Image Turbo
+
+ERNIE Image Turbo quantization is intentionally disabled in the initial MLX-Gen port. Use BF16 source or prepared weights:
+
+```sh
+mlxgen prepare --model baidu/ERNIE-Image-Turbo --path ./models/ernie-image-turbo
+```
+
+`mlxgen prepare --model baidu/ERNIE-Image-Turbo --quantize ...` and ERNIE generation with `--quantize` fail with a clear error. This avoids publishing unvalidated q4/q8 layouts.
+
 ## Compatibility
 
 Saved MLX-Gen folders can be loaded by MLX-Gen and by compatible mflux code that understands the same saved-weight layout and quantization predicates. They are not directly readable by Diffusers or Transformers because the files contain MLX quantization tensors and the mflux/MLX component layout.

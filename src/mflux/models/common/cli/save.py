@@ -1,6 +1,7 @@
 from mflux.cli.parser.parsers import CommandLineParser
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.download_policy import allow_downloads
+from mflux.models.ernie_image.variants import ErnieImageTurbo
 from mflux.models.fibo.variants.txt2img.fibo import FIBO
 from mflux.models.flux.variants.txt2img.flux import Flux1
 from mflux.models.flux2.variants.txt2img.flux2_klein import Flux2Klein
@@ -35,11 +36,9 @@ def main():
         elif "z-image" in model_name_lower or "zimage" in model_name_lower:
             model_class = ZImage
         elif "ernie" in model_name_lower:
-            parser.error(
-                "ERNIE-Image-Turbo is recognized, but its MLX backend is not ported yet. "
-                "Download the source snapshot with `mlxgen download --model baidu/ERNIE-Image-Turbo`; "
-                "prepare/generate support will land with the ERNIE MLX transformer and Mistral3 text encoder port."
-            )
+            if args.quantize is not None:
+                parser.error("ERNIE quantized prepare is not enabled yet. Prepare BF16 weights without --quantize.")
+            model_class = ErnieImageTurbo
         elif "flux2" in model_name_lower or "flux.2" in model_name_lower:
             model_class = Flux2Klein
         else:

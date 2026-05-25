@@ -2,7 +2,7 @@
 
 ## Project Summary
 
-MLX-Gen is an MLX-native generative image runtime forked from mflux and published as the `mlx-gen` Python package. It is currently built on the mflux codebase while adding independent release cadence, Qwen Image/Edit support, FLUX.2 fixes, quantized model packaging, local model loading behavior, generated Hugging Face model cards, and AbstractVision integration needs.
+MLX-Gen is an MLX-native generative image runtime forked from mflux and published as the `mlx-gen` Python package. It is currently built on the mflux codebase while adding independent release cadence, Qwen Image/Edit support, ERNIE Image Turbo support, FLUX.2 fixes, quantized model packaging, local model loading behavior, generated Hugging Face model cards, and AbstractVision integration needs.
 
 Some internals currently remain under `mflux.*`; new application code should use the `mlxgen` command and import path.
 
@@ -13,11 +13,11 @@ Some internals currently remain under `mflux.*`; new application code should use
 - `docs/architecture.md`: package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
 - `docs/api.md`: public `mlxgen` command surface, generation router, model-management commands, and Python integration boundary.
 - `docs/model-management.md`: cache-only runtime policy, `download` versus `prepare`, Depth Pro, and `DownloadRequiredError`.
-- `docs/quantization.md`: MLX-Gen prepared folder compatibility and Qwen mixed q4/q8 policy.
+- `docs/quantization.md`: MLX-Gen prepared folder compatibility, Qwen mixed q4/q8 policy, and ERNIE BF16-only initial support.
 - `docs/huggingface-publishing.md`: generated model cards, source license/access wording, default `AbstractFramework/<repo-name>` usage, upload flow, and optional collection membership.
 - `docs/python-integration.md`: in-process use, AbstractVision integration, progress limitations, and threading guidance.
 - `docs/faq.md`: common questions about `prepare`, downloads, package naming, and compatibility.
-- `docs/troubleshooting.md`: missing files, local path classification, `generate --path`, LoRA, and `hf_transfer`.
+- `docs/troubleshooting.md`: missing files, local path classification, `generate --path`, ERNIE small-resolution behavior, LoRA, and `hf_transfer`.
 - `docs/release.md`: GitHub Release and PyPI trusted publishing workflow.
 - `ACKNOWLEDGEMENTS.md`: upstream mflux credit and post-fork maintainership.
 - `CONTRIBUTING.md`: development setup, checks, documentation expectations, and pull-request scope.
@@ -149,6 +149,21 @@ mlxgen generate \
 
 If a local model path or custom repository name cannot be classified, pass `--family qwen`, `--family flux2`, `--family fibo`, or `--family z-image`.
 
+ERNIE Image Turbo is also routed by `mlxgen generate`:
+
+```sh
+mlxgen generate \
+  --model baidu/ERNIE-Image-Turbo \
+  --prompt "A clean product photo of a ceramic mug" \
+  --width 512 \
+  --height 512 \
+  --steps 8 \
+  --guidance 1 \
+  --output image.png
+```
+
+For local ERNIE folders whose names cannot be classified, pass `--family ernie-image`. The initial ERNIE port is text-to-image only and uses BF16 source or prepared weights. Width or height below 384px is not recommended because very small ERNIE outputs can crop or truncate subjects.
+
 `mlxgen generate` does not accept `--path` to create model folders. Use `mlxgen prepare --model ... --path ... --quantize ...` for model preparation and use `--output` to choose the generated image path.
 
 ---
@@ -169,6 +184,8 @@ This Qwen policy applies to q4 prepared folders only, including Qwen Image and Q
 
 The q8 path was not changed by the mixed-q4 work. Qwen q8 uses the standard MLX-Gen/mflux quantization flow: quantizable modules are saved at 8-bit where supported, while VAE weights and non-quantizable layers remain BF16. Other model families use their existing model-specific quantization predicates.
 
+ERNIE Image Turbo quantization is intentionally disabled in the initial port. Use BF16 source or prepared weights and omit `--quantize`; ERNIE q4/q8 layouts will require separate validation before publication.
+
 ---
 
 ## Hugging Face Publishing
@@ -181,7 +198,7 @@ huggingface-cli upload AbstractFramework/qwen-image-edit-2511-4bit ./models/qwen
 
 Hugging Face collection membership is managed separately from model-card metadata. After upload, use the Hugging Face UI or `huggingface_hub.HfApi.add_collection_item` with the collection slug from the collection URL.
 
-Generated cards mark Qwen, Z-Image, and FLUX.2 Klein 4B derivatives as Apache 2.0 when MLX-Gen can identify the source model family. FLUX.2 Klein 9B and FLUX.2 Klein base-9B derivatives are marked with the FLUX non-commercial license metadata and gated-access prompts. Configure Hugging Face repository gating separately when publishing those derivatives; model-card metadata alone does not enforce access control.
+Generated cards mark Qwen, Z-Image, ERNIE Image Turbo, and FLUX.2 Klein 4B derivatives as Apache 2.0 when MLX-Gen can identify the source model family. FLUX.2 Klein 9B and FLUX.2 Klein base-9B derivatives are marked with the FLUX non-commercial license metadata and gated-access prompts. Configure Hugging Face repository gating separately when publishing those derivatives; model-card metadata alone does not enforce access control.
 
 ---
 

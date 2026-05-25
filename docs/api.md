@@ -41,7 +41,7 @@ mlxgen generate \
   --output edited.png
 ```
 
-Supported router families are `qwen`, `flux2`, `fibo`, and `z-image`:
+Supported router families are `qwen`, `flux2`, `fibo`, `z-image`, and `ernie-image`:
 
 ```sh
 mlxgen generate \
@@ -51,6 +51,21 @@ mlxgen generate \
 ```
 
 Use `--config-from-metadata` / `-C` when you want the router to read fields such as `model`, `image_path`, or `image_paths` from an existing metadata file.
+
+ERNIE Image Turbo routes through the same command surface:
+
+```sh
+mlxgen generate \
+  --model baidu/ERNIE-Image-Turbo \
+  --prompt "A clean product photo of a ceramic mug" \
+  --width 512 \
+  --height 512 \
+  --steps 8 \
+  --guidance 1 \
+  --output image.png
+```
+
+The initial ERNIE port is text-to-image only. It uses BF16 source or prepared weights; `--quantize` is intentionally disabled for ERNIE until a verified quantization policy exists.
 
 ## Model Management Commands
 

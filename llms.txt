@@ -1,6 +1,6 @@
 # MLX-Gen
 
-MLX-Gen is an MLX-native generative image runtime forked from mflux and published as the `mlx-gen` Python package. It is currently built on the mflux codebase while adding faster release cadence, Qwen/FLUX.2 compatibility fixes, explicit model preparation, Hugging Face model-card generation, and AbstractVision-oriented integration behavior.
+MLX-Gen is an MLX-native generative image runtime forked from mflux and published as the `mlx-gen` Python package. It is currently built on the mflux codebase while adding faster release cadence, Qwen/FLUX.2 compatibility fixes, ERNIE Image Turbo support, explicit model preparation, Hugging Face model-card generation, and AbstractVision-oriented integration behavior.
 
 ## Key Documents
 
@@ -9,12 +9,12 @@ MLX-Gen is an MLX-native generative image runtime forked from mflux and publishe
 - [docs/architecture.md](docs/architecture.md): package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
 - [docs/api.md](docs/api.md): public `mlxgen` command surface, generation router behavior, model-management commands, and Python integration boundary.
 - [docs/model-management.md](docs/model-management.md): cache-only runtime policy, explicit `mlxgen download` and `mlxgen prepare` flows, Depth Pro download command, and `DownloadRequiredError`.
-- [docs/quantization.md](docs/quantization.md): q4/q8 prepare behavior, including Qwen mixed q4/q8 checkpoints.
+- [docs/quantization.md](docs/quantization.md): q4/q8 prepare behavior, including Qwen mixed q4/q8 checkpoints and ERNIE BF16-only initial support.
 - [docs/huggingface-publishing.md](docs/huggingface-publishing.md): generated model cards, source license/access wording, default `AbstractFramework/<repo-name>` usage, upload flow, and optional Hugging Face collection membership.
 - [docs/python-integration.md](docs/python-integration.md): current Python API expectations, AbstractVision integration notes, progress limitations, and threading guidance.
 - [docs/release.md](docs/release.md): GitHub Release and PyPI trusted publishing workflow.
 - [docs/faq.md](docs/faq.md): common questions about `prepare`, downloads, package naming, and compatibility.
-- [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, LoRA, and `hf_transfer` issues.
+- [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, ERNIE small-resolution, LoRA, and `hf_transfer` issues.
 - [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md): upstream mflux credit, post-fork maintainership, and model/community acknowledgements.
 - [CHANGELOG.md](CHANGELOG.md): release history.
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, checks, documentation expectations, and pull-request scope.
@@ -40,6 +40,7 @@ mlxgen download --model depth-pro
 ## Code Entry Points
 
 - `src/mflux/cli/mlx_gen.py`: smart `mlxgen` command router plus explicit `download` and `prepare`.
+- `src/mflux/models/ernie_image/`: ERNIE Image Turbo text-to-image runtime, tokenizer, transformer, scheduler, VAE wrapper, weights, and CLI.
 - `src/mflux/models/common/download_policy.py`: download policy, explicit command helpers, and `DownloadRequiredError`.
 - `src/mflux/models/common/weights/saving/model_card_saver.py`: generated Hugging Face model-card content for prepared model folders.
 - `src/mflux/models/common/resolution/path_resolution.py`: cache-only Hugging Face model path resolution.

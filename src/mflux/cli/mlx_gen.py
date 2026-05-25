@@ -343,20 +343,6 @@ def _download_patterns(model_config: ModelConfig | None, repo_id: str) -> list[s
 
     aliases = set(model_config.aliases)
     model_key = _model_key(model_config.model_name, model_config.base_model, repo_id)
-    if _is_ernie(aliases, model_key):
-        return [
-            "LICENSE",
-            "README.md",
-            "model_index.json",
-            "scheduler/**",
-            "tokenizer/**",
-            "pe_tokenizer/**",
-            "text_encoder/**",
-            "transformer/**",
-            "vae/**",
-            "pe/**",
-        ]
-
     weight_definition = _weight_definition_for(aliases, model_key)
     if weight_definition is None:
         return None
@@ -384,6 +370,10 @@ def _weight_definition_for(aliases: set[str], model_key: str):
         from mflux.models.z_image.weights.z_image_weight_definition import ZImageWeightDefinition
 
         return ZImageWeightDefinition
+    if _is_ernie(aliases, model_key):
+        from mflux.models.ernie_image.weights.ernie_image_weight_definition import ErnieImageWeightDefinition
+
+        return ErnieImageWeightDefinition
     return None
 
 
@@ -427,7 +417,7 @@ def _resolve_route(args: argparse.Namespace, image_count: int) -> _Route:
         return _z_image_route()
 
     if args.family == "ernie-image":
-        _parser().error(_ernie_not_ported_message())
+        return _ernie_route()
 
     if _is_qwen_edit(aliases, model_key) or (args.task == "edit" and _is_qwen(aliases, model_key)):
         return _qwen_edit_route(model_override=None if _is_qwen_edit(aliases, model_key) else "qwen-image-edit")
@@ -457,7 +447,7 @@ def _resolve_route(args: argparse.Namespace, image_count: int) -> _Route:
         return _z_image_route()
 
     if _is_ernie(aliases, model_key):
-        _parser().error(_ernie_not_ported_message())
+        return _ernie_route()
 
     _parser().error(
         f"Could not infer a supported backend from --model {args.model!r}. "
@@ -519,14 +509,6 @@ def _is_ernie(aliases: set[str], model_key: str) -> bool:
     return any(alias.startswith("ernie") for alias in aliases) or "ernie" in model_key
 
 
-def _ernie_not_ported_message() -> str:
-    return (
-        "ERNIE-Image-Turbo is recognized, but its MLX backend is not ported yet. "
-        "Use `mlxgen download --model baidu/ERNIE-Image-Turbo` to cache the source model now. "
-        "Generation and prepare support require the ERNIE transformer and Mistral3 text encoder port."
-    )
-
-
 def _qwen_route() -> _Route:
     from mflux.models.qwen.cli.qwen_image_generate import main as target_main
 
@@ -577,6 +559,17 @@ def _z_image_turbo_route() -> _Route:
     from mflux.models.z_image.cli.z_image_turbo_generate import main as target_main
 
     return _Route("mflux-generate-z-image-turbo", target_main, "--image-path", requires_image=False)
+
+
+def _ernie_route() -> _Route:
+    from mflux.models.ernie_image.cli.ernie_image_generate import main as target_main
+
+    return _Route(
+        "mflux-generate-ernie-image",
+        target_main,
+        image_argument=None,
+        requires_image=False,
+    )
 
 
 if __name__ == "__main__":

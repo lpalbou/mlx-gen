@@ -21,6 +21,14 @@ class ZImageTurbo:
     )
 
 
+class ErnieImageTurbo:
+    model_config = SimpleNamespace(
+        model_name="baidu/ERNIE-Image-Turbo",
+        base_model=None,
+        aliases=["ernie-image-turbo"],
+    )
+
+
 class Flux2Klein4B:
     model_config = SimpleNamespace(
         model_name="black-forest-labs/FLUX.2-klein-4B",
@@ -95,6 +103,21 @@ def test_model_card_for_q8_keeps_standard_quantization_wording(tmp_path):
     assert "Qwen-specific mixed q4/q8 policy only applies" not in card
     assert "--steps 8" in card
     assert "--guidance 0" in card
+
+
+def test_model_card_for_ernie_documents_bf16_usage(tmp_path):
+    card = ModelCardSaver.render_model_card(str(tmp_path / "ernie-image-turbo"), ErnieImageTurbo(), None)
+
+    assert "base_model: baidu/ERNIE-Image-Turbo" in card
+    assert "license: apache-2.0" in card
+    assert "- ernie-image-turbo" in card
+    assert "This checkpoint stores MLX-Gen weights without an explicit quantization level." in card
+    assert "--width 512" in card
+    assert "--height 512" in card
+    assert "--steps 8" in card
+    assert "--guidance 1" in card
+    assert "Prepared and contributed by" in card
+    assert "Quantized and contributed by" not in card
 
 
 def test_model_card_for_qwen_q8_explains_q4_policy_is_not_used(tmp_path):

@@ -292,29 +292,39 @@ def test_unknown_model_requires_supported_family():
         mlx_gen._resolve_invocation(["--model", "unknown/model", "--prompt", "hello"])
 
 
-def test_ernie_model_is_recognized_but_not_routed_until_backend_port(capsys):
-    with pytest.raises(SystemExit):
-        mlx_gen._resolve_invocation(["--model", "baidu/ERNIE-Image-Turbo", "--prompt", "hello"])
+def test_routes_ernie_image_turbo_to_ernie_generation():
+    invocation = mlx_gen._resolve_invocation(["--model", "baidu/ERNIE-Image-Turbo", "--prompt", "hello"])
 
-    error_output = capsys.readouterr().err
-    assert "ERNIE-Image-Turbo is recognized" in error_output
-    assert "Mistral3 text encoder port" in error_output
+    assert invocation.target_name == "mflux-generate-ernie-image"
+    assert invocation.argv == [
+        "mflux-generate-ernie-image",
+        "--model",
+        "baidu/ERNIE-Image-Turbo",
+        "--prompt",
+        "hello",
+    ]
 
 
-def test_ernie_family_override_reports_not_ported(capsys):
-    with pytest.raises(SystemExit):
-        mlx_gen._resolve_invocation(
-            [
-                "--model",
-                "../models/custom-ernie-folder",
-                "--family",
-                "ernie-image",
-                "--prompt",
-                "hello",
-            ]
-        )
+def test_ernie_family_override_routes_local_folder():
+    invocation = mlx_gen._resolve_invocation(
+        [
+            "--model",
+            "../models/custom-ernie-folder",
+            "--family",
+            "ernie-image",
+            "--prompt",
+            "hello",
+        ]
+    )
 
-    assert "ERNIE-Image-Turbo is recognized" in capsys.readouterr().err
+    assert invocation.target_name == "mflux-generate-ernie-image"
+    assert invocation.argv == [
+        "mflux-generate-ernie-image",
+        "--model",
+        "../models/custom-ernie-folder",
+        "--prompt",
+        "hello",
+    ]
 
 
 def test_main_without_args_prints_top_level_help(monkeypatch, capsys):
@@ -398,24 +408,20 @@ def test_download_command_uses_ernie_source_patterns(monkeypatch):
 
     mlx_gen._download_model(["--model", "baidu/ERNIE-Image-Turbo"])
 
-    assert calls == [
-        (
-            "baidu/ERNIE-Image-Turbo",
-            [
-                "LICENSE",
-                "README.md",
-                "model_index.json",
-                "scheduler/**",
-                "tokenizer/**",
-                "pe_tokenizer/**",
-                "text_encoder/**",
-                "transformer/**",
-                "vae/**",
-                "pe/**",
-            ],
-            True,
-        )
-    ]
+    assert calls[0][0] == "baidu/ERNIE-Image-Turbo"
+    assert calls[0][2] is True
+    assert {
+        "LICENSE",
+        "README.md",
+        "model_index.json",
+        "scheduler/**",
+        "tokenizer/**",
+        "pe_tokenizer/**",
+        "text_encoder/**",
+        "transformer/**",
+        "vae/**",
+        "pe/**",
+    }.issubset(set(calls[0][1]))
 
 
 def test_prepare_command_routes_to_save_with_downloads_enabled(monkeypatch):
@@ -437,15 +443,22 @@ def test_prepare_command_routes_to_save_with_downloads_enabled(monkeypatch):
     assert downloads_enabled() is False
 
 
-def test_prepare_ernie_reports_backend_not_ported(tmp_path, capsys):
-    with pytest.raises(SystemExit):
-        mlx_gen._prepare_model(
-            ["--model", "baidu/ERNIE-Image-Turbo", "--path", str(tmp_path / "ernie-image-turbo-8bit"), "-q", "8"]
-        )
+def test_prepare_ernie_routes_to_save_with_downloads_enabled(monkeypatch, tmp_path):
+    observed = []
 
-    error_output = capsys.readouterr().err
-    assert "ERNIE-Image-Turbo is recognized" in error_output
-    assert "prepare/generate support will land" in error_output
+    def fake_save_main():
+        observed.append((sys.argv[:], downloads_enabled()))
+
+    monkeypatch.setattr("mflux.models.common.cli.save.main", fake_save_main)
+
+    mlx_gen._prepare_model(["--model", "baidu/ERNIE-Image-Turbo", "--path", str(tmp_path / "ernie-image-turbo")])
+
+    assert observed == [
+        (
+            ["mlxgen prepare", "--model", "baidu/ERNIE-Image-Turbo", "--path", str(tmp_path / "ernie-image-turbo")],
+            True,
+        )
+    ]
     assert downloads_enabled() is False
 
 

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.4] - 2026-05-25
+
+### Added
+
+- **ERNIE Image Turbo text-to-image**: Add an initial MLX-native port of `baidu/ERNIE-Image-Turbo`, including Mistral3 text encoding, ERNIE transformer weights, FlowMatch Euler scheduling, Flux2-style VAE decode, `mlxgen generate` routing, and `mlxgen download` / `mlxgen prepare` support.
+- **ERNIE model-card support**: Generated Hugging Face cards now recognize ERNIE Image Turbo as Apache 2.0, use ERNIE-specific 512px / 8-step / guidance-1 examples, and describe BF16 prepared weights when no quantization level is used.
+
+### Changed
+
+- **ERNIE quantization boundary**: ERNIE `--quantize` requests now fail explicitly because q4/q8 layouts are not validated yet.
+- **Small ERNIE outputs**: ERNIE CLI generation warns when width or height is below 384px because very small outputs can crop or truncate subjects.
+
+### Documentation
+
+- Document ERNIE routing, BF16-only prepare/generation, model-card licensing, and recommended validation dimensions.
+
+---
+
 ## [0.18.3] - 2026-05-25
 
 ### Changed

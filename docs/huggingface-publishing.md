@@ -44,7 +44,7 @@ HfApi().add_collection_item(
 
 ## Compatibility Wording
 
-For Qwen q4 checkpoints, the generated card describes the mixed q4/q8 policy used to preserve generative quality. For q8 checkpoints, the card states that the standard MLX-Gen/mflux q8 path is used.
+For Qwen q4 checkpoints, the generated card describes the mixed q4/q8 policy used to preserve generative quality. For q8 checkpoints, the card states that the standard MLX-Gen/mflux q8 path is used. ERNIE Image Turbo cards currently describe BF16 prepared weights because ERNIE quantization is not enabled yet.
 
 See [Quantization](quantization.md) for the current Qwen q4 and q8 policy.
 
@@ -52,7 +52,7 @@ See [Quantization](quantization.md) for the current Qwen q4 and q8 policy.
 
 Generated cards include license metadata for supported families where the source license is known:
 
-- Qwen, Z-Image, and FLUX.2 Klein 4B derivatives are marked `license: apache-2.0`.
+- Qwen, Z-Image, ERNIE Image Turbo, and FLUX.2 Klein 4B derivatives are marked `license: apache-2.0`.
 - FLUX.2 Klein 9B and FLUX.2 Klein base-9B derivatives are marked `license: other` with `license_name: flux-non-commercial-license`, source license links, and gated-access prompts.
 
 When publishing a gated derivative, also configure the Hugging Face repository settings so the repository itself is gated. Model-card metadata alone does not enforce access control.

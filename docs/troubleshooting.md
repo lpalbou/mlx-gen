@@ -24,7 +24,24 @@ mlxgen generate \
   --output image.png
 ```
 
-Supported router families are `qwen`, `flux2`, `fibo`, and `z-image`.
+Supported router families are `qwen`, `flux2`, `fibo`, `z-image`, and `ernie-image`.
+
+## ERNIE Images Look Cropped At Tiny Sizes
+
+ERNIE Image Turbo is validated for practical generation at 384px and above. Very small outputs, such as 256x256, can crop or truncate subjects even when the pipeline is working.
+
+Use 512x512 for small validation runs:
+
+```sh
+mlxgen generate \
+  --model baidu/ERNIE-Image-Turbo \
+  --prompt "A clean centered product photo of a white ceramic mug" \
+  --width 512 \
+  --height 512 \
+  --steps 8 \
+  --guidance 1 \
+  --output image.png
+```
 
 ## `generate --path` Fails
 
