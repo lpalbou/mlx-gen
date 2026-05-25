@@ -109,11 +109,15 @@ class QwenWeightDefinition:
         if img_mod_bits == 8:
             return QwenWeightDefinition.quantization_predicate
 
-        if img_mod_bits is None and QwenWeightDefinition._uses_unquantized_q4_sensitive_inputs(transformer):
-            if QwenWeightDefinition._has_unquantized_txt_mod_linear(weights):
-                return QwenWeightDefinition._post1_mixed_q4_quantization_predicate
+        if img_mod_bits is None:
+            if QwenWeightDefinition._uses_unquantized_q4_sensitive_inputs(transformer):
+                if QwenWeightDefinition._has_unquantized_txt_mod_linear(weights):
+                    return QwenWeightDefinition._post1_mixed_q4_quantization_predicate
 
-            return QwenWeightDefinition._bf16_img_mod_mixed_q4_quantization_predicate
+                return QwenWeightDefinition._bf16_img_mod_mixed_q4_quantization_predicate
+
+            if QwenWeightDefinition._has_unquantized_img_mod_linear(weights):
+                return QwenWeightDefinition._bf16_img_mod_only_mixed_q4_quantization_predicate
 
         return QwenWeightDefinition._quantize_all_predicate
 
@@ -192,10 +196,10 @@ class QwenWeightDefinition:
 
             path_bits = vision_bits if QwenWeightDefinition._is_text_encoder_vision_path(path) else language_bits
             path_bits = path_bits or fallback_bits
-            if path_bits == 8:
-                return {"bits": 8}
+            if path_bits is not None:
+                return {"bits": path_bits}
 
-            return path_bits is not None
+            return False
 
         return predicate
 
@@ -288,6 +292,34 @@ class QwenWeightDefinition:
             transformer,
             f"{txt_mod_path}.scales",
         )
+
+    @staticmethod
+    def _has_unquantized_img_mod_linear(weights: LoadedWeights | None) -> bool:
+        if weights is None:
+            return False
+
+        transformer = weights.components.get("transformer")
+        if not isinstance(transformer, dict):
+            return False
+
+        img_mod_path = "transformer_blocks.0.img_mod_linear"
+        return QwenWeightDefinition._has_nested_key(
+            transformer,
+            f"{img_mod_path}.weight",
+        ) and not QwenWeightDefinition._has_nested_key(
+            transformer,
+            f"{img_mod_path}.scales",
+        )
+
+    @staticmethod
+    def _bf16_img_mod_only_mixed_q4_quantization_predicate(path: str, module, bits: int | None = None) -> bool:
+        if not hasattr(module, "to_quantized"):
+            return False
+
+        if bits == 4 and ".img_mod_linear" in path:
+            return False
+
+        return True
 
     @staticmethod
     def _bf16_img_mod_mixed_q4_quantization_predicate(path: str, module, bits: int | None = None) -> bool:

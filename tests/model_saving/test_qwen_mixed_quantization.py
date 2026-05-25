@@ -210,9 +210,80 @@ def test_qwen_loaded_mixed_text_encoder_layout_uses_saved_text_encoder_bits():
 
     predicate = QwenWeightDefinition.quantization_predicate_for_loaded_weights(weights=weights, bits=4)
 
-    assert predicate("encoder.layers.0.self_attn.q_proj", module, 4) is True
+    assert predicate("encoder.layers.0.self_attn.q_proj", module, 4) == {"bits": 4}
     assert predicate("encoder.visual.blocks.0.attn.qkv", module, 4) == {"bits": 8}
     assert predicate("encoder.visual.blocks.0.mlp.down_proj", incompatible_module, 4) is False
+
+
+def test_qwen_loaded_mixed_text_encoder_layout_uses_saved_q4_when_global_bits_are_q8():
+    module = QuantizableModule()
+    weights = LoadedWeights(
+        components={
+            "transformer": {
+                "img_in": {
+                    "weight": Tensor((3072, 16)),
+                    "scales": Tensor((3072, 1)),
+                },
+                "transformer_blocks": [
+                    {
+                        "img_mod_linear": {
+                            "weight": Tensor((18432, 768)),
+                            "scales": Tensor((18432, 48)),
+                        },
+                    }
+                ],
+            },
+            "text_encoder": {
+                "encoder": {
+                    "layers": [
+                        {
+                            "self_attn": {
+                                "q_proj": {
+                                    "weight": Tensor((3584, 448)),
+                                    "scales": Tensor((3584, 56)),
+                                },
+                            },
+                        }
+                    ],
+                }
+            },
+        },
+        meta_data=MetaData(quantization_level=8),
+    )
+
+    predicate = QwenWeightDefinition.quantization_predicate_for_loaded_weights(weights=weights, bits=8)
+
+    assert predicate("encoder.layers.0.self_attn.q_proj", module, 8) == {"bits": 4}
+
+
+def test_qwen_q4_loaded_bf16_img_mod_only_layout_keeps_img_mod_unquantized():
+    module = QuantizableModule()
+    weights = LoadedWeights(
+        components={
+            "transformer": {
+                "img_in": {
+                    "weight": Tensor((3072, 8)),
+                    "scales": Tensor((3072, 1)),
+                },
+                "transformer_blocks": [
+                    {
+                        "img_mod_linear": {"weight": object(), "bias": object()},
+                        "txt_mod_linear": {
+                            "weight": Tensor((18432, 384)),
+                            "scales": Tensor((18432, 48)),
+                        },
+                    }
+                ],
+            }
+        },
+        meta_data=MetaData(quantization_level=4),
+    )
+
+    predicate = QwenWeightDefinition.quantization_predicate_for_loaded_weights(weights=weights, bits=4)
+
+    assert predicate("img_in", module, 4) is True
+    assert predicate("transformer_blocks.0.img_mod_linear", module, 4) is False
+    assert predicate("transformer_blocks.0.txt_mod_linear", module, 4) is True
 
 
 def test_qwen_q4_loaded_bf16_img_mod_layout_uses_bf16_img_mod_predicate():
