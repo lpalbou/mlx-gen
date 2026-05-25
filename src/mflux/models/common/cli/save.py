@@ -12,7 +12,12 @@ from mflux.models.z_image import ZImage, ZImageTurbo
 def main():
     with allow_downloads():
         # 0. Parse command line arguments
-        parser = CommandLineParser(description="Save a quantized version of a model to disk.")  # fmt: off
+        parser = CommandLineParser(
+            description=(
+                "Prepare a reusable local MLX-Gen model folder, optionally quantized, "
+                "and write a Hugging Face model card."
+            )
+        )
         parser.add_model_arguments(path_type="save", require_model_arg=True)
         parser.add_lora_arguments()
         args = parser.parse_args()

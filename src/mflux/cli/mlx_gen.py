@@ -31,6 +31,10 @@ class _Route:
 
 def main() -> None:
     argv = sys.argv[1:]
+    if not argv or argv[0] in {"-h", "--help", "help"}:
+        _top_level_parser().print_help()
+        return
+
     if argv and argv[0] in {"download", "prepare"}:
         _run_model_command(argv)
         return
@@ -89,6 +93,29 @@ def _normalize_command(argv: list[str]) -> list[str]:
     if argv and argv[0] in {"generate", "gen"}:
         return argv[1:]
     return argv
+
+
+def _top_level_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        prog="mlxgen",
+        usage="mlxgen [generate|download|prepare] ...",
+        description="Prepare local model assets and generate or edit images with MLX-Gen.",
+        epilog=(
+            "Commands:\n"
+            "  generate    Generate or edit an image from a prepared or cached model.\n"
+            "  download    Explicitly download a model snapshot into the Hugging Face cache.\n"
+            "  prepare     Create a reusable local MLX-Gen model folder, optionally quantized.\n"
+            "\n"
+            "Examples:\n"
+            "  mlxgen generate --model z-image-turbo --prompt 'A puffin standing on a cliff'\n"
+            "  mlxgen download --model Qwen/Qwen-Image\n"
+            "  mlxgen prepare --model Qwen/Qwen-Image --path ./models/qwen-image-8bit -q 8\n"
+            "\n"
+            "Use 'mlxgen <command> --help' for command-specific options."
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    return parser
 
 
 def _normalize_task(task: str) -> str:
@@ -269,7 +296,7 @@ def _prepare_model(argv: list[str]) -> None:
 
     previous_argv = sys.argv
     try:
-        sys.argv = ["mflux-save", *argv]
+        sys.argv = ["mlxgen prepare", *argv]
         with allow_downloads():
             save_main()
     finally:

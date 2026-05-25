@@ -270,6 +270,18 @@ def test_unknown_model_requires_supported_family():
         mlx_gen._resolve_invocation(["--model", "unknown/model", "--prompt", "hello"])
 
 
+def test_main_without_args_prints_top_level_help(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["mlxgen"])
+
+    mlx_gen.main()
+
+    output = capsys.readouterr().out
+    assert "usage: mlxgen" in output
+    assert "mlxgen generate" in output
+    assert "mlxgen download" in output
+    assert "mlxgen prepare" in output
+
+
 def test_main_restores_sys_argv(monkeypatch):
     observed = []
     original_argv = ["mlx-gen", "--model", "qwen-image", "--prompt", "x"]
@@ -340,7 +352,7 @@ def test_prepare_command_routes_to_save_with_downloads_enabled(monkeypatch):
 
     assert observed == [
         (
-            ["mflux-save", "--model", "Qwen/Qwen-Image", "--path", "../models/qwen-image-8bit", "-q", "8"],
+            ["mlxgen prepare", "--model", "Qwen/Qwen-Image", "--path", "../models/qwen-image-8bit", "-q", "8"],
             True,
         )
     ]
