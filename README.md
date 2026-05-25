@@ -1,7 +1,5 @@
 # MLX-Gen
 
-![image](src/mflux/assets/logo.jpg)
-
 [![mlx-gen](https://img.shields.io/pypi/v/mlx-gen?label=mlx-gen&logo=pypi&logoColor=white)](https://pypi.org/project/mlx-gen/)
 [![MLX](https://img.shields.io/pypi/v/mlx?label=MLX&logo=pypi&logoColor=white)](https://pypi.org/project/mlx/)
 [![CI](https://github.com/lpalbou/mlx-gen/actions/workflows/tests.yml/badge.svg)](https://github.com/lpalbou/mlx-gen/actions/workflows/tests.yml)
@@ -10,8 +8,14 @@
 
 Run state-of-the-art generative image models locally with native MLX.
 
+> [!IMPORTANT]
+> MLX-Gen is an independent project derived from [mflux](https://github.com/filipstrand/mflux). It is not an upstream mflux release, though it currently keeps the mflux runtime architecture, model code layout, and `mflux-*` CLI compatibility while publishing under the `mlx-gen` package name and exposing `mlxgen` as the application import path.
+>
+> The project exists so compatibility fixes and capabilities can ship quickly for Apple Silicon workflows, including Qwen/FLUX.2 image editing, quantized model packaging, local model loading, and release cadence. We will continue to credit and upstream focused fixes where practical, but MLX-Gen is expected to evolve and diverge rapidly as its own package.
+
 ### Table of contents
 
+- [Relationship to mflux](#relationship-to-mflux)
 - [💡 Philosophy](#-philosophy)
 - [💿 Installation](#-installation)
 - [🎨 Models](#-models)
@@ -22,9 +26,21 @@ Run state-of-the-art generative image models locally with native MLX.
 
 ---
 
+<a id="relationship-to-mflux"></a>
+
+### Relationship to mflux
+
+MLX-Gen started as a fork of [mflux](https://github.com/filipstrand/mflux), which established a clear MLX-native image generation stack. This repository preserves that foundation and remains MIT licensed.
+
+The immediate reason for the independent package is practical: MLX-Gen can iterate faster on compatibility fixes and capabilities that affect real usage, including Qwen Image/Edit quantization layouts, FLUX.2 edit behavior, local model packaging, PyPI release cadence, and Apple Silicon validation. Some of those changes are proposed upstream as small PRs; others may remain MLX-Gen-specific as the project direction diverges.
+
+For now, most internals still live under `mflux.*` and CLI commands remain `mflux-*` for compatibility. New application code may import through `mlxgen`, which aliases the same runtime while giving downstream projects a stable MLX-Gen dependency surface.
+
+---
+
 ### 💡 Philosophy
 
-MLX-Gen is an independent package for running generative image models on MLX. It builds on the mflux architecture while moving faster on Apple Silicon image generation, editing, quantization, and model packaging.
+MLX-Gen is an independent package for running generative image models on MLX. It prioritizes fast local iteration, practical Apple Silicon performance, and compatibility with current model releases without coupling every change to upstream release timing.
 
 The implementation remains intentionally direct: model code is written in MLX, with Hugging Face libraries used for tokenizers and model downloads.
 
@@ -99,7 +115,7 @@ For more Python API inspiration, look at the [CLI entry points](src/mflux/models
 <details>
 <summary>⚠️ Troubleshooting: hf_transfer error</summary>
 
-If you encounter a `ValueError: Fast download using 'hf_transfer' is enabled (HF_HUB_ENABLE_HF_TRANSFER=1) but 'hf_transfer' package is not available`, you can install MFLUX with the `hf_transfer` package included:
+If you encounter a `ValueError: Fast download using 'hf_transfer' is enabled (HF_HUB_ENABLE_HF_TRANSFER=1) but 'hf_transfer' package is not available`, you can install MLX-Gen with the `hf_transfer` package included:
 
 ```sh
 uv tool install --upgrade mlx-gen --with hf_transfer
@@ -153,7 +169,7 @@ MLX-Gen supports the following model families. They have different strengths and
 See the [common README](src/mflux/models/common/README.md) for detailed usage and examples, and use the model section above to browse specific models and capabilities.
 
 > [!NOTE]
-> As MFLUX supports a wide variety of CLI tools and options, the easiest way to navigate the CLI in 2026 is to use a coding agent (like [Cursor](https://cursor.com), [Claude Code](https://www.anthropic.com/claude-code), or similar). Ask questions like: “Can you help me generate an image using z-image?”
+> As MLX-Gen supports a wide variety of CLI tools and options, the easiest way to navigate the CLI in 2026 is to use a coding agent (like [Cursor](https://cursor.com), [Claude Code](https://www.anthropic.com/claude-code), or similar). Ask questions like: “Can you help me generate an image using z-image?”
 
 
 ---
@@ -172,7 +188,7 @@ See the [common README](src/mflux/models/common/README.md) for detailed usage an
 
 ### 🙏 Acknowledgements
 
-MFLUX would not be possible without the great work of:
+MLX-Gen exists because of the great work of:
 
 - The MLX Team for [MLX](https://github.com/ml-explore/mlx) and [MLX examples](https://github.com/ml-explore/mlx-examples)
 - Black Forest Labs for the [FLUX project](https://github.com/black-forest-labs/flux)
@@ -182,7 +198,7 @@ MFLUX would not be possible without the great work of:
 - ByteDance, @numz and @adrientoupet for the [SeedVR2 project](https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler)
 - Hugging Face for the [Diffusers library implementations](https://github.com/huggingface/diffusers) 
 - Depth Pro authors for the [Depth Pro model](https://github.com/apple/ml-depth-pro?tab=readme-ov-file#citation)
-- The upstream mflux project and all [contributors and testers](https://github.com/filipstrand/mflux/graphs/contributors)
+- [mflux](https://github.com/filipstrand/mflux), its maintainer, contributors, and testers. MLX-Gen is currently based on that codebase and will keep acknowledging that foundation even as it evolves independently.
 
 ---
 
