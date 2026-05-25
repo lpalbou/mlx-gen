@@ -9,7 +9,7 @@
 Run state-of-the-art generative image models locally with native MLX.
 
 > [!IMPORTANT]
-> MLX-Gen is an independent project derived from [mflux](https://github.com/filipstrand/mflux). It is not an upstream mflux release, though it currently keeps the mflux runtime architecture and model code layout while publishing under the `mlx-gen` package name and exposing `mlxgen` as the application import path.
+> MLX-Gen is an independent project forked from [mflux](https://github.com/filipstrand/mflux). It is currently built on the mflux codebase, with full credit to Filip Strand and the original contributors, while publishing under the `mlx-gen` package name and exposing `mlxgen` as the application import path.
 >
 > The project exists so compatibility fixes and capabilities can ship quickly for Apple Silicon workflows, including enabling Qwen Image/Edit support, Qwen/FLUX.2 image editing, quantized model packaging, local model loading, AbstractVision integration, and release cadence. We will continue to credit and upstream focused fixes where practical, but MLX-Gen is expected to evolve and diverge rapidly as its own package.
 

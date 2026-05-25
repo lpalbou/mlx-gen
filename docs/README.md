@@ -1,6 +1,6 @@
 # MLX-Gen Documentation
 
-MLX-Gen is an MLX-native generative image runtime derived from mflux. It can be used directly from the command line or embedded in Python applications that need local Apple Silicon generation.
+MLX-Gen is an MLX-native generative image runtime forked from mflux. It can be used directly from the command line or embedded in Python applications that need local Apple Silicon generation.
 
 ## Guides
 

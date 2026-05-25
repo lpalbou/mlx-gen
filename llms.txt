@@ -1,6 +1,6 @@
 # MLX-Gen
 
-MLX-Gen is an MLX-native generative image runtime derived from mflux and published as the `mlx-gen` Python package. It keeps the current mflux runtime architecture and compatibility commands while adding faster release cadence, Qwen/FLUX.2 compatibility fixes, explicit model preparation, and AbstractVision-oriented integration behavior.
+MLX-Gen is an MLX-native generative image runtime forked from mflux and published as the `mlx-gen` Python package. It is currently built on the mflux codebase while adding faster release cadence, Qwen/FLUX.2 compatibility fixes, explicit model preparation, and AbstractVision-oriented integration behavior.
 
 ## Key Documents
 
