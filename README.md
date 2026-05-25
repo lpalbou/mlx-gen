@@ -1,12 +1,14 @@
+# MLX-Gen
+
 ![image](src/mflux/assets/logo.jpg)
 
 [![mlx-gen](https://img.shields.io/pypi/v/mlx-gen?label=mlx-gen&logo=pypi&logoColor=white)](https://pypi.org/project/mlx-gen/)
 [![MLX](https://img.shields.io/pypi/v/mlx?label=MLX&logo=pypi&logoColor=white)](https://pypi.org/project/mlx/)
-[![CI](https://github.com/lpalbou/mflux/actions/workflows/tests.yml/badge.svg)](https://github.com/lpalbou/mflux/actions/workflows/tests.yml)
+[![CI](https://github.com/lpalbou/mlx-gen/actions/workflows/tests.yml/badge.svg)](https://github.com/lpalbou/mlx-gen/actions/workflows/tests.yml)
 
 ### About
 
-Run the latest state-of-the-art generative image models locally on your Mac in native MLX!
+Run state-of-the-art generative image models locally with native MLX.
 
 ### Table of contents
 
@@ -22,7 +24,9 @@ Run the latest state-of-the-art generative image models locally on your Mac in n
 
 ### 💡 Philosophy
 
-MFLUX is a line-by-line MLX port of several state-of-the-art generative image models from the [Huggingface Diffusers](https://github.com/huggingface/diffusers) and [Huggingface Transformers](https://github.com/huggingface/transformers) libraries. All models are implemented from scratch in MLX, using only tokenizers from the [Huggingface Transformers](https://github.com/huggingface/transformers) library. MFLUX is purposefully kept minimal and explicit, [@karpathy](https://gist.github.com/awni/a67d16d50f0f492d94a10418e0592bde?permalink_comment_id=5153531#gistcomment-5153531) style.
+MLX-Gen is an independent package for running generative image models on MLX. It builds on the mflux architecture while moving faster on Apple Silicon image generation, editing, quantization, and model packaging.
+
+The implementation remains intentionally direct: model code is written in MLX, with Hugging Face libraries used for tokenizers and model downloads.
 
 ---
 
@@ -33,9 +37,9 @@ If you haven't already, [install `uv`](https://github.com/astral-sh/uv?tab=readm
 uv tool install --upgrade mlx-gen
 ```
 
-This fork is published on PyPI as `mlx-gen`. The canonical Python module and CLI commands remain `mflux`, with a lightweight `mlxgen` import alias for application code.
+This package is published on PyPI as `mlx-gen`. The Python import for application code is `mlxgen`; the original `mflux` module and `mflux-*` CLI commands remain available for compatibility.
 
-After installation, the following command shows all available MFLUX CLI commands: 
+After installation, the following command shows all available CLI commands:
 
 ```sh
 uv tool list 
@@ -117,7 +121,7 @@ uv tool install --python 3.13 mlx-gen
 
 ### 🎨 Models
 
-MFLUX supports the following model families. They have different strengths and weaknesses; see each model’s README for full usage details.
+MLX-Gen supports the following model families. They have different strengths and weaknesses; see each model’s README for full usage details.
 
 | Model | Release date | Size | Type | Training | Description |
 | --- | --- | --- | --- | --- | --- |
@@ -178,7 +182,7 @@ MFLUX would not be possible without the great work of:
 - ByteDance, @numz and @adrientoupet for the [SeedVR2 project](https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler)
 - Hugging Face for the [Diffusers library implementations](https://github.com/huggingface/diffusers) 
 - Depth Pro authors for the [Depth Pro model](https://github.com/apple/ml-depth-pro?tab=readme-ov-file#citation)
-- The MLX community and all [contributors and testers](https://github.com/filipstrand/mflux/graphs/contributors)
+- The upstream mflux project and all [contributors and testers](https://github.com/filipstrand/mflux/graphs/contributors)
 
 ---
 
