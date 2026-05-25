@@ -18,7 +18,8 @@ Run state-of-the-art generative image models locally with native MLX.
 - [Relationship to mflux](#relationship-to-mflux)
 - [💡 Philosophy](#-philosophy)
 - [💿 Installation](#-installation)
-- [Model Downloads](#model-downloads)
+- [Model Downloads And Preparation](#model-downloads-and-preparation)
+- [Documentation](#documentation)
 - [🎨 Models](#-models)
 - [✨ Features](#-features)
 - [🌱 Related projects](#related-projects)
@@ -62,11 +63,19 @@ uv tool install --upgrade mlx-gen
 
 This package is published on PyPI as `mlx-gen`. The Python import for application code is `mlxgen`.
 
-After installation, the following command shows all available CLI commands:
+After installation, start with the MLX-Gen command help:
 
 ```sh
-uv tool list 
+mlxgen --help
 ```
+
+The public command surface is:
+
+- `mlxgen generate`: generate or edit images with a cached or prepared model.
+- `mlxgen download`: explicitly download a model snapshot into the Hugging Face cache.
+- `mlxgen prepare`: create a reusable local MLX-Gen model folder, optionally quantized, and write a Hugging Face model card.
+
+Use `mlxgen prepare`, not a separate `save` command, when you want a local quantized folder to reuse or upload.
 
 To generate your first image, use `mlxgen generate` and choose the model with `--model`:
 
@@ -103,17 +112,17 @@ mlxgen generate \
 
 If a local model path or custom repository name cannot be classified from its name, add `--family qwen`, `--family flux2`, `--family fibo`, or `--family z-image`. The router can also read `model`, `image_path`, and `image_paths` from `--config-from-metadata`.
 
-### Model Downloads
+### Model Downloads And Preparation
 
 MLX-Gen does not download model, tokenizer, LoRA, or Depth Pro files during generation. Generation is cache-only by default so applications can run predictable workflows without a network transfer starting in the middle of a job.
 
-Use one of these explicit preparation commands before generation:
+Use one of these explicit setup commands before generation:
 
 ```sh
 # Download the required Hugging Face snapshot into the local cache.
 mlxgen download --model Qwen/Qwen-Image
 
-# Save a reusable local MLX-Gen model folder, optionally quantized.
+# Prepare a reusable local MLX-Gen model folder, optionally quantized.
 mlxgen prepare \
   --model Qwen/Qwen-Image \
   --path ./models/qwen-image-8bit \
@@ -123,11 +132,30 @@ mlxgen prepare \
 mlxgen download --model depth-pro
 ```
 
+The commands have different outputs:
+
+| Command | Use it when | Writes a local model folder | Writes a Hugging Face card |
+| --- | --- | --- | --- |
+| `mlxgen download` | You want the original repository cached for generation. | No | No |
+| `mlxgen prepare` | You want a reusable MLX-Gen folder, usually quantized, for local reuse or upload. | Yes | Yes |
+| `mlxgen generate` | You want to run inference from cached or prepared files. | No | No |
+
 `mlxgen download` and `mlxgen prepare` are the commands that authorize network access. If you have Hugging Face's accelerated transfer backend available, you can optionally prefix those commands with `HF_HUB_ENABLE_HF_TRANSFER=1` for faster downloads.
 
 `mlxgen prepare` also writes a Hugging Face `README.md` model card into the prepared folder. The generated card cites the original model, mflux, MLX-Gen, the quantization policy, and the default contributor attribution.
 
 If a required artifact is missing, MLX-Gen raises `DownloadRequiredError` with the exact command to run. See [docs/model-management.md](docs/model-management.md) for details and [docs/python-integration.md](docs/python-integration.md) for in-process usage.
+
+### Documentation
+
+- [Getting started](docs/getting-started.md): install MLX-Gen, discover the CLI, prepare a model, and run generation.
+- [Architecture](docs/architecture.md): package shape, command boundaries, model-file lifecycle, and runtime failure contract.
+- [API and CLI](docs/api.md): public command surface, Python integration notes, and compatibility entry points.
+- [Model management](docs/model-management.md): explicit `download` and `prepare` behavior, runtime cache policy, and model-card creation.
+- [Quantization](docs/quantization.md): q4/q8 behavior and Qwen mixed q4/q8 policy.
+- [Hugging Face publishing](docs/huggingface-publishing.md): generated model cards, upload flow, and collection membership.
+- [FAQ](docs/faq.md): common questions about `prepare`, downloads, package naming, and compatibility.
+- [Troubleshooting](docs/troubleshooting.md): common setup and runtime errors.
 
 <details>
 <summary>Python API</summary>
@@ -195,7 +223,7 @@ MLX-Gen supports the following model families. They have different strengths and
 | Model | Release date | Size | Type | Training | Description |
 | --- | --- | --- | --- | --- | --- |
 |[Z-Image](src/mflux/models/z_image/README.md) | Nov 2025 | 6B | Distilled & Base | Yes | Fast, small, very good quality and realism. |
-|[FLUX.2](src/mflux/models/flux2/README.md) | Jan 2026 | 4B & 9B | Distilled & Base | Yes | Fastest + smallest with very good qaility and edit capabilities. |
+|[FLUX.2](src/mflux/models/flux2/README.md) | Jan 2026 | 4B & 9B | Distilled & Base | Yes | Fastest + smallest with very good quality and edit capabilities. |
 |[FIBO](src/mflux/models/fibo/README.md) | Oct 2025+ | 8B | Distilled & Base | No | Very good JSON-based prompt understanding. Has edit capabilities. |
 |[SeedVR2](src/mflux/models/seedvr2/README.md) | Jun 2025 | 3B & 7B | — | No | Best upscaling model. |
 |[Qwen Image](src/mflux/models/qwen/README.md) | Aug 2025+ | 20B | Base | No | Large model (slower); strong prompt understanding and world knowledge. Has edit capabilities |

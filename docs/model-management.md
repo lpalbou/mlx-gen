@@ -4,6 +4,18 @@ MLX-Gen generation is cache-only by default. It will not download model weights,
 
 This policy keeps CLI jobs and embedded application workflows predictable: a generation request either finds the required files locally or fails with a `DownloadRequiredError` that includes the command to run.
 
+## Command Roles
+
+MLX-Gen exposes three public commands for the normal model lifecycle:
+
+| Command | Purpose | Network access | Main output |
+| --- | --- | --- | --- |
+| `mlxgen download` | Put an original model repository or LoRA repository in the local Hugging Face cache. | Allowed because the user asked for download. | Cached source files. |
+| `mlxgen prepare` | Create a reusable local MLX-Gen model folder, usually quantized. | Allowed because the user asked for preparation. | Local model folder plus generated `README.md` card. |
+| `mlxgen generate` | Generate or edit images from cached or prepared files. | Not allowed by default. | Image output and optional metadata. |
+
+Use `mlxgen prepare`, not a separate `save` command, when you want a local quantized model folder to reuse from another project or upload to Hugging Face.
+
 ## Download A Hugging Face Snapshot
 
 Use `mlxgen download` to populate the local Hugging Face cache:
@@ -26,6 +38,8 @@ mlxgen download --model RiverZ/normal-lora --all-files
 
 `mlxgen download` is already an explicit network operation. `HF_HUB_ENABLE_HF_TRANSFER=1` is optional and only enables Hugging Face's accelerated transfer backend when that backend is available.
 
+Use `download` when you want to run from the source model name or alias and do not need a separate local folder.
+
 ## Prepare A Local MLX-Gen Folder
 
 Use `mlxgen prepare` when you want a reusable local folder, usually with quantized MLX-Gen weights:
@@ -37,6 +51,8 @@ mlxgen prepare \
   -q 8
 ```
 
+`prepare` loads the source model, applies the requested quantization when `-q` / `--quantize` is provided, writes the MLX-Gen saved-weight layout to `--path`, and writes a Hugging Face `README.md` model card into that folder.
+
 Then generate from the local folder:
 
 ```sh
@@ -47,7 +63,24 @@ mlxgen generate \
   --output image.png
 ```
 
-`mlxgen prepare` writes a Hugging Face `README.md` model card into the prepared folder. The card records the source model, MLX-Gen compatibility, mflux attribution, quantization policy, and default contributor attribution.
+If the local folder name does not clearly identify the model family, add `--family` during generation. The supported router families are `qwen`, `flux2`, `fibo`, and `z-image`.
+
+The generated card records the source model, MLX-Gen compatibility, mflux attribution, quantization policy, and default contributor attribution. See [Hugging Face Publishing](huggingface-publishing.md) for upload and collection guidance.
+
+## Choosing Download Or Prepare
+
+Use `mlxgen download` when:
+
+- you want the original repository cached locally;
+- you are using a model alias or Hugging Face repository directly at generation time;
+- you do not need a quantized local folder.
+
+Use `mlxgen prepare` when:
+
+- you want a local path such as `./models/qwen-image-8bit`;
+- you want quantized weights with `-q 4` or `-q 8`;
+- you want a generated Hugging Face model card;
+- you want a folder that another application, such as AbstractVision, can reference without depending on the original repository name.
 
 ## Depth Pro
 

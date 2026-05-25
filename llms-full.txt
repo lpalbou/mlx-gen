@@ -2,15 +2,59 @@
 
 ## Project Summary
 
-MLX-Gen is an MLX-native generative image runtime forked from mflux and published as the `mlx-gen` Python package. It is currently built on the mflux codebase while adding independent release cadence, Qwen Image/Edit support, FLUX.2 fixes, quantized model packaging, local model loading behavior, and AbstractVision integration needs.
+MLX-Gen is an MLX-native generative image runtime forked from mflux and published as the `mlx-gen` Python package. It is currently built on the mflux codebase while adding independent release cadence, Qwen Image/Edit support, FLUX.2 fixes, quantized model packaging, local model loading behavior, generated Hugging Face model cards, and AbstractVision integration needs.
 
 Some internals currently remain under `mflux.*`; new application code should use the `mlxgen` command and import path.
+
+## Document Index
+
+- `README.md`: installation, quick start, model families, project relationship, and acknowledgements.
+- `docs/getting-started.md`: install, inspect `mlxgen --help`, prepare model files, generate, and edit.
+- `docs/architecture.md`: package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
+- `docs/api.md`: public `mlxgen` command surface, generation router, model-management commands, and Python integration boundary.
+- `docs/model-management.md`: cache-only runtime policy, `download` versus `prepare`, Depth Pro, and `DownloadRequiredError`.
+- `docs/quantization.md`: MLX-Gen prepared folder compatibility and Qwen mixed q4/q8 policy.
+- `docs/huggingface-publishing.md`: generated model cards, upload flow, and collection membership.
+- `docs/python-integration.md`: in-process use, AbstractVision integration, progress limitations, and threading guidance.
+- `docs/faq.md`: common questions about `prepare`, downloads, package naming, and compatibility.
+- `docs/troubleshooting.md`: missing files, local path classification, `generate --path`, LoRA, and `hf_transfer`.
+- `docs/release.md`: GitHub Release and PyPI trusted publishing workflow.
+- `ACKNOWLEDGEMENTS.md`: upstream mflux credit and post-fork maintainership.
+- `CONTRIBUTING.md`: development setup, checks, documentation expectations, and pull-request scope.
+- `SECURITY.md`: vulnerability reporting and model/token safety guidance.
+- `CODE_OF_CONDUCT.md`: participation expectations.
+- `CHANGELOG.md`: user-visible release history.
+
+---
 
 ## Relationship To mflux
 
 MLX-Gen started as a fork of `filipstrand/mflux`. Most credit for the current codebase goes to Filip Strand and the original mflux contributors. Changes after the fork are maintained in this project. The project keeps mflux vocabulary where useful for compatibility and possible upstream merge-back, while it may diverge as its own package.
 
 See `ACKNOWLEDGEMENTS.md` for upstream mflux credit, post-fork maintainership, and model/community acknowledgements.
+
+---
+
+## Architecture
+
+MLX-Gen keeps the MLX-native model runtime inherited from mflux while exposing a cleaner `mlxgen` command surface for new users and applications.
+
+The package shape is:
+
+- PyPI distribution: `mlx-gen`
+- Public CLI root: `mlxgen`
+- New application import identity: `mlxgen`
+- Current runtime internals: primarily `mflux.*`
+
+The public command boundary separates setup from inference:
+
+- `mlxgen download` explicitly populates the local cache.
+- `mlxgen prepare` explicitly creates a local model folder.
+- `mlxgen generate` runs inference and does not start downloads by default.
+
+Prepared folders use the MLX/mflux saved-weight layout and may contain MLX quantization tensors. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers loading.
+
+---
 
 ## Runtime Download Policy
 
@@ -24,6 +68,22 @@ The exception exposes:
 - `artifact`
 - `download_command`
 - `prepare_command` when a local prepared folder is applicable
+
+---
+
+## Public CLI
+
+The public command surface is:
+
+- `mlxgen generate`: generate or edit images from cached or prepared files.
+- `mlxgen download`: explicitly download a model snapshot, LoRA repository, or supported direct-download artifact into the local cache.
+- `mlxgen prepare`: create a reusable local MLX-Gen model folder, optionally quantized, and write a Hugging Face `README.md` model card.
+
+Use `mlxgen --help` for the top-level command list and `mlxgen <command> --help` for command-specific options.
+
+`mlxgen prepare` is the public MLX-Gen workflow for creating local quantized model folders. There is no separate MLX-Gen `save` workflow in the user-facing documentation.
+
+---
 
 ## Explicit Model Management
 
@@ -54,60 +114,13 @@ Download Depth Pro weights from Apple:
 mlxgen download --model depth-pro
 ```
 
+`mlxgen download` only fills the local cache. `mlxgen prepare` creates a reusable local folder at `--path`, applies the requested quantization when `-q` / `--quantize` is provided, and writes a generated model card.
+
 `HF_HUB_ENABLE_HF_TRANSFER=1` is optional acceleration for explicit Hugging Face download/prepare commands. It is not required to authorize network access.
 
-`mlxgen prepare` writes a Hugging Face `README.md` model card into the prepared folder. The card records the source model, MLX-Gen compatibility, mflux attribution, quantization policy, and default contributor attribution.
+---
 
-## Quantization
-
-MLX-Gen saves quantized model folders with the mflux/MLX layout used for local inference. These folders are designed for MLX-Gen and are not Diffusers or Transformers `from_pretrained()` checkpoints.
-
-Qwen Image and Qwen Image Edit use a mixed q4/q8 policy when saved with `-q 4`:
-
-- q4 for most Qwen transformer attention, feed-forward, and projection linears.
-- q8 for Qwen `*.img_mod_linear` transformer modulation layers.
-- q4 for group64-compatible Qwen text-encoder language linears.
-- q8 for group64-compatible Qwen text-encoder visual linears.
-- BF16 for the VAE, norms, embeddings, and linears that are not MLX group64-compatible.
-
-This Qwen policy applies to q4 saves only, including Qwen Image and Qwen Image Edit variants such as 2509 and 2511 edit checkpoints.
-
-The q8 path was not changed by the mixed-q4 work. Qwen q8 uses the standard MLX-Gen/mflux quantization flow: quantizable modules are saved at 8-bit where supported, while VAE weights and non-quantizable layers remain BF16. Other model families use their existing model-specific quantization predicates.
-
-## Hugging Face Publishing
-
-Prepared model folders include a generated Hugging Face `README.md` card. Upload the folder with a command such as:
-
-```sh
-huggingface-cli upload lpalbou/qwen-image-edit-2511-4bit ./models/qwen-image-edit-2511-4bit .
-```
-
-Hugging Face collection membership is managed separately from model-card metadata. After upload, use the Hugging Face UI or `huggingface_hub.HfApi.add_collection_item` with the collection slug from the collection URL. The recommended collection for current published checkpoints is AbstractFramework / mlx-gen.
-
-## Release
-
-MLX-Gen publishes Python distributions to PyPI and attaches the same distributions to a GitHub Release through `.github/workflows/release.yml`.
-
-PyPI trusted publishing must be configured for PyPI project `mlx-gen`, repository `lpalbou/mlx-gen`, workflow filename `release.yml`, and GitHub environment `pypi`. The workflow uses OpenID Connect through `pypa/gh-action-pypi-publish`; it does not require a long-lived PyPI API token.
-
-The release workflow runs fast tests on macOS, validates package name, version, changelog entry, tag name, and duplicate PyPI versions, builds distributions with `uv build`, validates them with `twine check`, creates a GitHub Release with the wheel and source distribution when publishing, and publishes the same artifacts to PyPI through trusted publishing.
-
-Run a non-publishing rehearsal with:
-
-```sh
-gh workflow run release.yml \
-  -f version=<version> \
-  -f publish=false
-```
-
-The preferred release path is a version tag:
-
-```sh
-git tag v<version>
-git push origin main --tags
-```
-
-## CLI Usage
+## Generation
 
 Use `mlxgen generate` as the smart router:
 
@@ -136,9 +149,43 @@ mlxgen generate \
 
 If a local model path or custom repository name cannot be classified, pass `--family qwen`, `--family flux2`, `--family fibo`, or `--family z-image`.
 
+`mlxgen generate` does not accept `--path` to create model folders. Use `mlxgen prepare --model ... --path ... -q ...` for model preparation and use `--output` to choose the generated image path.
+
+---
+
+## Quantization
+
+MLX-Gen prepares quantized model folders with the mflux/MLX layout used for local inference. These folders are designed for MLX-Gen and compatible mflux code, not Diffusers or Transformers `from_pretrained()` checkpoints.
+
+Qwen Image and Qwen Image Edit use a mixed q4/q8 policy when prepared with `-q 4`:
+
+- q4 for most Qwen transformer attention, feed-forward, and projection linears.
+- q8 for Qwen `*.img_mod_linear` transformer modulation layers.
+- q4 for group64-compatible Qwen text-encoder language linears.
+- q8 for group64-compatible Qwen text-encoder visual linears.
+- BF16 for the VAE, norms, embeddings, and linears that are not MLX group64-compatible.
+
+This Qwen policy applies to q4 prepared folders only, including Qwen Image and Qwen Image Edit variants such as 2509 and 2511 edit checkpoints.
+
+The q8 path was not changed by the mixed-q4 work. Qwen q8 uses the standard MLX-Gen/mflux quantization flow: quantizable modules are saved at 8-bit where supported, while VAE weights and non-quantizable layers remain BF16. Other model families use their existing model-specific quantization predicates.
+
+---
+
+## Hugging Face Publishing
+
+Prepared model folders include a generated Hugging Face `README.md` card. Upload the folder with a command such as:
+
+```sh
+huggingface-cli upload lpalbou/qwen-image-edit-2511-4bit ./models/qwen-image-edit-2511-4bit .
+```
+
+Hugging Face collection membership is managed separately from model-card metadata. After upload, use the Hugging Face UI or `huggingface_hub.HfApi.add_collection_item` with the collection slug from the collection URL. The recommended collection for current published checkpoints is AbstractFramework / mlx-gen.
+
+---
+
 ## Python Integration
 
-Python callers should prepare models before constructing runtime model objects.
+Python callers should download or prepare models before constructing runtime model objects.
 
 ```python
 from mflux.models.common.download_policy import DownloadRequiredError
@@ -153,8 +200,6 @@ except DownloadRequiredError as exc:
 
 Applications should surface the exception message or command fields and stop the workflow.
 
-## AbstractVision
-
 MLX-Gen is intended to be the Apple Silicon / MLX dependency for AbstractVision while AbstractVision remains cross-platform.
 
 Current responsibilities:
@@ -163,11 +208,17 @@ Current responsibilities:
 - MLX-Gen owns MLX model loading, model-family behavior, local quantized formats, and runtime compatibility fixes.
 - MLX-Gen fails early when required local artifacts are missing so AbstractVision can surface an actionable remediation message.
 
+Existing model callbacks remain available through the mflux runtime internals. A stable, backend-facing progress event API is not yet part of MLX-Gen.
+
+---
+
 ## Troubleshooting
 
 If MLX-Gen says it will not download files during generation, run the command shown in the error and retry.
 
 If a local path cannot be classified, add `--family`.
+
+If `generate --path` fails, use `mlxgen prepare --model ... --path ... -q ...` to create a model folder or `--output` to choose the generated image path.
 
 If a LoRA is missing, download it or pass a local `.safetensors` path. Missing user-requested LoRAs are required and are not silently ignored.
 
@@ -176,3 +227,38 @@ If `HF_HUB_ENABLE_HF_TRANSFER=1` is explicitly enabled and fails because `hf_tra
 ```sh
 uv tool install --upgrade mlx-gen --with hf_transfer
 ```
+
+---
+
+## Release
+
+MLX-Gen publishes Python distributions to PyPI and attaches the same distributions to a GitHub Release through `.github/workflows/release.yml`.
+
+PyPI trusted publishing must be configured for PyPI project `mlx-gen`, repository `lpalbou/mlx-gen`, workflow filename `release.yml`, and GitHub environment `pypi`. The workflow uses OpenID Connect through `pypa/gh-action-pypi-publish`; it does not require a long-lived PyPI API token.
+
+The release workflow runs fast tests on macOS, validates package name, version, changelog entry, tag name, and duplicate PyPI versions, builds distributions with `uv build`, validates them with `twine check`, creates a GitHub Release with the wheel and source distribution when publishing, and publishes the same artifacts to PyPI through trusted publishing.
+
+Run a non-publishing rehearsal with:
+
+```sh
+gh workflow run release.yml \
+  -f version=<version> \
+  -f publish=false
+```
+
+The preferred release path is a version tag:
+
+```sh
+git tag v<version>
+git push origin main --tags
+```
+
+---
+
+## Project Participation
+
+Contributors should use `uv`, keep pull requests focused, document user-facing behavior in the core docs, and prefer `mlxgen` commands in new documentation.
+
+Security issues should be reported privately through the repository security advisory flow when available. Do not include secrets, private model tokens, or proprietary model artifacts in public reports.
+
+Participants are expected to be respectful, constructive, and focused on the work.

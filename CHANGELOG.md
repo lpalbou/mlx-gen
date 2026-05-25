@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **CLI discoverability**: `mlxgen` and `mlxgen --help` now show the top-level `generate`, `download`, and `prepare` workflows instead of dropping directly into generation arguments.
+- **Prepare command naming**: `mlxgen prepare --help` now presents the command as `mlxgen prepare` and describes the generated local model folder and Hugging Face model card.
+
+### Fixed
+
+- **Generate/prepare confusion**: `mlxgen generate --path ...` now fails with an actionable message that points to `mlxgen prepare --model ... --path ... -q ...` and explains that image outputs use `--output`.
+
+### Documentation
+
+- Clarify that `mlxgen prepare` is the public MLX-Gen workflow for creating reusable local quantized model folders and generated Hugging Face cards.
+
 ## [0.18.0] - 2026-05-25
 
 ### Added

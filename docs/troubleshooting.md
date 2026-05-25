@@ -26,6 +26,18 @@ mlxgen generate \
 
 Supported router families are `qwen`, `flux2`, `fibo`, and `z-image`.
 
+## `generate --path` Fails
+
+`--path` belongs to `mlxgen prepare`, where it names the local model folder to create. It is not a generation option.
+
+To prepare a quantized model folder:
+
+```sh
+mlxgen prepare --model black-forest-labs/FLUX.2-klein-4B --path models/flux.2-klein-4b-4bit -q 4
+```
+
+To choose the generated image path, use `--output` with `mlxgen generate`.
+
 ## LoRA Is Missing
 
 User-requested LoRAs are required. MLX-Gen no longer ignores a missing LoRA and continues without it. Download the LoRA repository or use a local `.safetensors` file path.

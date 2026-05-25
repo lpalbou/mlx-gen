@@ -4,7 +4,7 @@ MLX-Gen can be embedded directly in Python. The current runtime still exposes mo
 
 ## Cache-Only Runtime
 
-Python callers should prepare models before constructing model objects. Runtime constructors and generation calls do not download missing artifacts.
+Python callers should download or prepare models before constructing model objects. Runtime constructors and generation calls do not download missing artifacts. See [Model Management](model-management.md) for the CLI setup commands.
 
 ```python
 from mflux.models.common.download_policy import DownloadRequiredError

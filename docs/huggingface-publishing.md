@@ -2,6 +2,8 @@
 
 `mlxgen prepare` creates a `README.md` model card in the prepared model folder. The generated card cites the source model, mflux, MLX-Gen, the quantization policy, and the default contributor attribution to [@lpalbou](https://huggingface.co/lpalbou).
 
+Use `mlxgen prepare` before upload whenever you want to publish a quantized MLX-Gen folder. `mlxgen download` only fills the local Hugging Face cache and does not create an uploadable prepared folder.
+
 ## Prepare A Model Folder
 
 ```sh
@@ -10,6 +12,8 @@ mlxgen prepare \
   --path ./models/qwen-image-edit-2511-4bit \
   -q 4
 ```
+
+The prepared folder contains the MLX-Gen saved-weight layout plus the generated `README.md` model card.
 
 The prepared folder can then be uploaded to Hugging Face:
 

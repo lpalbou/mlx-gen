@@ -1,18 +1,25 @@
 # MLX-Gen
 
-MLX-Gen is an MLX-native generative image runtime forked from mflux and published as the `mlx-gen` Python package. It is currently built on the mflux codebase while adding faster release cadence, Qwen/FLUX.2 compatibility fixes, explicit model preparation, and AbstractVision-oriented integration behavior.
+MLX-Gen is an MLX-native generative image runtime forked from mflux and published as the `mlx-gen` Python package. It is currently built on the mflux codebase while adding faster release cadence, Qwen/FLUX.2 compatibility fixes, explicit model preparation, Hugging Face model-card generation, and AbstractVision-oriented integration behavior.
 
 ## Key Documents
 
 - [README.md](README.md): installation, project relationship to mflux, main CLI examples, supported model families, and acknowledgements.
-- [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md): upstream mflux credit, post-fork maintainership, and model/community acknowledgements.
+- [docs/getting-started.md](docs/getting-started.md): first-run workflow, top-level CLI discovery, model preparation, generation, and editing.
+- [docs/architecture.md](docs/architecture.md): package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
+- [docs/api.md](docs/api.md): public `mlxgen` command surface, generation router behavior, model-management commands, and Python integration boundary.
 - [docs/model-management.md](docs/model-management.md): cache-only runtime policy, explicit `mlxgen download` and `mlxgen prepare` flows, Depth Pro download command, and `DownloadRequiredError`.
-- [docs/quantization.md](docs/quantization.md): q4/q8 save behavior, including Qwen mixed q4/q8 checkpoints.
+- [docs/quantization.md](docs/quantization.md): q4/q8 prepare behavior, including Qwen mixed q4/q8 checkpoints.
 - [docs/huggingface-publishing.md](docs/huggingface-publishing.md): generated model cards, upload flow, and Hugging Face collection membership.
 - [docs/python-integration.md](docs/python-integration.md): current Python API expectations, AbstractVision integration notes, progress limitations, and threading guidance.
 - [docs/release.md](docs/release.md): GitHub Release and PyPI trusted publishing workflow.
+- [docs/faq.md](docs/faq.md): common questions about `prepare`, downloads, package naming, and compatibility.
 - [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, LoRA, and `hf_transfer` issues.
+- [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md): upstream mflux credit, post-fork maintainership, and model/community acknowledgements.
 - [CHANGELOG.md](CHANGELOG.md): release history.
+- [CONTRIBUTING.md](CONTRIBUTING.md): development setup, checks, documentation expectations, and pull-request scope.
+- [SECURITY.md](SECURITY.md): vulnerability reporting and model/token safety guidance.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): participation expectations.
 
 ## Important Runtime Contract
 
@@ -25,6 +32,8 @@ mlxgen download --model Qwen/Qwen-Image
 mlxgen prepare --model Qwen/Qwen-Image --path ./models/qwen-image-8bit -q 8
 mlxgen download --model depth-pro
 ```
+
+`mlxgen download` only fills the local cache. `mlxgen prepare` creates a reusable local MLX-Gen model folder and writes a Hugging Face `README.md` model card. `mlxgen generate` does not accept `--path` for model preparation; use `--output` for generated image files.
 
 `HF_HUB_ENABLE_HF_TRANSFER=1` is optional acceleration for explicit Hugging Face download/prepare commands; it is not the authorization mechanism.
 

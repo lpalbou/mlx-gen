@@ -1,10 +1,10 @@
 # Quantization
 
-MLX-Gen saves quantized model folders with the same mflux/MLX layout used for local inference. These folders are designed for MLX-Gen and are not Diffusers or Transformers `from_pretrained()` checkpoints.
+MLX-Gen prepares quantized model folders with the same mflux/MLX layout used for local inference. Use `mlxgen prepare --model ... --path ... -q ...` to create those folders. They are designed for MLX-Gen and are not Diffusers or Transformers `from_pretrained()` checkpoints.
 
 ## Qwen q4
 
-Qwen Image and Qwen Image Edit use a mixed q4/q8 policy when saved with `-q 4`. Fully q4 Qwen checkpoints can lose coherent generative behavior, so MLX-Gen keeps only the sensitive paths at higher precision:
+Qwen Image and Qwen Image Edit use a mixed q4/q8 policy when prepared with `-q 4`. Fully q4 Qwen checkpoints can lose coherent generative behavior, so MLX-Gen keeps only the sensitive paths at higher precision:
 
 - q4 for most Qwen transformer attention, feed-forward, and projection linears.
 - q8 for Qwen `*.img_mod_linear` transformer modulation layers.
@@ -12,7 +12,7 @@ Qwen Image and Qwen Image Edit use a mixed q4/q8 policy when saved with `-q 4`. 
 - q8 for group64-compatible Qwen text-encoder visual linears.
 - BF16 for the VAE, norms, embeddings, and linears that are not MLX group64-compatible.
 
-This policy applies to Qwen q4 saves only. It is used for Qwen Image and Qwen Image Edit variants, including 2509 and 2511 edit checkpoints.
+This policy applies to Qwen q4 prepared folders only. It is used for Qwen Image and Qwen Image Edit variants, including 2509 and 2511 edit checkpoints.
 
 ## q8
 

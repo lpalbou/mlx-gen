@@ -105,6 +105,28 @@ def test_routes_generate_subcommand_form():
     ]
 
 
+def test_generate_with_path_reports_prepare_command(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "generate",
+                "--model",
+                "black-forest-labs/FLUX.2-klein-4B",
+                "-q",
+                "4",
+                "--path",
+                "models/flux.2-klein-4b-4bit",
+            ]
+        )
+
+    error_output = capsys.readouterr().err
+    assert "--path prepares a local model folder" in error_output
+    assert (
+        "mlxgen prepare --model black-forest-labs/FLUX.2-klein-4B --path models/flux.2-klein-4b-4bit -q 4"
+    ) in error_output
+    assert "--output" in error_output
+
+
 def test_routes_flux2_with_image_to_edit_generation():
     invocation = mlx_gen._resolve_invocation(
         [

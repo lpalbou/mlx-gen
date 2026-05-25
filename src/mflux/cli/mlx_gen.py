@@ -81,12 +81,46 @@ def _parse_router_args(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
     metadata = _read_metadata_config(parser, argv)
     if args.model is None:
         args.model = metadata.get("model")
+    _reject_prepare_path_in_generate(parser, args, forwarded)
     args.metadata_images = _metadata_images(metadata)
     args.task = _normalize_task(args.task)
     args.has_image_strength = _option_was_provided(argv, "--image-strength")
     if args.model is None:
         parser.error("--model is required so mlx-gen can choose the right backend, unless metadata provides it.")
     return args, forwarded
+
+
+def _reject_prepare_path_in_generate(
+    parser: argparse.ArgumentParser, args: argparse.Namespace, forwarded: list[str]
+) -> None:
+    path = _option_value(forwarded, "--path")
+    if path is None:
+        return
+
+    quantize = _option_value(forwarded, "--quantize") or _option_value(forwarded, "-q")
+    prepare_command = ["mlxgen", "prepare"]
+    if args.model is not None:
+        prepare_command.extend(["--model", args.model])
+    prepare_command.extend(["--path", path])
+    if quantize is not None:
+        prepare_command.extend(["-q", quantize])
+
+    parser.error(
+        "--path prepares a local model folder and is not a generation option. "
+        f"Use `{shlex.join(prepare_command)}` to create the model folder. "
+        "Use --output to choose the generated image path."
+    )
+
+
+def _option_value(argv: list[str], option_name: str) -> str | None:
+    for index, token in enumerate(argv):
+        if token == option_name:
+            if index + 1 >= len(argv):
+                return ""
+            return argv[index + 1]
+        if token.startswith(f"{option_name}="):
+            return token.split("=", 1)[1]
+    return None
 
 
 def _normalize_command(argv: list[str]) -> list[str]:
