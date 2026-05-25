@@ -6,6 +6,8 @@ MLX-Gen is an MLX-native generative image runtime derived from mflux and publish
 
 - [README.md](README.md): installation, project relationship to mflux, main CLI examples, supported model families, and acknowledgements.
 - [docs/model-management.md](docs/model-management.md): cache-only runtime policy, explicit `mlxgen download` and `mlxgen prepare` flows, Depth Pro download command, and `DownloadRequiredError`.
+- [docs/quantization.md](docs/quantization.md): q4/q8 save behavior, including Qwen mixed q4/q8 checkpoints.
+- [docs/huggingface-publishing.md](docs/huggingface-publishing.md): generated model cards, upload flow, and Hugging Face collection membership.
 - [docs/python-integration.md](docs/python-integration.md): current Python API expectations, AbstractVision integration notes, progress limitations, and threading guidance.
 - [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, LoRA, and `hf_transfer` issues.
 - [CHANGELOG.md](CHANGELOG.md): release history.
@@ -17,15 +19,18 @@ Generation and Python model construction are cache-only by default. MLX-Gen does
 Explicit preparation commands:
 
 ```sh
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model Qwen/Qwen-Image
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen prepare --model Qwen/Qwen-Image --path ./models/qwen-image-8bit -q 8
+mlxgen download --model Qwen/Qwen-Image
+mlxgen prepare --model Qwen/Qwen-Image --path ./models/qwen-image-8bit -q 8
 mlxgen download --model depth-pro
 ```
+
+`HF_HUB_ENABLE_HF_TRANSFER=1` is optional acceleration for explicit Hugging Face download/prepare commands; it is not the authorization mechanism.
 
 ## Code Entry Points
 
 - `src/mflux/cli/mlx_gen.py`: smart `mlxgen` command router plus explicit `download` and `prepare`.
 - `src/mflux/models/common/download_policy.py`: download policy, explicit command helpers, and `DownloadRequiredError`.
+- `src/mflux/models/common/weights/saving/model_card_saver.py`: generated Hugging Face model-card content for prepared model folders.
 - `src/mflux/models/common/resolution/path_resolution.py`: cache-only Hugging Face model path resolution.
 - `src/mflux/models/common/tokenizer/tokenizer_loader.py`: cache-only tokenizer resolution.
 - `src/mflux/models/common/resolution/lora_resolution.py`: cache-only LoRA resolution.

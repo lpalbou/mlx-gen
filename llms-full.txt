@@ -28,19 +28,19 @@ The exception exposes:
 Download a Hugging Face snapshot into the local cache:
 
 ```sh
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model Qwen/Qwen-Image
+mlxgen download --model Qwen/Qwen-Image
 ```
 
 Download a known alias:
 
 ```sh
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model z-image-turbo
+mlxgen download --model z-image-turbo
 ```
 
 Prepare a reusable local MLX-Gen folder:
 
 ```sh
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen prepare \
+mlxgen prepare \
   --model Qwen/Qwen-Image \
   --path ./models/qwen-image-8bit \
   -q 8
@@ -51,6 +51,36 @@ Download Depth Pro weights from Apple:
 ```sh
 mlxgen download --model depth-pro
 ```
+
+`HF_HUB_ENABLE_HF_TRANSFER=1` is optional acceleration for explicit Hugging Face download/prepare commands. It is not required to authorize network access.
+
+`mlxgen prepare` and `mflux-save` write a Hugging Face `README.md` model card into the prepared folder. The card records the source model, MLX-Gen compatibility, mflux attribution, quantization policy, and default contributor attribution.
+
+## Quantization
+
+MLX-Gen saves quantized model folders with the mflux/MLX layout used for local inference. These folders are designed for MLX-Gen and are not Diffusers or Transformers `from_pretrained()` checkpoints.
+
+Qwen Image and Qwen Image Edit use a mixed q4/q8 policy when saved with `-q 4`:
+
+- q4 for most Qwen transformer attention, feed-forward, and projection linears.
+- q8 for Qwen `*.img_mod_linear` transformer modulation layers.
+- q4 for group64-compatible Qwen text-encoder language linears.
+- q8 for group64-compatible Qwen text-encoder visual linears.
+- BF16 for the VAE, norms, embeddings, and linears that are not MLX group64-compatible.
+
+This Qwen policy applies to q4 saves only, including Qwen Image and Qwen Image Edit variants such as 2509 and 2511 edit checkpoints.
+
+The q8 path was not changed by the mixed-q4 work. Qwen q8 uses the standard MLX-Gen/mflux quantization flow: quantizable modules are saved at 8-bit where supported, while VAE weights and non-quantizable layers remain BF16. Other model families use their existing model-specific quantization predicates.
+
+## Hugging Face Publishing
+
+Prepared model folders include a generated Hugging Face `README.md` card. Upload the folder with a command such as:
+
+```sh
+huggingface-cli upload lpalbou/qwen-image-edit-2511-4bit ./models/qwen-image-edit-2511-4bit .
+```
+
+Hugging Face collection membership is managed separately from model-card metadata. After upload, use the Hugging Face UI or `huggingface_hub.HfApi.add_collection_item` with the collection slug from the collection URL. The recommended collection for current published checkpoints is AbstractFramework / mlx-gen.
 
 ## CLI Usage
 
@@ -116,7 +146,7 @@ If a local path cannot be classified, add `--family`.
 
 If a LoRA is missing, download it or pass a local `.safetensors` path. Missing user-requested LoRAs are required and are not silently ignored.
 
-If `HF_HUB_ENABLE_HF_TRANSFER=1` fails because `hf_transfer` is missing, install MLX-Gen with:
+If `HF_HUB_ENABLE_HF_TRANSFER=1` is explicitly enabled and fails because `hf_transfer` is missing, install MLX-Gen with:
 
 ```sh
 uv tool install --upgrade mlx-gen --with hf_transfer

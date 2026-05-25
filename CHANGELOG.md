@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.5.post4] - 2026-05-25
+
+### Added
+
+- **Generated Hugging Face model cards**: `mlxgen prepare` and `mflux-save` now write a `README.md` model card into prepared model folders with source-model attribution, mflux and MLX-Gen compatibility notes, quantization details, contributor attribution, and collection guidance.
+
+### Changed
+
+- **Download command hints**: Missing-artifact remediation now shows plain `mlxgen download` and `mlxgen prepare` commands. `HF_HUB_ENABLE_HF_TRANSFER=1` remains optional acceleration for explicit Hugging Face downloads, not the download authorization mechanism.
+
+### Documentation
+
+- Document Qwen q4 mixed q4/q8 policy, q8 behavior, Hugging Face model-card generation, and collection publishing workflow.
+
+---
+
 ## [0.17.5.post3] - 2026-05-25
 
 ### Changed

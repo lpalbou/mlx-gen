@@ -9,27 +9,29 @@ This policy keeps CLI jobs and embedded application workflows predictable: a gen
 Use `mlxgen download` to populate the local Hugging Face cache:
 
 ```sh
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model Qwen/Qwen-Image
+mlxgen download --model Qwen/Qwen-Image
 ```
 
 Aliases are supported when MLX-Gen knows the model:
 
 ```sh
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model z-image-turbo
+mlxgen download --model z-image-turbo
 ```
 
 For LoRA repositories, download the repository explicitly before passing it to generation:
 
 ```sh
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model RiverZ/normal-lora --all-files
+mlxgen download --model RiverZ/normal-lora --all-files
 ```
+
+`mlxgen download` is already an explicit network operation. `HF_HUB_ENABLE_HF_TRANSFER=1` is optional and only enables Hugging Face's accelerated transfer backend when that backend is available.
 
 ## Prepare A Local MLX-Gen Folder
 
 Use `mlxgen prepare` when you want a reusable local folder, usually with quantized MLX-Gen weights:
 
 ```sh
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen prepare \
+mlxgen prepare \
   --model Qwen/Qwen-Image \
   --path ./models/qwen-image-8bit \
   -q 8
@@ -46,6 +48,8 @@ mlxgen generate \
 ```
 
 `mflux-save` remains available for compatibility and uses the same explicit download permission as `mlxgen prepare`.
+
+`mlxgen prepare` and `mflux-save` write a Hugging Face `README.md` model card into the prepared folder. The card records the source model, MLX-Gen compatibility, mflux attribution, quantization policy, and default contributor attribution.
 
 ## Depth Pro
 

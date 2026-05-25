@@ -21,6 +21,7 @@ def test_load_single_requires_explicit_download_when_not_cached(monkeypatch):
     error = str(exc_info.value)
     assert "MLX-Gen will not download model files during generation" in error
     assert "mlxgen download --model org/model" in error
+    assert "HF_HUB_ENABLE_HF_TRANSFER" not in error
 
 
 @pytest.mark.fast

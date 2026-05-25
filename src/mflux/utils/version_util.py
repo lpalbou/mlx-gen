@@ -26,7 +26,15 @@ class VersionUtil:
 
     @staticmethod
     def _get_installed_version() -> str | None:
+        for distribution_name in ("mlx-gen", "abstractvision-mflux", "mflux"):
+            version = VersionUtil._read_installed_distribution_version(distribution_name)
+            if version is not None:
+                return version
+        return None
+
+    @staticmethod
+    def _read_installed_distribution_version(distribution_name: str) -> str | None:
         try:
-            return importlib.metadata.version("mflux")
+            return importlib.metadata.version(distribution_name)
         except importlib.metadata.PackageNotFoundError:
             return None

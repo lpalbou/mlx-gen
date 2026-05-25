@@ -135,7 +135,7 @@ mflux-generate-fill \
 - **Steps**: Using 20-30 denoising steps generally produces higher quality results.
 
 > [!WARNING]
-> Note: Using the Fill tool requires an additional 33.92 GB download from [black-forest-labs/FLUX.1-Fill-dev](https://huggingface.co/black-forest-labs/FLUX.1-Fill-dev). Download it explicitly before generation with `HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model black-forest-labs/FLUX.1-Fill-dev`.
+> Note: Using the Fill tool requires an additional 33.92 GB download from [black-forest-labs/FLUX.1-Fill-dev](https://huggingface.co/black-forest-labs/FLUX.1-Fill-dev). Download it explicitly before generation with `mlxgen download --model black-forest-labs/FLUX.1-Fill-dev`.
 
 #### 🔍 Depth
 
@@ -186,7 +186,7 @@ Quantization is supported for the Depth Pro model, however, output quality can v
 > Note: The Depth Pro model requires an additional 1.9GB download from Apple. Download it explicitly before generation with `mlxgen download --model depth-pro`.
 
 > [!WARNING]
-> Note: Using the Depth tool requires an additional 33.92 GB download from [black-forest-labs/FLUX.1-Depth-dev](https://huggingface.co/black-forest-labs/FLUX.1-Depth-dev). Download it explicitly before generation with `HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model black-forest-labs/FLUX.1-Depth-dev`.
+> Note: Using the Depth tool requires an additional 33.92 GB download from [black-forest-labs/FLUX.1-Depth-dev](https://huggingface.co/black-forest-labs/FLUX.1-Depth-dev). Download it explicitly before generation with `mlxgen download --model black-forest-labs/FLUX.1-Depth-dev`.
 
 #### 🔄 Redux
 
@@ -229,7 +229,7 @@ A higher strength value gives the reference image more influence over the final 
 There is a tendency for the reference image to dominate over the input prompt.
 
 > [!WARNING]
-> Note: Using the Redux tool requires an additional 1.1GB download from [black-forest-labs/FLUX.1-Redux-dev](https://huggingface.co/black-forest-labs/FLUX.1-Redux-dev). Download it explicitly before generation with `HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model black-forest-labs/FLUX.1-Redux-dev`.
+> Note: Using the Redux tool requires an additional 1.1GB download from [black-forest-labs/FLUX.1-Redux-dev](https://huggingface.co/black-forest-labs/FLUX.1-Redux-dev). Download it explicitly before generation with `mlxgen download --model black-forest-labs/FLUX.1-Redux-dev`.
 
 ---
 
@@ -325,7 +325,7 @@ For comprehensive prompting strategies, see the [official Black Forest Labs Kont
 4. **Resolution**: Use standard resolutions (1024x1024, 768x1024, etc.) for best results
 
 > [!WARNING]
-> Note: Using the Kontext tool requires an additional ~34 GB download from [black-forest-labs/FLUX.1-Kontext-dev](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev). Download it explicitly before generation with `HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model black-forest-labs/FLUX.1-Kontext-dev`.
+> Note: Using the Kontext tool requires an additional ~34 GB download from [black-forest-labs/FLUX.1-Kontext-dev](https://huggingface.co/black-forest-labs/FLUX.1-Kontext-dev). Download it explicitly before generation with `mlxgen download --model black-forest-labs/FLUX.1-Kontext-dev`.
 
 #### 🎨 In-Context LoRA
 
@@ -544,7 +544,7 @@ mflux-generate-in-context-edit \
 5. **Try Multiple Seeds**: Generate several variations with different seeds to find the best result, as outcomes can vary significantly
 
 > [!WARNING]
-> Note: Using the IC-Edit tool requires an additional ~230MB download for the specialized LoRA weights. Download it explicitly before generation with `HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model RiverZ/normal-lora --all-files`. This remarkably small LoRA (less than 0.7% of the base model's ~34GB) enables sophisticated image editing capabilities, demonstrating that the base FLUX model is already highly competent at style transfers and transformations - the LoRA simply provides the user control and interface to access these latent capabilities.
+> Note: Using the IC-Edit tool requires an additional ~230MB download for the specialized LoRA weights. Download it explicitly before generation with `mlxgen download --model RiverZ/normal-lora --all-files`. This remarkably small LoRA (less than 0.7% of the base model's ~34GB) enables sophisticated image editing capabilities, demonstrating that the base FLUX model is already highly competent at style transfers and transformations - the LoRA simply provides the user control and interface to access these latent capabilities.
 
 ---
 
@@ -572,7 +572,7 @@ mflux-generate-controlnet \
 *This example combines the controlnet reference image with the LoRA [Dark Comic Flux](https://civitai.com/models/742916/dark-comic-flux)*.
 
 > [!WARNING]
-> Note: Controlnet requires an additional one-time download of ~3.58GB of weights from Hugging Face. Download it explicitly before generation with `HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model InstantX/FLUX.1-dev-Controlnet-Canny`.
+> Note: Controlnet requires an additional one-time download of ~3.58GB of weights from Hugging Face. Download it explicitly before generation with `mlxgen download --model InstantX/FLUX.1-dev-Controlnet-Canny`.
 > At the moment, the Controlnet used is [InstantX/FLUX.1-dev-Controlnet-Canny](https://huggingface.co/InstantX/FLUX.1-dev-Controlnet-Canny), which was trained for the `dev` model.
 > It can work well with `schnell`, but performance is not guaranteed.
 

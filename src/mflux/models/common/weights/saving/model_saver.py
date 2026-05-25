@@ -9,6 +9,7 @@ from tqdm import tqdm
 from transformers import PreTrainedTokenizer
 
 from mflux.models.common.lora.mapping.lora_saver import LoRASaver
+from mflux.models.common.weights.saving.model_card_saver import ModelCardSaver
 from mflux.utils.version_util import VersionUtil
 
 if TYPE_CHECKING:
@@ -39,6 +40,8 @@ class ModelSaver:
                 # Bake and strip any LoRA wrappers to avoid duplicating shared weights
                 LoRASaver.bake_and_strip_lora(component)
                 ModelSaver._save_weights(base_path, bits, component, subdir)
+
+        ModelCardSaver.save_model_card(base_path, model, bits)
 
     @staticmethod
     def _save_tokenizer(base_path: str, tokenizer: PreTrainedTokenizer, subdir: str) -> None:

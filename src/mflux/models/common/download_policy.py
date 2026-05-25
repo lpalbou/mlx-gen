@@ -72,15 +72,12 @@ def explicit_download_hint(repo_id: str, *, path: str | None = None, artifact: s
 
 def explicit_download_command(repo_id: str, *, artifact: str = "model") -> str:
     suffix = " --all-files" if artifact.lower() == "lora" else ""
-    return f"HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model {shlex.quote(repo_id)}{suffix}"
+    return f"mlxgen download --model {shlex.quote(repo_id)}{suffix}"
 
 
 def explicit_prepare_command(repo_id: str, *, path: str | None = None, quantize: int = 8) -> str:
     local_path = path or f"./models/{_local_model_dir_name(repo_id)}"
-    return (
-        f"HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen prepare --model {shlex.quote(repo_id)} "
-        f"--path {shlex.quote(local_path)} -q {quantize}"
-    )
+    return f"mlxgen prepare --model {shlex.quote(repo_id)} --path {shlex.quote(local_path)} -q {quantize}"
 
 
 def raise_download_required(repo_id: str, *, artifact: str = "model") -> None:

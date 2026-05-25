@@ -111,10 +111,10 @@ Use one of these explicit preparation commands before generation:
 
 ```sh
 # Download the required Hugging Face snapshot into the local cache.
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model Qwen/Qwen-Image
+mlxgen download --model Qwen/Qwen-Image
 
 # Save a reusable local MLX-Gen model folder, optionally quantized.
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen prepare \
+mlxgen prepare \
   --model Qwen/Qwen-Image \
   --path ./models/qwen-image-8bit \
   -q 8
@@ -122,6 +122,10 @@ HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen prepare \
 # Download the direct Apple Depth Pro weights used by depth workflows.
 mlxgen download --model depth-pro
 ```
+
+`mlxgen download` and `mlxgen prepare` are the commands that authorize network access. If you have Hugging Face's accelerated transfer backend available, you can optionally prefix those commands with `HF_HUB_ENABLE_HF_TRANSFER=1` for faster downloads.
+
+`mlxgen prepare` also writes a Hugging Face `README.md` model card into the prepared folder. The generated card cites the original model, mflux, MLX-Gen, the quantization policy, and the default contributor attribution.
 
 If a required artifact is missing, MLX-Gen raises `DownloadRequiredError` with the exact command to run. See [docs/model-management.md](docs/model-management.md) for details and [docs/python-integration.md](docs/python-integration.md) for in-process usage.
 
@@ -164,7 +168,7 @@ For more Python API inspiration, look at the [CLI entry points](src/mflux/models
 <details>
 <summary>⚠️ Troubleshooting: hf_transfer error</summary>
 
-If you encounter a `ValueError: Fast download using 'hf_transfer' is enabled (HF_HUB_ENABLE_HF_TRANSFER=1) but 'hf_transfer' package is not available`, you can install MLX-Gen with the `hf_transfer` package included:
+If you explicitly enable `HF_HUB_ENABLE_HF_TRANSFER=1` and encounter a `ValueError` because `hf_transfer` is not available, install MLX-Gen with the `hf_transfer` package included:
 
 ```sh
 uv tool install --upgrade mlx-gen --with hf_transfer

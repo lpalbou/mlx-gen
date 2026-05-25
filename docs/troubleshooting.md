@@ -7,8 +7,8 @@ This is expected. Runtime generation is cache-only. Run the command shown in the
 Common commands:
 
 ```sh
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model Qwen/Qwen-Image
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen prepare --model Qwen/Qwen-Image --path ./models/qwen-image-8bit -q 8
+mlxgen download --model Qwen/Qwen-Image
+mlxgen prepare --model Qwen/Qwen-Image --path ./models/qwen-image-8bit -q 8
 mlxgen download --model depth-pro
 ```
 
@@ -31,12 +31,14 @@ Supported router families are `qwen`, `flux2`, `fibo`, and `z-image`.
 User-requested LoRAs are required. MLX-Gen no longer ignores a missing LoRA and continues without it. Download the LoRA repository or use a local `.safetensors` file path.
 
 ```sh
-HF_HUB_ENABLE_HF_TRANSFER=1 mlxgen download --model RiverZ/normal-lora --all-files
+mlxgen download --model RiverZ/normal-lora --all-files
 ```
 
 ## hf_transfer Error
 
-If `HF_HUB_ENABLE_HF_TRANSFER=1` is enabled but the `hf_transfer` package is unavailable, install MLX-Gen with the extra package available to the environment:
+`HF_HUB_ENABLE_HF_TRANSFER=1` is optional. It can make explicit Hugging Face downloads faster, but it is not required to authorize downloads.
+
+If you enable it and the `hf_transfer` package is unavailable, install MLX-Gen with the extra package available to the environment:
 
 ```sh
 uv tool install --upgrade mlx-gen --with hf_transfer
