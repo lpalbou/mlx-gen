@@ -95,7 +95,7 @@ def test_fibo_edit_save_keeps_prompt_json_and_exports_metadata_separately(tmp_pa
     assert json.loads(metadata_path.read_text())["prompt"] == prompt
 
 
-def test_fibo_edit_prompt_json_tracks_final_output_name_when_image_exists(tmp_path):
+def test_fibo_edit_prompt_json_tracks_final_output_name_when_image_exists(tmp_path, capsys):
     output_path = tmp_path / "fibo_edit_output.png"
     output_path.write_bytes(b"existing image")
     prompt = json.dumps(
@@ -127,3 +127,4 @@ def test_fibo_edit_prompt_json_tracks_final_output_name_when_image_exists(tmp_pa
     assert final_prompt_path.exists()
     assert not (tmp_path / "fibo_edit_output.json").exists()
     assert json.loads(final_prompt_path.read_text()) == json.loads(prompt)
+    assert f"Output path exists; saving image to {final_output_path}" in capsys.readouterr().out

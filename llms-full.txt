@@ -17,7 +17,7 @@ Some internals currently remain under `mflux.*`; new application code should use
 - `docs/huggingface-publishing.md`: generated model cards, source license/access wording, default `AbstractFramework/<repo-name>` usage, upload flow, and optional collection membership.
 - `docs/python-integration.md`: in-process use, AbstractVision integration, progress limitations, and threading guidance.
 - `docs/faq.md`: common questions about `prepare`, downloads, package naming, and compatibility.
-- `docs/troubleshooting.md`: missing files, local path classification, `generate --path`, ERNIE small-resolution and unsupported-input behavior, LoRA, and `hf_transfer`.
+- `docs/troubleshooting.md`: missing files, local path classification, existing-output suffixes, `generate --path`, ERNIE small-resolution and unsupported-input behavior, LoRA, and `hf_transfer`.
 - `docs/release.md`: GitHub Release and PyPI trusted publishing workflow.
 - `ACKNOWLEDGEMENTS.md`: upstream mflux credit and post-fork maintainership.
 - `CONTRIBUTING.md`: development setup, checks, documentation expectations, and pull-request scope.
@@ -166,6 +166,8 @@ For local ERNIE folders whose names cannot be classified, pass `--family ernie-i
 
 `mlxgen generate` does not accept `--path` to create model folders. Use `mlxgen prepare --model ... --path ... --quantize ...` for model preparation and use `--output` to choose the generated image path.
 
+Generation commands do not overwrite an existing output file by default. If the requested `--output` path already exists, MLX-Gen saves the new image to the next suffixed path, such as `image_1.png`, and prints the final path.
+
 ---
 
 ## Quantization
@@ -238,6 +240,8 @@ If MLX-Gen says it will not download files during generation, run the command sh
 If a local path cannot be classified, add `--family`.
 
 If `generate --path` fails, use `mlxgen prepare --model ... --path ... --quantize ...` to create a model folder or `--output` to choose the generated image path.
+
+If the requested `--output` image already exists, MLX-Gen writes the new image to the next suffixed filename and prints that final path.
 
 If a LoRA is missing, download it or pass a local `.safetensors` path. Missing user-requested LoRAs are required and are not silently ignored.
 

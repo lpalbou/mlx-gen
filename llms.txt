@@ -14,7 +14,7 @@ MLX-Gen is an MLX-native generative image runtime forked from mflux and publishe
 - [docs/python-integration.md](docs/python-integration.md): current Python API expectations, AbstractVision integration notes, progress limitations, and threading guidance.
 - [docs/release.md](docs/release.md): GitHub Release and PyPI trusted publishing workflow.
 - [docs/faq.md](docs/faq.md): common questions about `prepare`, downloads, package naming, and compatibility.
-- [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, ERNIE small-resolution and unsupported-input behavior, LoRA, and `hf_transfer` issues.
+- [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, existing-output suffix, ERNIE small-resolution and unsupported-input behavior, LoRA, and `hf_transfer` issues.
 - [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md): upstream mflux credit, post-fork maintainership, and model/community acknowledgements.
 - [CHANGELOG.md](CHANGELOG.md): release history.
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, checks, documentation expectations, and pull-request scope.

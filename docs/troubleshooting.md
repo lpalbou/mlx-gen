@@ -43,6 +43,12 @@ mlxgen generate \
   --output image.png
 ```
 
+## Output File Already Exists
+
+Generation commands do not overwrite an existing output path by default. If `--output image.png` already exists, MLX-Gen saves the new image as `image_1.png`, then `image_2.png`, and prints the final path.
+
+If the image you open has old dimensions or metadata, check the suffixed output path printed by the command.
+
 ## ERNIE Rejects Image Inputs Or Prompt Enhancer
 
 MLX-Gen currently supports ERNIE Image Turbo as BF16 text-to-image generation. `--image`, `--images`, image-to-image/edit tasks, and `--use-prompt-enhancer` fail intentionally so applications do not accidentally run a different workflow from the one requested.
