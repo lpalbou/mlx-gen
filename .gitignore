@@ -27,3 +27,5 @@ build/
 .fls
 .aux
 .log
+
+/models/
