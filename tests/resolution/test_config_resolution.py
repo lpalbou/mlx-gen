@@ -30,6 +30,13 @@ class TestConfigResolutionExactMatch:
 
         assert config.model_name == "black-forest-labs/FLUX.1-schnell"
 
+    @pytest.mark.fast
+    def test_exact_hf_name_match_ernie_image_turbo(self):
+        config = ConfigResolution.resolve(model_name="baidu/ERNIE-Image-Turbo")
+
+        assert config.model_name == "baidu/ERNIE-Image-Turbo"
+        assert "ernie-image-turbo" in config.aliases
+
 
 class TestConfigResolutionExplicitBase:
     @pytest.mark.fast
@@ -98,6 +105,13 @@ class TestConfigResolutionInferSubstring:
         assert config.sigma_max_shift == 0.9
         assert config.sigma_max_seq_len == 8192
         assert config.sigma_shift_terminal == 0.02
+
+    @pytest.mark.fast
+    def test_infers_ernie_image_turbo_from_local_path(self):
+        config = ConfigResolution.resolve(model_name="/models/ernie-image-turbo-8bit")
+
+        assert config.base_model == "baidu/ERNIE-Image-Turbo"
+        assert config.supports_guidance is True
 
 
 class TestConfigResolutionError:

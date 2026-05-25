@@ -222,7 +222,7 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--model", "-m", type=str, help="Model alias, Hugging Face repo, or local model path.")
     parser.add_argument(
         "--family",
-        choices=["qwen", "flux2", "fibo", "z-image"],
+        choices=["qwen", "flux2", "fibo", "z-image", "ernie-image"],
         default=None,
         help="Override model-family detection for local paths or custom repo names.",
     )
@@ -343,6 +343,20 @@ def _download_patterns(model_config: ModelConfig | None, repo_id: str) -> list[s
 
     aliases = set(model_config.aliases)
     model_key = _model_key(model_config.model_name, model_config.base_model, repo_id)
+    if _is_ernie(aliases, model_key):
+        return [
+            "LICENSE",
+            "README.md",
+            "model_index.json",
+            "scheduler/**",
+            "tokenizer/**",
+            "pe_tokenizer/**",
+            "text_encoder/**",
+            "transformer/**",
+            "vae/**",
+            "pe/**",
+        ]
+
     weight_definition = _weight_definition_for(aliases, model_key)
     if weight_definition is None:
         return None
@@ -412,6 +426,9 @@ def _resolve_route(args: argparse.Namespace, image_count: int) -> _Route:
             return _z_image_turbo_route()
         return _z_image_route()
 
+    if args.family == "ernie-image":
+        _parser().error(_ernie_not_ported_message())
+
     if _is_qwen_edit(aliases, model_key) or (args.task == "edit" and _is_qwen(aliases, model_key)):
         return _qwen_edit_route(model_override=None if _is_qwen_edit(aliases, model_key) else "qwen-image-edit")
 
@@ -439,9 +456,12 @@ def _resolve_route(args: argparse.Namespace, image_count: int) -> _Route:
     if _is_z_image(aliases, model_key):
         return _z_image_route()
 
+    if _is_ernie(aliases, model_key):
+        _parser().error(_ernie_not_ported_message())
+
     _parser().error(
         f"Could not infer a supported backend from --model {args.model!r}. "
-        "Use a model name containing qwen, flux2/flux.2/klein, fibo, or z-image, or pass --family."
+        "Use a model name containing qwen, flux2/flux.2/klein, fibo, z-image, or ernie, or pass --family."
     )
     raise AssertionError("unreachable")
 
@@ -492,6 +512,18 @@ def _is_z_image(aliases: set[str], model_key: str) -> bool:
 def _is_z_image_turbo(aliases: set[str], model_key: str) -> bool:
     return _has_alias(aliases, "z-image-turbo") or (
         ("z-image" in model_key or "zimage" in model_key) and "turbo" in model_key
+    )
+
+
+def _is_ernie(aliases: set[str], model_key: str) -> bool:
+    return any(alias.startswith("ernie") for alias in aliases) or "ernie" in model_key
+
+
+def _ernie_not_ported_message() -> str:
+    return (
+        "ERNIE-Image-Turbo is recognized, but its MLX backend is not ported yet. "
+        "Use `mlxgen download --model baidu/ERNIE-Image-Turbo` to cache the source model now. "
+        "Generation and prepare support require the ERNIE transformer and Mistral3 text encoder port."
     )
 
 

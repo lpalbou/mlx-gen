@@ -34,6 +34,12 @@ def main():
             model_class = ZImageTurbo
         elif "z-image" in model_name_lower or "zimage" in model_name_lower:
             model_class = ZImage
+        elif "ernie" in model_name_lower:
+            parser.error(
+                "ERNIE-Image-Turbo is recognized, but its MLX backend is not ported yet. "
+                "Download the source snapshot with `mlxgen download --model baidu/ERNIE-Image-Turbo`; "
+                "prepare/generate support will land with the ERNIE MLX transformer and Mistral3 text encoder port."
+            )
         elif "flux2" in model_name_lower or "flux.2" in model_name_lower:
             model_class = Flux2Klein
         else:

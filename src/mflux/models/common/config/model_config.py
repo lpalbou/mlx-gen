@@ -163,6 +163,11 @@ class ModelConfig:
 
     @staticmethod
     @lru_cache
+    def ernie_image_turbo() -> "ModelConfig":
+        return AVAILABLE_MODELS["ernie-image-turbo"]
+
+    @staticmethod
+    @lru_cache
     def seedvr2_3b() -> "ModelConfig":
         return AVAILABLE_MODELS["seedvr2-3b"]
 
@@ -527,8 +532,20 @@ AVAILABLE_MODELS = {
         supports_guidance=False,  # Turbo model uses guidance_scale=0
         requires_sigma_shift=True,
     ),
-    "seedvr2-3b": ModelConfig(
+    "ernie-image-turbo": ModelConfig(
         priority=22,
+        aliases=["ernie-image-turbo", "ernie-image", "ernie"],
+        model_name="baidu/ERNIE-Image-Turbo",
+        base_model=None,
+        controlnet_model=None,
+        custom_transformer_model=None,
+        num_train_steps=1000,
+        max_sequence_length=None,
+        supports_guidance=True,
+        requires_sigma_shift=True,
+    ),
+    "seedvr2-3b": ModelConfig(
+        priority=23,
         aliases=["seedvr2-3b", "seedvr2"],
         model_name="numz/SeedVR2_comfyUI",
         base_model=None,
@@ -540,7 +557,7 @@ AVAILABLE_MODELS = {
         requires_sigma_shift=None,
     ),
     "seedvr2-7b": ModelConfig(
-        priority=23,
+        priority=24,
         aliases=["seedvr2-7b", "seedvr2-7B"],
         model_name="numz/SeedVR2_comfyUI",
         base_model=None,

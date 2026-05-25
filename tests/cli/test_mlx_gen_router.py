@@ -292,6 +292,31 @@ def test_unknown_model_requires_supported_family():
         mlx_gen._resolve_invocation(["--model", "unknown/model", "--prompt", "hello"])
 
 
+def test_ernie_model_is_recognized_but_not_routed_until_backend_port(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(["--model", "baidu/ERNIE-Image-Turbo", "--prompt", "hello"])
+
+    error_output = capsys.readouterr().err
+    assert "ERNIE-Image-Turbo is recognized" in error_output
+    assert "Mistral3 text encoder port" in error_output
+
+
+def test_ernie_family_override_reports_not_ported(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "../models/custom-ernie-folder",
+                "--family",
+                "ernie-image",
+                "--prompt",
+                "hello",
+            ]
+        )
+
+    assert "ERNIE-Image-Turbo is recognized" in capsys.readouterr().err
+
+
 def test_main_without_args_prints_top_level_help(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["mlxgen"])
 
@@ -362,6 +387,37 @@ def test_download_command_enables_downloads_temporarily(monkeypatch, capsys):
     assert "mlxgen generate --model" in capsys.readouterr().out
 
 
+def test_download_command_uses_ernie_source_patterns(monkeypatch):
+    calls = []
+
+    def fake_snapshot_download(*, repo_id, allow_patterns):
+        calls.append((repo_id, allow_patterns, downloads_enabled()))
+        return "/tmp/hf-cache/ernie"
+
+    monkeypatch.setattr(mlx_gen, "snapshot_download", fake_snapshot_download)
+
+    mlx_gen._download_model(["--model", "baidu/ERNIE-Image-Turbo"])
+
+    assert calls == [
+        (
+            "baidu/ERNIE-Image-Turbo",
+            [
+                "LICENSE",
+                "README.md",
+                "model_index.json",
+                "scheduler/**",
+                "tokenizer/**",
+                "pe_tokenizer/**",
+                "text_encoder/**",
+                "transformer/**",
+                "vae/**",
+                "pe/**",
+            ],
+            True,
+        )
+    ]
+
+
 def test_prepare_command_routes_to_save_with_downloads_enabled(monkeypatch):
     observed = []
 
@@ -378,6 +434,18 @@ def test_prepare_command_routes_to_save_with_downloads_enabled(monkeypatch):
             True,
         )
     ]
+    assert downloads_enabled() is False
+
+
+def test_prepare_ernie_reports_backend_not_ported(tmp_path, capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._prepare_model(
+            ["--model", "baidu/ERNIE-Image-Turbo", "--path", str(tmp_path / "ernie-image-turbo-8bit"), "-q", "8"]
+        )
+
+    error_output = capsys.readouterr().err
+    assert "ERNIE-Image-Turbo is recognized" in error_output
+    assert "prepare/generate support will land" in error_output
     assert downloads_enabled() is False
 
 
