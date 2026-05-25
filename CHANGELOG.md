@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.3] - 2026-05-25
+
+### Changed
+
+- **Generated model-card licenses**: `mlxgen prepare` now writes Apache 2.0 license metadata and a license section for Qwen, Z-Image, and FLUX.2 Klein 4B prepared checkpoints.
+- **FLUX.2 Klein 9B publishing safety**: Generated cards for FLUX.2 Klein 9B and base-9B derivatives now use `license: other`, `license_name: flux-non-commercial-license`, source license links, and Hugging Face gated-access prompts.
+- **Z-Image usage defaults**: Generated Z-Image cards now show model-specific generation defaults: Turbo examples use `--steps 8 --guidance 0`, and base Z-Image examples use `--steps 50 --guidance 4`.
+
+### Documentation
+
+- Add backlog tracking for model-integration priorities, publication audit guardrails, and Hugging Face collection follow-up work.
+
+---
+
 ## [0.18.2] - 2026-05-25
 
 ### Changed

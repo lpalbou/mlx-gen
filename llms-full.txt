@@ -14,7 +14,7 @@ Some internals currently remain under `mflux.*`; new application code should use
 - `docs/api.md`: public `mlxgen` command surface, generation router, model-management commands, and Python integration boundary.
 - `docs/model-management.md`: cache-only runtime policy, `download` versus `prepare`, Depth Pro, and `DownloadRequiredError`.
 - `docs/quantization.md`: MLX-Gen prepared folder compatibility and Qwen mixed q4/q8 policy.
-- `docs/huggingface-publishing.md`: generated model cards, default `AbstractFramework/<repo-name>` usage, upload flow, and optional collection membership.
+- `docs/huggingface-publishing.md`: generated model cards, source license/access wording, default `AbstractFramework/<repo-name>` usage, upload flow, and optional collection membership.
 - `docs/python-integration.md`: in-process use, AbstractVision integration, progress limitations, and threading guidance.
 - `docs/faq.md`: common questions about `prepare`, downloads, package naming, and compatibility.
 - `docs/troubleshooting.md`: missing files, local path classification, `generate --path`, LoRA, and `hf_transfer`.
@@ -173,13 +173,15 @@ The q8 path was not changed by the mixed-q4 work. Qwen q8 uses the standard MLX-
 
 ## Hugging Face Publishing
 
-Prepared model folders include a generated Hugging Face `README.md` card. The card records the source model, compatibility notes, quantization policy, and exact `mlx-gen` version used to generate it. Generated cards include `python -m pip install -U mlx-gen` in the usage block for copy/pasteable public installation; repository development and release workflows still use uv. Upload the folder with a command such as:
+Prepared model folders include a generated Hugging Face `README.md` card. The card records the source model, compatibility notes, quantization policy, exact `mlx-gen` version used to generate it, and source license/access policy where MLX-Gen can infer it. Generated cards include `python -m pip install -U mlx-gen` in the usage block for copy/pasteable public installation; repository development and release workflows still use uv. Upload the folder with a command such as:
 
 ```sh
 huggingface-cli upload AbstractFramework/qwen-image-edit-2511-4bit ./models/qwen-image-edit-2511-4bit .
 ```
 
 Hugging Face collection membership is managed separately from model-card metadata. After upload, use the Hugging Face UI or `huggingface_hub.HfApi.add_collection_item` with the collection slug from the collection URL.
+
+Generated cards mark Qwen, Z-Image, and FLUX.2 Klein 4B derivatives as Apache 2.0 when MLX-Gen can identify the source model family. FLUX.2 Klein 9B and FLUX.2 Klein base-9B derivatives are marked with the FLUX non-commercial license metadata and gated-access prompts. Configure Hugging Face repository gating separately when publishing those derivatives; model-card metadata alone does not enforce access control.
 
 ---
 

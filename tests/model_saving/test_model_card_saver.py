@@ -21,6 +21,30 @@ class ZImageTurbo:
     )
 
 
+class Flux2Klein4B:
+    model_config = SimpleNamespace(
+        model_name="black-forest-labs/FLUX.2-klein-4B",
+        base_model=None,
+        aliases=["flux2-klein-4b", "klein-4b"],
+    )
+
+
+class Flux2Klein9B:
+    model_config = SimpleNamespace(
+        model_name="black-forest-labs/FLUX.2-klein-9B",
+        base_model=None,
+        aliases=["flux2-klein-9b", "klein-9b"],
+    )
+
+
+class Flux2KleinBase9B:
+    model_config = SimpleNamespace(
+        model_name="black-forest-labs/FLUX.2-klein-base-9B",
+        base_model=None,
+        aliases=["flux2-klein-base-9b", "klein-base-9b"],
+    )
+
+
 class EmptyWeightDefinition:
     @staticmethod
     def get_tokenizers():
@@ -64,10 +88,13 @@ def test_model_card_for_q8_keeps_standard_quantization_wording(tmp_path):
     card = ModelCardSaver.render_model_card(str(tmp_path / "z-image-turbo-8bit"), ZImageTurbo(), 8)
 
     assert "pipeline_tag: text-to-image" in card
+    assert "license: apache-2.0" in card
     assert "- 8-bit" in card
     assert "- mixed-q4" not in card
     assert "This is an MLX q8 checkpoint" in card
     assert "Qwen-specific mixed q4/q8 policy only applies" not in card
+    assert "--steps 8" in card
+    assert "--guidance 0" in card
 
 
 def test_model_card_for_qwen_q8_explains_q4_policy_is_not_used(tmp_path):
@@ -77,3 +104,30 @@ def test_model_card_for_qwen_q8_explains_q4_policy_is_not_used(tmp_path):
     assert "Qwen-specific mixed q4/q8 policy only applies" in card
     assert "with `--quantize 4`" in card
     assert "https://github.com/lpalbou/mlx-gen/blob/main/docs/quantization.md" in card
+
+
+def test_model_card_for_flux2_4b_uses_apache_license(tmp_path):
+    card = ModelCardSaver.render_model_card(str(tmp_path / "flux.2-klein-4b-4bit"), Flux2Klein4B(), 4)
+
+    assert "license: apache-2.0" in card
+    assert "FLUX Non-Commercial License" not in card
+    assert "This quantized derivative follows the Apache 2.0 license of the source model." in card
+
+
+def test_model_card_for_flux2_9b_marks_non_commercial_gated_derivative(tmp_path):
+    card = ModelCardSaver.render_model_card(str(tmp_path / "flux.2-klein-9b-4bit"), Flux2Klein9B(), 4)
+
+    assert "license: other" in card
+    assert "license_name: flux-non-commercial-license" in card
+    assert "license_link: https://huggingface.co/black-forest-labs/FLUX.2-klein-9B/blob/main/LICENSE.md" in card
+    assert "extra_gated_prompt:" in card
+    assert "Acceptable Use Policy" in card
+    assert "This checkpoint is a quantized derivative of a gated" in card
+    assert "Host this derivative as a gated Hugging Face repository" in card
+
+
+def test_model_card_for_flux2_base_9b_links_base_license(tmp_path):
+    card = ModelCardSaver.render_model_card(str(tmp_path / "flux.2-klein-base-9b-8bit"), Flux2KleinBase9B(), 8)
+
+    assert "license_name: flux-non-commercial-license" in card
+    assert "license_link: https://huggingface.co/black-forest-labs/FLUX.2-klein-base-9B/blob/main/LICENSE.md" in card

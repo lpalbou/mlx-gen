@@ -9,6 +9,12 @@ class ModelCardSaver:
     DEFAULT_NAMESPACE = "AbstractFramework"
     PROJECT_URL = "https://github.com/lpalbou/mlx-gen"
     QUANTIZATION_DOC_URL = "https://github.com/lpalbou/mlx-gen/blob/main/docs/quantization.md"
+    FLUX_NON_COMMERCIAL_LICENSE_NAME = "flux-non-commercial-license"
+    FLUX_NON_COMMERCIAL_LICENSE_DISPLAY_NAME = "FLUX Non-Commercial License"
+    FLUX_NON_COMMERCIAL_LICENSE_LINK = (
+        "https://huggingface.co/black-forest-labs/FLUX.2-klein-9B/blob/main/LICENSE.md"
+    )
+    FLUX_ACCEPTABLE_USE_POLICY_LINK = "https://bfl.ai/legal/usage-policy"
 
     @staticmethod
     def save_model_card(base_path: str, model: Any, bits: int | None) -> None:
@@ -50,6 +56,8 @@ class ModelCardSaver:
             "",
             ModelCardSaver._source_model_line(model_name),
             "",
+            *ModelCardSaver._license_section(model_name, terms),
+            "",
             "## Quantization",
             "",
             ModelCardSaver._quantization_section(terms, bits),
@@ -71,7 +79,7 @@ class ModelCardSaver:
             "",
             "mlxgen generate \\",
             f"  --model {repo_id} \\",
-            *ModelCardSaver._usage_lines(pipeline_tag),
+            *ModelCardSaver._usage_lines(pipeline_tag, terms),
             "```",
             "",
             "## Attribution",
@@ -90,8 +98,7 @@ class ModelCardSaver:
         lines = [
             "---",
         ]
-        if "qwen" in terms:
-            lines.append("license: apache-2.0")
+        lines.extend(ModelCardSaver._license_frontmatter(model_name, terms))
         lines.extend(
             [
                 f"base_model: {model_name}",
@@ -103,6 +110,60 @@ class ModelCardSaver:
         lines.extend([f"- {tag}" for tag in tags])
         lines.append("---")
         return "\n".join(lines)
+
+    @staticmethod
+    def _license_frontmatter(model_name: str, terms: str) -> list[str]:
+        if ModelCardSaver._is_flux2_9b(model_name, terms):
+            return [
+                "license: other",
+                f"license_name: {ModelCardSaver.FLUX_NON_COMMERCIAL_LICENSE_NAME}",
+                f"license_link: {ModelCardSaver._flux_noncommercial_license_link(model_name)}",
+                (
+                    "extra_gated_prompt: \"Access is for non-commercial use under the "
+                    "FLUX Non-Commercial License and Black Forest Labs Acceptable Use Policy. "
+                    "This repository is a quantized derivative of a gated Black Forest Labs "
+                    "FLUX.2 Klein 9B model.\""
+                ),
+                "extra_gated_fields:",
+                "  I agree to use this model for non-commercial use only: checkbox",
+                "  I agree to follow the FLUX Non-Commercial License: checkbox",
+                "  I acknowledge the Black Forest Labs Acceptable Use Policy: checkbox",
+            ]
+
+        if ModelCardSaver._is_apache_model(model_name, terms):
+            return ["license: apache-2.0"]
+
+        return []
+
+    @staticmethod
+    def _license_section(model_name: str, terms: str) -> list[str]:
+        if ModelCardSaver._is_flux2_9b(model_name, terms):
+            return [
+                "## License and Access",
+                "",
+                (
+                    "This checkpoint is a quantized derivative of a gated "
+                    "Black Forest Labs FLUX.2 Klein 9B source model. The source model is "
+                    f"distributed under the [{ModelCardSaver.FLUX_NON_COMMERCIAL_LICENSE_DISPLAY_NAME}]"
+                    f"({ModelCardSaver._flux_noncommercial_license_link(model_name)})."
+                ),
+                "",
+                (
+                    "Host this derivative as a gated Hugging Face repository and require users "
+                    "to accept the same non-commercial license terms and "
+                    f"[Black Forest Labs Acceptable Use Policy]({ModelCardSaver.FLUX_ACCEPTABLE_USE_POLICY_LINK}) "
+                    "before accessing the files."
+                ),
+            ]
+
+        if ModelCardSaver._is_apache_model(model_name, terms):
+            return [
+                "## License and Access",
+                "",
+                "This quantized derivative follows the Apache 2.0 license of the source model.",
+            ]
+
+        return []
 
     @staticmethod
     def _quantization_section(terms: str, bits: int | None) -> str:
@@ -154,7 +215,7 @@ class ModelCardSaver:
         return f"Original model reference: `{model_name}`."
 
     @staticmethod
-    def _usage_lines(pipeline_tag: str) -> list[str]:
+    def _usage_lines(pipeline_tag: str, terms: str) -> list[str]:
         if pipeline_tag == "image-to-image":
             return [
                 "  --image path_to_image.png \\",
@@ -162,6 +223,24 @@ class ModelCardSaver:
                 "  --steps 20 \\",
                 "  --seed 42 \\",
                 "  --output edited.png",
+            ]
+
+        if "z-image-turbo" in terms or "zimage-turbo" in terms:
+            return [
+                '  --prompt "Your prompt here" \\',
+                "  --steps 8 \\",
+                "  --guidance 0 \\",
+                "  --seed 42 \\",
+                "  --output image.png",
+            ]
+
+        if "z-image" in terms or "zimage" in terms:
+            return [
+                '  --prompt "Your prompt here" \\',
+                "  --steps 50 \\",
+                "  --guidance 4 \\",
+                "  --seed 42 \\",
+                "  --output image.png",
             ]
 
         return [
@@ -221,6 +300,27 @@ class ModelCardSaver:
     @staticmethod
     def _is_huggingface_repo_id(model_name: str) -> bool:
         return "/" in model_name and model_name.count("/") == 1 and not model_name.startswith(("./", "../", "~/"))
+
+    @staticmethod
+    def _is_flux2_9b(model_name: str, terms: str) -> bool:
+        normalized = f"{model_name} {terms}".lower()
+        return "flux.2-klein" in normalized and "9b" in normalized
+
+    @staticmethod
+    def _flux_noncommercial_license_link(model_name: str) -> str:
+        if ModelCardSaver._is_huggingface_repo_id(model_name):
+            return f"https://huggingface.co/{model_name}/blob/main/LICENSE.md"
+        return ModelCardSaver.FLUX_NON_COMMERCIAL_LICENSE_LINK
+
+    @staticmethod
+    def _is_apache_model(model_name: str, terms: str) -> bool:
+        normalized = f"{model_name} {terms}".lower()
+        return (
+            "qwen" in normalized
+            or "z-image" in normalized
+            or "zimage" in normalized
+            or ("flux.2-klein" in normalized and "4b" in normalized)
+        )
 
     @staticmethod
     def _deduplicate(values: list[str]) -> list[str]:
