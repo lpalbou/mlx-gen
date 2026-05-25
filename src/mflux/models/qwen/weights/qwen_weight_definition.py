@@ -29,7 +29,6 @@ class QwenWeightDefinition:
                 hf_subdir="text_encoder",
                 loading_mode="multi_json",
                 precision=mx.bfloat16,
-                skip_quantization=True,  # Quantization causes significant semantic degradation
                 mapping_getter=QwenWeightMapping.get_text_encoder_mapping,
             ),
         ]
@@ -65,6 +64,9 @@ class QwenWeightDefinition:
         if not hasattr(module, "to_quantized"):
             return False
 
+        if QwenWeightDefinition._is_text_encoder_path(path):
+            return QwenWeightDefinition._text_encoder_quantization_predicate(path, module, bits)
+
         if bits == 4 and ".img_mod_linear" in path:
             return {"bits": 8}
 
@@ -72,28 +74,134 @@ class QwenWeightDefinition:
 
     @staticmethod
     def quantization_predicate_for_loaded_weights(weights: LoadedWeights | None, bits: int | None):
-        if bits == 4:
+        if bits in {4, 8}:
             if weights is None:
                 return QwenWeightDefinition.quantization_predicate
 
-            transformer = weights.components.get("transformer")
-            if not isinstance(transformer, dict):
-                return QwenWeightDefinition.quantization_predicate
-
-            img_mod_bits = QwenWeightDefinition._quantized_linear_bits(
-                transformer,
-                "transformer_blocks.0.img_mod_linear",
+            transformer_predicate = QwenWeightDefinition._transformer_quantization_predicate_for_loaded_weights(
+                weights=weights,
+                bits=bits,
             )
-            if img_mod_bits == 8:
-                return QwenWeightDefinition.quantization_predicate
-
-            if img_mod_bits is None and QwenWeightDefinition._uses_unquantized_q4_sensitive_inputs(transformer):
-                if QwenWeightDefinition._has_unquantized_txt_mod_linear(weights):
-                    return QwenWeightDefinition._post1_mixed_q4_quantization_predicate
-
-                return QwenWeightDefinition._bf16_img_mod_mixed_q4_quantization_predicate
+            text_encoder_predicate = QwenWeightDefinition._text_encoder_quantization_predicate_for_loaded_weights(
+                weights=weights,
+                bits=bits,
+            )
+            return QwenWeightDefinition._combined_quantization_predicate(
+                transformer_predicate=transformer_predicate,
+                text_encoder_predicate=text_encoder_predicate,
+            )
 
         return QwenWeightDefinition._quantize_all_predicate
+
+    @staticmethod
+    def _transformer_quantization_predicate_for_loaded_weights(weights: LoadedWeights, bits: int | None):
+        if bits != 4:
+            return QwenWeightDefinition._quantize_all_predicate
+
+        transformer = weights.components.get("transformer")
+        if not isinstance(transformer, dict):
+            return QwenWeightDefinition.quantization_predicate
+
+        img_mod_bits = QwenWeightDefinition._quantized_linear_bits(
+            transformer,
+            "transformer_blocks.0.img_mod_linear",
+        )
+        if img_mod_bits == 8:
+            return QwenWeightDefinition.quantization_predicate
+
+        if img_mod_bits is None and QwenWeightDefinition._uses_unquantized_q4_sensitive_inputs(transformer):
+            if QwenWeightDefinition._has_unquantized_txt_mod_linear(weights):
+                return QwenWeightDefinition._post1_mixed_q4_quantization_predicate
+
+            return QwenWeightDefinition._bf16_img_mod_mixed_q4_quantization_predicate
+
+        return QwenWeightDefinition._quantize_all_predicate
+
+    @staticmethod
+    def _text_encoder_quantization_predicate_for_loaded_weights(weights: LoadedWeights, bits: int | None):
+        text_encoder = weights.components.get("text_encoder")
+        if not isinstance(text_encoder, dict):
+            return QwenWeightDefinition._skip_text_encoder_quantization_predicate
+
+        language_bits = QwenWeightDefinition._quantized_linear_bits(
+            text_encoder,
+            "encoder.layers.0.self_attn.q_proj",
+        )
+        vision_bits = QwenWeightDefinition._quantized_linear_bits(
+            text_encoder,
+            "encoder.visual.blocks.0.attn.qkv",
+        )
+        if language_bits is None and vision_bits is None:
+            return QwenWeightDefinition._skip_text_encoder_quantization_predicate
+
+        return QwenWeightDefinition._loaded_text_encoder_quantization_predicate(
+            language_bits=language_bits,
+            vision_bits=vision_bits,
+            fallback_bits=bits,
+        )
+
+    @staticmethod
+    def _combined_quantization_predicate(transformer_predicate, text_encoder_predicate):
+        def predicate(path: str, module, bits: int | None = None):
+            if QwenWeightDefinition._is_text_encoder_path(path):
+                return text_encoder_predicate(path, module, bits)
+
+            return transformer_predicate(path, module, bits)
+
+        return predicate
+
+    @staticmethod
+    def _is_text_encoder_path(path: str) -> bool:
+        return path.startswith("encoder.")
+
+    @staticmethod
+    def _is_text_encoder_vision_path(path: str) -> bool:
+        return path.startswith("encoder.visual.")
+
+    @staticmethod
+    def _can_quantize_group64(module) -> bool:
+        weight = getattr(module, "weight", None)
+        shape = getattr(weight, "shape", None)
+        return bool(shape and shape[-1] % 64 == 0)
+
+    @staticmethod
+    def _text_encoder_quantization_predicate(path: str, module, bits: int | None = None):
+        if not hasattr(module, "to_quantized"):
+            return False
+
+        if not QwenWeightDefinition._can_quantize_group64(module):
+            return False
+
+        if bits == 4 and QwenWeightDefinition._is_text_encoder_vision_path(path):
+            return {"bits": 8}
+
+        return True
+
+    @staticmethod
+    def _loaded_text_encoder_quantization_predicate(
+        language_bits: int | None,
+        vision_bits: int | None,
+        fallback_bits: int | None,
+    ):
+        def predicate(path: str, module, bits: int | None = None):
+            if not hasattr(module, "to_quantized"):
+                return False
+
+            if not QwenWeightDefinition._can_quantize_group64(module):
+                return False
+
+            path_bits = vision_bits if QwenWeightDefinition._is_text_encoder_vision_path(path) else language_bits
+            path_bits = path_bits or fallback_bits
+            if path_bits == 8:
+                return {"bits": 8}
+
+            return path_bits is not None
+
+        return predicate
+
+    @staticmethod
+    def _skip_text_encoder_quantization_predicate(path: str, module, bits: int | None = None) -> bool:
+        return False
 
     @staticmethod
     def _is_bf16_q4_sensitive_transformer_path(path: str) -> bool:

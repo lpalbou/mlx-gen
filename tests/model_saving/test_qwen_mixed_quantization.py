@@ -4,6 +4,9 @@ from mflux.models.qwen.weights.qwen_weight_definition import QwenWeightDefinitio
 
 
 class QuantizableModule:
+    def __init__(self, weight_shape=(64, 64)):
+        self.weight = Tensor(weight_shape)
+
     def to_quantized(self):
         return self
 
@@ -45,6 +48,27 @@ def test_qwen_q8_quantizes_conditioning_paths():
 
     assert QwenWeightDefinition.quantization_predicate("img_in", module, 8) is True
     assert QwenWeightDefinition.quantization_predicate("transformer_blocks.0.img_mod_linear", module, 8) is True
+
+
+def test_qwen_q4_quantizes_text_encoder_language_to_q4_and_vision_to_q8():
+    module = QuantizableModule()
+
+    assert QwenWeightDefinition.quantization_predicate("encoder.layers.0.self_attn.q_proj", module, 4) is True
+    assert QwenWeightDefinition.quantization_predicate("encoder.embed_tokens", module, 4) is True
+    assert QwenWeightDefinition.quantization_predicate("encoder.visual.blocks.0.attn.qkv", module, 4) == {"bits": 8}
+
+
+def test_qwen_q4_skips_text_encoder_layers_that_are_not_group64_compatible():
+    module = QuantizableModule(weight_shape=(1280, 3420))
+
+    assert QwenWeightDefinition.quantization_predicate("encoder.visual.blocks.0.mlp.down_proj", module, 4) is False
+
+
+def test_qwen_q8_quantizes_text_encoder_to_q8():
+    module = QuantizableModule()
+
+    assert QwenWeightDefinition.quantization_predicate("encoder.layers.0.self_attn.q_proj", module, 8) is True
+    assert QwenWeightDefinition.quantization_predicate("encoder.visual.blocks.0.attn.qkv", module, 8) is True
 
 
 def test_weight_applier_passes_bits_to_bit_aware_predicates():
@@ -101,6 +125,94 @@ def test_qwen_q4_loaded_img_mod_q8_layout_uses_mixed_quantization_predicate():
     assert predicate("img_in", module, 4) is True
     assert predicate("transformer_blocks.0.img_mod_linear", module, 4) == {"bits": 8}
     assert predicate("transformer_blocks.0.txt_mod_linear", module, 4) is True
+
+
+def test_qwen_loaded_bf16_text_encoder_layout_skips_text_encoder_quantization():
+    module = QuantizableModule()
+    weights = LoadedWeights(
+        components={
+            "transformer": {
+                "img_in": {"weight": Tensor((3072, 8)), "scales": Tensor((3072, 1))},
+                "transformer_blocks": [
+                    {
+                        "img_mod_linear": {
+                            "weight": Tensor((18432, 768)),
+                            "scales": Tensor((18432, 48)),
+                        },
+                    }
+                ],
+            },
+            "text_encoder": {
+                "encoder": {
+                    "layers": [
+                        {
+                            "self_attn": {
+                                "q_proj": {"weight": object()},
+                            },
+                        }
+                    ],
+                }
+            },
+        },
+        meta_data=MetaData(quantization_level=4),
+    )
+
+    predicate = QwenWeightDefinition.quantization_predicate_for_loaded_weights(weights=weights, bits=4)
+
+    assert predicate("encoder.layers.0.self_attn.q_proj", module, 4) is False
+
+
+def test_qwen_loaded_mixed_text_encoder_layout_uses_saved_text_encoder_bits():
+    module = QuantizableModule()
+    incompatible_module = QuantizableModule(weight_shape=(1280, 3420))
+    weights = LoadedWeights(
+        components={
+            "transformer": {
+                "img_in": {"weight": Tensor((3072, 8)), "scales": Tensor((3072, 1))},
+                "transformer_blocks": [
+                    {
+                        "img_mod_linear": {
+                            "weight": Tensor((18432, 768)),
+                            "scales": Tensor((18432, 48)),
+                        },
+                    }
+                ],
+            },
+            "text_encoder": {
+                "encoder": {
+                    "layers": [
+                        {
+                            "self_attn": {
+                                "q_proj": {
+                                    "weight": Tensor((3584, 448)),
+                                    "scales": Tensor((3584, 56)),
+                                },
+                            },
+                        }
+                    ],
+                    "visual": {
+                        "blocks": [
+                            {
+                                "attn": {
+                                    "qkv": {
+                                        "weight": Tensor((3840, 320)),
+                                        "scales": Tensor((3840, 20)),
+                                    },
+                                },
+                            }
+                        ],
+                    },
+                }
+            },
+        },
+        meta_data=MetaData(quantization_level=4),
+    )
+
+    predicate = QwenWeightDefinition.quantization_predicate_for_loaded_weights(weights=weights, bits=4)
+
+    assert predicate("encoder.layers.0.self_attn.q_proj", module, 4) is True
+    assert predicate("encoder.visual.blocks.0.attn.qkv", module, 4) == {"bits": 8}
+    assert predicate("encoder.visual.blocks.0.mlp.down_proj", incompatible_module, 4) is False
 
 
 def test_qwen_q4_loaded_bf16_img_mod_layout_uses_bf16_img_mod_predicate():
