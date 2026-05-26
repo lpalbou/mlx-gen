@@ -570,11 +570,10 @@ def _reject_wan_unsupported_inputs(args: argparse.Namespace, image_count: int) -
             "Wan2.2 TI2V supports text-to-video and image-to-video tasks. "
             "Use --task text-to-video or --task image-to-video."
         )
-    if args.task == "image-to-video" or image_count:
-        _parser().error(
-            "Wan2.2 image-to-video is not enabled yet. Text-to-video works now; "
-            "I2V needs the Diffusers first-frame latent conditioning path."
-        )
+    if image_count > 1:
+        _parser().error("Wan2.2 image-to-video accepts exactly one input image.")
+    if image_count and args.task == "text-to-video":
+        _parser().error("Wan2.2 text-to-video does not accept --image. Use --task image-to-video.")
 
 
 def _qwen_route() -> _Route:

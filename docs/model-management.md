@@ -101,7 +101,7 @@ Wan2.2 TI2V can be downloaded and used for text-to-video:
 mlxgen download --model Wan-AI/Wan2.2-TI2V-5B-Diffusers
 ```
 
-Wan text-to-video currently uses the source snapshot plus a local-only Hugging Face UMT5 text encoder for prompt embeddings. Wan image-to-video is intentionally not exposed until the Diffusers first-frame latent-conditioning path is ported.
+Wan text-to-video currently uses the source snapshot plus a local-only Hugging Face UMT5 text encoder for prompt embeddings. Wan image-to-video uses the Diffusers first-frame latent-conditioning path and requires the same VAE encoder/decoder files from the source snapshot.
 
 ## Depth Pro
 

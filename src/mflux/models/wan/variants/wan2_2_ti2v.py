@@ -8,6 +8,7 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
 import mlx.core as mx
+import numpy as np
 from mlx import nn
 
 from mflux.models.common.config.model_config import ModelConfig
@@ -19,6 +20,7 @@ from mflux.models.wan.scheduler import WanUniPCMultistepScheduler
 from mflux.models.wan.wan_initializer import WanInitializer
 from mflux.models.wan.weights import WanWeightDefinition
 from mflux.utils.generated_video import GeneratedVideo
+from mflux.utils.image_util import ImageUtil
 from mflux.utils.video_util import VideoUtil
 
 
@@ -54,17 +56,12 @@ class Wan2_2_TI2V(nn.Module):
         image_path: Path | str | None = None,
         max_sequence_length: int = 512,
     ) -> GeneratedVideo:
-        if image_path is not None:
-            raise NotImplementedError(
-                "Wan2.2 image-to-video is not enabled yet. The text-to-video path is implemented first; "
-                "I2V needs the Diffusers first-frame latent conditioning path."
-            )
-
         start_time = time.time()
         height, width = self._validated_spatial_size(height=height, width=width)
         num_frames = self._validated_frame_count(num_frames)
         guidance = 5.0 if guidance is None else float(guidance)
         batch_size = 1
+        is_image_to_video = image_path is not None
 
         prompt_embeds, negative_prompt_embeds = self.encode_prompt(
             prompt=prompt,
@@ -82,14 +79,36 @@ class Wan2_2_TI2V(nn.Module):
             width=width,
             num_frames=num_frames,
         )
+        first_frame_mask = None
+        condition = None
+        if is_image_to_video:
+            first_frame_mask = WanTimestepPolicy.first_frame_mask(latent_shape=latents.shape)
+            condition = self._encode_first_frame_condition(
+                image_path=image_path,
+                height=height,
+                width=width,
+            )
 
         for timestep in scheduler.timesteps.tolist():
-            latent_model_input = latents.astype(ModelConfig.precision)
-            expanded_timestep = WanTimestepPolicy.expand_for_text_to_video(
-                latent_shape=latents.shape,
-                timestep=timestep,
-                patch_size=self.transformer.patch_size,
-            )
+            if first_frame_mask is not None and condition is not None:
+                latent_model_input = WanTimestepPolicy.apply_first_frame_condition(
+                    latents=latents,
+                    condition=condition,
+                    first_frame_mask=first_frame_mask,
+                ).astype(ModelConfig.precision)
+                expanded_timestep = WanTimestepPolicy.expand_from_mask(
+                    mask=first_frame_mask,
+                    batch_size=batch_size,
+                    timestep=timestep,
+                    patch_size=self.transformer.patch_size,
+                )
+            else:
+                latent_model_input = latents.astype(ModelConfig.precision)
+                expanded_timestep = WanTimestepPolicy.expand_for_text_to_video(
+                    latent_shape=latents.shape,
+                    timestep=timestep,
+                    patch_size=self.transformer.patch_size,
+                )
             noise_pred = self.transformer(
                 hidden_states=latent_model_input,
                 timestep=expanded_timestep,
@@ -106,6 +125,12 @@ class Wan2_2_TI2V(nn.Module):
             latents = scheduler.step(noise_pred.astype(mx.float32), timestep, latents, return_dict=False)[0]
             mx.eval(latents)
 
+        if first_frame_mask is not None and condition is not None:
+            latents = WanTimestepPolicy.apply_first_frame_condition(
+                latents=latents,
+                condition=condition,
+                first_frame_mask=first_frame_mask,
+            )
         decoded = self.vae.decode_normalized_latents(latents.astype(ModelConfig.precision))
         mx.eval(decoded)
         return VideoUtil.to_video(
@@ -118,7 +143,8 @@ class Wan2_2_TI2V(nn.Module):
             guidance=guidance,
             quantization=self.bits,
             generation_time=time.time() - start_time,
-            task="text-to-video",
+            task="image-to-video" if is_image_to_video else "text-to-video",
+            image_path=image_path,
             negative_prompt=negative_prompt,
         )
 
@@ -228,6 +254,19 @@ class Wan2_2_TI2V(nn.Module):
         del text_encoder
         gc.collect()
         return embeds
+
+    def _encode_first_frame_condition(self, image_path: Path | str | None, height: int, width: int) -> mx.array:
+        if image_path is None:
+            raise ValueError("Wan image-to-video requires image_path.")
+        image = ImageUtil.scale_to_dimensions(ImageUtil.load_image(image_path), target_width=width, target_height=height)
+        image_np = np.array(image).astype(np.float32) / 255.0
+        image_np = image_np[None, ...]
+        image_mx = mx.array(image_np)
+        image_mx = mx.transpose(image_mx, (0, 3, 1, 2))
+        image_mx = ImageUtil._normalize(image_mx)
+        condition = self.vae.encode_normalized(image_mx.astype(ModelConfig.precision))
+        mx.eval(condition)
+        return condition.astype(mx.float32)
 
     def _copy_runtime_assets(self, base_path: str) -> None:
         target = Path(base_path)

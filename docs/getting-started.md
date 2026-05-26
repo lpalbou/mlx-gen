@@ -107,7 +107,24 @@ mlxgen generate \
   --output video.mp4
 ```
 
-Wan text-to-video is the first video milestone. Wan image-to-video is intentionally rejected for now because it needs the Diffusers first-frame latent-conditioning path rather than ordinary image-to-image latent initialization.
+For image-to-video, pass one input image and switch the task:
+
+```sh
+mlxgen generate \
+  --model Wan-AI/Wan2.2-TI2V-5B-Diffusers \
+  --task image-to-video \
+  --image input.png \
+  --prompt "A slow cinematic camera move from the input frame" \
+  --width 256 \
+  --height 256 \
+  --frames 17 \
+  --steps 12 \
+  --guidance 5 \
+  --fps 8 \
+  --output video.mp4
+```
+
+Wan image-to-video uses the Diffusers first-frame latent-conditioning path. Treat current Wan video support as experimental: the pipeline can produce MP4 output, but quality, speed, and practical defaults still need broader validation.
 
 ## Next Steps
 

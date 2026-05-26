@@ -14,7 +14,7 @@ MLX-Gen is an MLX-native generative image and video runtime forked from mflux an
 - [docs/python-integration.md](docs/python-integration.md): current Python API expectations, AbstractVision integration notes, progress limitations, and threading guidance.
 - [docs/release.md](docs/release.md): GitHub Release and PyPI trusted publishing workflow.
 - [docs/faq.md](docs/faq.md): common questions about `prepare`, downloads, package naming, and compatibility.
-- [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, output replacement, ERNIE Prompt Enhancer, ERNIE small-resolution and unsupported edit-input behavior, Wan image-input limits, LoRA, and `hf_transfer` issues.
+- [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, output replacement, ERNIE Prompt Enhancer, ERNIE small-resolution and unsupported edit-input behavior, tiny Wan video validation limits, LoRA, and `hf_transfer` issues.
 - [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md): upstream mflux credit, post-fork maintainership, and model/community acknowledgements.
 - [CHANGELOG.md](CHANGELOG.md): release history.
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, checks, documentation expectations, and pull-request scope.
@@ -41,7 +41,7 @@ mlxgen download --model depth-pro
 
 - `src/mflux/cli/mlx_gen.py`: smart `mlxgen` command router plus explicit `download` and `prepare`.
 - `src/mflux/models/ernie_image/`: ERNIE Image Turbo text-to-image and experimental single-image image-to-image runtime, tokenizer, transformer, scheduler, VAE wrapper, optional Prompt Enhancer, weights, q8/q4 quantization, and CLI. Multi-image edit is not supported. ERNIE image-to-image is best for stylization/guided variation; use Qwen Image Edit when exact source-layout preservation matters.
-- `src/mflux/models/wan/`: initial Wan2.2 TI2V text-to-video runtime, Wan transformer/VAE/scheduler support, MP4 output utilities, and CLI. Wan image-to-video is intentionally rejected until the Diffusers first-frame latent-conditioning path is ported.
+- `src/mflux/models/wan/`: initial Wan2.2 TI2V text-to-video and experimental first-frame image-to-video runtime, Wan transformer/VAE/scheduler support, MP4 output utilities, and CLI.
 - `src/mflux/models/common/download_policy.py`: download policy, explicit command helpers, and `DownloadRequiredError`.
 - `src/mflux/models/common/weights/saving/model_card_saver.py`: generated Hugging Face model-card content for prepared model folders.
 - `src/mflux/models/common/resolution/path_resolution.py`: cache-only Hugging Face model path resolution.

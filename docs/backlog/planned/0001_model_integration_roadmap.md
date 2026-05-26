@@ -47,10 +47,10 @@ text-to-image, image-to-image/edit, text-to-video, and image-to-video work.
   Prompt Enhancer, `mlxgen` routing, BF16 prepare/download support, and q8/q4 prepared folders.
   Remaining ERNIE work includes image-input tasks if upstream supports them, ERNIE-Image
   non-turbo validation, and stronger Diffusers parity tests.
-- Wan2.2 TI2V has an initial text-to-video MLX port: Wan transformer, Wan VAE, UniPC scheduler,
-  local-only Hugging Face UMT5 prompt encoding, MP4 output, `mlxgen` routing, save/download
-  wiring, and focused tests. Image-to-video is intentionally rejected until the Diffusers
-  first-frame latent-conditioning path is ported.
+- Wan2.2 TI2V has an initial text-to-video and experimental first-frame image-to-video MLX port:
+  Wan transformer, Wan VAE encoder/decoder, UniPC scheduler, local-only Hugging Face UMT5 prompt
+  encoding, MP4 output, `mlxgen` routing, save/download wiring, and focused tests. The I2V path
+  follows Diffusers first-frame latent conditioning rather than ordinary img2img initialization.
 - GLM-Image is also a real port, not an alias. Its snapshot declares `GlmImagePipeline`,
   `GlmImageTransformer2DModel`, `GlmImageForConditionalGeneration`, `GlmImageProcessor`,
   `T5EncoderModel`, and `AutoencoderKL`.
@@ -99,7 +99,7 @@ than a renamed fork.
 | P0 | Cross-cutting | Gated and non-commercial derivative publishing policy | FLUX.2 9B derivatives now require `gated=auto`; FIBO family is gated/non-commercial. `prepare` writes local files only and cannot set HF repo settings. | Low-medium | Add release/publishing helpers or docs that run `HfApi.update_repo_settings(gated=\"auto\")`, upload upstream license files, and prevent accidental public publication of gated derivatives. |
 | P1 | T2I, I2I/edit | `briaai/FIBO`, `briaai/Fibo-lite`, `briaai/Fibo-Edit` | Backend exists; access has been granted. Source sizes are 22-24 GiB. FIBO is structured/JSON-native and trained for professional controllability; Fibo-lite targets 8-step/CFG=1 inference; Fibo-Edit targets structured edits. | Medium | Validate because this is already implemented, but do not make it the default family. It is non-commercial, gated, structured-workflow-heavy, and less broadly reusable than Qwen/FLUX/Z-Image. Publish only gated derivatives with Bria license terms. |
 | P1 | T2I | `baidu/ERNIE-Image-Turbo` and `baidu/ERNIE-Image` | Apache 2.0, 29 GiB source snapshot including Prompt Enhancer, strong card claims around text rendering, structured layout, complex instruction following, and 8-step Turbo inference. Turbo now has BF16, q8, q4, and optional Prompt Enhancer text-to-image support with real image validation; non-turbo ERNIE-Image remains open. | High | Continue the ERNIE port with Diffusers parity tests, non-turbo defaults, generated-card behavior, and AbstractVision-facing Python progress/state APIs. |
-| P2 | T2V, I2V | `Wan-AI/Wan2.2-TI2V-5B-Diffusers` | Apache 2.0, ~32 GiB, supports both text-to-video and image-to-video at 720p/24fps, and is much smaller than A14B. Initial MLX-Gen text-to-video smoke support now produces MP4 output. | Very high | Continue from the first T2V milestone: improve quality/performance defaults, port I2V first-frame latent conditioning, add progress/cancel events, memory caps, q4/q8 validation, and a longer Diffusers parity suite. |
+| P2 | T2V, I2V | `Wan-AI/Wan2.2-TI2V-5B-Diffusers` | Apache 2.0, ~32 GiB, supports both text-to-video and image-to-video at 720p/24fps, and is much smaller than A14B. Initial MLX-Gen T2V and first-frame I2V support now produces MP4 output. | Very high | Continue from the first video milestone: improve quality/performance defaults, add progress/cancel events, memory caps, q4/q8 validation, and a longer Diffusers parity suite. |
 | P2 | T2I, I2I/edit | `HiDream-ai/HiDream-O1-Image` and `HiDream-ai/HiDream-O1-Image-Dev` | MIT, current search shows image-text-to-image tags, Qwen3-VL stack, and an existing `mlx-community/HiDream-O1-Image-Dev-mlx-bf16` checkpoint. | High | Worth researching after ERNIE because an MLX BF16 artifact exists, but it likely wants an MLX-VLM/provider boundary rather than a quick mflux-style port. |
 | P2 | Video-to-video/upscale | `numz/SeedVR2_comfyUI`, `ByteDance-Seed/SeedVR2-3B/7B` | SeedVR2 code exists and source is cached, but `mlxgen prepare` does not route it. | Medium-high | Make existing upscaler usable from unified CLI and prepare/card flow before larger video generation ports. It is not T2V/I2V, but it is the lowest-risk video capability already in tree. |
 | P2 | I2V, T2V, V2V, A/V | `Lightricks/LTX-2.3-fp8` | Very high online usage, ~55 GiB fp8, image-to-video/text-to-video/video-to-video/audio-video tags, custom community license. Card says full and distilled checkpoints exist and training is recommended on BF16. | Very high | Important to research, but licensing and model breadth make it riskier than Wan2.2 TI2V 5B. Needs a video/audio-capable backend decision before implementation. |
@@ -194,8 +194,8 @@ than a renamed fork.
 - Existing Qwen mixed q4/q8 saves and FLUX.2/Z-Image saves continue to prepare and load.
 - `uv run mlxgen generate --model Wan-AI/Wan2.2-TI2V-5B-Diffusers --task text-to-video ...`
   creates an MP4 from the local source snapshot.
-- Wan `--image` requests fail before model loading with an explanation that I2V needs first-frame
-  latent conditioning.
+- `uv run mlxgen generate --model Wan-AI/Wan2.2-TI2V-5B-Diffusers --task image-to-video --image ...`
+  creates an MP4 using first-frame latent conditioning.
 - New model cards continue to include source model, mflux acknowledgement, MLX-Gen version,
   quantization policy, AbstractFramework namespace examples, and contributor attribution.
 
@@ -212,7 +212,8 @@ than a renamed fork.
 - [x] Enable and validate ERNIE-Image-Turbo q8/q4 prepared folders.
 - [x] Add optional ERNIE Prompt Enhancer support for full source snapshots.
 - [x] Add initial Wan2.2 TI2V text-to-video backend and MP4 output.
-- [ ] Port Wan image-to-video first-frame latent conditioning.
+- [x] Port Wan image-to-video first-frame latent conditioning.
+- [ ] Improve Wan video quality/performance validation beyond tiny smoke runs.
 - [ ] Validate Wan q8/q4 preparation and decide whether a mixed quantization policy is needed.
 - [ ] Add stronger ERNIE Diffusers comparison tests and non-turbo scope.
 - [ ] Decide whether SeedVR2 should be unified under `mlxgen prepare` before larger video ports.

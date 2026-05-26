@@ -37,7 +37,7 @@ See `ACKNOWLEDGEMENTS.md` for upstream mflux credit, post-fork maintainership, a
 
 ## Architecture
 
-MLX-Gen keeps the MLX-native model runtime inherited from mflux while exposing a cleaner `mlxgen` command surface for new users and applications. The first supported video path is Wan2.2 TI2V text-to-video.
+MLX-Gen keeps the MLX-native model runtime inherited from mflux while exposing a cleaner `mlxgen` command surface for new users and applications. The first supported video paths are Wan2.2 TI2V text-to-video and experimental first-frame image-to-video.
 
 The package shape is:
 
@@ -182,7 +182,7 @@ mlxgen generate \
   --output video.mp4
 ```
 
-Wan image-to-video is not enabled yet. It needs the Diffusers first-frame latent-conditioning path rather than ordinary image-to-image latent initialization.
+Wan image-to-video uses the Diffusers first-frame latent-conditioning path rather than ordinary image-to-image latent initialization. It VAE-encodes one input frame, masks first-frame timesteps, and reinserts the condition before decode. Multi-image/video interpolation is not enabled.
 
 Generation commands replace the requested `--output` path by default. Use `--replace false` or `--no-replace` to preserve an existing file and save to the next suffixed path.
 

@@ -4,10 +4,12 @@ from mlx import nn
 
 from mflux.models.fibo.model.fibo_vae.common.wan_2_2_causal_conv_3d import Wan2_2_CausalConv3d
 from mflux.models.fibo.model.fibo_vae.decoder.wan_2_2_decoder_3d import Wan2_2_Decoder3d
+from mflux.models.fibo.model.fibo_vae.encoder.wan_2_2_encoder_3d import Wan2_2_Encoder3d
 
 
 class Wan2_2_VAE(nn.Module):
     Z_DIM = 48
+    ENCODER_BASE_DIM = 160
     DECODER_BASE_DIM = 256
     DIM_MULT = [1, 2, 4, 4]
     NUM_RES_BLOCKS = 2
@@ -20,6 +22,16 @@ class Wan2_2_VAE(nn.Module):
 
     def __init__(self):
         super().__init__()
+        self.encoder = Wan2_2_Encoder3d(
+            in_channels=self.OUT_CHANNELS,
+            dim=self.ENCODER_BASE_DIM,
+            z_dim=self.Z_DIM * 2,
+            dim_mult=self.DIM_MULT,
+            num_res_blocks=self.NUM_RES_BLOCKS,
+            attn_scales=[],
+            temporal_downsample=[False, True, True],
+        )
+        self.quant_conv = Wan2_2_CausalConv3d(self.Z_DIM * 2, self.Z_DIM * 2, 1, padding=0, name="quant_conv")
         self.post_quant_conv = Wan2_2_CausalConv3d(self.Z_DIM, self.Z_DIM, 1, padding=0, name="post_quant_conv")
         self.decoder = Wan2_2_Decoder3d(
             dim=self.DECODER_BASE_DIM,
@@ -29,6 +41,21 @@ class Wan2_2_VAE(nn.Module):
             temporal_upsample=[True, True, False],
             out_channels=self.OUT_CHANNELS,
         )
+
+    def encode(self, images: mx.array) -> mx.array:
+        if images.ndim == 4:
+            images = images.reshape(images.shape[0], images.shape[1], 1, images.shape[2], images.shape[3])
+        if images.ndim != 5:
+            raise ValueError(f"Expected Wan VAE encode input with shape [B,C,F,H,W], got {images.shape}")
+
+        encoded = self.encoder(self.patchify(images, patch_size=self.PATCH_SIZE))
+        encoded = self.quant_conv(encoded)
+        return encoded[:, : self.Z_DIM]
+
+    def encode_normalized(self, images: mx.array) -> mx.array:
+        latents_mean = mx.array(self.LATENTS_MEAN).reshape(1, self.Z_DIM, 1, 1, 1)
+        latents_std = mx.array(self.LATENTS_STD).reshape(1, self.Z_DIM, 1, 1, 1)
+        return (self.encode(images) - latents_mean) / latents_std
 
     def decode(self, latents: mx.array) -> mx.array:
         if latents.ndim == 4:

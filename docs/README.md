@@ -13,7 +13,7 @@ MLX-Gen is an MLX-native generative image and video runtime forked from mflux. I
 - [Python integration](python-integration.md): current in-process API, AbstractVision integration notes, progress limitations, and error handling.
 - [Release](release.md): GitHub Release and PyPI trusted publishing workflow.
 - [FAQ](faq.md): common questions about `prepare`, downloads, package naming, and compatibility.
-- [Troubleshooting](troubleshooting.md): common missing-artifact, cache, local-path, ERNIE Prompt Enhancer, small-resolution ERNIE, unsupported ERNIE edit inputs, and Wan image-input limits.
+- [Troubleshooting](troubleshooting.md): common missing-artifact, cache, local-path, ERNIE Prompt Enhancer, small-resolution ERNIE, unsupported ERNIE edit inputs, and tiny Wan video validation limits.
 
 The top-level [README](../README.md) remains the starting point for installation, model families, and project relationship details.
 

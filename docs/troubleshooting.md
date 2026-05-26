@@ -84,11 +84,11 @@ If you pass `--task edit`, multiple `--images`, or `--image-strength` without an
 
 If ERNIE image-to-image does not preserve enough of the source image, increase `--image-strength`, keep the output aspect ratio close to the input aspect ratio, or use Qwen Image Edit for a true image-conditioned edit. If ERNIE preserves the source too strongly and barely applies the requested style, lower `--image-strength` or increase `--steps` to 12-16.
 
-## Wan Rejects Image Inputs
+## Wan Video Quality Looks Weak At Tiny Sizes
 
-Wan2.2 TI2V support currently covers text-to-video only. If you pass `--image`, MLX-Gen rejects the request before model loading because Wan image-to-video needs the Diffusers first-frame latent-conditioning path.
+Wan2.2 TI2V supports text-to-video and experimental first-frame image-to-video. Very small or very short runs are useful smoke tests, but they are not reliable quality checks.
 
-Use a text-to-video request for now:
+Use at least a short multi-frame run when validating behavior:
 
 ```sh
 mlxgen generate \
@@ -103,6 +103,8 @@ mlxgen generate \
   --fps 8 \
   --output video.mp4
 ```
+
+For image-to-video, pass exactly one input image and use `--task image-to-video`. Multi-image Wan interpolation is not enabled.
 
 ## `generate --path` Fails
 

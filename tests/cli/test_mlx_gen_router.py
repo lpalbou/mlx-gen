@@ -516,20 +516,23 @@ def test_routes_wan_text_to_video_generation():
     ]
 
 
-def test_wan_rejects_image_to_video_until_conditioning_path_is_ported(capsys):
-    with pytest.raises(SystemExit):
-        mlx_gen._resolve_invocation(
-            [
-                "--model",
-                "wan2.2-ti2v-5b",
-                "--task",
-                "image-to-video",
-                "--prompt",
-                "make the room slowly brighten",
-            ]
-        )
+def test_routes_wan_image_to_video_generation():
+    invocation = mlx_gen._resolve_invocation(
+        [
+            "--model",
+            "wan2.2-ti2v-5b",
+            "--task",
+            "image-to-video",
+            "--image",
+            "input.png",
+            "--prompt",
+            "make the room slowly brighten",
+        ]
+    )
 
-    assert "image-to-video is not enabled yet" in capsys.readouterr().err
+    assert invocation.target_name == "mlxgen-generate-wan"
+    assert "--image-path" in invocation.argv
+    assert "input.png" in invocation.argv
 
 
 def test_wan_rejects_multiple_images(capsys):
@@ -546,13 +549,15 @@ def test_wan_rejects_multiple_images(capsys):
             ]
         )
 
-    assert "image-to-video is not enabled yet" in capsys.readouterr().err
+    assert "accepts exactly one input image" in capsys.readouterr().err
 
 
-def test_wan_cli_generates_video_and_respects_replace(monkeypatch):
+def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
     from mflux.models.wan.cli import wan_generate
 
     observed = {}
+    image_path = tmp_path / "input.png"
+    image_path.write_bytes(b"fake")
 
     class FakeVideo:
         def save(self, **kwargs):
@@ -588,6 +593,8 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch):
             "2",
             "--seed",
             "123",
+            "--image-path",
+            str(image_path),
             "--replace",
             "false",
             "--output",
@@ -605,6 +612,7 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch):
     assert observed["generate"]["fps"] == 8
     assert observed["generate"]["num_inference_steps"] == 2
     assert observed["generate"]["seed"] == 123
+    assert observed["generate"]["image_path"] == str(image_path)
     assert observed["save"]["path"] == "out.mp4"
     assert observed["save"]["overwrite"] is False
 

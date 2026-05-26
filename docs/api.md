@@ -102,7 +102,32 @@ mlxgen generate \
   --output video.mp4
 ```
 
-Wan image-to-video is not enabled yet. Passing an image to a Wan generation request fails before model loading with an explanation that the Diffusers first-frame latent-conditioning path still needs to be ported.
+Wan image-to-video uses the same command with one input image:
+
+```sh
+mlxgen generate \
+  --model Wan-AI/Wan2.2-TI2V-5B-Diffusers \
+  --task image-to-video \
+  --image input.png \
+  --prompt "A slow cinematic camera move from the input frame" \
+  --width 256 \
+  --height 256 \
+  --frames 17 \
+  --steps 12 \
+  --guidance 5 \
+  --fps 8 \
+  --output video.mp4
+```
+
+The I2V path follows Diffusers first-frame latent conditioning: the first frame is VAE-encoded, kept active through denoising with a timestep mask, and reinserted before decode. Multi-image/video interpolation is not enabled.
+
+Current smoke examples:
+
+![Wan2.2 TI2V 256px text-to-video contact sheet](assets/generation/wan2.2-ti2v-5b-t2v-256-17f-12steps-contact-sheet.png)
+
+![Wan2.2 TI2V first-frame image-to-video contact sheet](assets/generation/wan2.2-ti2v-5b-i2v-bateau-128-5f-2steps-contact-sheet.png)
+
+These are implementation smoke artifacts, not quality benchmarks. Use larger dimensions, more frames, and more inference steps for practical outputs.
 
 ## Model Management Commands
 

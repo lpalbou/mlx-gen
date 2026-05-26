@@ -24,7 +24,13 @@ class Wan2_2_Resample(nn.Module):
             self.time_conv = None
         elif mode == "downsample3d":
             self.resample_conv = nn.Conv2d(dim, dim, kernel_size=3, stride=2, padding=0)
-            self.time_conv = None
+            self.time_conv = Wan2_2_CausalConv3d(
+                dim,
+                dim,
+                kernel_size=(3, 1, 1),
+                stride=(2, 1, 1),
+                padding=(0, 0, 0),
+            )
         else:
             raise ValueError(f"Unsupported resample mode: {mode}")
 
@@ -81,4 +87,14 @@ class Wan2_2_Resample(nn.Module):
         new_h, new_w = x.shape[2], x.shape[3]
         x = mx.reshape(x, (b, t, new_c, new_h, new_w))
         x = mx.transpose(x, (0, 2, 1, 3, 4))
+        if self.mode == "downsample3d" and self.time_conv is not None and feat_cache is not None and feat_idx is not None:
+            idx = feat_idx[0]
+            if feat_cache[idx] is None:
+                feat_cache[idx] = x
+                feat_idx[0] += 1
+            else:
+                cache_x = x[:, :, -1:, :, :]
+                x = self.time_conv(mx.concatenate([feat_cache[idx][:, :, -1:, :, :], x], axis=2))
+                feat_cache[idx] = cache_x
+                feat_idx[0] += 1
         return x

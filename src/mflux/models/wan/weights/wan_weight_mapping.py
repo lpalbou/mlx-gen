@@ -80,7 +80,33 @@ class WanWeightMapping:
     @staticmethod
     def get_vae_mapping() -> list[WeightTarget]:
         mapping = [
+            *WanWeightMapping._conv3d("quant_conv", "quant_conv"),
             *WanWeightMapping._conv3d("post_quant_conv", "post_quant_conv"),
+            *WanWeightMapping._conv3d("encoder.conv_in", "encoder.conv_in"),
+            *WanWeightMapping._conv3d("encoder.conv_out", "encoder.conv_out"),
+            WeightTarget(to_pattern="encoder.norm_out.weight", from_pattern=["encoder.norm_out.gamma"]),
+            WeightTarget(
+                to_pattern="encoder.mid_block.attentions.0.norm.weight",
+                from_pattern=["encoder.mid_block.attentions.0.norm.gamma"],
+            ),
+            WeightTarget(
+                to_pattern="encoder.mid_block.attentions.0.to_qkv.weight",
+                from_pattern=["encoder.mid_block.attentions.0.to_qkv.weight"],
+                transform=WeightTransforms.transpose_conv2d_weight,
+            ),
+            WeightTarget(
+                to_pattern="encoder.mid_block.attentions.0.to_qkv.bias",
+                from_pattern=["encoder.mid_block.attentions.0.to_qkv.bias"],
+            ),
+            WeightTarget(
+                to_pattern="encoder.mid_block.attentions.0.proj.weight",
+                from_pattern=["encoder.mid_block.attentions.0.proj.weight"],
+                transform=WeightTransforms.transpose_conv2d_weight,
+            ),
+            WeightTarget(
+                to_pattern="encoder.mid_block.attentions.0.proj.bias",
+                from_pattern=["encoder.mid_block.attentions.0.proj.bias"],
+            ),
             *WanWeightMapping._conv3d("decoder.conv_in", "decoder.conv_in"),
             *WanWeightMapping._conv3d("decoder.conv_out", "decoder.conv_out"),
             WeightTarget(to_pattern="decoder.norm_out.weight", from_pattern=["decoder.norm_out.gamma"]),
@@ -111,12 +137,35 @@ class WanWeightMapping:
         for resnet in range(2):
             mapping.extend(
                 WanWeightMapping._resnet_mapping(
+                    hf_prefix=f"encoder.mid_block.resnets.{resnet}",
+                    to_prefix=f"encoder.mid_block.resnets.{resnet}",
+                )
+            )
+            mapping.extend(
+                WanWeightMapping._resnet_mapping(
                     hf_prefix=f"decoder.mid_block.resnets.{resnet}",
                     to_prefix=f"decoder.mid_block.resnets.{resnet}",
                 )
             )
 
         for block in range(4):
+            for resnet in range(2):
+                prefix = f"encoder.down_blocks.{block}.resnets.{resnet}"
+                mapping.extend(WanWeightMapping._resnet_mapping(hf_prefix=prefix, to_prefix=prefix))
+            if block != 3:
+                if block in (1, 2):
+                    mapping.extend(
+                        WanWeightMapping._conv3d(
+                            hf_prefix=f"encoder.down_blocks.{block}.downsampler.time_conv",
+                            to_prefix=f"encoder.down_blocks.{block}.downsampler.time_conv",
+                        )
+                    )
+                mapping.extend(
+                    WanWeightMapping._conv2d(
+                        hf_prefix=f"encoder.down_blocks.{block}.downsampler.resample.1",
+                        to_prefix=f"encoder.down_blocks.{block}.downsampler.resample_conv",
+                    )
+                )
             for resnet in range(3):
                 prefix = f"decoder.up_blocks.{block}.resnets.{resnet}"
                 mapping.extend(WanWeightMapping._resnet_mapping(hf_prefix=prefix, to_prefix=prefix))
@@ -158,7 +207,13 @@ class WanWeightMapping:
             *WanWeightMapping._conv3d(f"{hf_prefix}.conv1", f"{to_prefix}.conv1"),
             *WanWeightMapping._conv3d(f"{hf_prefix}.conv2", f"{to_prefix}.conv2"),
         ]
-        if ".resnets.0" in hf_prefix and ("up_blocks.2" in hf_prefix or "up_blocks.3" in hf_prefix):
+        needs_shortcut = ".resnets.0" in hf_prefix and (
+            "encoder.down_blocks.1" in hf_prefix
+            or "encoder.down_blocks.2" in hf_prefix
+            or "decoder.up_blocks.2" in hf_prefix
+            or "decoder.up_blocks.3" in hf_prefix
+        )
+        if needs_shortcut:
             mapping.extend(WanWeightMapping._conv3d(f"{hf_prefix}.conv_shortcut", f"{to_prefix}.conv_shortcut"))
         return mapping
 

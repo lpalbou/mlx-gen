@@ -20,12 +20,6 @@ def main() -> None:
     _apply_seed_defaults(args)
 
     model_config, model_path = _resolve_model(args.model)
-    if args.image_path is not None:
-        parser.error(
-            "Wan2.2 image-to-video is not enabled yet. Text-to-video works now; "
-            "I2V needs the Diffusers first-frame latent conditioning path."
-        )
-
     model = Wan2_2_TI2V(
         model_config=model_config,
         quantize=args.quantize,
@@ -44,6 +38,7 @@ def main() -> None:
                 guidance=args.guidance,
                 num_inference_steps=args.steps,
                 negative_prompt=args.negative_prompt,
+                image_path=args.image_path,
                 max_sequence_length=args.max_sequence_length,
             )
             video.save(
@@ -107,6 +102,8 @@ def _apply_metadata_defaults(args: argparse.Namespace) -> None:
         args.seed = [int(metadata["seed"])]
     if args.quantize is None:
         args.quantize = metadata.get("quantize")
+    if args.image_path is None and metadata.get("image_path") is not None:
+        args.image_path = metadata.get("image_path")
     for name in ("width", "height", "frames", "fps", "steps", "guidance"):
         value = metadata.get(name)
         if value is not None and getattr(args, name) == _parser().get_default(name):
@@ -122,6 +119,8 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
         parser.error("--steps must be greater than zero.")
     if args.max_sequence_length <= 0:
         parser.error("--max-sequence-length must be greater than zero.")
+    if args.image_path is not None and not Path(args.image_path).exists():
+        parser.error(f"--image-path does not exist: {args.image_path}")
 
 
 def _apply_seed_defaults(args: argparse.Namespace) -> None:

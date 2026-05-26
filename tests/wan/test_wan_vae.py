@@ -3,6 +3,7 @@ import numpy as np
 
 from mflux.models.common.config import ModelConfig
 from mflux.models.wan.model.wan_vae import Wan2_2_VAE
+from mflux.models.wan.weights.wan_weight_mapping import WanWeightMapping
 from mflux.utils.video_util import VideoUtil
 
 
@@ -24,6 +25,23 @@ def test_wan_vae_decode_normalized_latents_expands_temporal_dimension():
     assert decoded.shape == (1, 3, 5, 64, 64)
     assert float(mx.min(decoded).item()) >= -1.0
     assert float(mx.max(decoded).item()) <= 1.0
+
+
+def test_wan_vae_encode_normalized_first_frame_matches_i2v_condition_shape():
+    vae = Wan2_2_VAE()
+    image = mx.zeros((1, 3, 64, 64), dtype=mx.float32)
+
+    condition = vae.encode_normalized(image)
+    mx.eval(condition)
+
+    assert condition.shape == (1, 48, 1, 4, 4)
+
+
+def test_wan_vae_mapping_includes_encoder_shortcut_weights():
+    targets = {target.to_pattern for target in WanWeightMapping.get_vae_mapping()}
+
+    assert "encoder.down_blocks.1.resnets.0.conv_shortcut.conv3d.weight" in targets
+    assert "encoder.down_blocks.2.resnets.0.conv_shortcut.conv3d.weight" in targets
 
 
 def test_wan_vae_decode_can_save_mp4(tmp_path):

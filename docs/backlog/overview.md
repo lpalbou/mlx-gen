@@ -24,9 +24,9 @@ outside chat history.
    gated-derivative hygiene.
 2. Continue ERNIE-Image/Turbo after the Turbo text-to-image, Prompt Enhancer, and q4/q8
    validation work: add stronger Diffusers parity tests and non-turbo validation.
-3. Continue Wan2.2 after the first text-to-video milestone: port image-to-video first-frame latent
-   conditioning, add q8/q4 validation, and keep SeedVR2 as the lower-risk existing-code video
-   utility track.
+3. Continue Wan2.2 after the first text-to-video and first-frame image-to-video milestones: add
+   q8/q4 validation, stronger quality/performance checks, progress/cancel APIs, and keep SeedVR2
+   as the lower-risk existing-code video utility track.
 
 ## Planned ledger
 
@@ -65,6 +65,6 @@ No deprecated backlog items yet.
 - Added 2026-05-25 ERNIE follow-up: ERNIE Image Turbo text-to-image support exists with BF16,
   q8, q4, and optional Prompt Enhancer validation; remaining work is parity coverage and
   non-turbo ERNIE-Image.
-- Added 2026-05-26 Wan follow-up: initial Wan2.2 TI2V text-to-video support exists with MP4
-  output and focused tests; remaining work is image-to-video conditioning, quantized validation,
-  progress/cancel APIs, and broader Diffusers parity.
+- Added 2026-05-26 Wan follow-up: initial Wan2.2 TI2V text-to-video and first-frame
+  image-to-video support exists with MP4 output and focused tests; remaining work is quality
+  validation, quantized validation, progress/cancel APIs, and broader Diffusers parity.

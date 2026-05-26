@@ -129,7 +129,24 @@ mlxgen generate \
   --output video.mp4
 ```
 
-Wan image-to-video is not enabled yet; it needs the Diffusers first-frame latent-conditioning path rather than ordinary image-to-image initialization.
+Wan image-to-video is also available as an experimental first-frame conditioning path:
+
+```sh
+mlxgen generate \
+  --model Wan-AI/Wan2.2-TI2V-5B-Diffusers \
+  --task image-to-video \
+  --image input.png \
+  --prompt "A slow cinematic camera move from the input frame" \
+  --width 256 \
+  --height 256 \
+  --frames 17 \
+  --steps 12 \
+  --guidance 5 \
+  --fps 8 \
+  --output video.mp4
+```
+
+The I2V path follows Diffusers first-frame latent conditioning. It is not ordinary image-to-image latent initialization, and it should still be treated as early video support while quality and performance are validated.
 
 If a local model path or custom repository name cannot be classified from its name, add `--family qwen`, `--family flux2`, `--family fibo`, `--family z-image`, `--family ernie-image`, or `--family wan`. The router can also read `model`, `image_path`, and `image_paths` from `--config-from-metadata`.
 
@@ -258,7 +275,7 @@ MLX-Gen supports the following model families. They have different strengths and
 | Model | Release date | Size | Type | Training | Description |
 | --- | --- | --- | --- | --- | --- |
 |[Z-Image](src/mflux/models/z_image/README.md) | Nov 2025 | 6B | Distilled & Base | Yes | Fast, small, very good quality and realism. |
-| Wan2.2 TI2V | Jul 2025 | 5B | Base | No | Initial text-to-video support. Image-to-video is not enabled yet. |
+| Wan2.2 TI2V | Jul 2025 | 5B | Base | No | Initial text-to-video and experimental first-frame image-to-video support. |
 |[FLUX.2](src/mflux/models/flux2/README.md) | Jan 2026 | 4B & 9B | Distilled & Base | Yes | Fastest + smallest with very good quality and edit capabilities. |
 |[FIBO](src/mflux/models/fibo/README.md) | Oct 2025+ | 8B | Distilled & Base | No | Very good JSON-based prompt understanding. Has edit capabilities. |
 | ERNIE Image Turbo | Mar 2026 | 6B class | Distilled | No | Fast Apache 2.0 model from Baidu. MLX-Gen support covers text-to-image, experimental single-image image-to-image, BF16/q8/mixed q4 folders, and optional Prompt Enhancer from a full source snapshot. Use 384px+ outputs for reliable composition. |
