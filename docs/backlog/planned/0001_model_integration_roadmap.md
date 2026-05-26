@@ -201,6 +201,9 @@ than a renamed fork.
 - `MFLUX_RUN_LOCAL_WAN_PARITY=1 uv run pytest tests/wan/test_wan_local_parity.py -q`
   validates the full Wan transformer, VAE encoder/decoder, prompt embeddings, scheduler replay,
   and a tiny 3-step CFG latent denoise loop against Diffusers-generated fixtures.
+- `uv run pytest tests/wan/test_wan_visual_assets.py -q` verifies that the committed Wan
+  text-to-video and first-frame image-to-video example panels are present, nonblank, and varied
+  across frames.
 - New model cards continue to include source model, mflux acknowledgement, MLX-Gen version,
   quantization policy, AbstractFramework namespace examples, and contributor attribution.
 
@@ -221,6 +224,7 @@ than a renamed fork.
 - [x] Add opt-in Wan full-model parity fixtures for transformer and VAE encoder checks.
 - [x] Add Wan prompt-embedding parity and VAE decode parity fixtures.
 - [x] Add short deterministic Wan denoise-loop parity against Diffusers.
+- [x] Add committed Wan contact-sheet asset checks for nonblank, varied MP4 examples.
 - [ ] Improve Wan video quality/performance validation beyond tiny smoke runs.
 - [ ] Add one full short Wan Diffusers-vs-MLX generation comparison for the same prompt, seed,
       dimensions, frames, steps, and guidance.

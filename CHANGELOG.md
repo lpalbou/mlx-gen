@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Wan local parity fixtures**: Add opt-in full-model Wan component-parity tests for the MLX transformer, VAE encoder/decoder, prompt-embedding paths, and a tiny 3-step CFG latent denoise loop against Diffusers-generated fixtures.
+- **Wan visual asset checks**: Add fast tests that verify the committed Wan text-to-video and first-frame image-to-video contact sheets are present, nonblank, and visually varied across frames.
 
 ### Documentation
 
