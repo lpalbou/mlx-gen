@@ -121,7 +121,26 @@ mlxgen generate \
 
 The I2V path follows Diffusers first-frame latent conditioning: the first frame is VAE-encoded, kept active through denoising with a timestep mask, and reinserted before decode. Multi-image/video interpolation is not enabled.
 
-The upstream TI2V-5B guidance is 1280x704 or 704x1280, 121 frames, 50 steps, and 24 fps. Lower settings are useful only for routing, scheduler, and MP4 smoke tests; very small runs can produce abstract green frames even with upstream Diffusers.
+### Wan Video Parameters
+
+Wan uses frame-count control rather than a separate duration flag. The output duration is:
+
+```text
+duration_seconds = frames / fps
+```
+
+At the default 24 fps, `--frames 121` produces about 5.04 seconds of video, `--frames 73` produces about 3.04 seconds, and `--frames 49` produces about 2.04 seconds.
+
+| Option | Behavior |
+| --- | --- |
+| `--width`, `--height` | Accepted values are at least 32 pixels. Values are adjusted down to multiples of 32 for Wan patchification, so `1280x720` becomes `1280x704`. Use `1280x704` for landscape or `704x1280` for portrait quality validation. |
+| `--frames` | Number of output frames. Wan requires `4n + 1`; other values are adjusted to `4 * floor(frames / 4) + 1`. Default: `121`. |
+| `--fps` | MP4 playback frame rate. Any positive integer is accepted. Default and recommended value: `24`. |
+| `--steps` | Denoising steps. Default and recommended quality value: `50`. Lower values run faster but reduce quality. |
+| `--guidance` | Classifier-free guidance scale. Default: `5`. |
+| `--seed` | Deterministic seed. Repeat with multiple values to create multiple videos. |
+
+The upstream TI2V-5B guidance is 1280x704 or 704x1280, 121 frames, 50 steps, and 24 fps. Lower resolutions, frame counts, or step counts are useful for quick checks, but they should not be treated as quality settings.
 
 Spatial-scale sanity outputs at 1280x704, 17 frames, and 20 steps:
 

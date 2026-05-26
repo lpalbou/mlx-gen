@@ -126,7 +126,7 @@ mlxgen generate \
 
 Wan image-to-video uses the Diffusers first-frame latent-conditioning path. Treat current Wan video support as experimental: the pipeline can produce MP4 output, but quality, speed, and practical defaults still need broader validation.
 
-Wan2.2 TI2V is not meaningful at tiny smoke-test settings. Runs such as 128px, 5 frames, and 4 steps can produce abstract green frames even with upstream Diffusers. Use low settings only to validate routing and MP4 writing, not visual quality.
+Wan does not have a separate duration option. Control duration with `--frames` and `--fps`: duration is `frames / fps`, so `--frames 121 --fps 24` is about 5.04 seconds. Wan frame counts must be `4n + 1`; MLX-Gen adjusts other values to that shape. Width and height must be at least 32 pixels and are adjusted down to multiples of 32, so `1280x720` becomes `1280x704`. Use `1280x704` for landscape or `704x1280` for portrait quality validation.
 
 Spatial-scale sanity outputs at 1280x704, 17 frames, and 20 steps:
 

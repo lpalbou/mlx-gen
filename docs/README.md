@@ -4,7 +4,7 @@ MLX-Gen is an MLX-native generative image and video runtime forked from mflux. I
 
 ## Guides
 
-- [Getting started](getting-started.md): install MLX-Gen, inspect the CLI, prepare model files, run a first generation or edit, and use Wan video commands with the current quality-validation caveats.
+- [Getting started](getting-started.md): install MLX-Gen, inspect the CLI, prepare model files, run a first generation or edit, and use Wan video commands with duration, FPS, and resolution guidance.
 - [Architecture](architecture.md): package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
 - [API and CLI](api.md): public `mlxgen` command surface, generation router behavior, image/video examples, model-management commands, and Python integration boundary.
 - [Model management](model-management.md): explicit download and prepare workflows, cache-only runtime behavior, and Depth Pro downloads.
@@ -13,7 +13,7 @@ MLX-Gen is an MLX-native generative image and video runtime forked from mflux. I
 - [Python integration](python-integration.md): current in-process API, AbstractVision integration notes, progress limitations, and error handling.
 - [Release](release.md): GitHub Release and PyPI trusted publishing workflow.
 - [FAQ](faq.md): common questions about `prepare`, downloads, package naming, and compatibility.
-- [Troubleshooting](troubleshooting.md): common missing-artifact, cache, local-path, ERNIE Prompt Enhancer, small-resolution ERNIE, unsupported ERNIE edit inputs, and tiny Wan video validation limits.
+- [Troubleshooting](troubleshooting.md): common missing-artifact, cache, local-path, ERNIE Prompt Enhancer, small-resolution ERNIE, unsupported ERNIE edit inputs, and Wan video quality-setting limits.
 
 The top-level [README](../README.md) remains the starting point for installation, model families, and project relationship details.
 

@@ -217,7 +217,7 @@ class Wan2_2_TI2V(nn.Module):
         if not text_encoder_path.exists():
             raise FileNotFoundError(
                 f"Wan text encoder files were not found in {text_encoder_path}. "
-                "Run `mlxgen download --model Wan-AI/Wan2.2-TI2V-5B-Diffusers --all-files` first."
+                "Run `mlxgen download --model Wan-AI/Wan2.2-TI2V-5B-Diffusers` first."
             )
 
         cleaned = [self._prompt_clean(prompt) for prompt in prompts]

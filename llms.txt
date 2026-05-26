@@ -5,7 +5,7 @@ MLX-Gen is an MLX-native generative image and video runtime forked from mflux an
 ## Key Documents
 
 - [README.md](README.md): installation, project relationship to mflux, main CLI examples, supported model families, and acknowledgements.
-- [docs/getting-started.md](docs/getting-started.md): first-run workflow, top-level CLI discovery, model preparation, image generation/editing, and Wan video examples.
+- [docs/getting-started.md](docs/getting-started.md): first-run workflow, top-level CLI discovery, model preparation, image generation/editing, and Wan video duration/FPS/resolution examples.
 - [docs/architecture.md](docs/architecture.md): package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
 - [docs/api.md](docs/api.md): public `mlxgen` command surface, generation router behavior, model-management commands, and Python integration boundary.
 - [docs/model-management.md](docs/model-management.md): cache-only runtime policy, explicit `mlxgen download` and `mlxgen prepare` flows, Depth Pro download command, and `DownloadRequiredError`.
@@ -14,7 +14,7 @@ MLX-Gen is an MLX-native generative image and video runtime forked from mflux an
 - [docs/python-integration.md](docs/python-integration.md): current Python API expectations, AbstractVision integration notes, progress limitations, and threading guidance.
 - [docs/release.md](docs/release.md): GitHub Release and PyPI trusted publishing workflow.
 - [docs/faq.md](docs/faq.md): common questions about `prepare`, downloads, package naming, and compatibility.
-- [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, output replacement, ERNIE Prompt Enhancer, ERNIE small-resolution and unsupported edit-input behavior, tiny Wan video validation limits, LoRA, and `hf_transfer` issues.
+- [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, output replacement, ERNIE Prompt Enhancer, ERNIE small-resolution and unsupported edit-input behavior, Wan video quality-setting limits, LoRA, and `hf_transfer` issues.
 - [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md): upstream mflux credit, post-fork maintainership, and model/community acknowledgements.
 - [CHANGELOG.md](CHANGELOG.md): release history.
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, checks, optional Wan parity validation, documentation expectations, and pull-request scope.

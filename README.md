@@ -146,7 +146,7 @@ mlxgen generate \
   --output video.mp4
 ```
 
-The I2V path follows Diffusers first-frame latent conditioning. It is not ordinary image-to-image latent initialization, and it should still be treated as early video support while quality and performance are validated. Tiny settings such as 128px or a handful of frames are useful only for wiring tests and can produce abstract green frames even with upstream Diffusers.
+The I2V path follows Diffusers first-frame latent conditioning. It is not ordinary image-to-image latent initialization, and it should still be treated as early video support while quality and performance are validated. Wan does not have a separate duration flag: duration is `frames / fps`. Frame counts are normalized to `4n + 1`, and width/height are normalized to multiples of 32.
 
 See [API And CLI](docs/api.md) for spatial-scale Wan T2V/I2V sanity panels generated at 1280x704.
 

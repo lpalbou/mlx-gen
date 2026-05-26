@@ -9,7 +9,7 @@ Some internals currently remain under `mflux.*`; new application code should use
 ## Document Index
 
 - `README.md`: installation, quick start, model families, project relationship, and acknowledgements.
-- `docs/getting-started.md`: install, inspect `mlxgen --help`, prepare model files, generate images, edit images, and run Wan video examples.
+- `docs/getting-started.md`: install, inspect `mlxgen --help`, prepare model files, generate images, edit images, and run Wan video examples with duration/FPS/resolution guidance.
 - `docs/architecture.md`: package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
 - `docs/api.md`: public `mlxgen` command surface, generation router, model-management commands, and Python integration boundary.
 - `docs/model-management.md`: cache-only runtime policy, `download` versus `prepare`, Depth Pro, and `DownloadRequiredError`.
@@ -17,7 +17,7 @@ Some internals currently remain under `mflux.*`; new application code should use
 - `docs/huggingface-publishing.md`: generated model cards, source license/access wording, default `AbstractFramework/<repo-name>` usage, upload flow, and optional collection membership.
 - `docs/python-integration.md`: in-process use, AbstractVision integration, progress limitations, and threading guidance.
 - `docs/faq.md`: common questions about `prepare`, downloads, package naming, and compatibility.
-- `docs/troubleshooting.md`: missing files, local path classification, output replacement, `generate --path`, ERNIE Prompt Enhancer files, ERNIE small-resolution and unsupported edit-input behavior, Wan image-input limits, LoRA, and `hf_transfer`.
+- `docs/troubleshooting.md`: missing files, local path classification, output replacement, `generate --path`, ERNIE Prompt Enhancer files, ERNIE small-resolution and unsupported edit-input behavior, Wan video quality-setting limits, LoRA, and `hf_transfer`.
 - `docs/release.md`: GitHub Release and PyPI trusted publishing workflow.
 - `ACKNOWLEDGEMENTS.md`: upstream mflux credit and post-fork maintainership.
 - `CONTRIBUTING.md`: development setup, checks, documentation expectations, and pull-request scope.
@@ -201,7 +201,7 @@ mlxgen generate \
   --output video.mp4
 ```
 
-Tiny Wan settings such as 128px, 5 frames, and 4 steps are smoke tests only. Local comparison showed that those settings can produce abstract green frames with upstream Diffusers as well as MLX-Gen. Spatial-scale T2V and I2V sanity panels at 1280x704, 17 frames, and 20 steps live in `docs/assets/generation/`; they are coherent non-green outputs, not full quality benchmarks.
+Wan does not have a separate duration flag. Duration is `frames / fps`; at 24 fps, 121 frames is about 5.04 seconds, 73 frames is about 3.04 seconds, and 49 frames is about 2.04 seconds. Frame counts are normalized to `4n + 1`. Width and height must be at least 32 pixels and are normalized to multiples of 32, so 1280x720 becomes 1280x704. Use 1280x704 for landscape or 704x1280 for portrait quality validation. Spatial-scale T2V and I2V sanity panels at 1280x704, 17 frames, and 20 steps live in `docs/assets/generation/`; they are coherent non-green outputs, not full quality benchmarks.
 
 Generation commands replace the requested `--output` path by default. Use `--replace false` or `--no-replace` to preserve an existing file and save to the next suffixed path.
 
