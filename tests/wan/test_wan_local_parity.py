@@ -6,6 +6,8 @@ import numpy as np
 import pytest
 
 from mflux.models.common.config.model_config import ModelConfig
+from mflux.models.wan.latent_creator import WanTimestepPolicy
+from mflux.models.wan.scheduler import WanUniPCMultistepScheduler
 from mflux.models.wan.variants import Wan2_2_TI2V
 
 RESOURCE_DIR = Path(__file__).resolve().parents[1] / "resources" / "wan" / "parity"
@@ -16,6 +18,7 @@ WAN_PARITY_NEGATIVE_PROMPT = "blur, low quality, distorted, text, watermark, noi
 WAN_PARITY_PROMPT_LENGTH = 64
 WAN_PARITY_PROMPT_MEAN_ABS_LIMIT = 0.001
 WAN_PARITY_PROMPT_MAX_ABS_LIMIT = 0.01
+WAN_DENOISE_GUIDANCE = 3.0
 
 
 pytestmark = pytest.mark.skipif(
@@ -85,6 +88,75 @@ def test_wan_prompt_embeds_match_diffusers_fixture(wan_model):
         mean_abs_limit=WAN_PARITY_PROMPT_MEAN_ABS_LIMIT,
         max_abs_limit=WAN_PARITY_PROMPT_MAX_ABS_LIMIT,
     )
+
+
+def test_wan_scheduler_replays_diffusers_denoise_fixture():
+    latents = _load_mx("wan_denoise_cfg_initial_latents.npy").astype(mx.float32)
+    guided_noise = _load_np("wan_denoise_cfg_noise_guided_diffusers.npy")
+    expected_latents = _load_np("wan_denoise_cfg_step_latents_diffusers.npy")
+    expected_timesteps = _load_np("wan_denoise_cfg_timesteps.npy")
+
+    scheduler = WanUniPCMultistepScheduler()
+    scheduler.set_timesteps(len(expected_timesteps))
+    np.testing.assert_array_equal(np.array(scheduler.timesteps), expected_timesteps)
+
+    for index, timestep in enumerate(scheduler.timesteps.tolist()):
+        latents = scheduler.step(
+            mx.array(guided_noise[index]).astype(mx.float32),
+            timestep,
+            latents,
+            return_dict=False,
+        )[0]
+        mx.eval(latents)
+        _assert_close(_to_np(latents), expected_latents[index], mean_abs_limit=0.00001, max_abs_limit=0.00001)
+
+
+def test_wan_cfg_denoise_loop_matches_diffusers_fixture(wan_model):
+    latents = _load_mx("wan_denoise_cfg_initial_latents.npy").astype(mx.float32)
+    prompt = _load_mx("wan_prompt_embeds_diffusers.npy").astype(ModelConfig.precision)
+    negative = _load_mx("wan_negative_prompt_embeds_diffusers.npy").astype(ModelConfig.precision)
+    expected_expanded_timesteps = _load_np("wan_denoise_cfg_expanded_timesteps.npy")
+    expected_guided_noise = _load_np("wan_denoise_cfg_noise_guided_diffusers.npy")
+    expected_latents = _load_np("wan_denoise_cfg_step_latents_diffusers.npy")
+    expected_timesteps = _load_np("wan_denoise_cfg_timesteps.npy")
+
+    scheduler = WanUniPCMultistepScheduler()
+    scheduler.set_timesteps(len(expected_timesteps))
+    np.testing.assert_array_equal(np.array(scheduler.timesteps), expected_timesteps)
+
+    for index, timestep in enumerate(scheduler.timesteps.tolist()):
+        expanded_timestep = WanTimestepPolicy.expand_for_text_to_video(
+            latent_shape=latents.shape,
+            timestep=timestep,
+            patch_size=wan_model.transformer.patch_size,
+        )
+        noise_pred = wan_model.transformer(
+            hidden_states=latents.astype(ModelConfig.precision),
+            timestep=expanded_timestep,
+            encoder_hidden_states=prompt,
+        )
+        noise_uncond = wan_model.transformer(
+            hidden_states=latents.astype(ModelConfig.precision),
+            timestep=expanded_timestep,
+            encoder_hidden_states=negative,
+        )
+        guided_noise = noise_uncond + WAN_DENOISE_GUIDANCE * (noise_pred - noise_uncond)
+        latents = scheduler.step(guided_noise.astype(mx.float32), timestep, latents, return_dict=False)[0]
+        mx.eval(expanded_timestep, guided_noise, latents)
+
+        _assert_close(
+            _to_np(expanded_timestep),
+            expected_expanded_timesteps[index],
+            mean_abs_limit=0.0,
+            max_abs_limit=0.0,
+        )
+        _assert_close(
+            _to_np(guided_noise),
+            expected_guided_noise[index],
+            mean_abs_limit=0.16,
+            max_abs_limit=1.0,
+        )
+        _assert_close(_to_np(latents), expected_latents[index], mean_abs_limit=0.12, max_abs_limit=0.75)
 
 
 def _load_np(name: str) -> np.ndarray:

@@ -67,6 +67,6 @@ No deprecated backlog items yet.
   non-turbo ERNIE-Image.
 - Added 2026-05-26 Wan follow-up: initial Wan2.2 TI2V text-to-video and first-frame
   image-to-video support exists with MP4 output, focused tests, and opt-in full-model parity
-  fixtures for the Wan transformer, VAE encoder/decoder, and prompt embeddings; remaining work is
-  quality validation, quantized validation, progress/cancel APIs, and broader denoising/generation
-  Diffusers parity.
+  fixtures for the Wan transformer, VAE encoder/decoder, prompt embeddings, scheduler replay, and
+  a tiny latent-only CFG denoise loop; remaining work is decoded-video quality validation,
+  quantized validation, progress/cancel APIs, and broader full-generation Diffusers parity.

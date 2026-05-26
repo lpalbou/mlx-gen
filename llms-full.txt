@@ -325,7 +325,7 @@ Contributors should use `uv`, keep pull requests focused, document user-facing b
 MFLUX_RUN_LOCAL_WAN_PARITY=1 MFLUX_PRESERVE_TEST_OUTPUT=1 uv run pytest tests/wan/test_wan_local_parity.py -q
 ```
 
-Those checks validate component parity for the Wan transformer, VAE encoder/decoder, and prompt embeddings. They do not replace visual review or full denoising/generation parity checks.
+Those checks validate component parity for the Wan transformer, VAE encoder/decoder, prompt embeddings, scheduler replay, and a tiny latent-only CFG denoise loop. They do not replace visual review or decoded video quality checks.
 
 Security issues should be reported privately through the repository security advisory flow when available. Do not include secrets, private model tokens, or proprietary model artifacts in public reports.
 

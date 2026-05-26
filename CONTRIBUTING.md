@@ -31,7 +31,7 @@ MFLUX_RUN_LOCAL_WAN_PARITY=1 MFLUX_PRESERVE_TEST_OUTPUT=1 uv run pytest tests/wa
 
 Set `MFLUX_WAN_PARITY_MODEL=/path/to/local/Wan2.2-TI2V-5B-Diffusers` when you want to validate against a specific local snapshot or prepared folder.
 
-These checks validate component parity for the Wan transformer, VAE encoder/decoder, and prompt embeddings. They do not replace visual review or full denoising/generation parity checks.
+These checks validate component parity for the Wan transformer, VAE encoder/decoder, prompt embeddings, scheduler replay, and a tiny latent-only CFG denoise loop. They do not replace visual review or decoded video quality checks.
 
 ## Documentation Expectations
 

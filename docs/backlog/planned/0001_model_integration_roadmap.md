@@ -50,8 +50,9 @@ text-to-image, image-to-image/edit, text-to-video, and image-to-video work.
 - Wan2.2 TI2V has an initial text-to-video and experimental first-frame image-to-video MLX port:
   Wan transformer, Wan VAE encoder/decoder, UniPC scheduler, local-only Hugging Face UMT5 prompt
   encoding, MP4 output, `mlxgen` routing, save/download wiring, focused tests, and opt-in
-  Diffusers fixture checks for transformer, VAE encode/decode, and prompt embeddings. The I2V path
-  follows Diffusers first-frame latent conditioning rather than ordinary img2img initialization.
+  Diffusers fixture checks for transformer, VAE encode/decode, prompt embeddings, scheduler replay,
+  and a tiny 3-step CFG latent denoise loop. The I2V path follows Diffusers first-frame latent
+  conditioning rather than ordinary img2img initialization.
 - GLM-Image is also a real port, not an alias. Its snapshot declares `GlmImagePipeline`,
   `GlmImageTransformer2DModel`, `GlmImageForConditionalGeneration`, `GlmImageProcessor`,
   `T5EncoderModel`, and `AutoencoderKL`.
@@ -198,8 +199,8 @@ than a renamed fork.
 - `uv run mlxgen generate --model Wan-AI/Wan2.2-TI2V-5B-Diffusers --task image-to-video --image ...`
   creates an MP4 using first-frame latent conditioning.
 - `MFLUX_RUN_LOCAL_WAN_PARITY=1 uv run pytest tests/wan/test_wan_local_parity.py -q`
-  validates the full Wan transformer, VAE encoder/decoder, and prompt embeddings against
-  Diffusers-generated fixtures.
+  validates the full Wan transformer, VAE encoder/decoder, prompt embeddings, scheduler replay,
+  and a tiny 3-step CFG latent denoise loop against Diffusers-generated fixtures.
 - New model cards continue to include source model, mflux acknowledgement, MLX-Gen version,
   quantization policy, AbstractFramework namespace examples, and contributor attribution.
 
@@ -219,8 +220,8 @@ than a renamed fork.
 - [x] Port Wan image-to-video first-frame latent conditioning.
 - [x] Add opt-in Wan full-model parity fixtures for transformer and VAE encoder checks.
 - [x] Add Wan prompt-embedding parity and VAE decode parity fixtures.
+- [x] Add short deterministic Wan denoise-loop parity against Diffusers.
 - [ ] Improve Wan video quality/performance validation beyond tiny smoke runs.
-- [ ] Add short deterministic Wan denoise-loop parity against Diffusers.
 - [ ] Add one full short Wan Diffusers-vs-MLX generation comparison for the same prompt, seed,
       dimensions, frames, steps, and guidance.
 - [ ] Validate Wan q8/q4 preparation and decide whether a mixed quantization policy is needed.

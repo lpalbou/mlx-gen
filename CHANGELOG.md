@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Wan local parity fixtures**: Add opt-in full-model Wan component-parity tests for the MLX transformer, VAE encoder/decoder, and prompt-embedding paths against Diffusers-generated fixtures.
+- **Wan local parity fixtures**: Add opt-in full-model Wan component-parity tests for the MLX transformer, VAE encoder/decoder, prompt-embedding paths, and a tiny 3-step CFG latent denoise loop against Diffusers-generated fixtures.
 
 ### Documentation
 
