@@ -1,6 +1,6 @@
 # Architecture
 
-MLX-Gen is an independent package forked from mflux. It keeps the MLX-native model runtime from mflux while exposing a cleaner `mlxgen` command surface for new users and applications.
+MLX-Gen is an independent package forked from mflux. It keeps the MLX-native model runtime from mflux while exposing a cleaner `mlxgen` command surface for new users and applications. The first supported video path is Wan2.2 TI2V text-to-video.
 
 ## Package Shape
 
@@ -29,6 +29,8 @@ Source model files usually come from Hugging Face. They can be used in two ways:
 2. Create a reusable MLX-Gen folder with `mlxgen prepare --model ... --path ... --quantize ...`.
 
 Prepared folders use the MLX/mflux saved-weight layout. They may contain MLX quantization tensors and generated Hugging Face model cards. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers loading.
+
+Video support follows the same setup/runtime boundary. Wan2.2 TI2V text-to-video loads local source files and writes MP4 output; Wan image-to-video is held back until its Diffusers first-frame latent-conditioning semantics are ported.
 
 ## Runtime Failure Contract
 

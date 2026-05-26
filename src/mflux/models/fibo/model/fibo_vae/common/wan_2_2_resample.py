@@ -28,15 +28,35 @@ class Wan2_2_Resample(nn.Module):
         else:
             raise ValueError(f"Unsupported resample mode: {mode}")
 
-    def __call__(self, x: mx.array, block_idx: int | None = None) -> mx.array:
+    def __call__(
+        self,
+        x: mx.array,
+        block_idx: int | None = None,
+        feat_cache: list[mx.array | str | None] | None = None,
+        feat_idx: list[int] | None = None,
+    ) -> mx.array:
         b, c, t, h, w = x.shape
         if self.mode in ("upsample2d", "upsample3d"):
             if self.mode == "upsample3d" and self.time_conv is not None:
-                x = self.time_conv(x)
-                x = mx.reshape(x, (b, 2, c, t, h, w))
-                x = mx.transpose(x, (0, 2, 3, 1, 4, 5))
-                x = mx.reshape(x, (b, c, t * 2, h, w))
-                t = t * 2
+                if feat_cache is not None and feat_idx is not None:
+                    idx = feat_idx[0]
+                    if feat_cache[idx] is None:
+                        feat_cache[idx] = "Rep"
+                        feat_idx[0] += 1
+                    else:
+                        cache_x = x[:, :, -2:, :, :]
+                        if cache_x.shape[2] < 2 and feat_cache[idx] is not None and feat_cache[idx] != "Rep":
+                            cache_x = mx.concatenate([feat_cache[idx][:, :, -1:, :, :], cache_x], axis=2)
+                        if cache_x.shape[2] < 2 and feat_cache[idx] == "Rep":
+                            cache_x = mx.concatenate([mx.zeros_like(cache_x), cache_x], axis=2)
+                        cache_arg = None if feat_cache[idx] == "Rep" else feat_cache[idx]
+                        x = self.time_conv(x, cache_arg)
+                        feat_cache[idx] = cache_x
+                        feat_idx[0] += 1
+                        x = mx.reshape(x, (b, 2, c, t, h, w))
+                        x = mx.transpose(x, (0, 2, 3, 1, 4, 5))
+                        x = mx.reshape(x, (b, c, t * 2, h, w))
+                        t = t * 2
             x = mx.transpose(x, (0, 2, 1, 3, 4))
             x = mx.reshape(x, (b * t, c, h, w))
             x = mx.transpose(x, (0, 2, 3, 1))

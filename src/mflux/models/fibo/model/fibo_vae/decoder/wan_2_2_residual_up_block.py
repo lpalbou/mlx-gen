@@ -45,14 +45,21 @@ class Wan2_2_ResidualUpBlock(nn.Module):
         else:
             self.upsampler = None
 
-    def __call__(self, x: mx.array, block_idx: int | None = None, first_chunk: bool = False) -> mx.array:
+    def __call__(
+        self,
+        x: mx.array,
+        block_idx: int | None = None,
+        first_chunk: bool = False,
+        feat_cache: list[mx.array | str | None] | None = None,
+        feat_idx: list[int] | None = None,
+    ) -> mx.array:
         x_copy = x
 
         for i, resnet in enumerate(self.resnets):
-            x = resnet(x, resnet_idx=i, block_idx=block_idx)
+            x = resnet(x, resnet_idx=i, block_idx=block_idx, feat_cache=feat_cache, feat_idx=feat_idx)
 
         if self.upsampler is not None:
-            x = self.upsampler(x, block_idx=block_idx)
+            x = self.upsampler(x, block_idx=block_idx, feat_cache=feat_cache, feat_idx=feat_idx)
 
         if self.avg_shortcut is not None:
             x = x + self.avg_shortcut(x_copy, first_chunk=first_chunk)

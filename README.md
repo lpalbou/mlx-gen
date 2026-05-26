@@ -6,12 +6,12 @@
 
 ### About
 
-Run state-of-the-art generative image models locally with native MLX.
+Run state-of-the-art generative image and video models locally with native MLX.
 
 > [!IMPORTANT]
 > MLX-Gen is an independent project forked from [mflux](https://github.com/filipstrand/mflux). It is currently built on the mflux codebase, with full credit to Filip Strand and the original contributors, while publishing under the `mlx-gen` package name and exposing `mlxgen` as the application import path.
 >
-> The project exists so compatibility fixes and capabilities can ship quickly for Apple Silicon workflows, including enabling Qwen Image/Edit support, ERNIE Image Turbo support, Qwen/FLUX.2 image editing, quantized model packaging, local model loading, AbstractVision integration, and release cadence. We will continue to credit and upstream focused fixes where practical, but MLX-Gen is expected to evolve and diverge rapidly as its own package.
+> The project exists so compatibility fixes and capabilities can ship quickly for Apple Silicon workflows, including enabling Qwen Image/Edit support, ERNIE Image Turbo support, Wan text-to-video experiments, Qwen/FLUX.2 image editing, quantized model packaging, local model loading, AbstractVision integration, and release cadence. We will continue to credit and upstream focused fixes where practical, but MLX-Gen is expected to evolve and diverge rapidly as its own package.
 
 ### Table of contents
 
@@ -49,7 +49,7 @@ Most credit for the current codebase goes to Filip Strand and the original mflux
 
 ### 💡 Philosophy
 
-MLX-Gen is an independent package for running generative image models on MLX. It prioritizes fast local iteration, practical Apple Silicon performance, and compatibility with current model releases without coupling every change to upstream release timing.
+MLX-Gen is an independent package for running generative image and video models on MLX. It prioritizes fast local iteration, practical Apple Silicon performance, and compatibility with current model releases without coupling every change to upstream release timing.
 
 The implementation remains intentionally direct: model code is written in MLX, with Hugging Face libraries used for tokenizers and model downloads.
 
@@ -72,7 +72,7 @@ mlxgen --help
 
 The public command surface is:
 
-- `mlxgen generate`: generate or edit images with a cached or prepared model.
+- `mlxgen generate`: generate images, edit images, or generate supported videos with a cached or prepared model.
 - `mlxgen download`: explicitly download a model snapshot into the Hugging Face cache.
 - `mlxgen prepare`: create a reusable local MLX-Gen model folder, optionally quantized, and write a Hugging Face model card.
 
@@ -111,7 +111,27 @@ mlxgen generate \
   --output edited.png
 ```
 
-If a local model path or custom repository name cannot be classified from its name, add `--family qwen`, `--family flux2`, `--family fibo`, `--family z-image`, or `--family ernie-image`. The router can also read `model`, `image_path`, and `image_paths` from `--config-from-metadata`.
+For text-to-video, use Wan2.2 TI2V:
+
+```sh
+mlxgen download --model Wan-AI/Wan2.2-TI2V-5B-Diffusers
+
+mlxgen generate \
+  --model Wan-AI/Wan2.2-TI2V-5B-Diffusers \
+  --task text-to-video \
+  --prompt "A short cinematic video of a glowing orange glass sphere floating above teal water" \
+  --width 128 \
+  --height 128 \
+  --frames 5 \
+  --steps 4 \
+  --guidance 5 \
+  --fps 8 \
+  --output video.mp4
+```
+
+Wan image-to-video is not enabled yet; it needs the Diffusers first-frame latent-conditioning path rather than ordinary image-to-image initialization.
+
+If a local model path or custom repository name cannot be classified from its name, add `--family qwen`, `--family flux2`, `--family fibo`, `--family z-image`, `--family ernie-image`, or `--family wan`. The router can also read `model`, `image_path`, and `image_paths` from `--config-from-metadata`.
 
 ### Model Downloads And Preparation
 
@@ -238,6 +258,7 @@ MLX-Gen supports the following model families. They have different strengths and
 | Model | Release date | Size | Type | Training | Description |
 | --- | --- | --- | --- | --- | --- |
 |[Z-Image](src/mflux/models/z_image/README.md) | Nov 2025 | 6B | Distilled & Base | Yes | Fast, small, very good quality and realism. |
+| Wan2.2 TI2V | Jul 2025 | 5B | Base | No | Initial text-to-video support. Image-to-video is not enabled yet. |
 |[FLUX.2](src/mflux/models/flux2/README.md) | Jan 2026 | 4B & 9B | Distilled & Base | Yes | Fastest + smallest with very good quality and edit capabilities. |
 |[FIBO](src/mflux/models/fibo/README.md) | Oct 2025+ | 8B | Distilled & Base | No | Very good JSON-based prompt understanding. Has edit capabilities. |
 | ERNIE Image Turbo | Mar 2026 | 6B class | Distilled | No | Fast Apache 2.0 model from Baidu. MLX-Gen support covers text-to-image, experimental single-image image-to-image, BF16/q8/mixed q4 folders, and optional Prompt Enhancer from a full source snapshot. Use 384px+ outputs for reliable composition. |

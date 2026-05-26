@@ -24,7 +24,7 @@ mlxgen generate \
   --output image.png
 ```
 
-Supported router families are `qwen`, `flux2`, `fibo`, `z-image`, and `ernie-image`.
+Supported router families are `qwen`, `flux2`, `fibo`, `z-image`, `ernie-image`, and `wan`.
 
 ## ERNIE Images Look Cropped At Tiny Sizes
 
@@ -84,6 +84,26 @@ If you pass `--task edit`, multiple `--images`, or `--image-strength` without an
 
 If ERNIE image-to-image does not preserve enough of the source image, increase `--image-strength`, keep the output aspect ratio close to the input aspect ratio, or use Qwen Image Edit for a true image-conditioned edit. If ERNIE preserves the source too strongly and barely applies the requested style, lower `--image-strength` or increase `--steps` to 12-16.
 
+## Wan Rejects Image Inputs
+
+Wan2.2 TI2V support currently covers text-to-video only. If you pass `--image`, MLX-Gen rejects the request before model loading because Wan image-to-video needs the Diffusers first-frame latent-conditioning path.
+
+Use a text-to-video request for now:
+
+```sh
+mlxgen generate \
+  --model Wan-AI/Wan2.2-TI2V-5B-Diffusers \
+  --task text-to-video \
+  --prompt "A short cinematic video of a glowing orange glass sphere floating above teal water" \
+  --width 128 \
+  --height 128 \
+  --frames 5 \
+  --steps 4 \
+  --guidance 5 \
+  --fps 8 \
+  --output video.mp4
+```
+
 ## `generate --path` Fails
 
 `--path` belongs to `mlxgen prepare`, where it names the local model folder to create. It is not a generation option.
@@ -94,7 +114,7 @@ To prepare a quantized model folder:
 mlxgen prepare --model black-forest-labs/FLUX.2-klein-4B --path models/flux.2-klein-4b-4bit --quantize 4
 ```
 
-To choose the generated image path, use `--output` with `mlxgen generate`.
+To choose the generated image or video path, use `--output` with `mlxgen generate`.
 
 ## LoRA Is Missing
 

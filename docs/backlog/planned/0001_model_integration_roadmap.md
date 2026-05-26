@@ -28,10 +28,10 @@ text-to-image, image-to-image/edit, text-to-video, and image-to-video work.
 - `src/mflux/models/common/cli/save.py` chooses the prepare backend by substring:
   Qwen, FIBO, Z-Image, ERNIE, FLUX.2, otherwise FLUX.1.
 - `ModelConfig.from_name()` can resolve exact aliases, explicit `--base-model`, or known alias
-  substrings only. ERNIE Image Turbo is now a known family; GLM/Wan/CogVideoX remain real backend
-  ports rather than alias problems.
+  substrings only. ERNIE Image Turbo and Wan2.2 TI2V are now known families; GLM and CogVideoX
+  remain real backend ports rather than alias problems.
 - Supported model config families include FLUX.1, FLUX.2 Klein, Qwen Image/Edit, FIBO, Z-Image,
-  ERNIE Image Turbo, and SeedVR2. `mlxgen prepare` does not yet route SeedVR2.
+  ERNIE Image Turbo, Wan2.2 TI2V, and SeedVR2. `mlxgen prepare` does not yet route SeedVR2.
 - Local prepared folders already exist for Qwen Image, Qwen Image 2512, Qwen Image Edit variants,
   FLUX.2 Klein 4B/9B, and Z-Image-Turbo q4.
 - As of 2026-05-25, the source snapshot sizes reported by Hugging Face are approximately:
@@ -40,13 +40,17 @@ text-to-image, image-to-image/edit, text-to-video, and image-to-video work.
   FIBO/Fibo-lite/Fibo-Edit 22-24 GiB, Wan2.2 TI2V 5B 32 GiB, Wan2.2 A14B 118 GiB,
   LTX-2.3-fp8 55 GiB, and CogVideoX-2B 13 GiB.
 - Local Hugging Face cache includes unsupported or partially supported candidates:
-  `baidu/ERNIE-Image-Turbo`, `zai-org/GLM-Image`, `zai-org/CogVideoX-2b`,
-  `numz/SeedVR2_comfyUI`, and gated Bria FIBO repo stubs.
+  `zai-org/GLM-Image`, `zai-org/CogVideoX-2b`, `numz/SeedVR2_comfyUI`, and gated Bria FIBO
+  repo stubs.
 - ERNIE-Image-Turbo has a text-to-image MLX port: tokenizer, Mistral3 text encoder,
   ErnieImageTransformer2DModel, FlowMatch-style scheduler, Flux2-style VAE wrapper, optional
   Prompt Enhancer, `mlxgen` routing, BF16 prepare/download support, and q8/q4 prepared folders.
   Remaining ERNIE work includes image-input tasks if upstream supports them, ERNIE-Image
   non-turbo validation, and stronger Diffusers parity tests.
+- Wan2.2 TI2V has an initial text-to-video MLX port: Wan transformer, Wan VAE, UniPC scheduler,
+  local-only Hugging Face UMT5 prompt encoding, MP4 output, `mlxgen` routing, save/download
+  wiring, and focused tests. Image-to-video is intentionally rejected until the Diffusers
+  first-frame latent-conditioning path is ported.
 - GLM-Image is also a real port, not an alias. Its snapshot declares `GlmImagePipeline`,
   `GlmImageTransformer2DModel`, `GlmImageForConditionalGeneration`, `GlmImageProcessor`,
   `T5EncoderModel`, and `AutoencoderKL`.
@@ -82,8 +86,9 @@ MLX-Gen users while preserving clean, reviewable ports:
 ## Why
 
 AbstractVision needs a reliable Apple Silicon backend that can prepare local quantized models,
-generate or edit images without surprise downloads, report progress, and fail with actionable
-messages. MLX-Gen also needs enough model coverage to stand alone as more than a renamed fork.
+generate or edit images, start adding video generation without surprise downloads, report progress,
+and fail with actionable messages. MLX-Gen also needs enough model coverage to stand alone as more
+than a renamed fork.
 
 ## Priority table
 
@@ -94,7 +99,7 @@ messages. MLX-Gen also needs enough model coverage to stand alone as more than a
 | P0 | Cross-cutting | Gated and non-commercial derivative publishing policy | FLUX.2 9B derivatives now require `gated=auto`; FIBO family is gated/non-commercial. `prepare` writes local files only and cannot set HF repo settings. | Low-medium | Add release/publishing helpers or docs that run `HfApi.update_repo_settings(gated=\"auto\")`, upload upstream license files, and prevent accidental public publication of gated derivatives. |
 | P1 | T2I, I2I/edit | `briaai/FIBO`, `briaai/Fibo-lite`, `briaai/Fibo-Edit` | Backend exists; access has been granted. Source sizes are 22-24 GiB. FIBO is structured/JSON-native and trained for professional controllability; Fibo-lite targets 8-step/CFG=1 inference; Fibo-Edit targets structured edits. | Medium | Validate because this is already implemented, but do not make it the default family. It is non-commercial, gated, structured-workflow-heavy, and less broadly reusable than Qwen/FLUX/Z-Image. Publish only gated derivatives with Bria license terms. |
 | P1 | T2I | `baidu/ERNIE-Image-Turbo` and `baidu/ERNIE-Image` | Apache 2.0, 29 GiB source snapshot including Prompt Enhancer, strong card claims around text rendering, structured layout, complex instruction following, and 8-step Turbo inference. Turbo now has BF16, q8, q4, and optional Prompt Enhancer text-to-image support with real image validation; non-turbo ERNIE-Image remains open. | High | Continue the ERNIE port with Diffusers parity tests, non-turbo defaults, generated-card behavior, and AbstractVision-facing Python progress/state APIs. |
-| P2 | T2V, I2V | `Wan-AI/Wan2.2-TI2V-5B-Diffusers` | Apache 2.0, ~32 GiB, supports both text-to-video and image-to-video at 720p/24fps, and is much smaller than A14B. | Very high | Best first serious video backend candidate. Still needs temporal pipeline abstractions, video VAE, frame batching, output encoding, progress/cancel events, memory caps, and q4/q8 validation. |
+| P2 | T2V, I2V | `Wan-AI/Wan2.2-TI2V-5B-Diffusers` | Apache 2.0, ~32 GiB, supports both text-to-video and image-to-video at 720p/24fps, and is much smaller than A14B. Initial MLX-Gen text-to-video smoke support now produces MP4 output. | Very high | Continue from the first T2V milestone: improve quality/performance defaults, port I2V first-frame latent conditioning, add progress/cancel events, memory caps, q4/q8 validation, and a longer Diffusers parity suite. |
 | P2 | T2I, I2I/edit | `HiDream-ai/HiDream-O1-Image` and `HiDream-ai/HiDream-O1-Image-Dev` | MIT, current search shows image-text-to-image tags, Qwen3-VL stack, and an existing `mlx-community/HiDream-O1-Image-Dev-mlx-bf16` checkpoint. | High | Worth researching after ERNIE because an MLX BF16 artifact exists, but it likely wants an MLX-VLM/provider boundary rather than a quick mflux-style port. |
 | P2 | Video-to-video/upscale | `numz/SeedVR2_comfyUI`, `ByteDance-Seed/SeedVR2-3B/7B` | SeedVR2 code exists and source is cached, but `mlxgen prepare` does not route it. | Medium-high | Make existing upscaler usable from unified CLI and prepare/card flow before larger video generation ports. It is not T2V/I2V, but it is the lowest-risk video capability already in tree. |
 | P2 | I2V, T2V, V2V, A/V | `Lightricks/LTX-2.3-fp8` | Very high online usage, ~55 GiB fp8, image-to-video/text-to-video/video-to-video/audio-video tags, custom community license. Card says full and distilled checkpoints exist and training is recommended on BF16. | Very high | Important to research, but licensing and model breadth make it riskier than Wan2.2 TI2V 5B. Needs a video/audio-capable backend decision before implementation. |
@@ -123,13 +128,14 @@ messages. MLX-Gen also needs enough model coverage to stand alone as more than a
 ## Suggested implementation
 
 1. Add friendly Hugging Face access errors around `mlxgen download` and `mlxgen prepare`.
-2. Add unsupported-family diagnostics for GLM/Wan/CogVideoX that say a backend port is required,
-   instead of suggesting an arbitrary `--base-model`.
+2. Add unsupported-family diagnostics for GLM/CogVideoX and unsupported Wan modes that say a
+   backend path is required, instead of suggesting an arbitrary `--base-model`.
 3. Validate and publish existing supported local-cache q4/q8 models before starting ERNIE.
 4. For ERNIE, add stronger Diffusers comparison tests around the transformer, text encoder,
    Prompt Enhancer, and scheduler, then decide non-turbo scope from measured behavior.
-5. For video, create a separate API design note or ADR before porting Wan/CogVideoX so generation
-   progress, cancellation, memory caps, and output containers are first-class.
+5. For video, create a separate API design note or ADR before expanding beyond the first Wan T2V
+   milestone so generation progress, cancellation, memory caps, and output containers are
+   first-class.
 
 ## Scope
 
@@ -139,7 +145,9 @@ messages. MLX-Gen also needs enough model coverage to stand alone as more than a
 
 ## Non-goals
 
-- Do not implement ERNIE, GLM, Wan, or CogVideoX in this backlog item.
+- Do not treat the first ERNIE or Wan implementation as the end of the integration track; parity,
+  I2V, q4/q8 validation, and Python orchestration work remain follow-up scope.
+- Do not implement GLM or CogVideoX in this backlog item.
 - Do not publish or redistribute gated model derivatives until the license and access terms are
   explicitly checked.
 - Do not make generation auto-download models as part of this work.
@@ -160,6 +168,9 @@ messages. MLX-Gen also needs enough model coverage to stand alone as more than a
 - `docs/model-management.md`
 - `docs/huggingface-publishing.md`
 - Potential future ADR: video backend and AbstractVision progress API boundary.
+- `src/mflux/models/wan/`
+- `src/mflux/utils/generated_video.py`
+- `src/mflux/utils/video_util.py`
 
 ## Expected outcomes
 
@@ -167,7 +178,7 @@ messages. MLX-Gen also needs enough model coverage to stand alone as more than a
 - Supported local-cache models can be prepared and published without custom commands outside
   `mlxgen`.
 - ERNIE and GLM are treated as real ports with explicit architecture tasks.
-- Video work is not blocked by image CLI assumptions.
+- Video work is no longer blocked by image CLI assumptions for the first Wan text-to-video path.
 - AbstractVision has a credible Apple Silicon model roadmap.
 
 ## Validation
@@ -181,6 +192,10 @@ messages. MLX-Gen also needs enough model coverage to stand alone as more than a
 - `uv run mlxgen prepare --model briaai/FIBO -q 4 --path models/fibo-4bit` reports the gated repo
   remediation steps when access is missing.
 - Existing Qwen mixed q4/q8 saves and FLUX.2/Z-Image saves continue to prepare and load.
+- `uv run mlxgen generate --model Wan-AI/Wan2.2-TI2V-5B-Diffusers --task text-to-video ...`
+  creates an MP4 from the local source snapshot.
+- Wan `--image` requests fail before model loading with an explanation that I2V needs first-frame
+  latent conditioning.
 - New model cards continue to include source model, mflux acknowledgement, MLX-Gen version,
   quantization policy, AbstractFramework namespace examples, and contributor attribution.
 
@@ -196,9 +211,12 @@ messages. MLX-Gen also needs enough model coverage to stand alone as more than a
 - [x] Add initial ERNIE-Image-Turbo BF16 text-to-image backend.
 - [x] Enable and validate ERNIE-Image-Turbo q8/q4 prepared folders.
 - [x] Add optional ERNIE Prompt Enhancer support for full source snapshots.
+- [x] Add initial Wan2.2 TI2V text-to-video backend and MP4 output.
+- [ ] Port Wan image-to-video first-frame latent conditioning.
+- [ ] Validate Wan q8/q4 preparation and decide whether a mixed quantization policy is needed.
 - [ ] Add stronger ERNIE Diffusers comparison tests and non-turbo scope.
 - [ ] Decide whether SeedVR2 should be unified under `mlxgen prepare` before larger video ports.
-- [ ] Draft video backend/API ADR before Wan or CogVideoX implementation.
+- [ ] Draft video backend/API ADR before expanding Wan or implementing CogVideoX.
 - [ ] Keep docs and generated model cards synchronized with every integrated family.
 
 ## Guidance for the implementing agent

@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide covers the shortest path from a fresh MLX-Gen install to a local generation run.
+This guide covers the shortest path from a fresh MLX-Gen install to a local image or video generation run.
 
 ## Install
 
@@ -18,7 +18,7 @@ mlxgen --help
 
 The top-level command shows the three public workflows:
 
-- `mlxgen generate` for image generation and editing.
+- `mlxgen generate` for image generation, image editing, and supported video generation.
 - `mlxgen download` for explicit Hugging Face cache downloads.
 - `mlxgen prepare` for reusable local MLX-Gen model folders.
 
@@ -85,6 +85,29 @@ mlxgen generate \
   --seed 42 \
   --output edited.png
 ```
+
+## Generate A Video
+
+Wan2.2 TI2V support is available as an initial text-to-video backend. Download the source snapshot first, then run `mlxgen generate` with `--task text-to-video`:
+
+```sh
+mlxgen download --model Wan-AI/Wan2.2-TI2V-5B-Diffusers
+
+mlxgen generate \
+  --model Wan-AI/Wan2.2-TI2V-5B-Diffusers \
+  --task text-to-video \
+  --prompt "A short cinematic video of a glowing orange glass sphere floating above teal water" \
+  --width 128 \
+  --height 128 \
+  --frames 5 \
+  --steps 4 \
+  --guidance 5 \
+  --fps 8 \
+  --seed 321 \
+  --output video.mp4
+```
+
+Wan text-to-video is the first video milestone. Wan image-to-video is intentionally rejected for now because it needs the Diffusers first-frame latent-conditioning path rather than ordinary image-to-image latent initialization.
 
 ## Next Steps
 

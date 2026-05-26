@@ -2,14 +2,14 @@
 
 ## Project Summary
 
-MLX-Gen is an MLX-native generative image runtime forked from mflux and published as the `mlx-gen` Python package. It is currently built on the mflux codebase while adding independent release cadence, Qwen Image/Edit support, ERNIE Image Turbo support, FLUX.2 fixes, quantized model packaging, local model loading behavior, generated Hugging Face model cards, and AbstractVision integration needs.
+MLX-Gen is an MLX-native generative image and video runtime forked from mflux and published as the `mlx-gen` Python package. It is currently built on the mflux codebase while adding independent release cadence, Qwen Image/Edit support, ERNIE Image Turbo support, initial Wan2.2 text-to-video support, FLUX.2 fixes, quantized model packaging, local model loading behavior, generated Hugging Face model cards, and AbstractVision integration needs.
 
 Some internals currently remain under `mflux.*`; new application code should use the `mlxgen` command and import path.
 
 ## Document Index
 
 - `README.md`: installation, quick start, model families, project relationship, and acknowledgements.
-- `docs/getting-started.md`: install, inspect `mlxgen --help`, prepare model files, generate, and edit.
+- `docs/getting-started.md`: install, inspect `mlxgen --help`, prepare model files, generate images, edit images, and generate Wan text-to-video.
 - `docs/architecture.md`: package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
 - `docs/api.md`: public `mlxgen` command surface, generation router, model-management commands, and Python integration boundary.
 - `docs/model-management.md`: cache-only runtime policy, `download` versus `prepare`, Depth Pro, and `DownloadRequiredError`.
@@ -17,7 +17,7 @@ Some internals currently remain under `mflux.*`; new application code should use
 - `docs/huggingface-publishing.md`: generated model cards, source license/access wording, default `AbstractFramework/<repo-name>` usage, upload flow, and optional collection membership.
 - `docs/python-integration.md`: in-process use, AbstractVision integration, progress limitations, and threading guidance.
 - `docs/faq.md`: common questions about `prepare`, downloads, package naming, and compatibility.
-- `docs/troubleshooting.md`: missing files, local path classification, output replacement, `generate --path`, ERNIE Prompt Enhancer files, ERNIE small-resolution and unsupported edit-input behavior, LoRA, and `hf_transfer`.
+- `docs/troubleshooting.md`: missing files, local path classification, output replacement, `generate --path`, ERNIE Prompt Enhancer files, ERNIE small-resolution and unsupported edit-input behavior, Wan image-input limits, LoRA, and `hf_transfer`.
 - `docs/release.md`: GitHub Release and PyPI trusted publishing workflow.
 - `ACKNOWLEDGEMENTS.md`: upstream mflux credit and post-fork maintainership.
 - `CONTRIBUTING.md`: development setup, checks, documentation expectations, and pull-request scope.
@@ -37,7 +37,7 @@ See `ACKNOWLEDGEMENTS.md` for upstream mflux credit, post-fork maintainership, a
 
 ## Architecture
 
-MLX-Gen keeps the MLX-native model runtime inherited from mflux while exposing a cleaner `mlxgen` command surface for new users and applications.
+MLX-Gen keeps the MLX-native model runtime inherited from mflux while exposing a cleaner `mlxgen` command surface for new users and applications. The first supported video path is Wan2.2 TI2V text-to-video.
 
 The package shape is:
 
@@ -75,7 +75,7 @@ The exception exposes:
 
 The public command surface is:
 
-- `mlxgen generate`: generate or edit images from cached or prepared files.
+- `mlxgen generate`: generate images, edit images, or generate supported videos from cached or prepared files.
 - `mlxgen download`: explicitly download a model snapshot, LoRA repository, or supported direct-download artifact into the local cache.
 - `mlxgen prepare`: create a reusable local MLX-Gen model folder, optionally quantized, and write a Hugging Face `README.md` model card.
 
@@ -147,7 +147,7 @@ mlxgen generate \
   --output edited.png
 ```
 
-If a local model path or custom repository name cannot be classified, pass `--family qwen`, `--family flux2`, `--family fibo`, `--family z-image`, or `--family ernie-image`.
+If a local model path or custom repository name cannot be classified, pass `--family qwen`, `--family flux2`, `--family fibo`, `--family z-image`, `--family ernie-image`, or `--family wan`.
 
 ERNIE Image Turbo is also routed by `mlxgen generate`:
 
@@ -164,7 +164,25 @@ mlxgen generate \
 
 For local ERNIE folders whose names cannot be classified, pass `--family ernie-image`. The ERNIE port supports text-to-image plus experimental single-image image-to-image with BF16 source weights and prepared q8/q4 folders. ERNIE Prompt Enhancer is available with `--use-prompt-enhancer` when a full source snapshot with `pe/` and `pe_tokenizer/` files is present. ERNIE multi-image edit is not supported. Width or height below 384px is not recommended because very small ERNIE outputs can crop or truncate subjects. For ERNIE image-to-image, preserve the source aspect ratio, use `--image-strength 0.25` to `0.35` for visible stylization, `0.45` to `0.6` for stronger source preservation, and Qwen Image Edit when exact source layout preservation matters.
 
-`mlxgen generate` does not accept `--path` to create model folders. Use `mlxgen prepare --model ... --path ... --quantize ...` for model preparation and use `--output` to choose the generated image path.
+`mlxgen generate` does not accept `--path` to create model folders. Use `mlxgen prepare --model ... --path ... --quantize ...` for model preparation and use `--output` to choose the generated image or video path.
+
+Wan2.2 TI2V routes through the same command surface for text-to-video:
+
+```sh
+mlxgen generate \
+  --model Wan-AI/Wan2.2-TI2V-5B-Diffusers \
+  --task text-to-video \
+  --prompt "A short cinematic video of a glowing orange glass sphere floating above teal water" \
+  --width 128 \
+  --height 128 \
+  --frames 5 \
+  --steps 4 \
+  --guidance 5 \
+  --fps 8 \
+  --output video.mp4
+```
+
+Wan image-to-video is not enabled yet. It needs the Diffusers first-frame latent-conditioning path rather than ordinary image-to-image latent initialization.
 
 Generation commands replace the requested `--output` path by default. Use `--replace false` or `--no-replace` to preserve an existing file and save to the next suffixed path.
 
@@ -241,7 +259,7 @@ If MLX-Gen says it will not download files during generation, run the command sh
 
 If a local path cannot be classified, add `--family`.
 
-If `generate --path` fails, use `mlxgen prepare --model ... --path ... --quantize ...` to create a model folder or `--output` to choose the generated image path.
+If `generate --path` fails, use `mlxgen prepare --model ... --path ... --quantize ...` to create a model folder or `--output` to choose the generated image or video path.
 
 If the requested `--output` image already exists, MLX-Gen replaces it by default. Use `--replace false` or `--no-replace` to write to the next suffixed filename instead.
 

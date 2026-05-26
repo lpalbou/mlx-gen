@@ -6,6 +6,8 @@ from mflux.models.fibo.model.fibo_vae.common.wan_2_2_mid_block import Wan2_2_Mid
 from mflux.models.fibo.model.fibo_vae.common.wan_2_2_rms_norm import Wan2_2_RMSNorm
 from mflux.models.fibo.model.fibo_vae.decoder.wan_2_2_residual_up_block import Wan2_2_ResidualUpBlock
 
+CACHE_T = 2
+
 
 class Wan2_2_Decoder3d(nn.Module):
     def __init__(
@@ -47,12 +49,39 @@ class Wan2_2_Decoder3d(nn.Module):
         self.norm_out = Wan2_2_RMSNorm(out_dim, images=False)
         self.conv_out = Wan2_2_CausalConv3d(out_dim, out_channels, 3, padding=1, name="decoder_conv_out")
 
-    def __call__(self, x: mx.array) -> mx.array:
-        x = self.conv_in(x)
-        x = self.mid_block(x)
+    def __call__(
+        self,
+        x: mx.array,
+        feat_cache: list[mx.array | str | None] | None = None,
+        feat_idx: list[int] | None = None,
+        first_chunk: bool = False,
+    ) -> mx.array:
+        if feat_cache is not None and feat_idx is not None:
+            idx = feat_idx[0]
+            cache_x = self._cache_slice(x, feat_cache[idx])
+            x = self.conv_in(x, feat_cache[idx])
+            feat_cache[idx] = cache_x
+            feat_idx[0] += 1
+        else:
+            x = self.conv_in(x)
+        x = self.mid_block(x, feat_cache=feat_cache, feat_idx=feat_idx)
         for i, up_block in enumerate(self.up_blocks):
-            x = up_block(x, block_idx=i, first_chunk=True)
+            x = up_block(x, block_idx=i, first_chunk=first_chunk, feat_cache=feat_cache, feat_idx=feat_idx)
         x = self.norm_out(x)
         x = nn.silu(x)
-        x = self.conv_out(x)
+        if feat_cache is not None and feat_idx is not None:
+            idx = feat_idx[0]
+            cache_x = self._cache_slice(x, feat_cache[idx])
+            x = self.conv_out(x, feat_cache[idx])
+            feat_cache[idx] = cache_x
+            feat_idx[0] += 1
+        else:
+            x = self.conv_out(x)
         return x
+
+    @staticmethod
+    def _cache_slice(x: mx.array, previous: mx.array | str | None) -> mx.array:
+        cache_x = x[:, :, -CACHE_T:, :, :]
+        if cache_x.shape[2] < CACHE_T and previous is not None and previous != "Rep":
+            cache_x = mx.concatenate([previous[:, :, -1:, :, :], cache_x], axis=2)
+        return cache_x

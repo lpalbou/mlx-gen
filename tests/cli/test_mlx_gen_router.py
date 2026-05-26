@@ -486,6 +486,129 @@ def test_ernie_cli_passes_prompt_enhancer_options(monkeypatch):
     assert observed["generate"]["pe_max_new_tokens"] == 12
 
 
+def test_routes_wan_text_to_video_generation():
+    invocation = mlx_gen._resolve_invocation(
+        [
+            "--model",
+            "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+            "--task",
+            "text-to-video",
+            "--prompt",
+            "a city timelapse",
+            "--frames",
+            "5",
+            "--fps",
+            "8",
+        ]
+    )
+
+    assert invocation.target_name == "mlxgen-generate-wan"
+    assert invocation.argv == [
+        "mlxgen-generate-wan",
+        "--model",
+        "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+        "--prompt",
+        "a city timelapse",
+        "--frames",
+        "5",
+        "--fps",
+        "8",
+    ]
+
+
+def test_wan_rejects_image_to_video_until_conditioning_path_is_ported(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "wan2.2-ti2v-5b",
+                "--task",
+                "image-to-video",
+                "--prompt",
+                "make the room slowly brighten",
+            ]
+        )
+
+    assert "image-to-video is not enabled yet" in capsys.readouterr().err
+
+
+def test_wan_rejects_multiple_images(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "wan2.2-ti2v-5b",
+                "--images",
+                "input.png",
+                "style.png",
+                "--prompt",
+                "make a video",
+            ]
+        )
+
+    assert "image-to-video is not enabled yet" in capsys.readouterr().err
+
+
+def test_wan_cli_generates_video_and_respects_replace(monkeypatch):
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {}
+
+    class FakeVideo:
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_video(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeVideo()
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--width",
+            "128",
+            "--height",
+            "128",
+            "--frames",
+            "5",
+            "--fps",
+            "8",
+            "--steps",
+            "2",
+            "--seed",
+            "123",
+            "--replace",
+            "false",
+            "--output",
+            "out.mp4",
+        ],
+    )
+
+    wan_generate.main()
+
+    assert observed["init"]["quantize"] is None
+    assert observed["generate"]["prompt"] == "a city timelapse"
+    assert observed["generate"]["width"] == 128
+    assert observed["generate"]["height"] == 128
+    assert observed["generate"]["num_frames"] == 5
+    assert observed["generate"]["fps"] == 8
+    assert observed["generate"]["num_inference_steps"] == 2
+    assert observed["generate"]["seed"] == 123
+    assert observed["save"]["path"] == "out.mp4"
+    assert observed["save"]["overwrite"] is False
+
+
 def test_main_without_args_prints_top_level_help(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["mlxgen"])
 

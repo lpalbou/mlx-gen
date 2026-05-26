@@ -37,6 +37,13 @@ class TestConfigResolutionExactMatch:
         assert config.model_name == "baidu/ERNIE-Image-Turbo"
         assert "ernie-image-turbo" in config.aliases
 
+    @pytest.mark.fast
+    def test_exact_hf_name_match_wan2_2_ti2v_5b(self):
+        config = ConfigResolution.resolve(model_name="Wan-AI/Wan2.2-TI2V-5B-Diffusers")
+
+        assert config.model_name == "Wan-AI/Wan2.2-TI2V-5B-Diffusers"
+        assert "wan2.2-ti2v-5b" in config.aliases
+
 
 class TestConfigResolutionExplicitBase:
     @pytest.mark.fast
@@ -119,6 +126,13 @@ class TestConfigResolutionInferSubstring:
 
         assert config.base_model == "baidu/ERNIE-Image-Turbo"
         assert config.supports_guidance is True
+
+    @pytest.mark.fast
+    def test_infers_wan2_2_ti2v_from_local_path(self):
+        config = ConfigResolution.resolve(model_name="/models/wan2.2-ti2v-5b-q8")
+
+        assert config.base_model == "Wan-AI/Wan2.2-TI2V-5B-Diffusers"
+        assert config.transformer_overrides["expand_timesteps"] is True
 
 
 class TestConfigResolutionError:

@@ -14,7 +14,7 @@ The public workflows are:
 
 | Command | Purpose |
 | --- | --- |
-| `mlxgen generate` | Generate or edit images from a cached or prepared model. |
+| `mlxgen generate` | Generate images, edit images, or generate supported videos from a cached or prepared model. |
 | `mlxgen download` | Explicitly download model or LoRA files into the local cache. |
 | `mlxgen prepare` | Create a reusable local MLX-Gen model folder, optionally quantized, and write a Hugging Face model card. |
 
@@ -41,7 +41,7 @@ mlxgen generate \
   --output edited.png
 ```
 
-Supported router families are `qwen`, `flux2`, `fibo`, `z-image`, and `ernie-image`:
+Supported router families are `qwen`, `flux2`, `fibo`, `z-image`, `ernie-image`, and `wan`:
 
 ```sh
 mlxgen generate \
@@ -85,6 +85,24 @@ ERNIE image-to-image accepts exactly one input image. Multi-image edit is not su
 For ERNIE image-to-image, preserve the source aspect ratio when choosing `--width` and `--height`. Use roughly `--image-strength 0.25` to `0.35` for visible stylization, `0.45` to `0.6` for stronger source preservation, and 12-16 steps when the output needs more polished stylization. Use Qwen Image Edit for precise object/layout-preserving edits.
 
 ERNIE's optional Prompt Enhancer is available with `--use-prompt-enhancer` when the full source snapshot is present. The default `mlxgen download --model baidu/ERNIE-Image-Turbo` command downloads only generation components; run `mlxgen download --model baidu/ERNIE-Image-Turbo --all-files` before using Prompt Enhancer. Prepared q8/q4 ERNIE folders created by `mlxgen prepare` do not include Prompt Enhancer files.
+
+Wan2.2 TI2V routes through the same command surface for text-to-video:
+
+```sh
+mlxgen generate \
+  --model Wan-AI/Wan2.2-TI2V-5B-Diffusers \
+  --task text-to-video \
+  --prompt "A short cinematic video of a glowing orange glass sphere floating above teal water" \
+  --width 128 \
+  --height 128 \
+  --frames 5 \
+  --steps 4 \
+  --guidance 5 \
+  --fps 8 \
+  --output video.mp4
+```
+
+Wan image-to-video is not enabled yet. Passing an image to a Wan generation request fails before model loading with an explanation that the Diffusers first-frame latent-conditioning path still needs to be ported.
 
 ## Model Management Commands
 

@@ -7,6 +7,7 @@ from mflux.models.flux.variants.txt2img.flux import Flux1
 from mflux.models.flux2.variants.txt2img.flux2_klein import Flux2Klein
 from mflux.models.qwen.variants.edit.qwen_image_edit import QwenImageEdit
 from mflux.models.qwen.variants.txt2img.qwen_image import QwenImage
+from mflux.models.wan import Wan2_2_TI2V
 from mflux.models.z_image import ZImage, ZImageTurbo
 
 
@@ -37,6 +38,8 @@ def main():
             model_class = ZImage
         elif "ernie" in model_name_lower:
             model_class = ErnieImageTurbo
+        elif "wan" in model_name_lower:
+            model_class = Wan2_2_TI2V
         elif "flux2" in model_name_lower or "flux.2" in model_name_lower:
             model_class = Flux2Klein
         else:

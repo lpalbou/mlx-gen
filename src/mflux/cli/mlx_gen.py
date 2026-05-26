@@ -136,12 +136,13 @@ def _top_level_parser() -> argparse.ArgumentParser:
         description="Prepare local model assets and generate or edit images with MLX-Gen.",
         epilog=(
             "Commands:\n"
-            "  generate    Generate or edit an image from a prepared or cached model.\n"
+            "  generate    Generate or edit images and videos from a prepared or cached model.\n"
             "  download    Explicitly download a model snapshot into the Hugging Face cache.\n"
             "  prepare     Create a reusable local MLX-Gen model folder, optionally quantized.\n"
             "\n"
             "Examples:\n"
             "  mlxgen generate --model z-image-turbo --prompt 'A puffin standing on a cliff'\n"
+            "  mlxgen generate --model wan2.2-ti2v-5b --task text-to-video --prompt 'A city timelapse'\n"
             "  mlxgen download --model Qwen/Qwen-Image\n"
             "  mlxgen prepare --model Qwen/Qwen-Image --path ./models/qwen-image-8bit --quantize 8\n"
             "\n"
@@ -156,6 +157,10 @@ def _normalize_task(task: str) -> str:
     aliases = {
         "txt2img": "text-to-image",
         "img2img": "image-to-image",
+        "txt2vid": "text-to-video",
+        "t2v": "text-to-video",
+        "img2vid": "image-to-video",
+        "i2v": "image-to-video",
     }
     return aliases.get(task, task)
 
@@ -209,26 +214,39 @@ def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="mlxgen generate",
         description=(
-            "Generate or edit images with MLX-Gen. The command routes to the right model backend "
+            "Generate or edit images and videos with MLX-Gen. The command routes to the right model backend "
             "from --model and from whether input images are supplied."
         ),
         epilog=(
             "Common generation options are forwarded to the selected backend, including --prompt, "
             "--prompt-file, --width, --height, --steps, --guidance, --seed, --auto-seeds, "
             "--negative-prompt, --quantize, --lora-paths, --lora-scales, --metadata, "
-            "--config-from-metadata/-C, --output, and --replace."
+            "--config-from-metadata/-C, --output, --replace, --frames, and --fps."
         ),
     )
     parser.add_argument("--model", "-m", type=str, help="Model alias, Hugging Face repo, or local model path.")
     parser.add_argument(
         "--family",
-        choices=["qwen", "flux2", "fibo", "z-image", "ernie-image"],
+        choices=["qwen", "flux2", "fibo", "z-image", "ernie-image", "wan"],
         default=None,
         help="Override model-family detection for local paths or custom repo names.",
     )
     parser.add_argument(
         "--task",
-        choices=["auto", "text-to-image", "txt2img", "image-to-image", "img2img", "edit"],
+        choices=[
+            "auto",
+            "text-to-image",
+            "txt2img",
+            "image-to-image",
+            "img2img",
+            "edit",
+            "text-to-video",
+            "txt2vid",
+            "t2v",
+            "image-to-video",
+            "img2vid",
+            "i2v",
+        ],
         default="auto",
         help="Override automatic routing. Default: auto.",
     )
@@ -374,6 +392,10 @@ def _weight_definition_for(aliases: set[str], model_key: str):
         from mflux.models.ernie_image.weights.ernie_image_weight_definition import ErnieImageWeightDefinition
 
         return ErnieImageWeightDefinition
+    if _is_wan(aliases, model_key):
+        from mflux.models.wan.weights import WanWeightDefinition
+
+        return WanWeightDefinition
     return None
 
 
@@ -420,6 +442,10 @@ def _resolve_route(args: argparse.Namespace, image_count: int) -> _Route:
         _reject_ernie_unsupported_inputs(args, image_count)
         return _ernie_route()
 
+    if args.family == "wan":
+        _reject_wan_unsupported_inputs(args, image_count)
+        return _wan_route(has_image=has_images)
+
     if _is_qwen_edit(aliases, model_key) or (args.task == "edit" and _is_qwen(aliases, model_key)):
         return _qwen_edit_route(model_override=None if _is_qwen_edit(aliases, model_key) else "qwen-image-edit")
 
@@ -451,9 +477,13 @@ def _resolve_route(args: argparse.Namespace, image_count: int) -> _Route:
         _reject_ernie_unsupported_inputs(args, image_count)
         return _ernie_route()
 
+    if _is_wan(aliases, model_key):
+        _reject_wan_unsupported_inputs(args, image_count)
+        return _wan_route(has_image=has_images)
+
     _parser().error(
         f"Could not infer a supported backend from --model {args.model!r}. "
-        "Use a model name containing qwen, flux2/flux.2/klein, fibo, z-image, or ernie, or pass --family."
+        "Use a model name containing qwen, flux2/flux.2/klein, fibo, z-image, ernie, or wan, or pass --family."
     )
     raise AssertionError("unreachable")
 
@@ -511,6 +541,10 @@ def _is_ernie(aliases: set[str], model_key: str) -> bool:
     return any(alias.startswith("ernie") for alias in aliases) or "ernie" in model_key
 
 
+def _is_wan(aliases: set[str], model_key: str) -> bool:
+    return any(alias.startswith("wan") for alias in aliases) or "wan" in model_key
+
+
 def _reject_ernie_unsupported_inputs(args: argparse.Namespace, image_count: int) -> None:
     if args.task == "edit":
         _parser().error(
@@ -528,6 +562,19 @@ def _reject_ernie_unsupported_inputs(args: argparse.Namespace, image_count: int)
         _parser().error("ERNIE Image Turbo image-to-image requires --image or --image-path.")
     if args.has_image_strength and image_count == 0:
         _parser().error("ERNIE Image Turbo --image-strength requires --image or --image-path.")
+
+
+def _reject_wan_unsupported_inputs(args: argparse.Namespace, image_count: int) -> None:
+    if args.task in {"edit", "text-to-image", "image-to-image"}:
+        _parser().error(
+            "Wan2.2 TI2V supports text-to-video and image-to-video tasks. "
+            "Use --task text-to-video or --task image-to-video."
+        )
+    if args.task == "image-to-video" or image_count:
+        _parser().error(
+            "Wan2.2 image-to-video is not enabled yet. Text-to-video works now; "
+            "I2V needs the Diffusers first-frame latent conditioning path."
+        )
 
 
 def _qwen_route() -> _Route:
@@ -589,6 +636,17 @@ def _ernie_route() -> _Route:
         "mflux-generate-ernie-image",
         target_main,
         image_argument="--image-path",
+        requires_image=False,
+    )
+
+
+def _wan_route(has_image: bool) -> _Route:
+    from mflux.models.wan.cli.wan_generate import main as target_main
+
+    return _Route(
+        "mlxgen-generate-wan",
+        target_main,
+        image_argument="--image-path" if has_image else None,
         requires_image=False,
     )
 

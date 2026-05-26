@@ -176,6 +176,11 @@ class ModelConfig:
     def seedvr2_7b() -> "ModelConfig":
         return AVAILABLE_MODELS["seedvr2-7b"]
 
+    @staticmethod
+    @lru_cache
+    def wan2_2_ti2v_5b() -> "ModelConfig":
+        return AVAILABLE_MODELS["wan2.2-ti2v-5b"]
+
     def x_embedder_input_dim(self) -> int:
         if "Fill" in self.model_name:
             return 384
@@ -593,6 +598,42 @@ AVAILABLE_MODELS = {
             "mlp_type": "normal",
             "use_output_ada": False,
             "last_layer_vid_only": False,
+        },
+    ),
+    "wan2.2-ti2v-5b": ModelConfig(
+        priority=25,
+        aliases=[
+            "wan2.2-ti2v-5b",
+            "wan2-2-ti2v-5b",
+            "wan-ti2v",
+            "wan-video",
+            "wan",
+        ],
+        model_name="Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+        base_model=None,
+        controlnet_model=None,
+        custom_transformer_model=None,
+        num_train_steps=1000,
+        max_sequence_length=512,
+        supports_guidance=True,
+        requires_sigma_shift=False,
+        transformer_overrides={
+            "in_channels": 48,
+            "out_channels": 48,
+            "num_layers": 30,
+            "num_attention_heads": 24,
+            "attention_head_dim": 128,
+            "ffn_dim": 14336,
+            "patch_size": [1, 2, 2],
+            "expand_timesteps": True,
+        },
+        text_encoder_overrides={
+            "model_type": "umt5",
+            "d_model": 4096,
+            "d_ff": 10240,
+            "num_layers": 24,
+            "num_heads": 64,
+            "vocab_size": 256384,
         },
     ),
 }

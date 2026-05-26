@@ -14,9 +14,14 @@ class Wan2_2_MidBlock(nn.Module):
             self.attentions.append(Wan2_2_AttentionBlock(dim))
             self.resnets.append(Wan2_2_ResidualBlock(dim, dim, non_linearity))
 
-    def __call__(self, x: mx.array) -> mx.array:
-        x = self.resnets[0](x)
+    def __call__(
+        self,
+        x: mx.array,
+        feat_cache: list[mx.array | str | None] | None = None,
+        feat_idx: list[int] | None = None,
+    ) -> mx.array:
+        x = self.resnets[0](x, feat_cache=feat_cache, feat_idx=feat_idx)
         for attn, resnet in zip(self.attentions, self.resnets[1:]):
             x = attn(x)
-            x = resnet(x)
+            x = resnet(x, feat_cache=feat_cache, feat_idx=feat_idx)
         return x

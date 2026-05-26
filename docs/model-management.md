@@ -12,7 +12,7 @@ MLX-Gen exposes three public commands for the normal model lifecycle:
 | --- | --- | --- | --- |
 | `mlxgen download` | Put an original model repository or LoRA repository in the local Hugging Face cache. | Allowed because the user asked for download. | Cached source files. |
 | `mlxgen prepare` | Create a reusable local MLX-Gen model folder, usually quantized. | Allowed because the user asked for preparation. | Local model folder plus generated `README.md` card. |
-| `mlxgen generate` | Generate or edit images from cached or prepared files. | Not allowed by default. | Image output and optional metadata. |
+| `mlxgen generate` | Generate images, edit images, or generate supported videos from cached or prepared files. | Not allowed by default. | Image or video output and optional metadata. |
 
 Use `mlxgen prepare`, not a separate `save` command, when you want a local quantized model folder to reuse from another project or upload to Hugging Face.
 
@@ -63,7 +63,7 @@ mlxgen generate \
   --output image.png
 ```
 
-If the local folder name does not clearly identify the model family, add `--family` during generation. The supported router families are `qwen`, `flux2`, `fibo`, `z-image`, and `ernie-image`.
+If the local folder name does not clearly identify the model family, add `--family` during generation. The supported router families are `qwen`, `flux2`, `fibo`, `z-image`, `ernie-image`, and `wan`.
 
 The generated card records the source model, MLX-Gen compatibility, mflux attribution, generator version, quantization policy, and default contributor attribution. See [Hugging Face Publishing](huggingface-publishing.md) for upload and collection guidance.
 
@@ -94,6 +94,14 @@ mlxgen prepare --model baidu/ERNIE-Image-Turbo --path ./models/ernie-image-turbo
 The default ERNIE download pattern fetches the BF16 generation components used by ordinary text-to-image and experimental single-image image-to-image generation: tokenizer, text encoder, transformer, VAE, scheduler metadata, and repository metadata. It does not fetch ERNIE's Prompt Enhancer model. Use `mlxgen download --model baidu/ERNIE-Image-Turbo --all-files` before generation when you plan to pass `--use-prompt-enhancer`.
 
 ERNIE q8 and q4 prepared folders load through the same `mlxgen generate` flow. q4 uses a model-specific mixed q4/q8 policy to reduce the quality drift seen with fully q4 ERNIE checkpoints. Prepared ERNIE folders contain the generation stack needed for text-to-image and experimental single-image image-to-image; they do not bundle Prompt Enhancer files.
+
+Wan2.2 TI2V can be downloaded and used for text-to-video:
+
+```sh
+mlxgen download --model Wan-AI/Wan2.2-TI2V-5B-Diffusers
+```
+
+Wan text-to-video currently uses the source snapshot plus a local-only Hugging Face UMT5 text encoder for prompt embeddings. Wan image-to-video is intentionally not exposed until the Diffusers first-frame latent-conditioning path is ported.
 
 ## Depth Pro
 
