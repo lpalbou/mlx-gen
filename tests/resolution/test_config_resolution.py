@@ -101,10 +101,17 @@ class TestConfigResolutionInferSubstring:
     def test_inferred_config_preserves_scheduler_shift_settings(self):
         config = ConfigResolution.resolve(model_name="Qwen/Qwen-Image-Edit-2511")
 
-        assert config.base_model == "Qwen/Qwen-Image-Edit-2509"
+        assert config.model_name == "Qwen/Qwen-Image-Edit-2511"
         assert config.sigma_max_shift == 0.9
         assert config.sigma_max_seq_len == 8192
         assert config.sigma_shift_terminal == 0.02
+
+    @pytest.mark.fast
+    def test_infers_qwen_image_edit_2511_from_prepared_folder(self):
+        config = ConfigResolution.resolve(model_name="AbstractFramework/qwen-image-edit-2511-4bit")
+
+        assert config.base_model == "Qwen/Qwen-Image-Edit-2511"
+        assert config.model_name == "AbstractFramework/qwen-image-edit-2511-4bit"
 
     @pytest.mark.fast
     def test_infers_ernie_image_turbo_from_local_path(self):

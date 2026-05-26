@@ -61,9 +61,28 @@ mlxgen download --model baidu/ERNIE-Image-Turbo --all-files
 
 Then retry generation with `--use-prompt-enhancer`.
 
-## ERNIE Rejects Image Inputs
+## ERNIE Rejects Multiple Image Inputs Or Edit Tasks
 
-MLX-Gen currently supports ERNIE Image Turbo as BF16, q8, or q4 text-to-image generation. `--image`, `--images`, and image-to-image/edit tasks fail intentionally so applications do not accidentally run a different workflow from the one requested.
+ERNIE Image Turbo supports text-to-image and experimental single-image image-to-image. It does not support multi-image edit.
+
+Use one input image for ERNIE image-to-image:
+
+```sh
+mlxgen generate \
+  --model baidu/ERNIE-Image-Turbo \
+  --image input.png \
+  --prompt "Turn the scene into a pencil sketch" \
+  --width 512 \
+  --height 512 \
+  --steps 8 \
+  --guidance 3 \
+  --image-strength 0.25 \
+  --output edited.png
+```
+
+If you pass `--task edit`, multiple `--images`, or `--image-strength` without an image, MLX-Gen fails before loading the model and tells you which input shape ERNIE supports.
+
+If ERNIE image-to-image does not preserve enough of the source image, increase `--image-strength`, keep the output aspect ratio close to the input aspect ratio, or use Qwen Image Edit for a true image-conditioned edit. If ERNIE preserves the source too strongly and barely applies the requested style, lower `--image-strength` or increase `--steps` to 12-16.
 
 ## `generate --path` Fails
 

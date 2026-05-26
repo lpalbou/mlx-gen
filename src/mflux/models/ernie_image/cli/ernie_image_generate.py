@@ -12,7 +12,8 @@ def main():
     parser = CommandLineParser(description="Generate an image using ERNIE-Image-Turbo.")
     parser.add_general_arguments()
     parser.add_model_arguments(require_model_arg=False)
-    parser.add_image_generator_arguments(supports_metadata_config=True)
+    parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
+    parser.add_image_to_image_arguments(required=False)
     parser.add_argument(
         "--use-prompt-enhancer",
         "--use-pe",
@@ -64,7 +65,7 @@ def main():
         width, height = DimensionResolver.resolve(
             width=args.width,
             height=args.height,
-            reference_image_path=None,
+            reference_image_path=args.image_path,
         )
         if min(width, height) < 384:
             print(
@@ -78,6 +79,8 @@ def main():
                 width=width,
                 height=height,
                 guidance=args.guidance,
+                image_path=args.image_path,
+                image_strength=args.image_strength,
                 num_inference_steps=args.steps,
                 negative_prompt=args.negative_prompt,
                 use_pe=args.use_prompt_enhancer,

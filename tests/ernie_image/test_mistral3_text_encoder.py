@@ -5,6 +5,9 @@ import mlx.core as mx
 import numpy as np
 import pytest
 
+from mflux.models.common.config.config import Config
+from mflux.models.common.config.model_config import ModelConfig
+from mflux.models.common.latent_creator.latent_creator import LatentCreator
 from mflux.models.ernie_image.ernie_image_initializer import ErnieImageInitializer
 from mflux.models.ernie_image.model.mistral3_text_encoder.attention import Mistral3Attention
 from mflux.models.ernie_image.model.mistral3_text_encoder.causal_lm import Mistral3CausalLM
@@ -12,6 +15,7 @@ from mflux.models.ernie_image.model.mistral3_text_encoder.rope import Mistral3Ya
 from mflux.models.ernie_image.model.mistral3_text_encoder.text_encoder import Mistral3TextEncoder
 from mflux.models.ernie_image.scheduler import ErnieImageScheduler
 from mflux.models.ernie_image.tokenizer import ErnieImageTokenizer
+from mflux.models.ernie_image.variants.ernie_image_turbo import ErnieImageTurbo
 from mflux.models.ernie_image.weights.ernie_image_weight_definition import (
     ErnieImagePromptEnhancerWeightDefinition,
     ErnieImageQuantizationPolicy,
@@ -67,9 +71,7 @@ def test_yarn_rope_inv_freq_matches_reference_formula():
     inv_freq_interpolation = 1.0 / (factor * pos_freqs)
 
     def correction_dim(num_rotations):
-        return (dim * math.log(original_max_position_embeddings / (num_rotations * 2 * math.pi))) / (
-            2 * math.log(base)
-        )
+        return (dim * math.log(original_max_position_embeddings / (num_rotations * 2 * math.pi))) / (2 * math.log(base))
 
     low = max(math.floor(correction_dim(beta_fast)), 0)
     high = min(math.ceil(correction_dim(beta_slow)), dim - 1)
@@ -165,7 +167,10 @@ def test_transformer_weight_mapping_uses_diffusers_ernie_names():
 
     assert ("x_embedder.proj.weight", ("x_embedder.proj.weight",)) in pairs
     assert ("adaLN_modulation.linear.weight", ("adaLN_modulation.1.weight",)) in pairs
-    assert ("layers.{layer}.self_attention.to_out.0.weight", ("layers.{layer}.self_attention.to_out.0.weight",)) in pairs
+    assert (
+        "layers.{layer}.self_attention.to_out.0.weight",
+        ("layers.{layer}.self_attention.to_out.0.weight",),
+    ) in pairs
     assert ("layers.{layer}.mlp.linear_fc2.weight", ("layers.{layer}.mlp.linear_fc2.weight",)) in pairs
 
 
@@ -284,3 +289,42 @@ def test_ernie_scheduler_matches_diffusers_shifted_custom_sigmas():
 
     np.testing.assert_allclose(np.array(scheduler.sigmas), np.concatenate([shifted, [0.0]]), rtol=1e-6)
     np.testing.assert_allclose(np.array(scheduler.timesteps), shifted * 1000.0, rtol=1e-6)
+
+
+@pytest.mark.fast
+def test_ernie_img2img_latent_helper_patchifies_and_normalizes(monkeypatch, tmp_path):
+    encoded_image = mx.ones((1, 32, 64, 64), dtype=mx.float32)
+
+    def fake_encode_image(**kwargs):
+        return encoded_image
+
+    monkeypatch.setattr(LatentCreator, "encode_image", fake_encode_image)
+
+    model = ErnieImageTurbo.__new__(ErnieImageTurbo)
+    model.vae = SimpleNamespace(
+        bn=SimpleNamespace(
+            running_mean=mx.zeros((128,), dtype=mx.float32),
+            running_var=mx.ones((128,), dtype=mx.float32),
+            eps=1e-5,
+        )
+    )
+    model.tiling_config = None
+    config = Config(
+        model_config=ModelConfig.ernie_image_turbo(),
+        width=512,
+        height=512,
+        num_inference_steps=8,
+        image_path=tmp_path / "input.png",
+        image_strength=0.4,
+    )
+    scheduler = ErnieImageScheduler(num_inference_steps=config.num_inference_steps)
+
+    latents = ErnieImageTurbo._prepare_generation_latents(
+        model,
+        seed=123,
+        config=config,
+        scheduler=scheduler,
+        batch_size=1,
+    )
+
+    assert latents.shape == (1, 128, 32, 32)

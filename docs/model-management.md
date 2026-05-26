@@ -91,9 +91,9 @@ mlxgen prepare --model baidu/ERNIE-Image-Turbo --path ./models/ernie-image-turbo
 mlxgen prepare --model baidu/ERNIE-Image-Turbo --path ./models/ernie-image-turbo-4bit --quantize 4
 ```
 
-The default ERNIE download pattern fetches the BF16 generation components used by ordinary text-to-image generation: tokenizer, text encoder, transformer, VAE, scheduler metadata, and repository metadata. It does not fetch ERNIE's Prompt Enhancer model. Use `mlxgen download --model baidu/ERNIE-Image-Turbo --all-files` before generation when you plan to pass `--use-prompt-enhancer`.
+The default ERNIE download pattern fetches the BF16 generation components used by ordinary text-to-image and experimental single-image image-to-image generation: tokenizer, text encoder, transformer, VAE, scheduler metadata, and repository metadata. It does not fetch ERNIE's Prompt Enhancer model. Use `mlxgen download --model baidu/ERNIE-Image-Turbo --all-files` before generation when you plan to pass `--use-prompt-enhancer`.
 
-ERNIE q8 and q4 prepared folders load through the same `mlxgen generate` flow. q4 uses a model-specific mixed q4/q8 policy to reduce the quality drift seen with fully q4 ERNIE checkpoints. Prepared ERNIE folders contain the text-to-image generation stack; they do not bundle Prompt Enhancer files.
+ERNIE q8 and q4 prepared folders load through the same `mlxgen generate` flow. q4 uses a model-specific mixed q4/q8 policy to reduce the quality drift seen with fully q4 ERNIE checkpoints. Prepared ERNIE folders contain the generation stack needed for text-to-image and experimental single-image image-to-image; they do not bundle Prompt Enhancer files.
 
 ## Depth Pro
 

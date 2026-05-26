@@ -23,3 +23,10 @@ class ErnieImageLatentCreator:
     @staticmethod
     def unpack_latents(latents: mx.array, height: int, width: int) -> mx.array:  # noqa: ARG004
         return latents
+
+    @staticmethod
+    def patchify_latents(latents: mx.array) -> mx.array:
+        batch, channels, height, width = latents.shape
+        latents = latents.reshape(batch, channels, height // 2, 2, width // 2, 2)
+        latents = latents.transpose(0, 1, 3, 5, 2, 4)
+        return latents.reshape(batch, channels * 4, height // 2, width // 2)

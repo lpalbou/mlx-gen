@@ -11,12 +11,15 @@
 *.lock  # created by uv sync
 *.png
 *.jpg
+!docs/assets/
+!docs/assets/**
 *.pyc
 *.safetensors
 *.json
 !src/mflux/models/common/training/_example/train.json
 !tests/training/config/train.json
 tests/training/tmp/
+validation_outputs/
 
 *.egg-info
 

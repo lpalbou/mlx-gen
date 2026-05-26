@@ -327,20 +327,91 @@ def test_ernie_family_override_routes_local_folder():
     ]
 
 
-def test_ernie_rejects_image_inputs(capsys):
+def test_ernie_family_override_routes_local_folder_with_image():
+    invocation = mlx_gen._resolve_invocation(
+        [
+            "--model",
+            "../models/custom-folder",
+            "--family",
+            "ernie-image",
+            "--image",
+            "input.png",
+            "--prompt",
+            "make it cinematic",
+        ]
+    )
+
+    assert invocation.target_name == "mflux-generate-ernie-image"
+    assert invocation.argv == [
+        "mflux-generate-ernie-image",
+        "--model",
+        "../models/custom-folder",
+        "--image-path",
+        "input.png",
+        "--prompt",
+        "make it cinematic",
+    ]
+
+
+def test_routes_ernie_image_input_to_image_to_image_generation():
+    invocation = mlx_gen._resolve_invocation(
+        [
+            "--model",
+            "baidu/ERNIE-Image-Turbo",
+            "--image",
+            "input.png",
+            "--image-strength",
+            "0.4",
+            "--prompt",
+            "make it cinematic",
+        ]
+    )
+
+    assert invocation.target_name == "mflux-generate-ernie-image"
+    assert invocation.argv == [
+        "mflux-generate-ernie-image",
+        "--model",
+        "baidu/ERNIE-Image-Turbo",
+        "--image-path",
+        "input.png",
+        "--image-strength",
+        "0.4",
+        "--prompt",
+        "make it cinematic",
+    ]
+
+
+def test_ernie_image_to_image_task_requires_an_image(capsys):
     with pytest.raises(SystemExit):
         mlx_gen._resolve_invocation(
             [
                 "--model",
                 "baidu/ERNIE-Image-Turbo",
-                "--image",
-                "input.png",
+                "--task",
+                "image-to-image",
                 "--prompt",
                 "make it cinematic",
             ]
         )
 
-    assert "text-to-image only" in capsys.readouterr().err
+    assert "image-to-image requires --image" in capsys.readouterr().err
+
+
+def test_ernie_rejects_multiple_image_inputs(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "baidu/ERNIE-Image-Turbo",
+                "--images",
+                "input.png",
+                "style.png",
+                "--prompt",
+                "make it cinematic",
+            ]
+        )
+
+    assert "supports only one input image" in capsys.readouterr().err
 
 
 def test_ernie_rejects_edit_task(capsys):
@@ -356,7 +427,7 @@ def test_ernie_rejects_edit_task(capsys):
             ]
         )
 
-    assert "text-to-image only" in capsys.readouterr().err
+    assert "Multi-image edit is not supported" in capsys.readouterr().err
 
 
 def test_ernie_cli_passes_prompt_enhancer_options(monkeypatch):
@@ -387,6 +458,14 @@ def test_ernie_cli_passes_prompt_enhancer_options(monkeypatch):
             "baidu/ERNIE-Image-Turbo",
             "--prompt",
             "hello",
+            "--image-path",
+            "input.png",
+            "--image-strength",
+            "0.6",
+            "--width",
+            "512",
+            "--height",
+            "512",
             "--use-prompt-enhancer",
             "--prompt-enhancer-temperature",
             "0.7",
@@ -400,6 +479,8 @@ def test_ernie_cli_passes_prompt_enhancer_options(monkeypatch):
     ernie_image_generate.main()
 
     assert observed["generate"]["use_pe"] is True
+    assert observed["generate"]["image_path"].as_posix() == "input.png"
+    assert observed["generate"]["image_strength"] == 0.6
     assert observed["generate"]["pe_temperature"] == 0.7
     assert observed["generate"]["pe_top_p"] == 0.9
     assert observed["generate"]["pe_max_new_tokens"] == 12

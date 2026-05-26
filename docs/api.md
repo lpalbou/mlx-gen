@@ -65,7 +65,24 @@ mlxgen generate \
   --output image.png
 ```
 
-The ERNIE port is text-to-image only. It supports BF16 source weights and prepared q8/q4 folders. Image inputs and image-to-image/edit tasks are intentionally rejected until those paths are ported and validated.
+ERNIE Image Turbo supports BF16 source weights plus prepared q8/q4 folders. MLX-Gen also provides experimental single-image image-to-image for ERNIE:
+
+```sh
+mlxgen generate \
+  --model baidu/ERNIE-Image-Turbo \
+  --image input.png \
+  --prompt "Turn the scene into a pencil sketch" \
+  --width 512 \
+  --height 512 \
+  --steps 8 \
+  --guidance 3 \
+  --image-strength 0.25 \
+  --output edited.png
+```
+
+ERNIE image-to-image accepts exactly one input image. Multi-image edit is not supported. `--image-strength` follows the existing MLX-Gen image-influence convention: higher values preserve more of the init image, while lower positive values allow more transformation.
+
+For ERNIE image-to-image, preserve the source aspect ratio when choosing `--width` and `--height`. Use roughly `--image-strength 0.25` to `0.35` for visible stylization, `0.45` to `0.6` for stronger source preservation, and 12-16 steps when the output needs more polished stylization. Use Qwen Image Edit for precise object/layout-preserving edits.
 
 ERNIE's optional Prompt Enhancer is available with `--use-prompt-enhancer` when the full source snapshot is present. The default `mlxgen download --model baidu/ERNIE-Image-Turbo` command downloads only generation components; run `mlxgen download --model baidu/ERNIE-Image-Turbo --all-files` before using Prompt Enhancer. Prepared q8/q4 ERNIE folders created by `mlxgen prepare` do not include Prompt Enhancer files.
 

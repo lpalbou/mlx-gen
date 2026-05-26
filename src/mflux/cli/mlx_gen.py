@@ -417,7 +417,7 @@ def _resolve_route(args: argparse.Namespace, image_count: int) -> _Route:
         return _z_image_route()
 
     if args.family == "ernie-image":
-        _reject_ernie_image_inputs(args, has_images)
+        _reject_ernie_unsupported_inputs(args, image_count)
         return _ernie_route()
 
     if _is_qwen_edit(aliases, model_key) or (args.task == "edit" and _is_qwen(aliases, model_key)):
@@ -448,7 +448,7 @@ def _resolve_route(args: argparse.Namespace, image_count: int) -> _Route:
         return _z_image_route()
 
     if _is_ernie(aliases, model_key):
-        _reject_ernie_image_inputs(args, has_images)
+        _reject_ernie_unsupported_inputs(args, image_count)
         return _ernie_route()
 
     _parser().error(
@@ -511,12 +511,23 @@ def _is_ernie(aliases: set[str], model_key: str) -> bool:
     return any(alias.startswith("ernie") for alias in aliases) or "ernie" in model_key
 
 
-def _reject_ernie_image_inputs(args: argparse.Namespace, has_images: bool) -> None:
-    if args.task in {"image-to-image", "edit"} or has_images or args.has_image_strength:
+def _reject_ernie_unsupported_inputs(args: argparse.Namespace, image_count: int) -> None:
+    if args.task == "edit":
         _parser().error(
-            "ERNIE Image Turbo currently supports text-to-image only in MLX-Gen. "
-            "Remove --image/--images/--image-strength, or choose an image-to-image/edit backend."
+            "ERNIE Image Turbo supports text-to-image and experimental single-image image-to-image only. "
+            "Multi-image edit is not supported."
         )
+    if image_count > 1:
+        _parser().error(
+            "ERNIE Image Turbo supports only one input image. "
+            "Pass a single --image/--image-path for experimental image-to-image."
+        )
+    if args.task == "text-to-image" and image_count:
+        _parser().error("ERNIE Image Turbo text-to-image cannot be combined with --image/--image-path.")
+    if args.task == "image-to-image" and image_count == 0:
+        _parser().error("ERNIE Image Turbo image-to-image requires --image or --image-path.")
+    if args.has_image_strength and image_count == 0:
+        _parser().error("ERNIE Image Turbo --image-strength requires --image or --image-path.")
 
 
 def _qwen_route() -> _Route:
@@ -577,7 +588,7 @@ def _ernie_route() -> _Route:
     return _Route(
         "mflux-generate-ernie-image",
         target_main,
-        image_argument=None,
+        image_argument="--image-path",
         requires_image=False,
     )
 

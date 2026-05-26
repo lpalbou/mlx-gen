@@ -154,7 +154,7 @@ MLX-Gen supports reusable prepared folders for these primary quantized model fam
 | Model family | q8 | q4 | Notes |
 | --- | --- | --- | --- |
 | Qwen Image and Qwen Image Edit | Supported | Mixed q4/q8 | Covers Qwen Image, Qwen Image 2512, Qwen Image Edit, 2509, and 2511. |
-| ERNIE Image Turbo | Supported | Mixed q4/q8 | Text-to-image only. Prompt Enhancer is optional from a full source snapshot. |
+| ERNIE Image Turbo | Supported | Mixed q4/q8 | Text-to-image plus experimental single-image image-to-image. Prompt Enhancer is optional from a full source snapshot. |
 | FLUX.2 Klein | Supported | Supported | Standard MLX quantization. 9B derivatives follow the source gated/non-commercial access requirements. |
 | Z-Image and Z-Image Turbo | Supported | Supported | Standard MLX quantization with model-specific generation defaults. |
 | FIBO | Supported with source access | Supported with source access | Source repositories may require access approval before download or preparation. |
@@ -240,7 +240,7 @@ MLX-Gen supports the following model families. They have different strengths and
 |[Z-Image](src/mflux/models/z_image/README.md) | Nov 2025 | 6B | Distilled & Base | Yes | Fast, small, very good quality and realism. |
 |[FLUX.2](src/mflux/models/flux2/README.md) | Jan 2026 | 4B & 9B | Distilled & Base | Yes | Fastest + smallest with very good quality and edit capabilities. |
 |[FIBO](src/mflux/models/fibo/README.md) | Oct 2025+ | 8B | Distilled & Base | No | Very good JSON-based prompt understanding. Has edit capabilities. |
-| ERNIE Image Turbo | Mar 2026 | 6B class | Distilled | No | Fast Apache 2.0 text-to-image model from Baidu. MLX-Gen support is text-to-image with BF16, q8, q4, and optional Prompt Enhancer from a full source snapshot; image input is not enabled yet. Use 384px+ outputs for reliable composition. |
+| ERNIE Image Turbo | Mar 2026 | 6B class | Distilled | No | Fast Apache 2.0 model from Baidu. MLX-Gen support covers text-to-image, experimental single-image image-to-image, BF16/q8/mixed q4 folders, and optional Prompt Enhancer from a full source snapshot. Use 384px+ outputs for reliable composition. |
 |[SeedVR2](src/mflux/models/seedvr2/README.md) | Jun 2025 | 3B & 7B | — | No | Best upscaling model. |
 |[Qwen Image](src/mflux/models/qwen/README.md) | Aug 2025+ | 20B | Base | No | Large model (slower); strong prompt understanding and world knowledge. Has edit capabilities |
 |[Depth Pro](src/mflux/models/depth_pro/README.md) | Oct 2024 | — | — | No | Very fast and accurate depth estimation model from Apple. |

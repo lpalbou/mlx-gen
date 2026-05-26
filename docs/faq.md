@@ -69,7 +69,22 @@ mlxgen generate \
   --use-prompt-enhancer
 ```
 
-ERNIE image-to-image/edit inputs are still rejected instead of silently ignoring them.
+ERNIE Image Turbo supports experimental single-image image-to-image in MLX-Gen:
+
+```sh
+mlxgen generate \
+  --model baidu/ERNIE-Image-Turbo \
+  --image input.png \
+  --prompt "Turn the scene into a pencil sketch" \
+  --width 512 \
+  --height 512 \
+  --steps 8 \
+  --guidance 3 \
+  --image-strength 0.25 \
+  --output edited.png
+```
+
+Multi-image edit is not supported for ERNIE. `--image-strength` follows the MLX-Gen image-influence convention: higher values preserve more of the init image, while lower positive values allow more transformation.
 
 Prepared ERNIE q8/q4 folders do not bundle Prompt Enhancer files; use the full source snapshot path or the Hugging Face repo after `mlxgen download --all-files` when you need `--use-prompt-enhancer`.
 

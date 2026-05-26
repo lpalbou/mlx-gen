@@ -7,6 +7,7 @@ from PIL import Image
 
 from mflux.models.common.config.config import Config
 from mflux.models.common.config.model_config import ModelConfig
+from mflux.models.common.latent_creator.latent_creator import LatentCreator
 from mflux.models.common.weights.saving.model_saver import ModelSaver
 from mflux.models.ernie_image.ernie_image_initializer import ErnieImageInitializer
 from mflux.models.ernie_image.latent_creator import ErnieImageLatentCreator
@@ -61,7 +62,9 @@ class ErnieImageTurbo(nn.Module):
         pe_top_p: float = 0.95,
         pe_max_new_tokens: int | None = None,
     ) -> Image.Image:
-        del image_path, image_strength, scheduler
+        del scheduler
+        if image_path is None:
+            image_strength = None
         if use_pe:
             prompt = self._enhance_prompt(
                 prompt=prompt,
@@ -79,15 +82,18 @@ class ErnieImageTurbo(nn.Module):
             height=height,
             guidance=guidance,
             scheduler="linear",
+            image_path=image_path,
+            image_strength=image_strength,
             model_config=self.model_config,
             num_inference_steps=num_inference_steps,
         )
 
         batch_size = 1
-        latents = ErnieImageLatentCreator.create_noise(
+        ernie_scheduler = ErnieImageScheduler(num_inference_steps=config.num_inference_steps)
+        latents = self._prepare_generation_latents(
             seed=seed,
-            width=config.width,
-            height=config.height,
+            config=config,
+            scheduler=ernie_scheduler,
             batch_size=batch_size,
         )
         text_hiddens = self._encode_prompt([prompt])
@@ -97,7 +103,6 @@ class ErnieImageTurbo(nn.Module):
         else:
             cfg_text_hiddens = text_hiddens
         text_bth, text_lens = self._pad_text(cfg_text_hiddens)
-        ernie_scheduler = ErnieImageScheduler(num_inference_steps=config.num_inference_steps)
 
         ctx = self.callbacks.start(seed=seed, prompt=prompt, config=config)
         ctx.before_loop(latents)
@@ -136,8 +141,8 @@ class ErnieImageTurbo(nn.Module):
             seed=seed,
             prompt=prompt,
             quantization=self.bits,
-            image_path=None,
-            image_strength=None,
+            image_path=config.image_path,
+            image_strength=config.image_strength,
             generation_time=config.time_steps.format_dict["elapsed"],
             negative_prompt=negative_prompt,
         )
@@ -205,6 +210,43 @@ class ErnieImageTurbo(nn.Module):
         if self.prompt_enhancer is None:
             ErnieImageInitializer.init_prompt_enhancer(self)
 
+    def _prepare_generation_latents(
+        self,
+        *,
+        seed: int,
+        config: Config,
+        scheduler: ErnieImageScheduler,
+        batch_size: int,
+    ) -> mx.array:
+        noise = ErnieImageLatentCreator.create_noise(
+            seed=seed,
+            width=config.width,
+            height=config.height,
+            batch_size=batch_size,
+        )
+        if config.image_path is None or config.image_strength is None or config.image_strength <= 0.0:
+            return noise
+
+        encoded = LatentCreator.encode_image(
+            vae=self.vae,
+            image_path=config.image_path,
+            height=config.height,
+            width=config.width,
+            tiling_config=self.tiling_config,
+        )
+        encoded = self._ensure_4d_latents(encoded)
+        encoded = self._crop_to_even_spatial(encoded)
+        encoded = self._match_latent_spatial_size(
+            encoded=encoded,
+            target_height=noise.shape[2] * 2,
+            target_width=noise.shape[3] * 2,
+        )
+        encoded = ErnieImageLatentCreator.patchify_latents(encoded)
+        encoded = self._bn_normalize_vae_encoded_latents(encoded)
+
+        sigma = scheduler.sigmas[config.init_time_step]
+        return LatentCreator.add_noise_by_interpolation(clean=encoded, noise=noise, sigma=sigma)
+
     @staticmethod
     def _pad_text(text_hiddens: list[mx.array]) -> tuple[mx.array, mx.array]:
         if not text_hiddens:
@@ -216,3 +258,50 @@ class ErnieImageTurbo(nn.Module):
             for hidden in text_hiddens
         ]
         return mx.stack(padded, axis=0), mx.array(lengths, dtype=mx.int32)
+
+    @staticmethod
+    def _ensure_4d_latents(latents: mx.array) -> mx.array:
+        if latents.ndim == 5 and latents.shape[2] == 1:
+            return latents[:, :, 0, :, :]
+        return latents
+
+    @staticmethod
+    def _crop_to_even_spatial(latents: mx.array) -> mx.array:
+        if latents.shape[2] % 2 != 0:
+            latents = latents[:, :, :-1, :]
+        if latents.shape[3] % 2 != 0:
+            latents = latents[:, :, :, :-1]
+        return latents
+
+    @staticmethod
+    def _match_latent_spatial_size(
+        *,
+        encoded: mx.array,
+        target_height: int,
+        target_width: int,
+    ) -> mx.array:
+        _, _, height, width = encoded.shape
+        if height != target_height:
+            if height > target_height:
+                offset = (height - target_height) // 2
+                encoded = encoded[:, :, offset : offset + target_height, :]
+            else:
+                pad_total = target_height - height
+                pad_before = pad_total // 2
+                pad_after = pad_total - pad_before
+                encoded = mx.pad(encoded, ((0, 0), (0, 0), (pad_before, pad_after), (0, 0)))
+        if width != target_width:
+            if width > target_width:
+                offset = (width - target_width) // 2
+                encoded = encoded[:, :, :, offset : offset + target_width]
+            else:
+                pad_total = target_width - width
+                pad_before = pad_total // 2
+                pad_after = pad_total - pad_before
+                encoded = mx.pad(encoded, ((0, 0), (0, 0), (0, 0), (pad_before, pad_after)))
+        return encoded
+
+    def _bn_normalize_vae_encoded_latents(self, encoded: mx.array) -> mx.array:
+        bn_mean = self.vae.bn.running_mean.reshape(1, -1, 1, 1).astype(encoded.dtype)
+        bn_std = mx.sqrt(self.vae.bn.running_var.reshape(1, -1, 1, 1) + self.vae.bn.eps).astype(encoded.dtype)
+        return (encoded - bn_mean) / bn_std
