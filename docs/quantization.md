@@ -15,6 +15,7 @@ The current quantized-model compatibility surface is:
 | Bonsai Image | Not a prepared q8 folder | Ternary 2-bit pre-packed checkpoint supported | Bonsai checkpoints are already packed MLX artifacts. Use `mlxgen download` and `mlxgen generate`; do not run `prepare`. Binary 1-bit is detected but blocked until stock MLX supports 1-bit packed affine matmul. |
 | Z-Image / Z-Image Turbo | Supported | Supported | Standard MLX quantization policy with model-specific generation defaults. |
 | FIBO | Supported when source access is available | Supported when source access is available | Source repositories may require access approval before download or preparation. |
+| Wan2.2 | Supported with mixed q8/BF16 | Under validation | T2V-A14B full q8 collapsed to near-black static output; MLX-Gen keeps Wan conditioning/output projection linears BF16 and quantizes the bulky transformer block linears at q8. |
 
 MLX-Gen treats low-bit quality as model-specific, not automatic. Qwen and ERNIE use mixed q4/q8 policies because fully q4 checkpoints showed unacceptable quality loss in generation validation. Bonsai uses Prism's pre-packed ternary 2-bit transformer plus a 4-bit Qwen3 text encoder rather than MLX-Gen's `prepare` flow. q8 remains the closest prepared-folder option to BF16 when memory allows.
 
@@ -45,9 +46,45 @@ Representative Qwen Image 2512 512x512 validation at 15 steps:
 
 ## q8
 
-The q8 path was not changed by the mixed-q4 work. Qwen q8 uses the standard MLX-Gen/mflux quantization flow: quantizable modules are saved at 8-bit where the model layout supports MLX quantization, while VAE weights and non-quantizable layers remain BF16.
+Qwen q8 uses the standard MLX-Gen/mflux quantization flow: quantizable modules are saved at 8-bit where the model layout supports MLX quantization, while VAE weights and non-quantizable layers remain BF16.
 
 Other model families use their existing model-specific quantization predicates.
+
+## Wan q8
+
+Wan q8 uses a mixed q8/BF16 policy. A fully q8 Wan A14B layout did not preserve video quality in
+validation, so MLX-Gen quantizes the bulky transformer block linears and keeps sensitive paths at
+BF16:
+
+- q8 for quantizable Wan transformer attention and feed-forward linears.
+- BF16 for the Wan VAE.
+- BF16 for Wan transformer `condition_embedder.*` and `proj_out`.
+- BF16 for the UMT5 text encoder, scheduler metadata, tokenizer files, norms, convolutions, and
+  other non-quantizable parameters.
+
+The upstream Wan A14B source snapshots are about 118 GiB. MLX-Gen also publishes prepared BF16
+folders for users who want a smaller reusable MLX-Gen package without quantizing runtime-sensitive
+weights.
+
+The current published-card validation uses small repeatable low-RAM runs on Apple Silicon. It
+records the MLX allocator peak and Darwin full-process physical footprint from model init through
+MP4 save and health validation. RSS is included for comparison, but physical footprint is the more
+useful MLX/Metal unified-memory signal.
+
+| Model | Package | Disk | Physical Peak | Max RSS | MLX Peak | Generation Time | Validation Profile |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| Wan2.2 T2V-A14B | BF16 | 64.3 GiB | 33.0 GiB | 31.8 GiB | 27.7 GiB | 152.7 s | 384x224, 33 frames, 12 steps, 8 fps |
+| Wan2.2 T2V-A14B | mixed q8/BF16 | 39.7 GiB | 20.7 GiB | 19.5 GiB | 15.5 GiB | 154.8 s | 384x224, 33 frames, 12 steps, 8 fps |
+| Wan2.2 I2V-A14B | BF16 | 64.1 GiB | 33.7 GiB | 31.8 GiB | 28.2 GiB | 228.2 s | 384x384, 33 frames, 12 steps, 8 fps |
+| Wan2.2 I2V-A14B | mixed q8/BF16 | 39.7 GiB | 21.5 GiB | 19.6 GiB | 15.9 GiB | 242.2 s | 384x384, 33 frames, 12 steps, 8 fps |
+
+In these validation runs, mixed q8/BF16 cuts disk usage by about 38% versus the prepared BF16
+folders and reduces full-process physical peak memory by about 36-37%. It is not currently claimed
+as a speed improvement.
+
+Full-size Wan A14B q8 generation remains a separate validation target. Model cards and public docs
+should keep full-size claims tied to the exact settings that have passed MP4 health checks and
+manual visual inspection.
 
 ## ERNIE Image Turbo
 

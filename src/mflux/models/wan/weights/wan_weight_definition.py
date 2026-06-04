@@ -53,6 +53,7 @@ class WanWeightDefinition:
                 loading_mode="single",
                 precision=ModelConfig.precision,
                 mapping_getter=lambda: WanWeightMapping.get_vae_mapping(variant=vae_variant),
+                skip_quantization=True,
             )
         )
         return components
@@ -105,5 +106,12 @@ class WanWeightDefinition:
 
     @staticmethod
     def quantization_predicate(path: str, module, bits: int | None = None) -> bool:
-        del path, bits
-        return hasattr(module, "to_quantized")
+        if not hasattr(module, "to_quantized"):
+            return False
+        if bits == 8 and WanWeightDefinition._is_q8_sensitive_transformer_path(path):
+            return False
+        return True
+
+    @staticmethod
+    def _is_q8_sensitive_transformer_path(path: str) -> bool:
+        return path == "proj_out" or path.startswith("condition_embedder.")

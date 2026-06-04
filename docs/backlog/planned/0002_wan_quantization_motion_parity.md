@@ -9,9 +9,9 @@
 ## ADR status
 
 - Governing ADRs: None
-- ADR impact: Needs new ADR only if Wan video progress/cancel/reporting becomes a stable
-  AbstractVision provider API contract. No ADR is required for the current narrow prepare,
-  validation, and Diffusers-parity fixes.
+- ADR impact: Needs new ADR only if Wan cancellation or reporting beyond the existing
+  `ProgressEvent` callback contract becomes a stable AbstractVision provider API contract. No ADR
+  is required for the current narrow prepare, validation, and Diffusers-parity fixes.
 
 ## Context
 
@@ -29,8 +29,9 @@ that three 121-frame, 50-step videos generated at 1280x704 felt too static.
   failed before model loading or quantization.
 - A local fix now inspects the selected model class signature and passes LoRA kwargs only to
   backends that declare `lora_paths`; `tests/cli/test_prepare_save.py` covers both Wan and Qwen.
-- `WanWeightDefinition.quantization_predicate()` currently applies ordinary MLX quantization to
-  any quantizable Wan module. No Wan-specific mixed q4/q8 policy has been validated yet.
+- `WanWeightDefinition.quantization_predicate()` now keeps Wan `condition_embedder.*` and
+  `proj_out` linears BF16 for q8 while quantizing the bulky transformer block linears. This was
+  added after full q8 T2V-A14B validation collapsed to near-black/static output.
 - The local Wan source snapshot declares `WanPipeline`, `expand_timesteps: true`,
   `UniPCMultistepScheduler`, `flow_shift: 5.0`, `prediction_type: flow_prediction`, 30 transformer
   layers, and transformer `in_channels: 48`.
@@ -49,10 +50,21 @@ that three 121-frame, 50-step videos generated at 1280x704 felt too static.
   95.48 seconds; the prepared q8 run took 217.4 seconds. The q8 output stayed visually close in
   the contact sheet, but this run shows no speed win. Runtime peak memory was not captured by the
   Wan CLI/metadata path.
-- The user-provided videos at `/Users/albou/Desktop/video-space.mp4`,
-  `/Users/albou/Desktop/video-river.mp4`, and `/Users/albou/Desktop/video-long.mp4` are all
-  1280x704, 121 frames, 24 fps, and about 5.04 seconds. Analysis artifacts live in
-  `validation_outputs/wan/user_video_analysis/`.
+- Three user-provided 1280x704 reference videos were inspected at 121 frames, 24 fps, and about
+  5.04 seconds each. Analysis artifacts live in `validation_outputs/wan/user_video_analysis/`.
+- On 2026-06-02, `Wan-AI/Wan2.2-T2V-A14B-Diffusers` mixed q8 prepare succeeded at
+  `models/wan2.2-t2v-a14b-diffusers-8bit`. The prepared folder is about 40 GiB: `transformer`
+  14 GiB, `transformer_2` 14 GiB, text encoder 11 GiB, VAE 242 MiB, tokenizer 16 MiB. The source
+  snapshot is about 118 GiB when following symlinks.
+- A controlled T2V-A14B 384x224, 17-frame, 12-step, guidance 4/guidance-2 3, fps 8, seed 4242
+  validation showed full q8 is not publishable: sampled frame MAE against BF16 was 99.95 and
+  sampled temporal change collapsed to 2.03 versus 16.61 for BF16. The mixed q8 policy restored
+  visual quality: prepared mixed q8 MAE against BF16 was 11.57 and sampled temporal change was
+  17.39. The final contact sheet and report are under `validation_outputs/wan/a14b_q8_t2v/`.
+- On 2026-06-03, a full-size T2V-A14B mixed q8/BF16 run at 1280x720, 81 frames, 40 steps,
+  guidance 4/guidance-2 3, and fps 16 completed after about 13h15m but saved an all-black MP4 after
+  non-finite decoded values reached `VideoUtil`. The full-size q8 path is release-blocked until
+  [item 0016](0016_wan_video_integrity_release_gate.md) lands and the exact settings pass.
 
 ## Problem
 
@@ -136,7 +148,8 @@ clear guidance before uploading or depending on quantized Wan checkpoints.
   and which remain unsafe to publish.
 - Static or low-motion Wan outputs are evaluated against objective frame metrics and Diffusers
   parity instead of by impression alone.
-- AbstractVision can depend on a clear Wan support state and progress-reporting behavior.
+- AbstractVision can depend on a clear Wan support state and the shared step-based progress
+  reporting behavior.
 
 ## Validation
 
@@ -148,6 +161,10 @@ clear guidance before uploading or depending on quantized Wan checkpoints.
   models/wan2.2-ti2v-5b-diffusers-8bit`
 - `uv run mlxgen generate --model models/wan2.2-ti2v-5b-diffusers-8bit --task text-to-video
   --width 128 --height 128 --frames 5 --steps 2 --guidance 1 --fps 8 ...`
+- `uv run mlxgen prepare --model Wan-AI/Wan2.2-T2V-A14B-Diffusers --path
+  models/wan2.2-t2v-a14b-diffusers-8bit --quantize 8`
+- `uv run mlxgen generate --model models/wan2.2-t2v-a14b-diffusers-8bit --task text-to-video
+  --width 384 --height 224 --frames 17 --steps 12 --guidance 4 --guidance-2 3 --fps 8 ...`
 - Contact sheets and motion metrics for user videos under
   `validation_outputs/wan/user_video_analysis/`.
 
@@ -163,11 +180,14 @@ clear guidance before uploading or depending on quantized Wan checkpoints.
 - [x] Smoke-generate an MP4 from the prepared q8 folder.
 - [x] Run a same-settings BF16/source versus prepared q8 short comparison.
 - [x] Generate contact sheets and motion metrics for the three user-provided videos.
+- [x] Validate T2V-A14B mixed q8 against BF16/source with a contact sheet and frame metrics.
 - [ ] Add Wan runtime peak-memory reporting to validation metadata or a documented validation
       harness.
 - [ ] Add q8 quality comparison at publishable settings.
+  Full-size T2V-A14B mixed q8/BF16 currently fails this bar.
 - [ ] Decide and validate Wan q4 or mixed q4/q8 policy.
-- [ ] Update generated Wan model cards and public docs once quantization policy is settled.
+- [x] Update generated Wan q8 model cards and public docs for the mixed q8/BF16 policy.
+- [ ] Validate I2V-A14B mixed q8 with source-image conditioning before publishing an I2V repo.
 
 ## Guidance for the implementing agent
 

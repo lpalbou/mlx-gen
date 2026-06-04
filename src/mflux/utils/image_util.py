@@ -14,6 +14,7 @@ from mflux.models.flux.variants.concept_attention.attention_data import ConceptH
 from mflux.utils.box_values import AbsoluteBoxValues, BoxValues
 from mflux.utils.generated_image import GeneratedImage
 from mflux.utils.metadata_builder import MetadataBuilder
+from mflux.utils.tensor_health import TensorHealth
 
 log = logging.getLogger(__name__)
 
@@ -56,6 +57,7 @@ class ImageUtil:
         negative_prompt: str | None = None,
         init_metadata: dict | None = None,
     ) -> GeneratedImage:
+        TensorHealth.ensure_finite(decoded_latents, name="decoded_image", phase="image-conversion")
         normalized = ImageUtil._denormalize(decoded_latents)
         normalized_numpy = ImageUtil._to_numpy(normalized)
         image = ImageUtil._numpy_to_pil(normalized_numpy)
@@ -122,6 +124,7 @@ class ImageUtil:
 
     @staticmethod
     def _numpy_to_pil(images: np.ndarray) -> PIL.Image.Image:
+        TensorHealth.ensure_finite(images, name="normalized_image", phase="image-conversion")
         images = (images * 255).round().astype("uint8")
         pil_images = [PIL.Image.fromarray(image) for image in images]
         return pil_images[0]
@@ -236,25 +239,24 @@ class ImageUtil:
         file_path = ImageUtil.resolve_output_path(path=path, overwrite=overwrite)
         file_path.parent.mkdir(parents=True, exist_ok=True)
 
-        try:
-            # Save image without metadata first
-            image.save(file_path)
-            log.info(f"Image saved successfully at: {file_path}")
+        image.save(file_path)
+        log.info(f"Image saved successfully at: {file_path}")
 
-            # Export metadata to a dedicated sidecar path so it never
-            # collides with model-specific JSON artifacts like FIBO prompts.
-            if export_json_metadata:
-                metadata_path = file_path.with_suffix(".metadata.json")
-                with open(metadata_path, "w") as json_file:
-                    json.dump(metadata, json_file, indent=4)
+        # Export metadata to a dedicated sidecar path so it never
+        # collides with model-specific JSON artifacts like FIBO prompts.
+        if export_json_metadata:
+            metadata_path = file_path.with_suffix(".metadata.json")
+            with open(metadata_path, "w") as json_file:
+                json.dump(metadata, json_file, indent=4)
 
-            # Embed metadata in multiple formats for maximum compatibility
-            if metadata is not None:
+        # Embedded metadata is useful but should not hide a successful primary image save.
+        if metadata is not None:
+            try:
                 ImageUtil._embed_metadata(metadata, file_path)
                 MetadataBuilder.embed_metadata(metadata, file_path)
                 log.info(f"Metadata embedded successfully at: {file_path}")
-        except Exception as e:  # noqa: BLE001
-            log.error(f"Error saving image: {e}")
+            except Exception as e:  # noqa: BLE001
+                log.warning(f"Could not embed image metadata at {file_path}: {e}")
 
     @staticmethod
     def _embed_metadata(metadata: dict, path: str | Path) -> None:

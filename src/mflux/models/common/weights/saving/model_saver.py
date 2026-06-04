@@ -33,13 +33,15 @@ class ModelSaver:
                     ModelSaver._save_tokenizer(base_path, tokenizer_wrapper.tokenizer, t.hf_subdir)
 
         # Save model components with progress bar
-        components = [(c.model_attr or c.name, c.hf_subdir) for c in weight_definition.get_components()]
-        for attr_name, subdir in tqdm(components, desc="Saving components", unit="component"):
+        components = weight_definition.get_components()
+        for component_definition in tqdm(components, desc="Saving components", unit="component"):
+            attr_name = component_definition.model_attr or component_definition.name
             component = getattr(model, attr_name, None)
             if component is not None:
                 # Bake and strip any LoRA wrappers to avoid duplicating shared weights
                 LoRASaver.bake_and_strip_lora(component)
-                ModelSaver._save_weights(base_path, bits, component, subdir)
+                component_bits = None if component_definition.skip_quantization else bits
+                ModelSaver._save_weights(base_path, component_bits, component, component_definition.hf_subdir)
 
         ModelCardSaver.save_model_card(base_path, model, bits)
 
@@ -50,11 +52,15 @@ class ModelSaver:
         tokenizer.save_pretrained(path)
 
     @staticmethod
-    def _save_weights(base_path: str, bits: int, model: nn.Module, subdir: str) -> None:
+    def _save_weights(base_path: str, bits: int | None, model: nn.Module, subdir: str) -> None:
         path = Path(base_path) / subdir
         path.mkdir(parents=True, exist_ok=True)
         weights = dict(tree_flatten(model.parameters()))
         shards = ModelSaver._split_weights(weights)
+        metadata = {
+            "quantization_level": str(bits),
+            "mflux_version": VersionUtil.get_mflux_version(),
+        }
 
         # Build weight_map for index.json (maps each weight key to its shard file)
         weight_map = {}
@@ -64,10 +70,7 @@ class ModelSaver:
             mx.save_safetensors(
                 str(path / shard_filename),
                 shard,
-                {
-                    "quantization_level": str(bits),
-                    "mflux_version": VersionUtil.get_mflux_version(),
-                },
+                metadata,
             )
             # Record which file each weight belongs to
             for key in shard.keys():
@@ -76,10 +79,7 @@ class ModelSaver:
         # Write model.safetensors.index.json for HuggingFace compatibility
         # This ensures the saved model works even if custom metadata is stripped
         index_data = {
-            "metadata": {
-                "quantization_level": str(bits),
-                "mflux_version": VersionUtil.get_mflux_version(),
-            },
+            "metadata": metadata,
             "weight_map": weight_map,
         }
         with open(path / "model.safetensors.index.json", "w") as f:

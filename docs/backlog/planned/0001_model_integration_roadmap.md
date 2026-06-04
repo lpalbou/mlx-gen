@@ -58,6 +58,10 @@ text-to-image, image-to-image/edit, text-to-video, and image-to-video work.
   produce abstract green frames. Current docs use upstream quality-validation settings and include
   1280x704, 17-frame, 20-step spatial-scale sanity panels; full quality validation still needs the
   upstream 121-frame, 50-step, 24fps regime or a deliberately documented lower-cost equivalent.
+- Shared `ProgressEvent` callbacks now cover image and Wan video generation. Image callers
+  subscribe through `model.callbacks.subscribe_progress(...)`; Wan video also accepts a direct
+  `generate_video(progress_callback=...)` handler. Cancellation and richer runtime state remain
+  future orchestration work.
 - GLM-Image is also a real port, not an alias. Its snapshot declares `GlmImagePipeline`,
   `GlmImageTransformer2DModel`, `GlmImageForConditionalGeneration`, `GlmImageProcessor`,
   `T5EncoderModel`, and `AutoencoderKL`.
@@ -87,14 +91,15 @@ MLX-Gen users while preserving clean, reviewable ports:
 1. Validate and publish families that are already supported locally.
 2. Fix cross-cutting UX problems such as gated repos and clearer unsupported-model diagnostics.
 3. Port high-value text/image models whose architectures are understood and cached locally.
-4. Treat video support as a separate track because it needs new pipeline, memory, progress, and
+4. Treat video support as a separate track because it needs new pipeline, memory, cancellation, and
    output abstractions.
 
 ## Why
 
 AbstractVision needs a reliable Apple Silicon backend that can prepare local quantized models,
 generate or edit images, start adding video generation without surprise downloads, report progress,
-and fail with actionable messages. MLX-Gen also needs enough model coverage to stand alone as more
+and fail with actionable messages. Shared progress reporting now exists; cancellation and richer
+runtime state remain roadmap work. MLX-Gen also needs enough model coverage to stand alone as more
 than a renamed fork.
 
 ## Priority table
@@ -105,9 +110,9 @@ than a renamed fork.
 | P0 | T2I, I2I/edit | Existing supported families: Qwen Image/Edit, FLUX.2 Klein distilled/base, Z-Image/Z-Image-Turbo | Code paths exist. Qwen/FLUX/Z-Image 4-bit and 8-bit published sizes now look plausible. Z-Image/Z-Image-Turbo and FLUX.2 4B are Apache; FLUX.2 9B/base-9B derivatives must remain gated. | Low | Continue generation validation and keep model cards/license files/HF settings synchronized. No new backend should block this already-supported publishing work. |
 | P0 | Cross-cutting | Gated and non-commercial derivative publishing policy | FLUX.2 9B derivatives now require `gated=auto`; FIBO family is gated/non-commercial. `prepare` writes local files only and cannot set HF repo settings. | Low-medium | Add release/publishing helpers or docs that run `HfApi.update_repo_settings(gated=\"auto\")`, upload upstream license files, and prevent accidental public publication of gated derivatives. |
 | P1 | T2I, I2I/edit | `briaai/FIBO`, `briaai/Fibo-lite`, `briaai/Fibo-Edit` | Backend exists; access has been granted. Source sizes are 22-24 GiB. FIBO is structured/JSON-native and trained for professional controllability; Fibo-lite targets 8-step/CFG=1 inference; Fibo-Edit targets structured edits. | Medium | Validate because this is already implemented, but do not make it the default family. It is non-commercial, gated, structured-workflow-heavy, and less broadly reusable than Qwen/FLUX/Z-Image. Publish only gated derivatives with Bria license terms. |
-| P1 | T2I | `baidu/ERNIE-Image-Turbo` and `baidu/ERNIE-Image` | Apache 2.0, 29 GiB source snapshot including Prompt Enhancer, strong card claims around text rendering, structured layout, complex instruction following, and 8-step Turbo inference. Turbo now has BF16, q8, q4, and optional Prompt Enhancer text-to-image support with real image validation; non-turbo ERNIE-Image remains open. | High | Continue the ERNIE port with Diffusers parity tests, non-turbo defaults, generated-card behavior, and AbstractVision-facing Python progress/state APIs. |
+| P1 | T2I | `baidu/ERNIE-Image-Turbo` and `baidu/ERNIE-Image` | Apache 2.0, 29 GiB source snapshot including Prompt Enhancer, strong card claims around text rendering, structured layout, complex instruction following, and 8-step Turbo inference. Turbo now has BF16, q8, q4, and optional Prompt Enhancer text-to-image support with real image validation; non-turbo ERNIE-Image remains open. | High | Continue the ERNIE port with Diffusers parity tests, non-turbo defaults, generated-card behavior, and AbstractVision-facing runtime state APIs beyond the shared progress callbacks. |
 | P1 | T2I | `prism-ml/bonsai-image-ternary-4B-mlx-2bit` | Implemented. FLUX.2 Klein-shaped architecture with `transformer-packed-mflux/`, a 4-bit Qwen3 text encoder, and BF16 Flux2 VAE. Local validation shows coherent output, lower RSS than FLUX.2 Klein 4B q8, and direct `mlxgen generate` support. | Done for ternary, medium-high for future low-bit kernels | Maintain the narrow Bonsai/FLUX.2 packed-loader path using standard MLX 2-bit affine execution, not a full Prism demo dependency. Track binary 1-bit separately because stock MLX through 0.31.2 still fails the required 1-bit probe. |
-| P2 | T2V, I2V | `Wan-AI/Wan2.2-TI2V-5B-Diffusers` | Apache 2.0, ~32 GiB, supports both text-to-video and image-to-video at 720p/24fps, and is much smaller than A14B. Initial MLX-Gen T2V and first-frame I2V support now produces MP4 output. | Very high | Continue from the first video milestone: improve quality/performance defaults, add progress/cancel events, memory caps, q4/q8 validation, and a longer Diffusers parity suite. |
+| P2 | T2V, I2V | `Wan-AI/Wan2.2-TI2V-5B-Diffusers` | Apache 2.0, ~32 GiB, supports both text-to-video and image-to-video at 720p/24fps, and is much smaller than A14B. Initial MLX-Gen T2V and first-frame I2V support now produces MP4 output. | Very high | Continue from the first video milestone: improve quality/performance defaults, add cancellation events, memory caps, q4/q8 validation, and a longer Diffusers parity suite. |
 | P2 | T2I, I2I/edit | `HiDream-ai/HiDream-O1-Image` and `HiDream-ai/HiDream-O1-Image-Dev` | MIT, current search shows image-text-to-image tags, Qwen3-VL stack, and an existing `mlx-community/HiDream-O1-Image-Dev-mlx-bf16` checkpoint. | High | Worth researching after ERNIE because an MLX BF16 artifact exists, but it likely wants an MLX-VLM/provider boundary rather than a quick mflux-style port. |
 | P2 | Video-to-video/upscale | `numz/SeedVR2_comfyUI`, `ByteDance-Seed/SeedVR2-3B/7B` | SeedVR2 code exists and source is cached, but `mlxgen prepare` does not route it. | Medium-high | Make existing upscaler usable from unified CLI and prepare/card flow before larger video generation ports. It is not T2V/I2V, but it is the lowest-risk video capability already in tree. |
 | P2 | I2V, T2V, V2V, A/V | `Lightricks/LTX-2.3-fp8` | Very high online usage, ~55 GiB fp8, image-to-video/text-to-video/video-to-video/audio-video tags, custom community license. Card says full and distilled checkpoints exist and training is recommended on BF16. | Very high | Important to research, but licensing and model breadth make it riskier than Wan2.2 TI2V 5B. Needs a video/audio-capable backend decision before implementation. |
@@ -147,8 +152,8 @@ Related focused items:
 4. For ERNIE, add stronger Diffusers comparison tests around the transformer, text encoder,
    Prompt Enhancer, and scheduler, then decide non-turbo scope from measured behavior.
 5. For video, create a separate API design note or ADR before expanding beyond the first Wan T2V
-   milestone so generation progress, cancellation, memory caps, and output containers are
-   first-class.
+   milestone if cancellation, memory caps, output containers, or broader backend ownership become
+   first-class architecture policy.
 
 ## Scope
 
@@ -180,7 +185,8 @@ Related focused items:
 - `src/mflux/models/seedvr2/`
 - `docs/model-management.md`
 - `docs/huggingface-publishing.md`
-- Potential future ADR: video backend and AbstractVision progress API boundary.
+- Potential future ADR: video backend ownership, cancellation, and richer AbstractVision runtime
+  state boundaries.
 - `src/mflux/models/wan/`
 - `src/mflux/utils/generated_video.py`
 - `src/mflux/utils/video_util.py`

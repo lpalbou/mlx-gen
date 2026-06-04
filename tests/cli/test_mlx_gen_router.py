@@ -656,6 +656,9 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
     assert observed["generate"]["seed"] == 123
     assert observed["generate"]["image_path"] == str(image_path)
     assert callable(observed["generate"]["progress_callback"])
+    assert observed["generate"]["release_inactive_denoiser"] is True
+    assert observed["generate"]["clear_cache_each_step"] is False
+    assert observed["generate"]["tensor_health_check_interval"] == 1
     assert observed["save"]["path"] == "out.mp4"
     assert observed["save"]["overwrite"] is False
 
@@ -696,6 +699,276 @@ def test_wan_cli_can_disable_progress(monkeypatch):
     wan_generate.main()
 
     assert observed["generate"]["progress_callback"] is None
+
+
+def test_wan_cli_rejects_disabled_tensor_health_checks(monkeypatch):
+    from mflux.models.wan.cli import wan_generate
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--seed",
+            "123",
+            "--tensor-health-check-interval",
+            "0",
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        wan_generate.main()
+
+
+def test_wan_cli_writes_failure_manifest(monkeypatch, tmp_path):
+    from mflux.models.wan.cli import wan_generate
+
+    output_path = tmp_path / "failed.mp4"
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            pass
+
+        def generate_video(self, **kwargs):
+            raise ValueError("synthetic tensor failure")
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--seed",
+            "123",
+            "--output",
+            str(output_path),
+            "--no-progress",
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        wan_generate.main()
+
+    manifest = json.loads(output_path.with_suffix(".failure.json").read_text())
+    assert manifest["status"] == "failed"
+    assert manifest["error_type"] == "ValueError"
+    assert manifest["error"] == "synthetic tensor failure"
+    assert manifest["run"]["prompt"] == "a city timelapse"
+    assert manifest["run"]["seed"] == 123
+    assert manifest["run"]["output"] == str(output_path)
+
+
+def test_wan_cli_low_ram_releases_denoisers_before_decode_and_sets_cache_limit(monkeypatch):
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {"cache_limit": None, "cache_cleared": False, "peak_reset": False}
+
+    class FakeVideo:
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_video(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeVideo()
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(wan_generate.mx, "set_cache_limit", lambda value: observed.update(cache_limit=value))
+    monkeypatch.setattr(wan_generate.mx, "clear_cache", lambda: observed.update(cache_cleared=True))
+    monkeypatch.setattr(wan_generate.mx, "reset_peak_memory", lambda: observed.update(peak_reset=True))
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-I2V-A14B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--seed",
+            "123",
+            "--image-path",
+            "input.png",
+            "--low-ram",
+            "--mlx-cache-limit-gb",
+            "2.5",
+            "--no-progress",
+        ],
+    )
+    monkeypatch.setattr(wan_generate.Path, "exists", lambda self: True)
+
+    wan_generate.main()
+
+    assert observed["cache_limit"] == int(2.5 * (1000**3))
+    assert observed["cache_cleared"] is True
+    assert observed["peak_reset"] is True
+    assert observed["generate"]["release_inactive_denoiser"] is True
+    assert observed["generate"]["release_denoisers_before_decode"] is True
+    assert observed["generate"]["clear_cache_each_step"] is True
+
+
+def test_wan_cli_low_ram_defaults_cache_limit(monkeypatch):
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {}
+
+    class FakeVideo:
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_video(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeVideo()
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(wan_generate.mx, "set_cache_limit", lambda value: observed.update(cache_limit=value))
+    monkeypatch.setattr(wan_generate.mx, "clear_cache", lambda: None)
+    monkeypatch.setattr(wan_generate.mx, "reset_peak_memory", lambda: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-I2V-A14B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--seed",
+            "123",
+            "--image-path",
+            "input.png",
+            "--low-ram",
+            "--no-progress",
+        ],
+    )
+    monkeypatch.setattr(wan_generate.Path, "exists", lambda self: True)
+
+    wan_generate.main()
+
+    assert observed["cache_limit"] == 1000**3
+
+
+def test_wan_cli_multiple_seeds_keep_denoisers_for_reuse(monkeypatch):
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {"generate": []}
+
+    class FakeVideo:
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_video(self, **kwargs):
+            observed["generate"].append(kwargs)
+            return FakeVideo()
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-I2V-A14B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--seed",
+            "123",
+            "456",
+            "--image-path",
+            "input.png",
+            "--no-progress",
+        ],
+    )
+    monkeypatch.setattr(wan_generate.Path, "exists", lambda self: True)
+
+    wan_generate.main()
+
+    assert len(observed["generate"]) == 2
+    assert all(call["release_inactive_denoiser"] is False for call in observed["generate"])
+    assert all(call["release_denoisers_before_decode"] is False for call in observed["generate"])
+
+
+def test_wan_cli_progress_advances_by_denoise_steps(monkeypatch):
+    from mflux.callbacks import ProgressEvent
+    from mflux.models.wan.cli import wan_generate
+
+    bars = []
+
+    class FakeTqdm:
+        def __init__(self, **kwargs):
+            self.kwargs = kwargs
+            self.updates = []
+            self.postfixes = []
+            self.closed = False
+            bars.append(self)
+
+        def update(self, delta):
+            self.updates.append(delta)
+
+        def set_postfix_str(self, text):
+            self.postfixes.append(text)
+
+        def close(self):
+            self.closed = True
+
+        @staticmethod
+        def set_lock(lock):
+            pass
+
+    monkeypatch.setattr(wan_generate, "tqdm", FakeTqdm)
+    wan_generate._WanCliProgress._lock_configured = False
+    try:
+        progress = wan_generate._WanCliProgress(enabled=True)
+        progress(ProgressEvent(phase="start", frame=0, total_frames=81, step=0, total_steps=20))
+        progress(ProgressEvent(phase="denoise", frame=24, total_frames=81, step=6, total_steps=20))
+        progress(ProgressEvent(phase="denoise", frame=28, total_frames=81, step=7, total_steps=20))
+        progress(ProgressEvent(phase="generated", frame=81, total_frames=81, step=20, total_steps=20))
+        assert bars[0].closed is False
+        progress(ProgressEvent(phase="save", frame=81, total_frames=81, step=20, total_steps=20))
+        assert bars[0].closed is False
+        progress(ProgressEvent(phase="complete", frame=81, total_frames=81, step=20, total_steps=20))
+    finally:
+        wan_generate._WanCliProgress._lock_configured = False
+
+    assert bars[0].kwargs == {"total": 20, "desc": "Denoising video", "unit": "step"}
+    assert bars[0].updates == [6, 1, 13]
+    assert bars[0].postfixes[-1] == "complete; 81 frames"
+    assert bars[0].closed is True
+
+
+def test_wan_progress_uses_thread_only_tqdm_lock(monkeypatch):
+    from mflux.models.wan.cli import wan_generate
+
+    locks = []
+    monkeypatch.setattr(wan_generate.tqdm, "set_lock", locks.append)
+    wan_generate._WanCliProgress._lock_configured = False
+    try:
+        wan_generate._WanCliProgress(enabled=True)
+    finally:
+        wan_generate._WanCliProgress._lock_configured = False
+
+    assert len(locks) == 1
+    assert hasattr(locks[0], "acquire")
+    assert hasattr(locks[0], "release")
 
 
 def test_wan_cli_applies_a14b_defaults(monkeypatch):

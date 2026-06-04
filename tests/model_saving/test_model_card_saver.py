@@ -37,6 +37,22 @@ class Wan2_2_TI2V:
     )
 
 
+class Wan2_2_T2V_A14B:
+    model_config = SimpleNamespace(
+        model_name="Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+        base_model=None,
+        aliases=["wan2.2-t2v-a14b"],
+    )
+
+
+class Wan2_2_I2V_A14B:
+    model_config = SimpleNamespace(
+        model_name="Wan-AI/Wan2.2-I2V-A14B-Diffusers",
+        base_model=None,
+        aliases=["wan2.2-i2v-a14b"],
+    )
+
+
 class Flux2Klein4B:
     model_config = SimpleNamespace(
         model_name="black-forest-labs/FLUX.2-klein-4B",
@@ -162,15 +178,105 @@ def test_model_card_for_wan_q8_uses_video_metadata_and_usage(tmp_path):
     assert "pipeline_tag: text-to-video" in card
     assert "- video-generation" in card
     assert "- image-to-video" in card
-    assert "q8 for quantizable Wan transformer modules" in card
-    assert "q8 for quantizable Wan VAE modules" in card
-    assert "BF16 for the UMT5 text encoder" in card
+    assert "q8 for quantizable Wan transformer attention and feed-forward modules" in card
+    assert "BF16 for the Wan VAE" in card
+    assert "BF16 for Wan transformer conditioning/output projection linears" in card
+    assert "the UMT5 text encoder" in card
     assert "Wan q4 quality and any possible mixed q4/q8 policy are still under validation" in card
     assert "--task text-to-video" in card
     assert "--frames 121" in card
     assert "--fps 24" in card
     assert "--output video.mp4" in card
     assert "--output image.png" not in card
+
+
+def test_model_card_for_wan_bf16_documents_prepared_runtime_precision(tmp_path):
+    card = ModelCardSaver.render_model_card(
+        str(tmp_path / "wan2.2-t2v-a14b-diffusers-bf16"),
+        Wan2_2_T2V_A14B(),
+        None,
+    )
+
+    assert "base_model: Wan-AI/Wan2.2-T2V-A14B-Diffusers" in card
+    assert "This prepared derivative follows the Apache 2.0 license of the source model." in card
+    assert "MLX quantization tensors" not in card
+    assert "without an explicit quantization level" in card
+    assert "loads transformer and VAE weights at BF16 runtime precision" in card
+    assert "The UMT5 text encoder is preserved" in card
+    assert "--frames 81" in card
+    assert "--guidance-2 3" in card
+    assert "Prepared and contributed by" in card
+
+
+def test_model_card_for_wan_a14b_q8_uses_validation_sized_usage(tmp_path):
+    card = ModelCardSaver.render_model_card(
+        str(tmp_path / "wan2.2-t2v-a14b-diffusers-8bit"),
+        Wan2_2_T2V_A14B(),
+        8,
+    )
+
+    assert "intentionally validation-sized" in card
+    assert "full-size `1280x720`, 81-frame, 40-step readiness" in card
+    assert "--width 384" in card
+    assert "--height 224" in card
+    assert "--frames 33" in card
+    assert "--steps 12" in card
+    assert "--fps 8" in card
+    assert "--metadata" in card
+    assert "--width 1280" not in card
+    assert "--frames 81" not in card
+    assert "- image-to-video" not in card
+
+
+def test_model_card_for_wan_t2v_a14b_ignores_shared_ti2v_runtime_class_name(tmp_path):
+    class Wan2_2_TI2V:
+        model_config = Wan2_2_T2V_A14B.model_config
+
+    card = ModelCardSaver.render_model_card(
+        str(tmp_path / "wan2.2-t2v-a14b-diffusers-8bit"),
+        Wan2_2_TI2V(),
+        8,
+    )
+
+    assert "pipeline_tag: text-to-video" in card
+    assert "- text-to-video" in card
+    assert "- image-to-video" not in card
+    assert "--task text-to-video" in card
+
+
+def test_model_card_for_wan_i2v_a14b_uses_image_to_video_metadata(tmp_path):
+    card = ModelCardSaver.render_model_card(
+        str(tmp_path / "wan2.2-i2v-a14b-diffusers-8bit"),
+        Wan2_2_I2V_A14B(),
+        8,
+    )
+
+    assert "pipeline_tag: image-to-video" in card
+    assert "- image-to-video" in card
+    assert "- text-to-video" not in card
+    assert "--task image-to-video" in card
+    assert "--image input.png" in card
+    assert "--width 224" in card
+    assert "--height 384" in card
+    assert "--frames 33" in card
+    assert "--guidance 3.5" in card
+    assert "--guidance-2 3.5" in card
+
+
+def test_model_card_for_wan_i2v_a14b_ignores_shared_ti2v_runtime_class_name(tmp_path):
+    class Wan2_2_TI2V:
+        model_config = Wan2_2_I2V_A14B.model_config
+
+    card = ModelCardSaver.render_model_card(
+        str(tmp_path / "wan2.2-i2v-a14b-diffusers-8bit"),
+        Wan2_2_TI2V(),
+        8,
+    )
+
+    assert "pipeline_tag: image-to-video" in card
+    assert "- image-to-video" in card
+    assert "- text-to-video" not in card
+    assert "--task image-to-video" in card
 
 
 def test_model_card_for_qwen_q8_explains_q4_policy_is_not_used(tmp_path):

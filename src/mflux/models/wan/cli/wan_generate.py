@@ -1,16 +1,22 @@
 import argparse
+import gc
 import json
 import random
 import sys
+import threading
 import time
+from dataclasses import asdict
+from datetime import datetime
 from pathlib import Path
 
+import mlx.core as mx
 from tqdm import tqdm
 
+from mflux.callbacks import ProgressEvent
 from mflux.cli.defaults import defaults as ui_defaults
-from mflux.cli.parser.parsers import boolean_flag_value
+from mflux.cli.parser.parsers import boolean_flag_value, positive_float
 from mflux.models.common.config import ModelConfig
-from mflux.models.wan.variants import Wan2_2_TI2V, WanProgressEvent
+from mflux.models.wan.variants import Wan2_2_TI2V
 from mflux.utils.exceptions import ModelConfigError, PromptFileReadError
 from mflux.utils.prompt_util import PromptUtil
 
@@ -32,17 +38,26 @@ def main() -> None:
     try:
         model_config, model_path = _resolve_model(args.model)
         _apply_model_defaults(args, model_config, provided_options)
+        _apply_runtime_memory_options(args)
         model = Wan2_2_TI2V(
             model_config=model_config,
             quantize=args.quantize,
             model_path=model_path,
         )
+        single_seed = len(args.seed) == 1
+        release_inactive_denoiser = single_seed and bool(
+            model_config.transformer_overrides.get("has_transformer_2", False)
+        )
+        release_denoisers_before_decode = args.low_ram and single_seed
         for seed in args.seed:
             progress = _WanCliProgress(enabled=args.progress)
+            output_path = args.output.format(seed=seed)
+            prompt = ""
             try:
+                prompt = PromptUtil.read_prompt(args)
                 video = model.generate_video(
                     seed=seed,
-                    prompt=PromptUtil.read_prompt(args),
+                    prompt=prompt,
                     width=args.width,
                     height=args.height,
                     num_frames=args.frames,
@@ -54,15 +69,42 @@ def main() -> None:
                     image_path=args.image_path,
                     max_sequence_length=args.max_sequence_length,
                     progress_callback=progress if args.progress else None,
+                    release_inactive_denoiser=release_inactive_denoiser,
+                    release_denoisers_before_decode=release_denoisers_before_decode,
+                    clear_cache_each_step=args.low_ram,
+                    tensor_health_check_interval=args.tensor_health_check_interval,
                 )
+                print(f"Saving video to: {output_path}")
+                _emit_cli_video_progress(progress, phase="save", video=video)
+                saved_path = video.save(
+                    path=output_path,
+                    export_json_metadata=args.metadata,
+                    overwrite=args.replace,
+                )
+                _emit_cli_video_progress(progress, phase="complete", video=video)
+                print(f"Saved video to: {saved_path or output_path}")
+                del video
+                gc.collect()
+                mx.clear_cache()
+            except Exception as exc:
+                _write_failure_manifest(output_path=output_path, args=args, seed=seed, prompt=prompt, error=exc)
+                _emit_cli_failure_progress(
+                    progress,
+                    total_frames=args.frames,
+                    total_steps=args.steps,
+                    task="image-to-video" if args.image_path is not None else "text-to-video",
+                )
+                raise
             finally:
                 progress.close()
-            video.save(
-                path=args.output.format(seed=seed),
-                export_json_metadata=args.metadata,
-                overwrite=args.replace,
-            )
-    except (ModelConfigError, PromptFileReadError, FileNotFoundError, RuntimeError, ValueError, NotImplementedError) as exc:
+    except (
+        ModelConfigError,
+        PromptFileReadError,
+        FileNotFoundError,
+        RuntimeError,
+        ValueError,
+        NotImplementedError,
+    ) as exc:
         print(exc)
         raise SystemExit(1) from None
 
@@ -120,7 +162,7 @@ def _parser() -> argparse.ArgumentParser:
         nargs="?",
         const=True,
         default=True,
-        help="Show video frame progress. Default is true.",
+        help="Show denoise-step progress with the requested frame count as context. Default is true.",
     )
     parser.add_argument("--no-progress", action="store_false", dest="progress")
     parser.add_argument(
@@ -133,9 +175,29 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--no-replace", action="store_false", dest="replace")
     parser.add_argument("--config-from-metadata", "-C", type=Path, default=None)
-    parser.add_argument("--battery-percentage-stop-limit", "-B", type=int, default=ui_defaults.BATTERY_PERCENTAGE_STOP_LIMIT)
-    parser.add_argument("--low-ram", action="store_true")
-    parser.add_argument("--mlx-cache-limit-gb", type=float, default=None)
+    parser.add_argument(
+        "--battery-percentage-stop-limit", "-B", type=int, default=ui_defaults.BATTERY_PERCENTAGE_STOP_LIMIT
+    )
+    parser.add_argument(
+        "--low-ram",
+        action="store_true",
+        help=(
+            "Reduce peak memory by clearing MLX cache during denoising and releasing denoisers before decode. "
+            "May reduce throughput."
+        ),
+    )
+    parser.add_argument(
+        "--mlx-cache-limit-gb",
+        type=positive_float,
+        default=None,
+        help="Limit MLX cache size in GB. With --low-ram, defaults to 1 GB when omitted.",
+    )
+    parser.add_argument(
+        "--tensor-health-check-interval",
+        type=_positive_int,
+        default=1,
+        help=("Check Wan denoise latents for NaN/Inf every N steps. Default is 1, which checks every step."),
+    )
     return parser
 
 
@@ -244,6 +306,103 @@ def _apply_model_defaults(args: argparse.Namespace, model_config: ModelConfig, p
         args.guidance_2 = wan_config["default_guidance_2"]
 
 
+def _apply_runtime_memory_options(args: argparse.Namespace) -> None:
+    cache_limit_bytes = _resolve_cache_limit_bytes(args.mlx_cache_limit_gb)
+    if args.low_ram and cache_limit_bytes is None:
+        cache_limit_bytes = 1000**3
+    if cache_limit_bytes is not None:
+        mx.set_cache_limit(cache_limit_bytes)
+        mx.clear_cache()
+        mx.reset_peak_memory()
+
+
+def _resolve_cache_limit_bytes(mlx_cache_limit_gb: float | None) -> int | None:
+    if mlx_cache_limit_gb is None:
+        return None
+    return int(mlx_cache_limit_gb * (1000**3))
+
+
+def _positive_int(value: str) -> int:
+    parsed = int(value)
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("must be greater than zero")
+    return parsed
+
+
+def _emit_cli_video_progress(progress: "_WanCliProgress", *, phase: str, video) -> None:
+    total_frames = getattr(video, "num_frames", 0)
+    total_steps = getattr(video, "steps", 0)
+    progress(
+        ProgressEvent(
+            phase=phase,
+            frame=total_frames,
+            total_frames=total_frames,
+            step=total_steps,
+            total_steps=total_steps,
+            task=getattr(video, "task", None),
+        )
+    )
+
+
+def _emit_cli_failure_progress(
+    progress: "_WanCliProgress",
+    *,
+    total_frames: int,
+    total_steps: int,
+    task: str,
+) -> None:
+    progress(
+        ProgressEvent(
+            phase="failed",
+            frame=0,
+            total_frames=total_frames,
+            step=0,
+            total_steps=total_steps,
+            task=task,
+        )
+    )
+
+
+def _write_failure_manifest(
+    *,
+    output_path: str,
+    args: argparse.Namespace,
+    seed: int,
+    prompt: str,
+    error: BaseException,
+) -> Path:
+    failure_path = Path(output_path).with_suffix(".failure.json")
+    failure_path.parent.mkdir(parents=True, exist_ok=True)
+    tensor_report = getattr(error, "report", None)
+    manifest = {
+        "created_at": datetime.now().isoformat(),
+        "status": "failed",
+        "error_type": error.__class__.__name__,
+        "error": str(error),
+        "tensor_health": asdict(tensor_report) if tensor_report is not None else None,
+        "run": {
+            "model": args.model,
+            "task": "image-to-video" if args.image_path is not None else "text-to-video",
+            "seed": seed,
+            "prompt": prompt,
+            "negative_prompt": args.negative_prompt or None,
+            "image_path": str(args.image_path) if args.image_path is not None else None,
+            "width": args.width,
+            "height": args.height,
+            "frames": args.frames,
+            "steps": args.steps,
+            "guidance": args.guidance,
+            "guidance_2": args.guidance_2,
+            "fps": args.fps,
+            "output": output_path,
+            "low_ram": bool(args.low_ram),
+            "tensor_health_check_interval": args.tensor_health_check_interval,
+        },
+    }
+    failure_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
+    return failure_path
+
+
 def _provided_options(argv: list[str]) -> set[str]:
     provided = set()
     aliases = {
@@ -262,28 +421,38 @@ def _provided_options(argv: list[str]) -> set[str]:
 
 
 class _WanCliProgress:
+    _lock_configured = False
+
     def __init__(self, enabled: bool):
         self.enabled = enabled
+        if enabled:
+            self._configure_thread_lock()
         self._bar: tqdm | None = None
-        self._last_frame = 0
+        self._last_step = 0
 
-    def __call__(self, event: WanProgressEvent) -> None:
+    def __call__(self, event: ProgressEvent) -> None:
         if not self.enabled:
             return
         if self._bar is None:
-            self._bar = tqdm(total=event.total_frames, desc="Generating video", unit="frame")
-        delta = max(0, event.frame - self._last_frame)
+            self._bar = tqdm(total=event.total_steps, desc="Denoising video", unit="step")
+        delta = max(0, event.step - self._last_step)
         if delta:
             self._bar.update(delta)
-            self._last_frame = event.frame
-        self._bar.set_postfix_str(f"{event.phase} step {event.step}/{event.total_steps}")
-        if event.phase == "complete":
+            self._last_step = event.step
+        self._bar.set_postfix_str(f"{event.phase}; {event.total_frames} frames")
+        if event.phase in {"complete", "failed"}:
             self.close()
 
     def close(self) -> None:
         if self._bar is not None:
             self._bar.close()
             self._bar = None
+
+    @classmethod
+    def _configure_thread_lock(cls) -> None:
+        if not cls._lock_configured:
+            tqdm.set_lock(threading.RLock())
+            cls._lock_configured = True
 
 
 if __name__ == "__main__":

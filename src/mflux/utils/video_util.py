@@ -8,6 +8,8 @@ import PIL.Image
 
 from mflux.models.common.config import ModelConfig
 from mflux.utils.image_util import ImageUtil
+from mflux.utils.tensor_health import TensorHealth
+from mflux.utils.video_health import VideoHealth
 
 log = logging.getLogger(__name__)
 
@@ -60,6 +62,7 @@ class VideoUtil:
         metadata: dict | None = None,
         export_json_metadata: bool = False,
         overwrite: bool = True,
+        validate_health: bool = True,
     ) -> Path:
         if not frames:
             raise ValueError("Cannot save a video without frames.")
@@ -69,7 +72,24 @@ class VideoUtil:
         file_path = ImageUtil.resolve_output_path(path=path, overwrite=overwrite)
         file_path.parent.mkdir(parents=True, exist_ok=True)
         width, height = frames[0].size
+        if validate_health:
+            VideoHealth.validate_frames(
+                frames,
+                fps=fps,
+                expected_width=width,
+                expected_height=height,
+                strict_visual=True,
+            )
         VideoUtil._save_video_with_pyav(frames=frames, file_path=file_path, fps=fps, width=width, height=height)
+        if validate_health:
+            VideoHealth.validate_file(
+                file_path,
+                expected_width=width,
+                expected_height=height,
+                expected_frames=len(frames),
+                expected_fps=fps,
+                strict_visual=True,
+            )
 
         VideoUtil._save_metadata(
             file_path=file_path,
@@ -98,15 +118,24 @@ class VideoUtil:
 
     @staticmethod
     def _latents_to_frames(decoded_latents: mx.array) -> list[PIL.Image.Image]:
-        normalized = ImageUtil._denormalize(decoded_latents)
-        if normalized.ndim != 5:
-            raise ValueError(f"Expected decoded video latents with shape [B, C, F, H, W], got {normalized.shape}")
-        video = normalized[0]
+        if decoded_latents.ndim != 5:
+            raise ValueError(f"Expected decoded video latents with shape [B, C, F, H, W], got {decoded_latents.shape}")
+        video = decoded_latents[0]
         video = mx.transpose(video, (1, 2, 3, 0))
-        video = mx.array.astype(video, mx.float32)
-        frames_np = np.array(video)
-        frames_np = (np.clip(frames_np, 0, 1) * 255).round().astype("uint8")
-        return [PIL.Image.fromarray(frame) for frame in frames_np]
+        frames = []
+        for frame_index in range(video.shape[0]):
+            frame = mx.array.astype(video[frame_index], mx.float32)
+            frame_np = np.array(frame)
+            TensorHealth.ensure_finite(
+                frame_np,
+                name="decoded_video_frame",
+                phase="video-frame-conversion",
+                frame=frame_index + 1,
+                total_frames=video.shape[0],
+            )
+            frame_np = (np.clip(frame_np / 2 + 0.5, 0, 1) * 255).round().astype("uint8")
+            frames.append(PIL.Image.fromarray(frame_np))
+        return frames
 
     @staticmethod
     def _save_video_with_pyav(

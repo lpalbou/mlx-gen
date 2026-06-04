@@ -9,13 +9,13 @@ MLX-Gen is an MLX-native generative image and video runtime forked from mflux an
 - [docs/architecture.md](docs/architecture.md): package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
 - [docs/api.md](docs/api.md): public `mlxgen` command surface, generation router behavior, model-management commands, and Python integration boundary.
 - [docs/model-management.md](docs/model-management.md): cache-only runtime policy, explicit `mlxgen download` and `mlxgen prepare` flows, Depth Pro download command, and `DownloadRequiredError`.
-- [docs/quantization.md](docs/quantization.md): low-bit compatibility by model family, validation panels, Bonsai ternary 2-bit support, comparison with Qwen/ERNIE mixed q4/q8 checkpoints, and binary 1-bit runtime limits.
+- [docs/quantization.md](docs/quantization.md): low-bit compatibility by model family, validation panels, Bonsai ternary 2-bit support, Qwen/ERNIE mixed q4/q8 policies, Wan mixed q8/BF16 package measurements, and binary 1-bit runtime limits.
 - [docs/huggingface-publishing.md](docs/huggingface-publishing.md): generated model cards, source license/access wording, default `AbstractFramework/<repo-name>` usage, upload flow, and optional Hugging Face collection membership.
-- [docs/python-integration.md](docs/python-integration.md): current Python API expectations, AbstractVision integration notes, Wan progress callbacks, and threading guidance.
+- [docs/python-integration.md](docs/python-integration.md): current Python API expectations, AbstractVision integration notes, shared progress callbacks, and threading guidance.
 - [docs/adr/README.md](docs/adr/README.md): accepted architecture decisions, including model-backed smoke validation requirements for new model routes.
 - [docs/release.md](docs/release.md): GitHub Release and PyPI trusted publishing workflow.
-- [docs/faq.md](docs/faq.md): common questions about `prepare`, downloads, package naming, and compatibility.
-- [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, output replacement, ERNIE Prompt Enhancer, ERNIE small-resolution and unsupported edit-input behavior, Wan video quality-setting limits, LoRA, and `hf_transfer` issues.
+- [docs/faq.md](docs/faq.md): common questions about `prepare`, downloads, package naming, compatibility, and Wan image-to-video prompting.
+- [docs/troubleshooting.md](docs/troubleshooting.md): common missing-artifact, local-path, output replacement, ERNIE Prompt Enhancer, ERNIE small-resolution and unsupported edit-input behavior, Wan video quality-setting and prompting limits, LoRA, and `hf_transfer` issues.
 - [ACKNOWLEDGEMENTS.md](ACKNOWLEDGEMENTS.md): upstream mflux credit, post-fork maintainership, and model/community acknowledgements.
 - [CHANGELOG.md](CHANGELOG.md): release history.
 - [CONTRIBUTING.md](CONTRIBUTING.md): development setup, checks, optional Wan parity validation, documentation expectations, and pull-request scope.
@@ -43,7 +43,7 @@ mlxgen download --model depth-pro
 - `src/mflux/cli/mlx_gen.py`: smart `mlxgen` command router plus explicit `download` and `prepare`.
 - `src/mflux/models/bonsai_image/`: Bonsai Image ternary 2-bit text-to-image support using Prism's pre-packed FLUX.2-derived transformer, a 4-bit Qwen3 text encoder, and the Flux2 VAE. Bonsai is download/generate only; `prepare`, image input, negative prompts, and `--quantize` are rejected. Binary 1-bit is detected but blocked until stock MLX supports the required packed affine matmul; stock MLX 0.31.2 still rejects `bits=1`.
 - `src/mflux/models/ernie_image/`: ERNIE Image Turbo text-to-image and experimental single-image image-to-image runtime, tokenizer, transformer, scheduler, VAE wrapper, optional Prompt Enhancer, weights, q8/q4 quantization, and CLI. Multi-image edit is not supported. ERNIE image-to-image is best for stylization/guided variation; use Qwen Image Edit when exact source-layout preservation matters.
-- `src/mflux/models/wan/`: Wan2.2 TI2V-5B text-to-video and experimental first-frame image-to-video runtime plus Wan2.2 A14B text-to-video and image-to-video support for `Wan-AI/Wan2.2-T2V-A14B-Diffusers` and `Wan-AI/Wan2.2-I2V-A14B-Diffusers`, optional A14B low-noise `--guidance-2`, Wan transformer/VAE/scheduler support, frame-oriented progress events, MP4 output utilities, CLI, and opt-in Diffusers parity fixtures.
+- `src/mflux/models/wan/`: Wan2.2 TI2V-5B text-to-video and experimental first-frame image-to-video runtime plus Wan2.2 A14B text-to-video and image-to-video support for `Wan-AI/Wan2.2-T2V-A14B-Diffusers` and `Wan-AI/Wan2.2-I2V-A14B-Diffusers`, optional A14B low-noise `--guidance-2`, mixed q8/BF16 prepared-folder policy, Wan transformer/VAE/scheduler support, shared step-based progress events with video frame context, MP4 health checks, CLI failure manifests, and opt-in Diffusers parity fixtures.
 - `src/mflux/models/common/download_policy.py`: download policy, explicit command helpers, and `DownloadRequiredError`.
 - `src/mflux/models/common/weights/saving/model_card_saver.py`: generated Hugging Face model-card content for prepared model folders.
 - `src/mflux/models/common/resolution/path_resolution.py`: cache-only Hugging Face model path resolution.

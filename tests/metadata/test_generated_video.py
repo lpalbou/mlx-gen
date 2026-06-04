@@ -4,10 +4,12 @@ import subprocess
 
 import mlx.core as mx
 import numpy as np
+import pytest
 from PIL import Image
 
 from mflux.models.common.config import ModelConfig
 from mflux.utils.generated_video import GeneratedVideo
+from mflux.utils.video_health import VideoHealth, VideoHealthError
 from mflux.utils.video_util import VideoUtil
 
 
@@ -76,6 +78,67 @@ def test_generated_video_respects_no_replace(tmp_path):
     assert (tmp_path / "generated_1.mp4").exists()
 
 
+def test_generated_video_rejects_all_black_output_before_save(tmp_path):
+    output_path = tmp_path / "black.mp4"
+    video = GeneratedVideo(
+        frames=[_solid_frame((0, 0, 0)), _solid_frame((0, 0, 0))],
+        fps=8,
+        model_config=ModelConfig.wan2_2_ti2v_5b(),
+        seed=1,
+        prompt="test",
+        steps=1,
+        guidance=5.0,
+        precision=mx.bfloat16,
+        quantization=0,
+        generation_time=0.1,
+        height=24,
+        width=32,
+    )
+
+    with pytest.raises(VideoHealthError, match="effectively black"):
+        video.save(path=output_path)
+
+    assert not output_path.exists()
+
+
+def test_video_health_rejects_black_file_postflight(tmp_path):
+    output_path = tmp_path / "black-postflight.mp4"
+    VideoUtil.save_video(
+        frames=[_solid_frame((0, 0, 0)), _solid_frame((0, 0, 0))], path=output_path, fps=8, validate_health=False
+    )
+
+    with pytest.raises(VideoHealthError, match="effectively black"):
+        VideoHealth.validate_file(
+            output_path,
+            expected_width=32,
+            expected_height=24,
+            expected_frames=2,
+            expected_fps=8,
+        )
+
+
+def test_video_health_reports_valid_saved_video(tmp_path):
+    output_path = tmp_path / "healthy.mp4"
+    VideoUtil.save_video(
+        frames=[_solid_frame((255, 0, 0)), _solid_frame((0, 255, 0)), _solid_frame((0, 0, 255))],
+        path=output_path,
+        fps=12,
+    )
+
+    report = VideoHealth.validate_file(
+        output_path,
+        expected_width=32,
+        expected_height=24,
+        expected_frames=3,
+        expected_fps=12,
+    )
+
+    assert report.frame_count == 3
+    assert report.width == 32
+    assert report.height == 24
+    assert report.luma_max > report.luma_min
+
+
 def test_video_util_converts_decoded_latents_to_video(tmp_path):
     decoded = mx.array(np.zeros((1, 3, 2, 16, 16), dtype=np.float32))
     output_path = tmp_path / "latents.mp4"
@@ -96,6 +159,25 @@ def test_video_util_converts_decoded_latents_to_video(tmp_path):
     assert video.num_frames == 2
     assert video.first_frame().size == (16, 16)
     assert output_path.exists()
+
+
+@pytest.mark.parametrize("invalid_value", [np.nan, np.inf, -np.inf])
+def test_video_util_rejects_non_finite_decoded_latents(invalid_value):
+    decoded_np = np.zeros((1, 3, 2, 16, 16), dtype=np.float32)
+    decoded_np[0, 0, 0, 0, 0] = invalid_value
+
+    with pytest.raises(ValueError, match="Non-finite tensor values"):
+        VideoUtil.to_video(
+            decoded_latents=mx.array(decoded_np),
+            fps=4,
+            model_config=ModelConfig.wan2_2_ti2v_5b(),
+            seed=7,
+            prompt="latent smoke",
+            steps=1,
+            guidance=5.0,
+            quantization=0,
+            generation_time=0.2,
+        )
 
 
 def _video_codec_name(path) -> str | None:

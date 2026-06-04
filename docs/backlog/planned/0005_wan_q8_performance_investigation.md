@@ -28,6 +28,35 @@ slower than the source BF16 snapshot. The comparison used 704x384, 25 frames, 12
 - The source Hugging Face snapshot is about 32 GiB when following symlinks: transformer 19 GiB,
   text encoder 11 GiB, VAE 2.6 GiB.
 - Wan q8 currently proves smaller disk/model footprint, not speed improvement.
+- T2V-A14B mixed q8 validation on 2026-06-02 first captured peak RSS with `/usr/bin/time -l`, but
+  that metric was incomplete for MLX/Metal unified memory. A follow-up package-level benchmark now
+  records MLX allocator peak plus Darwin physical footprint from model init through video save.
+  In the same 384x224, 17-frame, 12-step benchmark:
+  - upstream source with inactive-denoiser release: 32.99 GiB MLX peak, 48.90 GiB physical
+    footprint, 108.31s;
+  - BF16 prepared with inactive-denoiser release: 32.98 GiB MLX peak, 45.12 GiB physical
+    footprint, 114.39s, byte-identical to source;
+  - mixed q8/BF16 prepared with inactive-denoiser release: 20.84 GiB MLX peak, 31.75 GiB physical
+    footprint, 110.34s;
+  - mixed q8/BF16 prepared with low-RAM release: 15.48 GiB MLX peak, 20.74 GiB physical footprint,
+    108.70s.
+- The prepared q8 folder reduces storage from a 118 GiB source snapshot to 40 GiB and does reduce
+  package-level usage memory. It does not prove a speed improvement; measured times remain within
+  short-run variance around BF16.
+- The same A14B run proved full q8 is a quality failure rather than a performance candidate:
+  full q8 generated in 111.44s at 13.72 GiB peak RSS but produced near-black/static output. The
+  current Wan q8 policy keeps `condition_embedder.*` and `proj_out` BF16.
+- A 2026-06-02 component-streaming Wan load/apply experiment made the prepared mixed-q8 output
+  byte-identical to the previous prepared mixed-q8 MP4, but did not materially lower peak RSS:
+  103.84s at 19.58 GiB versus the earlier 110.50s at 19.51 GiB. Treat the time delta as
+  run-to-run/cache variance unless repeated benchmarks prove otherwise.
+- Video frame conversion now builds PIL frames one frame at a time instead of materializing
+  full-video float32 and uint8 NumPy arrays. The 17-frame A14B q8 sample remained byte-identical
+  and measured 103.84s at 19.59 GiB peak RSS. The expected benefit scales with output resolution
+  and frame count, so the tiny 384x224 sample is not large enough to show a meaningful RSS change.
+- On 2026-06-03, the full-size 1280x720, 81-frame, 40-step T2V-A14B mixed q8/BF16 run took about
+  13h15m and produced an invalid all-black MP4 from non-finite decoded values. Treat that as a
+  numerical-integrity blocker before interpreting full-size q8 speed or memory results.
 
 ## Problem
 
@@ -73,7 +102,7 @@ local video generation.
 
 ## Scope
 
-- Wan2.2 TI2V 5B q8 runtime performance and memory behavior.
+- Wan2.2 TI2V 5B and A14B q8 runtime performance and memory behavior.
 - Benchmarking and possible low-risk runtime optimizations.
 
 ## Non-goals
@@ -89,11 +118,13 @@ local video generation.
 - `src/mflux/models/common/weights/loading/weight_applier.py`
 - `src/mflux/models/wan/weights/wan_weight_definition.py`
 - `validation_outputs/wan/user_video_analysis/`
+- `validation_outputs/wan/a14b_q8_t2v/t2v_a14b_mixed_q8_validation_report.json`
 
 ## Expected outcomes
 
 - A clear explanation for why q8 is slower or a patch that makes q8 performance reasonable.
 - Future Wan validation reports include peak memory and phase timings, not only generation time.
+- Full-size q8 timing is only meaningful when the output passes video-health validation.
 - Model cards and docs accurately describe q8 as speed-improving, memory-improving, or both.
 
 ## Validation
@@ -105,10 +136,13 @@ local video generation.
 ## Progress checklist
 
 - [ ] Add a repeatable Wan benchmark command/harness with memory capture.
-- [ ] Measure BF16/source and q8 prepared folder at identical settings.
+- [x] Measure BF16/source and q8 prepared folder at identical A14B T2V short settings.
+- [x] Measure source, BF16 prepared, and mixed q8/BF16 prepared with MLX peak allocator memory.
 - [ ] Split or profile timing by generation phase.
+- [x] Inspect prepared-folder load/runtime memory behavior enough to rule out component bundling
+  as the source of the 19.5 GiB prepared-q8 peak.
 - [ ] Inspect quantized Wan hot-path kernels.
-- [ ] Update docs/model-card guidance based on evidence.
+- [x] Update docs/model-card guidance based on A14B T2V quality and timing evidence.
 
 ## Guidance for the implementing agent
 

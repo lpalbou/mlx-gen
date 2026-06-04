@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.9] - 2026-06-03
+
+### Added
+
+- **Shared progress callbacks**: expose `mflux.callbacks.ProgressEvent` and
+  `CallbackRegistry.subscribe_progress(...)` so text-to-image, image-to-image, text-to-video, and
+  image-to-video callers can subscribe to one denoise-step progress contract.
+- **Wan progress API cleanup**: Wan video generation now emits the shared progress event and still
+  supports a direct `generate_video(progress_callback=...)` handler for one-shot callers.
+- **Wan A14B memory modes**: add runtime lifecycle paths that can release inactive A14B denoisers
+  and lower MLX/Metal memory pressure during long T2V/I2V runs.
+
+### Changed
+
+- **Wan CLI progress semantics**: the Wan CLI now reports denoising-step progress instead of
+  presenting step progress as an output-frame counter.
+- **Wan q8 policy**: Wan prepared q8 folders now use a mixed q8/BF16 policy. Transformer block
+  linears are quantized at q8, while conditioning/output projection paths, VAE, text encoder,
+  scheduler metadata, tokenizer files, norms, convolutions, and other sensitive or non-quantizable
+  paths stay BF16.
+- **Wan video memory behavior**: MP4 frame conversion now avoids full-video NumPy temporaries,
+  reducing avoidable memory pressure most noticeably for larger 81/121-frame outputs.
+- **Generated model cards**: prepared BF16 and quantized model cards now describe their saved-weight
+  layout and Wan mixed q8/BF16 policy more precisely.
+
+### Documentation
+
+- Document shared progress callbacks for Python integrations, Wan A14B guidance behavior, and Wan
+  q8 storage/runtime-memory measurements.
+- Clarify that Wan mixed q8/BF16 improves storage and measured usage memory in validation, but is
+  not currently claimed as a speed improvement.
+- Track remaining Wan release gates in the backlog: full-size A14B I2V boundary validation and
+  same-settings Diffusers-vs-MLX prompt-adherence validation.
+
 ## [0.18.8] - 2026-05-31
 
 ### Added

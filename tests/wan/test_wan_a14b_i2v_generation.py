@@ -13,9 +13,9 @@ RUN_A14B_I2V_ENV = "MFLUX_RUN_LOCAL_WAN_A14B_I2V"
 IMAGE_ENV = "MFLUX_WAN_A14B_I2V_IMAGE"
 OUTPUT_DIR_ENV = "MFLUX_WAN_A14B_I2V_OUTPUT_DIR"
 
-DEFAULT_IMAGE = "/Users/albou/Desktop/misc2/Star-Trek-3-USS-Enterprise.jpg"
+DEFAULT_IMAGE = "docs/assets/i2v_takeoff_source.png"
 DEFAULT_OUTPUT_DIR = "validation_outputs/wan"
-DEFAULT_OUTPUT_NAME = "wan_a14b_i2v_enterprise_warp_pytest_512x288_9f_8steps.mp4"
+DEFAULT_OUTPUT_NAME = "wan_a14b_i2v_takeoff_pytest_512x288_9f_8steps.mp4"
 
 pytestmark = pytest.mark.skipif(
     os.getenv(RUN_A14B_I2V_ENV) != "1",
@@ -36,8 +36,8 @@ def test_wan_a14b_i2v_generates_decodable_motion_video():
     video = model.generate_video(
         seed=1701,
         prompt=(
-            "The Star Trek USS Enterprise accelerates into warp speed, stars stretching into "
-            "blue-white light trails, cinematic science fiction motion"
+            "The spacecraft lifts off from a snowy landing field, engines firing underneath, "
+            "snow and ice blowing outward, cinematic science fiction motion"
         ),
         negative_prompt="static still image, frozen ship, no motion, blurry, low quality",
         width=512,

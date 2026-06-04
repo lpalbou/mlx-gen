@@ -148,10 +148,10 @@ Diffusers/PyTorch for Wan A14B workflows on Apple Silicon.
   the TI2V-5B default config.
 - Real I2V-A14B model-backed validation passed on 2026-05-31:
   `MFLUX_PRESERVE_TEST_OUTPUT=1 uv run mlxgen generate --model Wan-AI/Wan2.2-I2V-A14B-Diffusers
-  --task image-to-video --image /Users/albou/Desktop/misc2/Star-Trek-3-USS-Enterprise.jpg
-  --prompt "A starship flyby in orbit around earth" --width 384 --height 224 --frames 17
+  --task image-to-video --image docs/assets/i2v_takeoff_source.png
+  --prompt "A spacecraft lifts off from a snowy landing field" --width 384 --height 224 --frames 17
   --steps 12 --guidance 3.5 --fps 8 --seed 321 --output
-  validation_outputs/wan/wan_a14b_i2v_enterprise_warp_prompt_defaults_384x224_17f_12steps.mp4
+  validation_outputs/wan/wan_a14b_i2v_takeoff_prompt_defaults_384x224_17f_12steps.mp4
   --metadata`. The MP4 frame-extraction contact sheet showed coherent non-green frames and source
   image conditioning.
 

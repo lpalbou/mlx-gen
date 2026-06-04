@@ -11,9 +11,7 @@ class ModelCardSaver:
     QUANTIZATION_DOC_URL = "https://github.com/lpalbou/mlx-gen/blob/main/docs/quantization.md"
     FLUX_NON_COMMERCIAL_LICENSE_NAME = "flux-non-commercial-license"
     FLUX_NON_COMMERCIAL_LICENSE_DISPLAY_NAME = "FLUX Non-Commercial License"
-    FLUX_NON_COMMERCIAL_LICENSE_LINK = (
-        "https://huggingface.co/black-forest-labs/FLUX.2-klein-9B/blob/main/LICENSE.md"
-    )
+    FLUX_NON_COMMERCIAL_LICENSE_LINK = "https://huggingface.co/black-forest-labs/FLUX.2-klein-9B/blob/main/LICENSE.md"
     FLUX_ACCEPTABLE_USE_POLICY_LINK = "https://bfl.ai/legal/usage-policy"
 
     @staticmethod
@@ -49,14 +47,13 @@ class ModelCardSaver:
                 f"[`mlx-gen`]({ModelCardSaver.PROJECT_URL})."
             ),
             "",
-            "It uses the mflux/MLX saved-weight layout and MLX quantization tensors. "
-            "It is not a Diffusers or Transformers `from_pretrained()` checkpoint.",
+            ModelCardSaver._layout_sentence(bits),
             "",
             "## Source Model",
             "",
             ModelCardSaver._source_model_line(model_name),
             "",
-            *ModelCardSaver._license_section(model_name, terms),
+            *ModelCardSaver._license_section(model_name, terms, bits),
             "",
             "## Quantization",
             "",
@@ -72,6 +69,7 @@ class ModelCardSaver:
             "",
             "## Usage",
             "",
+            *ModelCardSaver._usage_note(terms, bits),
             "```bash",
             "python -m pip install -U mlx-gen",
             "",
@@ -79,7 +77,7 @@ class ModelCardSaver:
             "",
             "mlxgen generate \\",
             f"  --model {repo_id} \\",
-            *ModelCardSaver._usage_lines(pipeline_tag, terms),
+            *ModelCardSaver._usage_lines(pipeline_tag, terms, bits),
             "```",
             "",
             "## Attribution",
@@ -119,10 +117,10 @@ class ModelCardSaver:
                 f"license_name: {ModelCardSaver.FLUX_NON_COMMERCIAL_LICENSE_NAME}",
                 f"license_link: {ModelCardSaver._flux_noncommercial_license_link(model_name)}",
                 (
-                    "extra_gated_prompt: \"Access is for non-commercial use under the "
+                    'extra_gated_prompt: "Access is for non-commercial use under the '
                     "FLUX Non-Commercial License and Black Forest Labs Acceptable Use Policy. "
                     "This repository is a quantized derivative of a gated Black Forest Labs "
-                    "FLUX.2 Klein 9B model.\""
+                    'FLUX.2 Klein 9B model."'
                 ),
                 "extra_gated_fields:",
                 "  I agree to use this model for non-commercial use only: checkbox",
@@ -136,7 +134,14 @@ class ModelCardSaver:
         return []
 
     @staticmethod
-    def _license_section(model_name: str, terms: str) -> list[str]:
+    def _layout_sentence(bits: int | None) -> str:
+        sentence = "It uses the mflux/MLX saved-weight layout."
+        if bits is not None:
+            sentence += " Quantized checkpoints include MLX quantization tensors."
+        return sentence + " It is not a Diffusers or Transformers `from_pretrained()` checkpoint."
+
+    @staticmethod
+    def _license_section(model_name: str, terms: str, bits: int | None) -> list[str]:
         if ModelCardSaver._is_flux2_9b(model_name, terms):
             return [
                 "## License and Access",
@@ -157,10 +162,11 @@ class ModelCardSaver:
             ]
 
         if ModelCardSaver._is_apache_model(model_name, terms):
+            derivative = "prepared derivative" if bits is None else "quantized derivative"
             return [
                 "## License and Access",
                 "",
-                "This quantized derivative follows the Apache 2.0 license of the source model.",
+                f"This {derivative} follows the Apache 2.0 license of the source model.",
             ]
 
         return []
@@ -236,10 +242,10 @@ class ModelCardSaver:
                     f"This is an MLX q8 checkpoint for {wan_label}. MLX-Gen uses 8-bit "
                     "quantization for Wan modules where MLX supports quantization:",
                     "",
-                    "- q8 for quantizable Wan transformer modules.",
-                    "- q8 for quantizable Wan VAE modules.",
-                    "- BF16 for the UMT5 text encoder, scheduler metadata, tokenizer files, norms, and other "
-                    "non-quantizable parameters.",
+                    "- q8 for quantizable Wan transformer attention and feed-forward modules.",
+                    "- BF16 for the Wan VAE.",
+                    "- BF16 for Wan transformer conditioning/output projection linears, the UMT5 text encoder, "
+                    "scheduler metadata, tokenizer files, norms, convolutions, and other non-quantizable parameters.",
                     "",
                     "Wan q4 quality and any possible mixed q4/q8 policy are still under validation. "
                     "Prefer q8 for publishable Wan checkpoints until the q4 policy is documented.",
@@ -257,8 +263,7 @@ class ModelCardSaver:
                     "under validation in MLX-Gen; do not treat this checkpoint as equivalent to BF16/q8 unless "
                     "side-by-side video tests confirm acceptable motion and visual quality.",
                     "",
-                    "Prefer q8 for publishable Wan checkpoints until the Wan q4 or mixed q4/q8 policy is "
-                    "documented.",
+                    "Prefer q8 for publishable Wan checkpoints until the Wan q4 or mixed q4/q8 policy is documented.",
                     "",
                     f"See the [MLX-Gen quantization docs]({ModelCardSaver.QUANTIZATION_DOC_URL}) "
                     "for compatibility notes.",
@@ -267,9 +272,14 @@ class ModelCardSaver:
 
         if bits is None and "wan" in terms:
             wan_label = ModelCardSaver._wan_model_label(terms)
-            return (
-                f"This checkpoint stores MLX-Gen {wan_label} weights without an explicit quantization level. "
-                "Wan supports text-to-video and selected image-to-video routes depending on the source model."
+            return "\n".join(
+                [
+                    f"This checkpoint stores MLX-Gen {wan_label} weights without an explicit quantization level.",
+                    "",
+                    "For Wan checkpoints, MLX-Gen loads transformer and VAE weights at BF16 runtime precision. "
+                    "The UMT5 text encoder is preserved from the source model. Wan supports text-to-video and "
+                    "selected image-to-video routes depending on the source model.",
+                ]
             )
 
         if bits is None and "ernie" in terms:
@@ -309,9 +319,51 @@ class ModelCardSaver:
         return f"Original model reference: `{model_name}`."
 
     @staticmethod
-    def _usage_lines(pipeline_tag: str, terms: str) -> list[str]:
+    def _usage_note(terms: str, bits: int | None) -> list[str]:
+        if "wan" in terms and "a14b" in terms and bits == 8:
+            return [
+                "The q8 A14B example below is intentionally validation-sized. Do not use this card to claim "
+                "full-size `1280x720`, 81-frame, 40-step readiness until that exact path has passed video "
+                "integrity and quality validation.",
+                "",
+            ]
+        return []
+
+    @staticmethod
+    def _usage_lines(pipeline_tag: str, terms: str, bits: int | None) -> list[str]:
         if "wan" in terms:
+            if ModelCardSaver._wan_is_i2v_only(terms):
+                return [
+                    "  --task image-to-video \\",
+                    "  --image input.png \\",
+                    '  --prompt "Your video prompt here" \\',
+                    "  --width 224 \\",
+                    "  --height 384 \\",
+                    "  --frames 33 \\",
+                    "  --steps 12 \\",
+                    "  --guidance 3.5 \\",
+                    "  --guidance-2 3.5 \\",
+                    "  --fps 8 \\",
+                    "  --seed 4242 \\",
+                    "  --metadata \\",
+                    "  --output video.mp4",
+                ]
             if "a14b" in terms:
+                if bits == 8:
+                    return [
+                        "  --task text-to-video \\",
+                        '  --prompt "Your video prompt here" \\',
+                        "  --width 384 \\",
+                        "  --height 224 \\",
+                        "  --frames 33 \\",
+                        "  --steps 12 \\",
+                        "  --guidance 4 \\",
+                        "  --guidance-2 3 \\",
+                        "  --fps 8 \\",
+                        "  --seed 4242 \\",
+                        "  --metadata \\",
+                        "  --output video.mp4",
+                    ]
                 return [
                     "  --task text-to-video \\",
                     '  --prompt "Your video prompt here" \\',
@@ -403,7 +455,11 @@ class ModelCardSaver:
         if "ernie" in terms:
             tags.extend(["ernie", "ernie-image", "ernie-image-turbo"])
         if "wan" in terms:
-            tags.extend(["wan", "wan2.2", "video-generation", "text-to-video", "image-to-video"])
+            tags.extend(["wan", "wan2.2", "video-generation"])
+            if ModelCardSaver._wan_supports_text_to_video(terms):
+                tags.append("text-to-video")
+            if ModelCardSaver._wan_supports_image_to_video(terms):
+                tags.append("image-to-video")
             if "a14b" in terms:
                 tags.append("wan-a14b")
         if "fibo" in terms:
@@ -413,6 +469,8 @@ class ModelCardSaver:
     @staticmethod
     def _pipeline_tag(terms: str) -> str:
         if "wan" in terms:
+            if ModelCardSaver._wan_is_i2v_only(terms):
+                return "image-to-video"
             return "text-to-video"
         if any(term in terms for term in ("edit", "kontext", "fill", "depth", "controlnet", "redux")):
             return "image-to-image"
@@ -436,6 +494,24 @@ class ModelCardSaver:
         if "ti2v" in terms or "5b" in terms:
             return "Wan2.2 TI2V-5B"
         return "Wan2.2"
+
+    @staticmethod
+    def _wan_supports_text_to_video(terms: str) -> bool:
+        return not ModelCardSaver._wan_is_i2v_only(terms)
+
+    @staticmethod
+    def _wan_supports_image_to_video(terms: str) -> bool:
+        return ModelCardSaver._wan_is_ti2v_model(terms) or ModelCardSaver._wan_is_i2v_only(terms)
+
+    @staticmethod
+    def _wan_is_i2v_only(terms: str) -> bool:
+        if any(token in terms for token in ("i2v-a14b", "i2v_a14b", "a14b-i2v", "a14b_i2v")):
+            return True
+        return "i2v" in terms and "ti2v" not in terms
+
+    @staticmethod
+    def _wan_is_ti2v_model(terms: str) -> bool:
+        return any(token in terms for token in ("ti2v-5b", "ti2v_5b", "5b-ti2v", "5b_ti2v"))
 
     @staticmethod
     def _contributor_line(bits: int | None) -> str:

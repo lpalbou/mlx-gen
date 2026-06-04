@@ -55,6 +55,10 @@ class WeightApplier:
         if component_weights is None:
             raise ValueError(f"No weights found for component: {component.name}")
 
+        if component.skip_quantization:
+            model.update(component_weights, strict=False)
+            return None
+
         if quantization_predicate is None:
 
             def quantization_predicate(path, module):

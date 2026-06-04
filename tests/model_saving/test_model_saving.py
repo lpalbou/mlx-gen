@@ -2,14 +2,77 @@ import os
 import shutil
 from pathlib import Path
 
+import mlx.core as mx
 import numpy as np
 import pytest
 
+from mflux.models.common.weights.loading.loaded_weights import LoadedWeights, MetaData
+from mflux.models.common.weights.loading.weight_applier import WeightApplier
+from mflux.models.common.weights.loading.weight_definition import ComponentDefinition
 from mflux.models.common.weights.loading.weight_loader import WeightLoader
 from mflux.models.z_image.variants import ZImageTurbo
 from mflux.utils.version_util import VersionUtil
 
 PATH = "tests/4bit/"
+
+
+def test_skip_quantization_component_ignores_stale_mflux_q_metadata(tmp_path):
+    component_path = tmp_path / "vae"
+    component_path.mkdir()
+    mx.save_safetensors(
+        str(component_path / "0.safetensors"),
+        {"weight": mx.zeros((1,))},
+        {
+            "quantization_level": "8",
+            "mflux_version": VersionUtil.get_mflux_version(),
+        },
+    )
+    component = ComponentDefinition(
+        name="vae",
+        hf_subdir="vae",
+        skip_quantization=True,
+    )
+
+    _, quantization_level, mflux_version = WeightLoader._load_component(tmp_path, component)
+
+    assert quantization_level is None
+    assert mflux_version == VersionUtil.get_mflux_version()
+
+
+def test_skip_quantization_component_updates_without_quantizing(monkeypatch):
+    quantize_calls = []
+
+    class DummyModel:
+        def __init__(self):
+            self.updated = None
+            self.strict = None
+
+        def update(self, weights, strict=False):
+            self.updated = weights
+            self.strict = strict
+
+    component = ComponentDefinition(name="vae", hf_subdir="vae", skip_quantization=True)
+    weights = LoadedWeights(
+        components={"vae": {"weight": mx.zeros((1,))}},
+        meta_data=MetaData(quantization_level=8, mflux_version="test"),
+    )
+    model = DummyModel()
+    monkeypatch.setattr(
+        "mflux.models.common.weights.loading.weight_applier.nn.quantize",
+        lambda *args, **kwargs: quantize_calls.append((args, kwargs)),
+    )
+
+    resolved_bits = WeightApplier.apply_and_quantize_single(
+        weights=weights,
+        model=model,
+        component=component,
+        quantize_arg=8,
+    )
+
+    assert resolved_bits is None
+    assert model.updated == weights.components["vae"]
+    assert model.strict is False
+    assert quantize_calls == []
 
 
 class TestModelSaving:

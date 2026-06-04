@@ -20,6 +20,7 @@ Run state-of-the-art generative image and video models locally with native MLX.
 - [💿 Installation](#-installation)
 - [Model Downloads And Preparation](#model-downloads-and-preparation)
 - [Quantized Model Compatibility](#quantized-model-compatibility)
+- [Progress And Video Health](#progress-and-video-health)
 - [Documentation](#documentation)
 - [🎨 Models](#-models)
 - [✨ Features](#-features)
@@ -244,8 +245,17 @@ MLX-Gen supports reusable prepared folders for these primary quantized model fam
 | Bonsai Image | Pre-packed ternary 2-bit | Pre-packed ternary 2-bit | Use `mlxgen download` and `mlxgen generate`; do not run `prepare`. Binary 1-bit is detected but waiting on stock-MLX 1-bit runtime support. |
 | Z-Image and Z-Image Turbo | Supported | Supported | Standard MLX quantization with model-specific generation defaults. |
 | FIBO | Supported with source access | Supported with source access | Source repositories may require access approval before download or preparation. |
+| Wan2.2 | Mixed q8/BF16 | Under validation | q8 prepared folders quantize bulky transformer block linears and keep sensitive conditioning/output paths, text encoders, and VAE at BF16. |
 
 q4 and lower-bit checkpoints are not treated as blind size-only conversions. Qwen and ERNIE use mixed q4/q8 policies because fully q4 checkpoints can lose generation quality; the higher-precision paths are kept where validation shows they matter. Bonsai uses Prism's pre-packed ternary 2-bit transformer plus a 4-bit Qwen3 text encoder rather than MLX-Gen's `prepare` flow. In practice the quality strategy is similar: keep sensitive paths higher precision, then publish the smallest validated layout. See [Quantization](docs/quantization.md) for the current rules and measurements.
+
+Wan A14B prepared BF16 and mixed q8/BF16 folders can substantially reduce storage compared with the upstream source snapshot. The mixed q8/BF16 layout also reduces measured full-process memory in validation, but it is not documented as a speed improvement. Keep full-size Wan A14B claims tied to the validation profile in the model card or release notes.
+
+### Progress And Video Health
+
+Python applications can subscribe to a shared progress event through `model.callbacks.subscribe_progress(...)`. The event type is `mflux.callbacks.ProgressEvent`; `event.progress` always reports denoising-step progress. Video events also include optional frame context through `frame`, `total_frames`, and `frame_progress`.
+
+Wan video generation emits step-based progress instead of using output frames as the progress total. The CLI reserves `complete` for a video that has been saved and passed the built-in MP4 health check. If Wan generation or save validation fails, MLX-Gen writes a compact `<output>.failure.json` manifest next to the intended output path.
 
 ### Documentation
 
@@ -255,8 +265,9 @@ q4 and lower-bit checkpoints are not treated as blind size-only conversions. Qwe
 - [Model management](docs/model-management.md): explicit `download` and `prepare` behavior, runtime cache policy, and model-card creation.
 - [Quantization](docs/quantization.md): q4/q8 behavior, Bonsai low-bit packed support, and current Qwen/ERNIE mixed q4/q8 policies.
 - [Hugging Face publishing](docs/huggingface-publishing.md): generated model cards, default `AbstractFramework/<repo-name>` usage, upload flow, and optional collection membership.
-- [FAQ](docs/faq.md): common questions about `prepare`, downloads, package naming, and compatibility.
-- [Troubleshooting](docs/troubleshooting.md): common setup and runtime errors.
+- [Python integration](docs/python-integration.md): cache-only model construction, AbstractVision integration, shared progress callbacks, and threading guidance.
+- [FAQ](docs/faq.md): common questions about `prepare`, downloads, package naming, compatibility, and Wan image-to-video prompting.
+- [Troubleshooting](docs/troubleshooting.md): common setup, runtime, and Wan video validation errors.
 
 <details>
 <summary>Python API</summary>

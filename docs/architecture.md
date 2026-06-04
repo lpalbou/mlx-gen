@@ -51,6 +51,8 @@ The current Python API still exposes many model classes through inherited mflux 
 - prepare files before constructing models;
 - fail early when required artifacts are missing;
 - keep model instances as stateful runtime objects;
+- publish lightweight progress events through `mflux.callbacks.ProgressEvent` without exposing
+  latents or model tensors;
 - expose clearer public orchestration APIs over time without breaking existing compatibility paths unnecessarily.
 
 See [Python Integration](python-integration.md) and [API And CLI](api.md) for current usage.

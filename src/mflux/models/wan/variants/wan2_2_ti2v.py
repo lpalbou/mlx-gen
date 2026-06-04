@@ -4,15 +4,15 @@ import io
 import re
 import shutil
 import time
-from collections.abc import Callable
 from contextlib import redirect_stderr, redirect_stdout
-from dataclasses import dataclass
 from pathlib import Path
 
 import mlx.core as mx
 import numpy as np
 from mlx import nn
 
+from mflux.callbacks import ProgressCallback, ProgressEvent
+from mflux.callbacks.callback_registry import CallbackRegistry
 from mflux.models.common.config.model_config import ModelConfig
 from mflux.models.common.weights.saving.model_saver import ModelSaver
 from mflux.models.wan.latent_creator import WanTimestepPolicy
@@ -24,23 +24,8 @@ from mflux.models.wan.weights import WanWeightDefinition
 from mflux.utils.exceptions import ModelConfigError
 from mflux.utils.generated_video import GeneratedVideo
 from mflux.utils.image_util import ImageUtil
+from mflux.utils.tensor_health import TensorHealth
 from mflux.utils.video_util import VideoUtil
-
-
-@dataclass(frozen=True)
-class WanProgressEvent:
-    phase: str
-    frame: int
-    total_frames: int
-    step: int
-    total_steps: int
-
-    @property
-    def progress(self) -> float:
-        if self.total_frames <= 0:
-            return 0.0
-        return min(1.0, max(0.0, self.frame / self.total_frames))
-
 
 _GUIDANCE_2_UNSET = object()
 
@@ -53,7 +38,7 @@ class Wan2_2_TI2V(nn.Module):
     RECOMMENDED_STEPS = 50
     RECOMMENDED_FPS = 24
 
-    transformer: WanTransformer
+    transformer: WanTransformer | None
     transformer_2: WanTransformer | None
     vae: Wan2_2_VAE
 
@@ -86,23 +71,32 @@ class Wan2_2_TI2V(nn.Module):
         negative_prompt: str | None = "",
         image_path: Path | str | None = None,
         max_sequence_length: int = 512,
-        progress_callback: Callable[[WanProgressEvent], None] | None = None,
+        progress_callback: ProgressCallback | None = None,
+        release_inactive_denoiser: bool = False,
+        release_denoisers_before_decode: bool = False,
+        clear_cache_each_step: bool = False,
+        tensor_health_check_interval: int | None = 1,
     ) -> GeneratedVideo:
         start_time = time.time()
+        health_check_interval = self._validate_tensor_health_check_interval(tensor_health_check_interval)
         if (
             guidance_2 is not _GUIDANCE_2_UNSET
             and guidance_2 is not None
             and self._wan_config("boundary_ratio", None) is None
         ):
             raise ValueError("guidance_2 is only supported for Wan models with two-transformer boundary routing.")
+        self._validate_denoisers_available()
         height, width = self._validated_spatial_size(height=height, width=width)
         num_frames = self._validated_frame_count(num_frames)
         is_image_to_video = image_path is not None
+        task = "image-to-video" if is_image_to_video else "text-to-video"
         if image_path is not None and not self._supports_image_to_video():
             raise ValueError(f"{self.model_config.model_name} does not support image-to-video input.")
         guidance, guidance_2 = self._resolve_guidance_pair(guidance=guidance, guidance_2=guidance_2)
+        self._validate_guidance_values(guidance=guidance, guidance_2=guidance_2)
         negative_prompt = self._default_negative_prompt() if not negative_prompt else negative_prompt
         self._validate_runtime_contract(is_image_to_video=is_image_to_video)
+        progress_registry = getattr(self, "callbacks", None)
         self._emit_progress(
             progress_callback,
             phase="start",
@@ -110,6 +104,8 @@ class Wan2_2_TI2V(nn.Module):
             total_frames=num_frames,
             step=0,
             total_steps=num_inference_steps,
+            task=task,
+            registry=progress_registry,
         )
         batch_size = 1
 
@@ -119,6 +115,13 @@ class Wan2_2_TI2V(nn.Module):
             do_classifier_free_guidance=guidance > 1.0,
             max_sequence_length=max_sequence_length,
         )
+        self._require_tensor_health(prompt_embeds, phase="prompt-encoding", name="prompt_embeds")
+        if negative_prompt_embeds is not None:
+            self._require_tensor_health(
+                negative_prompt_embeds,
+                phase="prompt-encoding",
+                name="negative_prompt_embeds",
+            )
 
         scheduler = WanUniPCMultistepScheduler(flow_shift=float(self._wan_config("flow_shift", 5.0)))
         scheduler.set_timesteps(num_inference_steps)
@@ -130,6 +133,7 @@ class Wan2_2_TI2V(nn.Module):
             width=width,
             num_frames=num_frames,
         )
+        self._require_tensor_health(latents, phase="prepare-latents", name="latents")
         first_frame_mask = None
         condition = None
         if is_image_to_video:
@@ -140,6 +144,7 @@ class Wan2_2_TI2V(nn.Module):
                     height=height,
                     width=width,
                 )
+                self._require_tensor_health(condition, phase="image-conditioning", name="condition")
             else:
                 condition = self._encode_video_condition(
                     image_path=image_path,
@@ -148,15 +153,26 @@ class Wan2_2_TI2V(nn.Module):
                     num_frames=num_frames,
                     batch_size=batch_size,
                 )
+                self._require_tensor_health(condition, phase="image-conditioning", name="condition")
 
         total_steps = len(scheduler.timesteps)
+        high_noise_denoiser_released = False
         for step_index, timestep in enumerate(scheduler.timesteps.tolist()):
+            step_number = step_index + 1
+            should_check_tensors = TensorHealth.should_check_step(step_number, total_steps, health_check_interval)
+            high_noise_denoiser_released = self._maybe_release_high_noise_denoiser(
+                timestep=timestep,
+                boundary_timestep=boundary_timestep,
+                release_inactive_denoiser=release_inactive_denoiser,
+                already_released=high_noise_denoiser_released,
+            )
             current_transformer, current_guidance = self._select_transformer_and_guidance(
                 timestep=timestep,
                 boundary_timestep=boundary_timestep,
                 guidance=guidance,
                 guidance_2=guidance_2,
             )
+            denoiser_name = self._denoiser_name(current_transformer)
             if first_frame_mask is not None and condition is not None:
                 latent_model_input = WanTimestepPolicy.apply_first_frame_condition(
                     latents=latents,
@@ -187,16 +203,60 @@ class Wan2_2_TI2V(nn.Module):
                 timestep=expanded_timestep,
                 encoder_hidden_states=prompt_embeds,
             )
+            if should_check_tensors:
+                self._require_tensor_health(
+                    noise_pred,
+                    phase="conditional-denoise-prediction",
+                    name="noise_pred",
+                    step=step_number,
+                    total_steps=total_steps,
+                    timestep=timestep,
+                    denoiser=denoiser_name,
+                    guidance=current_guidance,
+                )
             if negative_prompt_embeds is not None:
                 noise_uncond = current_transformer(
                     hidden_states=latent_model_input,
                     timestep=expanded_timestep,
                     encoder_hidden_states=negative_prompt_embeds,
                 )
+                if should_check_tensors:
+                    self._require_tensor_health(
+                        noise_uncond,
+                        phase="unconditional-denoise-prediction",
+                        name="noise_uncond",
+                        step=step_number,
+                        total_steps=total_steps,
+                        timestep=timestep,
+                        denoiser=denoiser_name,
+                        guidance=current_guidance,
+                    )
                 noise_pred = noise_uncond + current_guidance * (noise_pred - noise_uncond)
+                if should_check_tensors:
+                    self._require_tensor_health(
+                        noise_pred,
+                        phase="guided-denoise-prediction",
+                        name="noise_pred",
+                        step=step_number,
+                        total_steps=total_steps,
+                        timestep=timestep,
+                        denoiser=denoiser_name,
+                        guidance=current_guidance,
+                    )
 
             latents = scheduler.step(noise_pred.astype(mx.float32), timestep, latents, return_dict=False)[0]
             mx.eval(latents)
+            if should_check_tensors:
+                self._require_tensor_health(
+                    latents,
+                    phase="scheduler-step",
+                    name="latents",
+                    step=step_number,
+                    total_steps=total_steps,
+                    timestep=timestep,
+                    denoiser=denoiser_name,
+                    guidance=current_guidance,
+                )
             self._emit_progress(
                 progress_callback,
                 phase="denoise",
@@ -206,9 +266,16 @@ class Wan2_2_TI2V(nn.Module):
                     total_frames=num_frames,
                 ),
                 total_frames=num_frames,
-                step=step_index + 1,
+                step=step_number,
                 total_steps=total_steps,
+                task=task,
+                timestep=timestep,
+                registry=progress_registry,
             )
+            del current_transformer, latent_model_input, expanded_timestep, noise_pred
+            if "noise_uncond" in locals():
+                del noise_uncond
+            self._cleanup_step_cache(clear_cache=clear_cache_each_step)
 
         if first_frame_mask is not None and condition is not None:
             latents = WanTimestepPolicy.apply_first_frame_condition(
@@ -216,15 +283,45 @@ class Wan2_2_TI2V(nn.Module):
                 condition=condition,
                 first_frame_mask=first_frame_mask,
             )
+            self._require_tensor_health(latents, phase="final-conditioning", name="latents")
         del prompt_embeds, negative_prompt_embeds, scheduler
-        del latent_model_input, expanded_timestep, noise_pred
         if "noise_uncond" in locals():
             del noise_uncond
+        if "condition" in locals():
+            del condition
+        if "first_frame_mask" in locals():
+            del first_frame_mask
         gc.collect()
+        mx.synchronize()
         mx.clear_cache()
+        if release_denoisers_before_decode:
+            self._release_denoisers()
+        self._require_tensor_health(latents, phase="pre-decode", name="latents")
+        self._emit_progress(
+            progress_callback,
+            phase="decode",
+            frame=num_frames,
+            total_frames=num_frames,
+            step=total_steps,
+            total_steps=total_steps,
+            task=task,
+            registry=progress_registry,
+        )
         decoded = self.vae.decode_normalized_latents(latents.astype(ModelConfig.precision))
         mx.eval(decoded)
+        mx.synchronize()
         mx.clear_cache()
+        self._require_tensor_health(decoded, phase="vae-decode", name="decoded")
+        self._emit_progress(
+            progress_callback,
+            phase="convert",
+            frame=num_frames,
+            total_frames=num_frames,
+            step=total_steps,
+            total_steps=total_steps,
+            task=task,
+            registry=progress_registry,
+        )
         video = VideoUtil.to_video(
             decoded_latents=decoded,
             fps=fps,
@@ -236,17 +333,19 @@ class Wan2_2_TI2V(nn.Module):
             guidance_2=guidance_2,
             quantization=self.bits,
             generation_time=time.time() - start_time,
-            task="image-to-video" if is_image_to_video else "text-to-video",
+            task=task,
             image_path=image_path,
             negative_prompt=negative_prompt,
         )
         self._emit_progress(
             progress_callback,
-            phase="complete",
+            phase="generated",
             frame=num_frames,
             total_frames=num_frames,
             step=total_steps,
             total_steps=total_steps,
+            task=task,
+            registry=progress_registry,
         )
         return video
 
@@ -360,7 +459,9 @@ class Wan2_2_TI2V(nn.Module):
     def _encode_first_frame_condition(self, image_path: Path | str | None, height: int, width: int) -> mx.array:
         if image_path is None:
             raise ValueError("Wan image-to-video requires image_path.")
-        image = ImageUtil.scale_to_dimensions(ImageUtil.load_image(image_path), target_width=width, target_height=height)
+        image = ImageUtil.scale_to_dimensions(
+            ImageUtil.load_image(image_path), target_width=width, target_height=height
+        )
         image_np = np.array(image).astype(np.float32) / 255.0
         image_np = image_np[None, ...]
         image_mx = mx.array(image_np)
@@ -380,13 +481,17 @@ class Wan2_2_TI2V(nn.Module):
     ) -> mx.array:
         if image_path is None:
             raise ValueError("Wan image-to-video requires image_path.")
-        image = ImageUtil.scale_to_dimensions(ImageUtil.load_image(image_path), target_width=width, target_height=height)
+        image = ImageUtil.scale_to_dimensions(
+            ImageUtil.load_image(image_path), target_width=width, target_height=height
+        )
         image_np = np.array(image).astype(np.float32) / 255.0
         image_mx = mx.array(image_np[None, ...])
         image_mx = mx.transpose(image_mx, (0, 3, 1, 2))
         image_mx = ImageUtil._normalize(image_mx)
         first_frame = image_mx[:, :, None, :, :]
-        zero_frames = mx.zeros((batch_size, first_frame.shape[1], num_frames - 1, height, width), dtype=first_frame.dtype)
+        zero_frames = mx.zeros(
+            (batch_size, first_frame.shape[1], num_frames - 1, height, width), dtype=first_frame.dtype
+        )
         video_condition = mx.concatenate([first_frame, zero_frames], axis=2).astype(ModelConfig.precision)
         latent_condition = self.vae.encode_normalized(video_condition).astype(mx.float32)
         latent_frames = latent_condition.shape[2]
@@ -433,10 +538,7 @@ class Wan2_2_TI2V(nn.Module):
             raise ValueError("Wan num_frames must be at least 1.")
         if num_frames % self.vae.temporal_scale != 1:
             adjusted = num_frames // self.vae.temporal_scale * self.vae.temporal_scale + 1
-            print(
-                f"`frames - 1` must be divisible by {self.vae.temporal_scale}. "
-                f"Adjusting {num_frames} -> {adjusted}."
-            )
+            print(f"`frames - 1` must be divisible by {self.vae.temporal_scale}. Adjusting {num_frames} -> {adjusted}.")
             num_frames = adjusted
         return max(num_frames, 1)
 
@@ -489,6 +591,14 @@ class Wan2_2_TI2V(nn.Module):
                 "This usually means the model weights were paired with the wrong Wan config; refusing to continue."
             )
 
+    def _validate_denoisers_available(self) -> None:
+        expected_transformer_2 = bool(self._wan_config("has_transformer_2", False))
+        if self.transformer is None or (expected_transformer_2 and self.transformer_2 is None):
+            raise ValueError(
+                "Wan denoisers have been released after a previous low-memory generation. "
+                "Create a new Wan2_2_TI2V instance to generate another video."
+            )
+
     @staticmethod
     def _resolve_model_config(model_path: str | None, model_config: ModelConfig | None) -> ModelConfig:
         if model_config is not None:
@@ -518,25 +628,70 @@ class Wan2_2_TI2V(nn.Module):
 
     @staticmethod
     def _emit_progress(
-        progress_callback: Callable[[WanProgressEvent], None] | None,
+        progress_callback: ProgressCallback | None,
         *,
         phase: str,
         frame: int,
         total_frames: int,
         step: int,
         total_steps: int,
+        task: str | None = None,
+        timestep: int | float | None = None,
+        registry: CallbackRegistry | None = None,
     ) -> None:
-        if progress_callback is None:
+        if progress_callback is None and registry is None:
             return
-        progress_callback(
-            WanProgressEvent(
-                phase=phase,
-                frame=frame,
-                total_frames=total_frames,
-                step=step,
-                total_steps=total_steps,
-            )
+        event = ProgressEvent(
+            phase=phase,
+            frame=frame,
+            total_frames=total_frames,
+            step=step,
+            total_steps=total_steps,
+            task=task,
+            timestep=timestep,
         )
+        if progress_callback is not None:
+            progress_callback(event)
+        if registry is not None:
+            registry.emit_progress(event)
+
+    def _require_tensor_health(
+        self,
+        tensor: mx.array,
+        *,
+        phase: str,
+        name: str,
+        step: int | None = None,
+        total_steps: int | None = None,
+        timestep: int | float | None = None,
+        denoiser: str | None = None,
+        guidance: float | None = None,
+    ) -> None:
+        TensorHealth.ensure_finite(
+            tensor,
+            name=name,
+            phase=f"wan-{phase}",
+            step=step,
+            total_steps=total_steps,
+            timestep=timestep,
+            denoiser=denoiser,
+            guidance=guidance,
+        )
+
+    @staticmethod
+    def _validate_tensor_health_check_interval(interval: int | None) -> int | None:
+        if interval is None:
+            return None
+        if interval <= 0:
+            raise ValueError("tensor_health_check_interval must be greater than zero.")
+        return int(interval)
+
+    def _denoiser_name(self, transformer) -> str:
+        if transformer is self.transformer:
+            return "high"
+        if transformer is self.transformer_2:
+            return "low"
+        return transformer.__class__.__name__
 
     def _select_transformer_and_guidance(
         self,
@@ -547,6 +702,8 @@ class Wan2_2_TI2V(nn.Module):
         guidance_2: float | None,
     ) -> tuple[WanTransformer, float]:
         if boundary_timestep is None or timestep >= boundary_timestep:
+            if self.transformer is None:
+                raise ValueError("Wan high-noise transformer was released before a high-noise timestep.")
             return self.transformer, guidance
         if self.transformer_2 is None:
             raise ValueError("Wan model config requested low-noise routing but transformer_2 is missing.")
@@ -593,6 +750,13 @@ class Wan2_2_TI2V(nn.Module):
                 resolved_guidance_2 = float(guidance_2)
         return resolved_guidance, resolved_guidance_2
 
+    @staticmethod
+    def _validate_guidance_values(*, guidance: float, guidance_2: float | None) -> None:
+        if not np.isfinite(guidance):
+            raise ValueError(f"Wan guidance must be finite, got {guidance!r}.")
+        if guidance_2 is not None and not np.isfinite(guidance_2):
+            raise ValueError(f"Wan guidance_2 must be finite, got {guidance_2!r}.")
+
     def _default_negative_prompt(self) -> str:
         return str(self._wan_config("default_negative_prompt", ""))
 
@@ -602,6 +766,46 @@ class Wan2_2_TI2V(nn.Module):
     @staticmethod
     def _batch_timestep(batch_size: int, timestep: int) -> mx.array:
         return mx.full((batch_size,), timestep, dtype=mx.float32)
+
+    def _maybe_release_high_noise_denoiser(
+        self,
+        *,
+        timestep: int,
+        boundary_timestep: float | None,
+        release_inactive_denoiser: bool,
+        already_released: bool,
+    ) -> bool:
+        if (
+            already_released
+            or not release_inactive_denoiser
+            or boundary_timestep is None
+            or timestep >= boundary_timestep
+            or self.transformer_2 is None
+        ):
+            return already_released
+        self._release_high_noise_denoiser()
+        return True
+
+    def _release_high_noise_denoiser(self) -> None:
+        self.transformer = None
+        gc.collect()
+        mx.synchronize()
+        mx.clear_cache()
+
+    def _release_denoisers(self) -> None:
+        self.transformer = None
+        self.transformer_2 = None
+        gc.collect()
+        mx.synchronize()
+        mx.clear_cache()
+
+    @staticmethod
+    def _cleanup_step_cache(*, clear_cache: bool) -> None:
+        if not clear_cache:
+            return
+        gc.collect()
+        mx.synchronize()
+        mx.clear_cache()
 
     @staticmethod
     def _prompt_clean(text: str) -> str:

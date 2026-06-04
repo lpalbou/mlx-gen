@@ -100,6 +100,8 @@ class WeightLoader:
             # Try mflux saved format first
             weights, q_level, version = WeightLoader._try_load_mflux_format(component_path)
             if weights is not None:
+                if component.skip_quantization:
+                    q_level = None
                 return weights, q_level, version
 
             # Check cache for shared loading (e.g., FIBO VLM decoder + visual from same source)

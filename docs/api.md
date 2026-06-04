@@ -196,7 +196,7 @@ At the default 24 fps, `--frames 121` produces about 5.04 seconds of video, `--f
 | `--guidance` | Classifier-free guidance scale. TI2V-5B default: `5`; A14B default: `4`. |
 | `--guidance-2` | Optional low-noise guidance scale for Wan A14B `transformer_2`. If both guidance flags are omitted, model-specific two-stage defaults are used. If `--guidance` is set and `--guidance-2` is omitted, the low-noise stage follows `--guidance`. It is rejected for single-transformer Wan models. |
 | `--seed` | Deterministic seed. Repeat with multiple values to create multiple videos. |
-| `--progress`, `--no-progress` | Show or disable the CLI video progress bar. Progress is reported in output-frame units and also carries the current denoising step. Default: `--progress true`. |
+| `--progress`, `--no-progress` | Show or disable the CLI video progress bar. The bar advances by denoising step and keeps the requested frame count as context. Default: `--progress true`. |
 
 The upstream TI2V-5B guidance is 1280x704 or 704x1280, 121 frames, 50 steps, and 24 fps. The upstream A14B guidance is 1280x720 or 720x1280, 81 frames, 40 steps, `--guidance 4`, optional `--guidance-2 3`, and 16 fps. Lower resolutions, frame counts, or step counts are useful for quick checks, but they should not be treated as quality settings.
 
@@ -227,11 +227,23 @@ Use `prepare` when you need the local saved-weight folder. It is the public MLX-
 
 Generation output replaces the requested `--output` path by default. Use `--replace false` or `--no-replace` to preserve an existing file and save to a suffixed filename.
 
+Wan video failures write a compact manifest next to the intended output path, such as
+`video.failure.json` for `video.mp4`. It captures the error, tensor-health report when available,
+seed, prompt, dimensions, frames, steps, guidance, fps, output path, and memory-related runtime
+flags.
+
 ## Python Integration
 
 The current Python integration path uses model classes inherited from the mflux codebase, with `mlxgen` available as the package identity for new applications. See [Python Integration](python-integration.md) for the current expectations.
 
 Python callers should prepare or download required model files before constructing model objects. Runtime constructors and generation calls do not start network downloads.
+
+For progress monitoring, use `mflux.callbacks.ProgressEvent` and subscribe with
+`model.callbacks.subscribe_progress(...)`. Image generation emits `start`, `denoise`, `complete`,
+and interruption events through that subscription path. Wan video generation uses the same event
+type and also accepts a direct `progress_callback` argument on `generate_video()`: model generation
+emits `start`, `denoise`, `decode`, `convert`, and `generated`; the Wan CLI then emits `save` and
+`complete` only after MP4 save and video-health validation succeed.
 
 ```python
 from mflux.models.common.download_policy import DownloadRequiredError

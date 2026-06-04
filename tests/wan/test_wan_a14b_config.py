@@ -2,10 +2,13 @@ import json
 from types import SimpleNamespace
 
 import mlx.core as mx
+import numpy as np
 import pytest
 from PIL import Image
 
 from mflux.models.common.config import ModelConfig
+from mflux.models.common.weights.loading.weight_applier import WeightApplier
+from mflux.models.common.weights.loading.weight_loader import WeightLoader
 from mflux.models.wan.model.wan_transformer import WanTransformer
 from mflux.models.wan.model.wan_vae import Wan2_2_VAE
 from mflux.models.wan.variants import Wan2_2_TI2V
@@ -63,6 +66,128 @@ def test_wan_a14b_weight_definition_includes_second_transformer():
     assert "transformer_2/*.safetensors" in definition.get_download_patterns()
 
 
+def test_wan_initializer_streams_component_weight_application(monkeypatch, tmp_path):
+    calls = []
+    model = SimpleNamespace(
+        transformer=SimpleNamespace(name="transformer"),
+        transformer_2=SimpleNamespace(name="transformer_2"),
+        vae=SimpleNamespace(name="vae"),
+        bits=None,
+    )
+    definition = WanWeightDefinition.for_config(ModelConfig.wan2_2_t2v_a14b())
+
+    def fake_load_component(root_path, component, raw_weights_cache=None):
+        assert root_path == tmp_path
+        assert raw_weights_cache is None
+        calls.append(("load", component.name))
+        return {"marker": component.name}, 8, "test-version"
+
+    def fake_apply_and_quantize_single(weights, model, component, quantize_arg, quantization_predicate=None):
+        assert quantize_arg == 8
+        assert quantization_predicate is definition.quantization_predicate
+        assert weights.components == {component.name: {"marker": component.name}}
+        assert weights.meta_data.quantization_level == 8
+        calls.append(("apply", component.name, model.name))
+        return 8
+
+    monkeypatch.setattr(WeightLoader, "_load_component", fake_load_component)
+    monkeypatch.setattr(WeightApplier, "apply_and_quantize_single", fake_apply_and_quantize_single)
+    monkeypatch.setattr("mflux.models.wan.wan_initializer.gc.collect", lambda: calls.append(("gc",)))
+    monkeypatch.setattr("mflux.models.wan.wan_initializer.mx.synchronize", lambda: calls.append(("sync",)))
+    monkeypatch.setattr("mflux.models.wan.wan_initializer.mx.clear_cache", lambda: calls.append(("clear",)))
+
+    WanInitializer._load_and_apply_weights(
+        model=model,
+        root_path=tmp_path,
+        quantize=8,
+        weight_definition=definition,
+    )
+
+    assert model.bits == 8
+    assert calls == [
+        ("load", "transformer"),
+        ("apply", "transformer", "transformer"),
+        ("gc",),
+        ("sync",),
+        ("clear",),
+        ("load", "transformer_2"),
+        ("apply", "transformer_2", "transformer_2"),
+        ("gc",),
+        ("sync",),
+        ("clear",),
+        ("load", "vae"),
+        ("apply", "vae", "vae"),
+        ("gc",),
+        ("sync",),
+        ("clear",),
+    ]
+
+
+def test_wan_initializer_rejects_component_quantization_mismatch(monkeypatch, tmp_path):
+    model = SimpleNamespace(
+        transformer=SimpleNamespace(name="transformer"),
+        transformer_2=SimpleNamespace(name="transformer_2"),
+        vae=SimpleNamespace(name="vae"),
+        bits=None,
+    )
+    definition = WanWeightDefinition.for_config(ModelConfig.wan2_2_t2v_a14b())
+    resolved_bits = {"transformer": 8, "transformer_2": 4, "vae": 8}
+    cleanup_calls = []
+
+    def fake_load_component(root_path, component, raw_weights_cache=None):
+        return {"marker": component.name}, resolved_bits[component.name], "test-version"
+
+    def fake_apply_and_quantize_single(weights, model, component, quantize_arg, quantization_predicate=None):
+        return weights.meta_data.quantization_level
+
+    monkeypatch.setattr(WeightLoader, "_load_component", fake_load_component)
+    monkeypatch.setattr(WeightApplier, "apply_and_quantize_single", fake_apply_and_quantize_single)
+    monkeypatch.setattr("mflux.models.wan.wan_initializer.gc.collect", lambda: cleanup_calls.append("gc"))
+    monkeypatch.setattr("mflux.models.wan.wan_initializer.mx.synchronize", lambda: cleanup_calls.append("sync"))
+    monkeypatch.setattr("mflux.models.wan.wan_initializer.mx.clear_cache", lambda: cleanup_calls.append("clear"))
+
+    with pytest.raises(ValueError, match="Wan component quantization mismatch"):
+        WanInitializer._load_and_apply_weights(
+            model=model,
+            root_path=tmp_path,
+            quantize=None,
+            weight_definition=definition,
+        )
+    assert cleanup_calls == ["gc", "sync", "clear", "gc", "sync", "clear"]
+
+
+def test_wan_initializer_allows_skipped_vae_without_quantization_metadata(monkeypatch, tmp_path):
+    model = SimpleNamespace(
+        transformer=SimpleNamespace(name="transformer"),
+        transformer_2=SimpleNamespace(name="transformer_2"),
+        vae=SimpleNamespace(name="vae"),
+        bits=None,
+    )
+    definition = WanWeightDefinition.for_config(ModelConfig.wan2_2_t2v_a14b())
+    resolved_bits = {"transformer": 8, "transformer_2": 8, "vae": None}
+
+    def fake_load_component(root_path, component, raw_weights_cache=None):
+        return {"marker": component.name}, resolved_bits[component.name], "test-version"
+
+    def fake_apply_and_quantize_single(weights, model, component, quantize_arg, quantization_predicate=None):
+        return weights.meta_data.quantization_level
+
+    monkeypatch.setattr(WeightLoader, "_load_component", fake_load_component)
+    monkeypatch.setattr(WeightApplier, "apply_and_quantize_single", fake_apply_and_quantize_single)
+    monkeypatch.setattr("mflux.models.wan.wan_initializer.gc.collect", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.wan_initializer.mx.synchronize", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.wan_initializer.mx.clear_cache", lambda: None)
+
+    WanInitializer._load_and_apply_weights(
+        model=model,
+        root_path=tmp_path,
+        quantize=None,
+        weight_definition=definition,
+    )
+
+    assert model.bits == 8
+
+
 def test_wan_a14b_vae_mapping_uses_wan21_flat_encoder_and_plural_upsamplers():
     targets = {target.to_pattern for target in WanWeightMapping.get_vae_mapping(variant="wan21")}
 
@@ -106,6 +231,336 @@ def test_wan_a14b_boundary_selects_low_noise_transformer_below_boundary():
     assert low_guidance == 3.0
 
 
+def test_wan_a14b_can_release_high_noise_transformer_after_boundary(monkeypatch):
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    high = SimpleNamespace(name="high")
+    low = SimpleNamespace(name="low")
+    model.transformer = high
+    model.transformer_2 = low
+    calls = []
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.gc.collect", lambda: calls.append("gc"))
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.synchronize", lambda: calls.append("sync"))
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.clear_cache", lambda: calls.append("clear"))
+
+    released = model._maybe_release_high_noise_denoiser(
+        timestep=900,
+        boundary_timestep=900,
+        release_inactive_denoiser=True,
+        already_released=False,
+    )
+    assert released is False
+    assert model.transformer is high
+
+    released = model._maybe_release_high_noise_denoiser(
+        timestep=875,
+        boundary_timestep=900,
+        release_inactive_denoiser=True,
+        already_released=False,
+    )
+
+    assert released is True
+    assert model.transformer is None
+    assert model.transformer_2 is low
+    assert calls == ["gc", "sync", "clear"]
+
+    released = model._maybe_release_high_noise_denoiser(
+        timestep=800,
+        boundary_timestep=900,
+        release_inactive_denoiser=True,
+        already_released=True,
+    )
+
+    assert released is True
+    assert calls == ["gc", "sync", "clear"]
+
+
+def test_wan_generate_releases_high_noise_transformer_before_low_noise_call(monkeypatch):
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    model.model_config = ModelConfig.wan2_2_i2v_a14b()
+    model.bits = None
+    model.vae = SimpleNamespace(
+        z_dim=16,
+        temporal_scale=4,
+        spatial_scale=8,
+        decode_normalized_latents=lambda latents: mx.zeros((1, 3, 1, 8, 8), dtype=mx.float32),
+    )
+    calls = []
+
+    class FakeTransformer:
+        patch_size = (1, 2, 2)
+        in_channels = 36
+        out_channels = 16
+
+        def __init__(self, name):
+            self.name = name
+
+        def __call__(self, **kwargs):
+            calls.append((self.name, model.transformer is None))
+            return mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32)
+
+    class FakeScheduler:
+        num_train_timesteps = 1000
+
+        def __init__(self, flow_shift):
+            self.flow_shift = flow_shift
+            self.timesteps = mx.array([], dtype=mx.int64)
+
+        def set_timesteps(self, num_inference_steps):
+            self.timesteps = mx.array([900, 875], dtype=mx.int64)
+
+        def step(self, model_output, timestep, sample, return_dict):
+            return (sample,)
+
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.WanUniPCMultistepScheduler",
+        FakeScheduler,
+    )
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video",
+        lambda **kwargs: SimpleNamespace(),
+    )
+    monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
+    monkeypatch.setattr(
+        model,
+        "prepare_latents",
+        lambda **kwargs: mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32),
+    )
+    monkeypatch.setattr(
+        model,
+        "_encode_video_condition",
+        lambda **kwargs: mx.zeros((1, 20, 1, 8, 8), dtype=mx.float32),
+    )
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.gc.collect", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.synchronize", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.clear_cache", lambda: None)
+    model.transformer = FakeTransformer("high")
+    model.transformer_2 = FakeTransformer("low")
+
+    model.generate_video(
+        seed=1,
+        prompt="a slow wave",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        guidance_2=1,
+        image_path="input.png",
+        release_inactive_denoiser=True,
+    )
+
+    assert calls == [("high", False), ("low", True)]
+
+
+def test_wan_generate_fails_on_non_finite_noise_prediction(monkeypatch):
+    model = _fake_t2v_a14b_model()
+    model.transformer = _FakeWanTransformer(mx.array([[[[[np.nan]]]]], dtype=mx.float32))
+    model.transformer_2 = _FakeWanTransformer(mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32))
+    events = []
+    calls = _patch_fake_wan_generation(monkeypatch, model)
+
+    with pytest.raises(ValueError) as exc_info:
+        model.generate_video(
+            seed=1,
+            prompt="a slow wave",
+            width=64,
+            height=64,
+            num_frames=1,
+            num_inference_steps=2,
+            guidance=1,
+            guidance_2=1,
+            progress_callback=events.append,
+        )
+
+    message = str(exc_info.value)
+    assert "wan-conditional-denoise-prediction" in message
+    assert "tensor=noise_pred" in message
+    assert "step=1/2" in message
+    assert "timestep=900" in message
+    assert "denoiser=high" in message
+    assert [event.phase for event in events] == ["start"]
+    assert calls == {"scheduler_steps": 0, "to_video": 0}
+
+
+def test_wan_generate_fails_on_non_finite_scheduler_latents(monkeypatch):
+    model = _fake_t2v_a14b_model()
+    events = []
+    calls = _patch_fake_wan_generation(
+        monkeypatch,
+        model,
+        scheduler_output=mx.array([[[[[np.inf]]]]], dtype=mx.float32),
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        model.generate_video(
+            seed=1,
+            prompt="a slow wave",
+            width=64,
+            height=64,
+            num_frames=1,
+            num_inference_steps=2,
+            guidance=1,
+            guidance_2=1,
+            progress_callback=events.append,
+        )
+
+    message = str(exc_info.value)
+    assert "wan-scheduler-step" in message
+    assert "tensor=latents" in message
+    assert "step=1/2" in message
+    assert "timestep=900" in message
+    assert "denoiser=high" in message
+    assert [event.phase for event in events] == ["start"]
+    assert calls == {"scheduler_steps": 1, "to_video": 0}
+
+
+def test_wan_generate_fails_on_non_finite_vae_decode(monkeypatch):
+    model = _fake_t2v_a14b_model()
+    decoded = np.zeros((1, 3, 1, 8, 8), dtype=np.float32)
+    decoded[0, 0, 0, 0, 0] = np.nan
+    model.vae.decode_normalized_latents = lambda latents: mx.array(decoded)
+    events = []
+    calls = _patch_fake_wan_generation(monkeypatch, model, patch_to_video=False)
+
+    with pytest.raises(ValueError) as exc_info:
+        model.generate_video(
+            seed=1,
+            prompt="a slow wave",
+            width=64,
+            height=64,
+            num_frames=1,
+            num_inference_steps=2,
+            guidance=1,
+            guidance_2=1,
+            progress_callback=events.append,
+        )
+
+    message = str(exc_info.value)
+    assert "wan-vae-decode" in message
+    assert "tensor=decoded" in message
+    assert [event.phase for event in events] == ["start", "denoise", "denoise", "decode"]
+    assert calls == {"scheduler_steps": 2, "to_video": 0}
+
+
+def test_wan_generate_fails_on_non_finite_i2v_condition(monkeypatch):
+    model = _fake_t2v_a14b_model()
+    model.model_config = ModelConfig.wan2_2_i2v_a14b()
+    model.transformer.in_channels = 36
+    model.transformer_2.in_channels = 36
+    events = []
+    calls = _patch_fake_wan_generation(monkeypatch, model)
+    monkeypatch.setattr(
+        model,
+        "_encode_video_condition",
+        lambda **kwargs: mx.array([[[[[np.nan]]]]], dtype=mx.float32),
+    )
+
+    with pytest.raises(ValueError) as exc_info:
+        model.generate_video(
+            seed=1,
+            prompt="a slow wave",
+            width=64,
+            height=64,
+            num_frames=1,
+            num_inference_steps=2,
+            guidance=1,
+            guidance_2=1,
+            image_path="input.png",
+            progress_callback=events.append,
+        )
+
+    message = str(exc_info.value)
+    assert "wan-image-conditioning" in message
+    assert "tensor=condition" in message
+    assert [event.phase for event in events] == ["start"]
+    assert calls == {"scheduler_steps": 0, "to_video": 0}
+
+
+def test_wan_generate_rejects_reuse_after_denoiser_release():
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    model.model_config = ModelConfig.wan2_2_i2v_a14b()
+    model.transformer = None
+    model.transformer_2 = SimpleNamespace()
+
+    with pytest.raises(ValueError, match="denoisers have been released"):
+        model.generate_video(
+            seed=1,
+            prompt="a slow wave",
+            width=64,
+            height=64,
+            num_frames=1,
+            num_inference_steps=2,
+            guidance=1,
+            image_path="input.png",
+        )
+
+
+def test_wan_generate_rejects_non_finite_latents_during_denoise(monkeypatch):
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    model.model_config = ModelConfig.wan2_2_t2v_a14b()
+    model.bits = 8
+    model.vae = SimpleNamespace(
+        z_dim=16,
+        temporal_scale=4,
+        spatial_scale=8,
+        decode_normalized_latents=lambda latents: mx.zeros((1, 3, 1, 8, 8), dtype=mx.float32),
+    )
+
+    class FakeTransformer:
+        patch_size = (1, 2, 2)
+        in_channels = 16
+        out_channels = 16
+
+        def __call__(self, **kwargs):
+            return mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32)
+
+    class FakeScheduler:
+        num_train_timesteps = 1000
+
+        def __init__(self, flow_shift):
+            self.flow_shift = flow_shift
+            self.timesteps = mx.array([], dtype=mx.int64)
+
+        def set_timesteps(self, num_inference_steps):
+            self.timesteps = mx.array([900, 800], dtype=mx.int64)
+
+        def step(self, model_output, timestep, sample, return_dict):
+            del model_output, timestep, return_dict
+            failed = np.zeros(sample.shape, dtype=np.float32)
+            failed[0, 0, 0, 0, 0] = np.nan
+            return (mx.array(failed),)
+
+    def fail_video_conversion(**kwargs):
+        raise AssertionError("video conversion should not run after non-finite denoise latents")
+
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.WanUniPCMultistepScheduler",
+        FakeScheduler,
+    )
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", fail_video_conversion)
+    monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
+    monkeypatch.setattr(
+        model,
+        "prepare_latents",
+        lambda **kwargs: mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32),
+    )
+    model.transformer = FakeTransformer()
+    model.transformer_2 = FakeTransformer()
+
+    with pytest.raises(ValueError, match="phase=wan-scheduler-step.*step=1/2"):
+        model.generate_video(
+            seed=1,
+            prompt="a slow wave",
+            width=64,
+            height=64,
+            num_frames=1,
+            num_inference_steps=2,
+            guidance=1,
+            guidance_2=1,
+            tensor_health_check_interval=1,
+        )
+
+
 def test_wan_a14b_default_guidance_pair_uses_model_defaults():
     model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
     model.model_config = ModelConfig.wan2_2_t2v_a14b()
@@ -134,6 +589,122 @@ def test_wan_ti2v_5b_default_guidance_has_no_low_noise_stage():
 
     assert guidance == 5.0
     assert guidance_2 is None
+
+
+def test_wan_tensor_health_check_interval_validation():
+    assert Wan2_2_TI2V._validate_tensor_health_check_interval(1) == 1
+    assert Wan2_2_TI2V._validate_tensor_health_check_interval(None) is None
+    with pytest.raises(ValueError, match="tensor_health_check_interval"):
+        Wan2_2_TI2V._validate_tensor_health_check_interval(0)
+    with pytest.raises(ValueError, match="tensor_health_check_interval"):
+        Wan2_2_TI2V._validate_tensor_health_check_interval(-1)
+
+
+@pytest.mark.parametrize("guidance", [np.nan, np.inf, -np.inf])
+def test_wan_generate_rejects_non_finite_guidance(monkeypatch, guidance):
+    model = _fake_t2v_a14b_model()
+    _patch_fake_wan_generation(monkeypatch, model)
+
+    with pytest.raises(ValueError, match="Wan guidance must be finite"):
+        model.generate_video(
+            seed=1,
+            prompt="a slow wave",
+            width=64,
+            height=64,
+            num_frames=1,
+            num_inference_steps=2,
+            guidance=guidance,
+            guidance_2=1,
+        )
+
+
+@pytest.mark.parametrize("guidance_2", [np.nan, np.inf, -np.inf])
+def test_wan_generate_rejects_non_finite_guidance_2(monkeypatch, guidance_2):
+    model = _fake_t2v_a14b_model()
+    _patch_fake_wan_generation(monkeypatch, model)
+
+    with pytest.raises(ValueError, match="Wan guidance_2 must be finite"):
+        model.generate_video(
+            seed=1,
+            prompt="a slow wave",
+            width=64,
+            height=64,
+            num_frames=1,
+            num_inference_steps=2,
+            guidance=1,
+            guidance_2=guidance_2,
+        )
+
+
+class _FakeWanTransformer:
+    patch_size = (1, 2, 2)
+    in_channels = 16
+    out_channels = 16
+
+    def __init__(self, output=None):
+        self._output = output
+
+    def __call__(self, **kwargs):
+        if self._output is not None:
+            return self._output
+        return mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32)
+
+
+def _fake_t2v_a14b_model():
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    model.model_config = ModelConfig.wan2_2_t2v_a14b()
+    model.bits = None
+    model.vae = SimpleNamespace(
+        z_dim=16,
+        temporal_scale=4,
+        spatial_scale=8,
+        decode_normalized_latents=lambda latents: mx.zeros((1, 3, 1, 8, 8), dtype=mx.float32),
+    )
+    model.transformer = _FakeWanTransformer()
+    model.transformer_2 = _FakeWanTransformer()
+    return model
+
+
+def _patch_fake_wan_generation(monkeypatch, model, scheduler_output=None, patch_to_video=True):
+    calls = {"scheduler_steps": 0, "to_video": 0}
+
+    class FakeScheduler:
+        num_train_timesteps = 1000
+
+        def __init__(self, flow_shift):
+            self.flow_shift = flow_shift
+            self.timesteps = mx.array([], dtype=mx.int64)
+
+        def set_timesteps(self, num_inference_steps):
+            self.timesteps = mx.array([900, 875], dtype=mx.int64)
+
+        def step(self, model_output, timestep, sample, return_dict):
+            calls["scheduler_steps"] += 1
+            return (scheduler_output if scheduler_output is not None else sample,)
+
+    def fake_to_video(**kwargs):
+        calls["to_video"] += 1
+        return SimpleNamespace()
+
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.WanUniPCMultistepScheduler",
+        FakeScheduler,
+    )
+    if patch_to_video:
+        monkeypatch.setattr(
+            "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video",
+            fake_to_video,
+        )
+    monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
+    monkeypatch.setattr(
+        model,
+        "prepare_latents",
+        lambda **kwargs: mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32),
+    )
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.gc.collect", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.synchronize", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.clear_cache", lambda: None)
+    return calls
 
 
 def test_wan_guidance_2_requires_two_transformer_boundary():
@@ -330,4 +901,6 @@ def _write_wan_source_configs(
         (component_path / "config.json").write_text(json.dumps(transformer_config))
     vae_path = path / "vae"
     vae_path.mkdir()
-    (vae_path / "config.json").write_text(json.dumps({"_class_name": "AutoencoderKLWan", "z_dim": vae_z_dim, "base_dim": vae_base_dim}))
+    (vae_path / "config.json").write_text(
+        json.dumps({"_class_name": "AutoencoderKLWan", "z_dim": vae_z_dim, "base_dim": vae_base_dim})
+    )

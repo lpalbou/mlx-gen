@@ -166,6 +166,26 @@ def test_binarize():
 
 
 @pytest.mark.fast
+@pytest.mark.parametrize("invalid_value", [np.nan, np.inf, -np.inf])
+def test_numpy_to_pil_rejects_non_finite_pixels(invalid_value):
+    images = np.zeros((1, 4, 4, 3), dtype=np.float32)
+    images[0, 0, 0, 0] = invalid_value
+
+    with pytest.raises(ValueError, match="Non-finite tensor values"):
+        ImageUtil._numpy_to_pil(images)
+
+
+@pytest.mark.fast
+def test_save_image_raises_primary_save_failure(tmp_path):
+    class FailingImage:
+        def save(self, path):
+            raise OSError("disk full")
+
+    with pytest.raises(OSError, match="disk full"):
+        ImageUtil.save_image(FailingImage(), tmp_path / "failed.png")
+
+
+@pytest.mark.fast
 def test_to_array_with_mask():
     # Create a test image with gradient colors
     from PIL import Image, ImageDraw

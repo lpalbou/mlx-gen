@@ -13,12 +13,12 @@ Some internals currently remain under `mflux.*`; new application code should use
 - `docs/architecture.md`: package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
 - `docs/api.md`: public `mlxgen` command surface, generation router, model-management commands, and Python integration boundary.
 - `docs/model-management.md`: cache-only runtime policy, `download` versus `prepare`, Depth Pro, and `DownloadRequiredError`.
-- `docs/quantization.md`: MLX-Gen low-bit compatibility by model family, validation panels, Bonsai ternary 2-bit support, comparison with current Qwen/ERNIE mixed q4/q8 policies, and binary 1-bit runtime limits.
+- `docs/quantization.md`: MLX-Gen low-bit compatibility by model family, validation panels, Bonsai ternary 2-bit support, current Qwen/ERNIE mixed q4/q8 policies, Wan mixed q8/BF16 package measurements, and binary 1-bit runtime limits.
 - `docs/huggingface-publishing.md`: generated model cards, source license/access wording, default `AbstractFramework/<repo-name>` usage, upload flow, and optional collection membership.
-- `docs/python-integration.md`: in-process use, AbstractVision integration, Wan progress callbacks, and threading guidance.
+- `docs/python-integration.md`: in-process use, AbstractVision integration, shared progress callbacks, and threading guidance.
 - `docs/adr/README.md`: accepted architecture decisions, including model-backed smoke validation requirements for new model routes.
-- `docs/faq.md`: common questions about `prepare`, downloads, package naming, and compatibility.
-- `docs/troubleshooting.md`: missing files, local path classification, output replacement, `generate --path`, ERNIE Prompt Enhancer files, ERNIE small-resolution and unsupported edit-input behavior, Wan video quality-setting limits, LoRA, and `hf_transfer`.
+- `docs/faq.md`: common questions about `prepare`, downloads, package naming, compatibility, and Wan image-to-video prompting.
+- `docs/troubleshooting.md`: missing files, local path classification, output replacement, `generate --path`, ERNIE Prompt Enhancer files, ERNIE small-resolution and unsupported edit-input behavior, Wan video quality-setting and prompting limits, LoRA, and `hf_transfer`.
 - `docs/release.md`: GitHub Release and PyPI trusted publishing workflow.
 - `ACKNOWLEDGEMENTS.md`: upstream mflux credit and post-fork maintainership.
 - `CONTRIBUTING.md`: development setup, checks, documentation expectations, and pull-request scope.
@@ -58,6 +58,9 @@ The public command boundary separates setup from inference:
 - `mlxgen generate` runs inference and does not start downloads by default.
 
 Prepared folders use the MLX/mflux saved-weight layout and may contain MLX quantization tensors. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers loading.
+
+The Python integration boundary exposes lightweight progress monitoring through
+`mflux.callbacks.ProgressEvent`; events do not include latents or model tensors.
 
 ---
 
@@ -264,6 +267,15 @@ mlxgen generate \
 
 The separate A14B I2V route targets `Wan-AI/Wan2.2-I2V-A14B-Diffusers` and uses concatenated image-condition latents. It requires the complete local source snapshot before generation.
 
+Wan video progress is denoising-step based. The CLI keeps the requested frame count as context,
+but `complete` is reserved for a video that has been saved and passed MP4 health validation. If Wan
+generation or save validation fails, MLX-Gen writes a compact `<output>.failure.json` manifest next
+to the intended output path.
+
+Wan image-to-video responds best when the input image and prompt describe the same plausible motion. Use a source frame with the whole subject visible, margin around moving limbs or objects, and minimal occlusion. Match the source image's aspect ratio and composition to the requested video canvas; TI2V-5B normalizes dimensions to multiples of 32, so compose the source for the adjusted dimensions when a requested size is rounded. Keep identity-critical regions inside the rendered frame: once a face, hand, foot, logo, product edge, or other important region leaves the visible image, the model no longer has rendered pixels to anchor its identity or geometry, and re-entry may reconstruct it from latent and temporal context with drift. Also constrain rotation when front-facing identity matters: ask for front-facing or three-quarter-front motion, keep pivots below about 60-90 degrees, and block rear/back/profile-only views. Write the positive prompt as a concrete motion plan: name the subject, camera style, body parts or object parts that should move, and continuity constraints that should remain stable. For human motion, prompts should explicitly mention torso pivots, head turns, arm sweeps, leg crossing or weight shifts, full head and body visibility, attached arms, and natural hands and feet. For object motion, describe the physical action, such as a spacecraft lifting away from snow with engines firing, stable hull geometry, and no scene cut.
+
+Use a negative prompt to block common image-to-video failure modes: `static still image`, `only arms moving`, `only camera movement`, cropped body parts, back to camera, rear view, turned away, profile-only view, over-rotated body, detached or disconnected arms and hands, broken wrists, malformed hands, oversized or melted feet, duplicate bodies, black or green frames, flicker, subject exits frame, and sudden scene cuts. Prompting reduces but does not eliminate model brittleness, especially around hands, wrists, feet, ankles, self-occluding poses, out-of-frame re-entry, and return from back-facing views. Prefer shorter clips, restrained motion, wider framing, camera-follow prompts, generous margins around raised hands and feet, rotation limits when face identity matters, or separate keyframed clips when the action would otherwise move identity-critical regions outside the rendered frame. For production checks, inspect decoded frames or contact sheets rather than relying only on MP4 existence.
+
 Wan does not have a separate duration flag. Duration is `frames / fps`; at 24 fps, 121 frames is about 5.04 seconds, 73 frames is about 3.04 seconds, and 49 frames is about 2.04 seconds. Frame counts are normalized to `4n + 1`. Width and height are normalized to the selected Wan model's VAE/patch multiple: TI2V-5B uses multiples of 32, while A14B uses multiples of 16. Spatial-scale T2V and I2V sanity panels at 1280x704, 17 frames, and 20 steps live in `docs/assets/generation/`; they are coherent non-green outputs, not full quality benchmarks.
 
 Generation commands replace the requested `--output` path by default. Use `--replace false` or `--no-replace` to preserve an existing file and save to the next suffixed path.
@@ -274,7 +286,17 @@ Generation commands replace the requested `--output` path by default. Use `--rep
 
 MLX-Gen prepares quantized model folders with the mflux/MLX layout used for local inference. These folders are designed for MLX-Gen and compatible mflux code, not Diffusers or Transformers `from_pretrained()` checkpoints.
 
-The primary q8/q4 prepared-folder compatibility surface covers Qwen Image, Qwen Image Edit, ERNIE Image Turbo, FLUX.2 Klein, Z-Image/Z-Image Turbo, and FIBO when source access is available. Qwen and ERNIE q4 folders use mixed q4/q8 policies because fully q4 checkpoints showed unacceptable generation-quality loss. FLUX.2 and Z-Image use standard MLX quantization policies. Bonsai Image is not a prepared q4/q8 folder; the supported ternary checkpoint is a pre-packed 2-bit FLUX.2-derived transformer with a 4-bit Qwen3 text encoder and BF16 Flux2 VAE. q8 remains the closest quantized prepared-folder option to BF16 when memory allows. Bonsai 2-bit and mixed q4/q8 are similar in intent: both keep sensitive paths at a higher precision and ship the smallest layout that stayed in the same visual family as the higher-precision baseline.
+The primary q8/q4 prepared-folder compatibility surface covers Qwen Image, Qwen Image Edit, ERNIE Image Turbo, FLUX.2 Klein, Z-Image/Z-Image Turbo, FIBO when source access is available, and Wan2.2 with a mixed q8/BF16 policy. Qwen and ERNIE q4 folders use mixed q4/q8 policies because fully q4 checkpoints showed unacceptable generation-quality loss. FLUX.2 and Z-Image use standard MLX quantization policies. Bonsai Image is not a prepared q4/q8 folder; the supported ternary checkpoint is a pre-packed 2-bit FLUX.2-derived transformer with a 4-bit Qwen3 text encoder and BF16 Flux2 VAE. q8 remains the closest quantized prepared-folder option to BF16 when memory allows. Bonsai 2-bit and mixed q4/q8 are similar in intent: both keep sensitive paths at a higher precision and ship the smallest layout that stayed in the same visual family as the higher-precision baseline.
+
+Wan mixed q8/BF16 quantizes bulky transformer block linears and keeps the VAE, UMT5 text encoder,
+Wan `condition_embedder.*`, Wan `proj_out`, scheduler metadata, tokenizer files, norms,
+convolutions, and non-quantizable parameters at BF16. Published-card validation reports T2V-A14B
+BF16 at 64.3 GiB disk, 33.0 GiB full-process physical peak, and 152.7 s for a 384x224 33-frame
+12-step run; T2V-A14B mixed q8/BF16 at 39.7 GiB disk, 20.7 GiB physical peak, and 154.8 s; I2V-A14B
+BF16 at 64.1 GiB disk, 33.7 GiB physical peak, and 228.2 s for a 384x384 33-frame 12-step run; and
+I2V-A14B mixed q8/BF16 at 39.7 GiB disk, 21.5 GiB physical peak, and 242.2 s. Mixed q8/BF16 reduces
+storage and measured full-process memory in these validation runs; it is not currently claimed as a
+speed improvement.
 
 Qwen Image and Qwen Image Edit use a mixed q4/q8 policy when prepared with `--quantize 4`:
 
@@ -340,7 +362,7 @@ Current responsibilities:
 - MLX-Gen owns MLX model loading, model-family behavior, local quantized formats, and runtime compatibility fixes.
 - MLX-Gen fails early when required local artifacts are missing so AbstractVision can surface an actionable remediation message.
 
-Existing model callbacks remain available through the mflux runtime internals. Wan video generation also exposes a direct `progress_callback` hook that receives `WanProgressEvent` objects with `phase`, `frame`, `total_frames`, `step`, `total_steps`, and `progress`. Wan progress is reported in output-frame units while carrying denoising step metadata for application-level monitoring. For Wan2.2 I2V-A14B, use `ModelConfig.wan2_2_i2v_a14b()` or the `Wan-AI/Wan2.2-I2V-A14B-Diffusers` model name and pass `image_path` to `generate_video()`. Other backends still use their existing model-specific callback paths.
+MLX-Gen exposes one lightweight `ProgressEvent` type for application monitoring. Image model instances publish events through `model.callbacks.subscribe_progress(callback, task=...)`. Wan video generation supports the same subscription path and also accepts a direct `progress_callback` argument on `generate_video()` for one-shot handlers. `ProgressEvent.progress` is denoise-step progress (`step / total_steps`). Video events also include `frame`, `total_frames`, and `frame_progress` for output-frame context. For Wan2.2 I2V-A14B, use `ModelConfig.wan2_2_i2v_a14b()` or the `Wan-AI/Wan2.2-I2V-A14B-Diffusers` model name and pass `image_path` to `generate_video()`.
 
 ---
 
@@ -351,6 +373,8 @@ If MLX-Gen says it will not download files during generation, run the command sh
 If a local path cannot be classified, add `--family`.
 
 If `generate --path` fails, use `mlxgen prepare --model ... --path ... --quantize ...` to create a model folder or `--output` to choose the generated image or video path.
+
+For Wan image-to-video prompts, describe concrete motion rather than only a visual style. Name the moving body parts or object parts, keep continuity constraints in the positive prompt, and put common failure modes such as `static still image`, `only camera movement`, `detached arm`, `malformed hands`, `oversized foot`, `black frames`, and `sudden scene cut` in the negative prompt.
 
 If the requested `--output` image already exists, MLX-Gen replaces it by default. Use `--replace false` or `--no-replace` to write to the next suffixed filename instead.
 

@@ -1,10 +1,13 @@
 import json
 
 import mlx.core as mx
+import numpy as np
+import pytest
 from PIL import Image
 
 from mflux.models.common.config import ModelConfig
 from mflux.utils.generated_image import GeneratedImage
+from mflux.utils.image_util import ImageUtil
 
 
 def test_fibo_edit_save_also_writes_prompt_json(tmp_path):
@@ -36,6 +39,21 @@ def test_fibo_edit_save_also_writes_prompt_json(tmp_path):
     assert output_path.exists()
     assert prompt_path.exists()
     assert json.loads(prompt_path.read_text()) == json.loads(prompt)
+
+
+def test_image_util_rejects_non_finite_decoded_latents():
+    decoded_np = np.zeros((1, 3, 16, 16), dtype=np.float32)
+    decoded_np[0, 0, 0, 0] = np.nan
+
+    with pytest.raises(ValueError, match="Non-finite tensor values"):
+        ImageUtil.to_image(
+            decoded_latents=mx.array(decoded_np),
+            config=None,
+            seed=7,
+            prompt="latent smoke",
+            quantization=0,
+            generation_time=0.2,
+        )
 
 
 def test_exported_metadata_uses_metadata_sidecar_suffix(tmp_path):

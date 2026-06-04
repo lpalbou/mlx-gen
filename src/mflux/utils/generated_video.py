@@ -64,16 +64,18 @@ class GeneratedVideo:
         path: str | Path,
         export_json_metadata: bool = False,
         overwrite: bool = True,
-    ) -> None:
+        validate_health: bool = True,
+    ) -> Path:
         from mflux.utils.video_util import VideoUtil
 
-        VideoUtil.save_video(
+        return VideoUtil.save_video(
             frames=self.frames,
             path=path,
             fps=self.fps,
             metadata=self._get_metadata(),
             export_json_metadata=export_json_metadata,
             overwrite=overwrite,
+            validate_health=validate_health,
         )
 
     def first_frame(self) -> PIL.Image.Image:

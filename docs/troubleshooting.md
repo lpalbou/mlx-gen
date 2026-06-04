@@ -106,9 +106,18 @@ mlxgen generate \
 
 Use lower dimensions, frame counts, or step counts only to validate routing and MP4 writing. For image-to-video, pass exactly one input image and use `--task image-to-video`. Multi-image Wan interpolation is not enabled.
 
-For T2V-A14B, use 1280x720 or 720x1280, 81 frames, 40 steps, `--guidance 4`, optional `--guidance-2 3`, and 16 fps when validating quality. The separate I2V-A14B path requires a complete local `Wan-AI/Wan2.2-I2V-A14B-Diffusers` snapshot and one `--image` input.
+For Wan image-to-video prompts, describe concrete motion rather than only a style. Name the moving
+body parts or object parts, keep continuity constraints in the positive prompt, and put common
+failure modes such as `static still image`, `only camera movement`, `detached arm`, `malformed
+hands`, `oversized foot`, `black frames`, and `sudden scene cut` in the negative prompt. See
+[How Should I Prompt Wan Image-To-Video?](faq.md#how-should-i-prompt-wan-image-to-video) for
+examples.
+
+For T2V-A14B source/BF16 quality validation, use 1280x720 or 720x1280, 81 frames, 40 steps, `--guidance 4`, optional `--guidance-2 3`, and 16 fps. Do not treat those settings as a full-size mixed q8/BF16 validation claim until the q8 ladder and video-health release gate have passed. The separate I2V-A14B path requires a complete local `Wan-AI/Wan2.2-I2V-A14B-Diffusers` snapshot and one `--image` input.
 
 Wan uses frame-count control rather than a separate duration flag. Duration is `frames / fps`; at 24 fps, 121 frames is about 5.04 seconds, and at 16 fps, 81 frames is about 5.06 seconds. Frame counts are normalized to `4n + 1`, and width/height are normalized to the selected Wan model's VAE/patch multiple.
+
+If Wan generation or MP4 save validation fails, the CLI writes a failure manifest next to the intended output path, for example `video.failure.json` for `video.mp4`. The manifest includes the error, tensor-health report when available, seed, prompt, dimensions, frames, steps, guidance, fps, output path, and memory-related runtime flags.
 
 ## `generate --path` Fails
 
