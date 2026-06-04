@@ -28,6 +28,50 @@ The difference between Bonsai ternary 2-bit and MLX-Gen's mixed q4/q8 policies i
 
 These are not model-quality rankings across unrelated models. They show the current MLX-Gen rule: use the smallest validated layout that still stays in the same visual family as a higher-precision baseline.
 
+## Published Package Matrix
+
+Prepared packages published by the
+[AbstractFramework Hugging Face organization](https://huggingface.co/AbstractFramework) should be
+read together with the task resolver: public tasks describe media direction, while the selected
+model determines the exact internal mode. Sizes below are current Hugging Face repository totals
+checked on 2026-06-04 and rounded to one decimal GiB. Source size is the upstream repository total;
+package size is the prepared AbstractFramework repository total.
+
+### Text-To-Image And Latent Image-To-Image
+
+| Source model | Public task / mode | Source size | Published packages | Package sizes | Quantization status |
+| --- | --- | ---: | --- | ---: | --- |
+| FLUX.2 Klein 4B | T2I, edit/reference I2I where supported by the model route | 22.1 GiB | `flux.2-klein-4b-4bit`<br>`flux.2-klein-4b-8bit` | 4.3 GiB<br>8.0 GiB | Standard MLX q4/q8 prepared folders. |
+| FLUX.2 Klein 9B | T2I, edit/reference I2I where supported by the model route | 49.3 GiB | `flux.2-klein-9b-4bit`<br>`flux.2-klein-9b-8bit` | 8.9 GiB<br>16.6 GiB | Standard MLX q4/q8 prepared folders; inherits the source model's gated/non-commercial terms. |
+| FLUX.2 Klein Base 4B | T2I, edit/reference I2I where supported by the model route | 22.1 GiB | `flux.2-klein-base-4b-4bit`<br>`flux.2-klein-base-4b-8bit` | 4.3 GiB<br>8.0 GiB | Standard MLX q4/q8 prepared folders. |
+| FLUX.2 Klein Base 9B | T2I, edit/reference I2I where supported by the model route | 49.3 GiB | `flux.2-klein-base-9b-4bit`<br>`flux.2-klein-base-9b-8bit` | 8.9 GiB<br>16.6 GiB | Standard MLX q4/q8 prepared folders; inherits the source model's gated/non-commercial terms. |
+| Qwen Image | T2I | 53.7 GiB | `qwen-image-4bit`<br>`qwen-image-8bit` | 16.2 GiB<br>27.5 GiB | q4 uses MLX-Gen's mixed q4/q8 Qwen policy; q8 uses the standard q8 path. |
+| Qwen Image 2512 | T2I | 53.7 GiB | `qwen-image-2512-4bit`<br>`qwen-image-2512-8bit` | 16.2 GiB<br>27.5 GiB | q4 uses MLX-Gen's mixed q4/q8 Qwen policy; q8 uses the standard q8 path. |
+| ERNIE Image Turbo | T2I, experimental latent I2I | 29.5 GiB | `ernie-image-turbo-8bit`<br>`ernie-image-turbo-4bit` | 11.5 GiB<br>11.5 GiB | The public `-8bit` package is q8. The public `-4bit` repository currently has q8 metadata and the same size as `-8bit`; do not treat it as a valid q4 memory package until it is republished. |
+| Z-Image | T2I | 19.1 GiB | `z-image-4bit`<br>`z-image-8bit` | 5.5 GiB<br>10.2 GiB | Standard MLX q4/q8 prepared folders. |
+| Z-Image Turbo | T2I | 30.6 GiB | `z-image-turbo-4bit`<br>`z-image-turbo-8bit` | 5.5 GiB<br>10.2 GiB | Standard MLX q4/q8 prepared folders. |
+
+### Edit-Conditioned Image-To-Image
+
+| Source model | Public task / mode | Source size | Published packages | Package sizes | Quantization status |
+| --- | --- | ---: | --- | ---: | --- |
+| Qwen Image Edit | I2I edit/reference and multi-reference | 53.8 GiB | `qwen-image-edit-4bit`<br>`qwen-image-edit-8bit` | 17.0 GiB<br>28.3 GiB | q4 uses MLX-Gen's mixed q4/q8 Qwen edit policy; q8 uses the standard q8 path. |
+| Qwen Image Edit 2509 | I2I edit/reference and multi-reference | 53.8 GiB | `qwen-image-edit-2509-4bit`<br>`qwen-image-edit-2509-8bit` | 17.0 GiB<br>28.3 GiB | q4 uses MLX-Gen's mixed q4/q8 Qwen edit policy; q8 uses the standard q8 path. |
+| Qwen Image Edit 2511 | I2I edit/reference and multi-reference | 53.8 GiB | `qwen-image-edit-2511-4bit`<br>`qwen-image-edit-2511-8bit` | 17.0 GiB<br>28.3 GiB | q4 uses MLX-Gen's mixed q4/q8 Qwen edit policy; q8 uses the standard q8 path. |
+
+### Text-To-Video And Image-To-Video
+
+| Source model | Public task / mode | Source size | Published packages | Package sizes | Quantization status |
+| --- | --- | ---: | --- | ---: | --- |
+| Wan2.2 TI2V-5B | T2V and first-frame I2V | 31.9 GiB | `wan2.2-ti2v-5b-diffusers-8bit` | 16.9 GiB | Published q8/BF16 package. No published TI2V-5B BF16 package yet; a BF16 package would mainly reduce storage versus the FP32/BF16 source snapshot. No validated q4 or mixed q4/q8 package is published. |
+| Wan2.2 T2V-A14B | T2V | 117.5 GiB | `wan2.2-t2v-a14b-diffusers-bf16`<br>`wan2.2-t2v-a14b-diffusers-8bit` | 64.1 GiB<br>39.5 GiB | BF16 prepared package plus mixed q8/BF16 package. Runtime measurements are below. |
+| Wan2.2 I2V-A14B | I2V | 117.5 GiB | `wan2.2-i2v-a14b-diffusers-bf16`<br>`wan2.2-i2v-a14b-diffusers-8bit` | 64.1 GiB<br>39.5 GiB | BF16 prepared package plus mixed q8/BF16 package. Runtime measurements are below. |
+
+Runtime memory and timing measurements are currently complete in this document for ERNIE Image
+Turbo, Bonsai Image, and Wan A14B validation profiles. Other published packages are documented here
+by package size and quantization policy, with representative visual panels where local validation
+has produced them.
+
 ## Qwen q4
 
 Qwen Image and Qwen Image Edit use a mixed q4/q8 policy when prepared with `--quantize 4`. Fully q4 Qwen checkpoints can lose coherent generative behavior, so MLX-Gen keeps only the sensitive paths at higher precision:
@@ -61,6 +105,15 @@ BF16:
 - BF16 for Wan transformer `condition_embedder.*` and `proj_out`.
 - BF16 for the UMT5 text encoder, scheduler metadata, tokenizer files, norms, convolutions, and
   other non-quantizable parameters.
+
+The current published TI2V-5B prepared package is
+`AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit`. The upstream TI2V-5B source snapshot is about
+31.9 GiB and is not uniformly 16-bit on disk: its transformer and VAE safetensors are FP32, while
+the UMT5 text encoder is BF16. MLX-Gen loads and prepares Wan transformer/VAE weights at BF16
+runtime precision, so a prepared BF16 TI2V-5B package would mainly reduce storage and provide a
+reusable MLX-Gen folder; it is not expected to materially reduce runtime memory versus source
+generation. TI2V-5B q4 or mixed q4/q8 remains under validation and is not published as a supported
+package.
 
 The upstream Wan A14B source snapshots are about 118 GiB. MLX-Gen also publishes prepared BF16
 folders for users who want a smaller reusable MLX-Gen package without quantizing runtime-sensitive

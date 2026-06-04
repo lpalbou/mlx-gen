@@ -8,12 +8,12 @@ capabilities, quantized prepared folders, Wan video behavior, and application in
 
 ## Core Docs
 
-- [README.md](README.md): project overview, mflux credit, install commands, published model links, Wan A14B measurements, and ecosystem links.
+- [README.md](README.md): project overview, mflux credit, install commands, published model links, Wan TI2V/A14B notes, and ecosystem links.
 - [docs/README.md](docs/README.md): index for the documentation tree.
 - [docs/getting-started.md](docs/getting-started.md): first-run workflow for install, download, prepare, image generation, image editing, and Wan video.
 - [docs/api.md](docs/api.md): `mlxgen` command surface, generation router, public tasks, internal I2I modes, outpaint/reframe status, Wan video sizes, model capabilities, and Python plan resolution.
 - [docs/model-management.md](docs/model-management.md): explicit download/prepare commands, cache-only generation, local prepared folders, and missing-artifact errors.
-- [docs/quantization.md](docs/quantization.md): q8/q4/BF16 policies, Wan mixed q8/BF16 measurements, Bonsai ternary support, and model-family compatibility.
+- [docs/quantization.md](docs/quantization.md): complete published package matrix, q8/q4/BF16 policies, Wan TI2V/A14B package status, Bonsai ternary support, and model-family compatibility.
 - [docs/python-integration.md](docs/python-integration.md): embedding MLX-Gen, AbstractVision integration, progress callbacks, and threading guidance.
 - [docs/faq.md](docs/faq.md): common questions about tasks, image-to-image mode selection, `--image-strength`, outpaint/reframe status, Wan resolutions and prompting, model preparation, and package naming.
 - [docs/troubleshooting.md](docs/troubleshooting.md): symptoms and fixes for missing files, local paths, unsupported options, Wan video settings, LoRA, and transfer issues.

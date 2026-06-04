@@ -6,13 +6,13 @@
 
 ## Document Index
 
-- `README.md`: project overview, install commands, mflux credit, main workflows, published model links, Wan A14B measurements, and ecosystem links.
+- `README.md`: project overview, install commands, mflux credit, main workflows, published model links, Wan TI2V/A14B notes, and ecosystem links.
 - `docs/README.md`: documentation tree index.
 - `docs/getting-started.md`: install, first download, model preparation, image generation, image editing, and Wan video examples.
 - `docs/api.md`: public CLI, router behavior, task/mode resolution, I2I mode selection, outpaint/reframe status, Wan video sizes, `mlxgen capabilities`, and Python routing helpers.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
 - `docs/model-management.md`: cache-only runtime policy, explicit `download` and `prepare`, local model folders, and `DownloadRequiredError`.
-- `docs/quantization.md`: q8/q4/BF16 policies, model-family compatibility, and Wan A14B memory/storage measurements.
+- `docs/quantization.md`: complete published package matrix, q8/q4/BF16 policies, model-family compatibility, and Wan TI2V/A14B package status.
 - `docs/huggingface-publishing.md`: generated model cards and AbstractFramework Hugging Face upload guidance.
 - `docs/python-integration.md`: embedding MLX-Gen, capability checks, progress callbacks, AbstractVision integration, and threading behavior.
 - `docs/faq.md`: common conceptual questions, I2I mode selection, outpaint/reframe status, Wan resolutions, prompting guidance, and usage limits.
@@ -137,8 +137,9 @@ size, frame count, and step count when judging visual quality.
 Prepared MLX-Gen model folders are published under the Hugging Face
 `AbstractFramework` organization. Representative current repositories include FLUX.2 Klein 4B/9B
 q4/q8 packages, Qwen Image and Qwen Image Edit q4/q8 packages, Z-Image and Z-Image Turbo q4/q8
-packages, ERNIE Image Turbo q4/q8 packages, Wan2.2 TI2V-5B 8-bit, and Wan2.2 A14B T2V/I2V BF16 and
-mixed q8/BF16 packages.
+packages, ERNIE Image Turbo q8, a nominal ERNIE `-4bit` repo that currently has q8 metadata,
+Wan2.2 TI2V-5B q8, and Wan2.2 A14B T2V/I2V BF16 and mixed q8/BF16 packages. There is no published
+TI2V-5B BF16 or q4/mixed q4/q8 package yet.
 
 Prepared folders are MLX-Gen/mflux saved-weight layouts. They are intended for MLX-Gen and
 compatible mflux code, not direct Diffusers or Transformers `from_pretrained()` loading.
@@ -158,6 +159,11 @@ Wan A14B uses a mixed q8/BF16 policy for 8-bit packages:
 - BF16 for sensitive conditioning/output projection paths;
 - BF16 for the UMT5 text encoder, tokenizer files, scheduler metadata, norms, convolutions, and
   non-quantizable parameters.
+
+For TI2V-5B, the upstream source snapshot is about 31.9 GiB and stores transformer and VAE files as
+FP32 while the UMT5 text encoder is BF16. MLX-Gen loads and prepares Wan transformer/VAE weights at
+BF16 runtime precision. The current q8 package is about 16.9 GiB; a future prepared BF16 package
+would mainly be a smaller source-equivalent folder, not a separate runtime-memory optimization.
 
 On an Apple M5 Max with 128 GB unified memory, published-card validation measured:
 

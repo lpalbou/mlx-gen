@@ -28,8 +28,8 @@ The main capabilities are:
   FIBO, and related prepared folders;
 - image-to-image modes, including latent img2img, instruction/reference edits, and multi-reference
   edits where the selected model supports them;
-- Wan2.2 text-to-video and image-to-video, including A14B T2V/I2V prepared BF16 and mixed q8/BF16
-  packages;
+- Wan2.2 text-to-video and image-to-video, including the TI2V-5B q8 package plus A14B
+  T2V/I2V prepared BF16 and mixed q8/BF16 packages;
 - explicit `download` and `prepare` workflows for reproducible local model folders;
 - JSON model capability inspection before starting a heavy run;
 - shared progress events for applications embedding MLX-Gen.
@@ -135,7 +135,16 @@ published examples include:
 - `AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit`
 
 Use `mlxgen download --model <repo-id>` to cache a published model, or pass the repository id
-directly to `mlxgen generate` after it is cached.
+directly to `mlxgen generate` after it is cached. See
+[docs/quantization.md](docs/quantization.md) for the complete current package matrix with source
+sizes, prepared package sizes, task coverage, and quantization notes.
+
+For Wan2.2 TI2V-5B, the current published AbstractFramework prepared package is q8. The upstream
+source snapshot is about 31.9 GiB and stores the transformer and VAE as FP32 while the UMT5 text
+encoder is BF16. MLX-Gen loads and prepares Wan transformer/VAE weights at BF16 runtime precision,
+so a future prepared BF16 TI2V-5B package would mainly be a smaller source-equivalent package, not
+a separate runtime-memory optimization. Wan TI2V-5B q4 or mixed q4/q8 remains under validation and
+is not published as a supported package.
 
 ## Wan A14B Measurements
 
