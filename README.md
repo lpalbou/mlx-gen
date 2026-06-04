@@ -28,7 +28,7 @@ The main capabilities are:
   FIBO, and related prepared folders;
 - image-to-image modes, including latent img2img, instruction/reference edits, and multi-reference
   edits where the selected model supports them;
-- Wan2.2 text-to-video and image-to-video, including the TI2V-5B q8 package plus A14B
+- Wan2.2 text-to-video and image-to-video, including TI2V-5B BF16/q8 packages plus A14B
   T2V/I2V prepared BF16 and mixed q8/BF16 packages;
 - explicit `download` and `prepare` workflows for reproducible local model folders;
 - JSON model capability inspection before starting a heavy run;
@@ -128,6 +128,7 @@ published examples include:
 - `AbstractFramework/z-image-turbo-8bit`
 - `AbstractFramework/ernie-image-turbo-4bit`
 - `AbstractFramework/ernie-image-turbo-8bit`
+- `AbstractFramework/wan2.2-ti2v-5b-diffusers-bf16`
 - `AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit`
 - `AbstractFramework/wan2.2-t2v-a14b-diffusers-bf16`
 - `AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit`
@@ -139,12 +140,11 @@ directly to `mlxgen generate` after it is cached. See
 [docs/quantization.md](docs/quantization.md) for the complete current package matrix with source
 sizes, prepared package sizes, task coverage, and quantization notes.
 
-For Wan2.2 TI2V-5B, the current published AbstractFramework prepared package is q8. The upstream
-source snapshot is about 31.9 GiB and stores the transformer and VAE as FP32 while the UMT5 text
-encoder is BF16. MLX-Gen loads and prepares Wan transformer/VAE weights at BF16 runtime precision,
-so a future prepared BF16 TI2V-5B package would mainly be a smaller source-equivalent package, not
-a separate runtime-memory optimization. Wan TI2V-5B q4 or mixed q4/q8 remains under validation and
-is not published as a supported package.
+For Wan2.2 TI2V-5B, the published BF16 prepared package is 21.2 GiB versus 31.9 GiB for the
+upstream source snapshot. It is mainly a smaller reusable source-equivalent package because
+MLX-Gen already loads Wan transformer/VAE weights at BF16 runtime precision. The published q8
+package is 16.9 GiB. Wan TI2V-5B q4 or mixed q4/q8 remains under validation and is not published as
+a supported package.
 
 ## Wan A14B Measurements
 

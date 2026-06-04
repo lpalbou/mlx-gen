@@ -138,8 +138,8 @@ Prepared MLX-Gen model folders are published under the Hugging Face
 `AbstractFramework` organization. Representative current repositories include FLUX.2 Klein 4B/9B
 q4/q8 packages, Qwen Image and Qwen Image Edit q4/q8 packages, Z-Image and Z-Image Turbo q4/q8
 packages, ERNIE Image Turbo q8, a nominal ERNIE `-4bit` repo that currently has q8 metadata,
-Wan2.2 TI2V-5B q8, and Wan2.2 A14B T2V/I2V BF16 and mixed q8/BF16 packages. There is no published
-TI2V-5B BF16 or q4/mixed q4/q8 package yet.
+Wan2.2 TI2V-5B BF16/q8, and Wan2.2 A14B T2V/I2V BF16 and mixed q8/BF16 packages. There is no
+published TI2V-5B q4/mixed q4/q8 package yet.
 
 Prepared folders are MLX-Gen/mflux saved-weight layouts. They are intended for MLX-Gen and
 compatible mflux code, not direct Diffusers or Transformers `from_pretrained()` loading.
@@ -162,8 +162,9 @@ Wan A14B uses a mixed q8/BF16 policy for 8-bit packages:
 
 For TI2V-5B, the upstream source snapshot is about 31.9 GiB and stores transformer and VAE files as
 FP32 while the UMT5 text encoder is BF16. MLX-Gen loads and prepares Wan transformer/VAE weights at
-BF16 runtime precision. The current q8 package is about 16.9 GiB; a future prepared BF16 package
-would mainly be a smaller source-equivalent folder, not a separate runtime-memory optimization.
+BF16 runtime precision. The published prepared BF16 package is about 21.2 GiB and the q8 package is
+about 16.9 GiB; BF16 is mainly a smaller source-equivalent folder, not a separate runtime-memory
+optimization.
 
 On an Apple M5 Max with 128 GB unified memory, published-card validation measured:
 

@@ -63,7 +63,7 @@ package size is the prepared AbstractFramework repository total.
 
 | Source model | Public task / mode | Source size | Published packages | Package sizes | Quantization status |
 | --- | --- | ---: | --- | ---: | --- |
-| Wan2.2 TI2V-5B | T2V and first-frame I2V | 31.9 GiB | `wan2.2-ti2v-5b-diffusers-8bit` | 16.9 GiB | Published q8/BF16 package. No published TI2V-5B BF16 package yet; a BF16 package would mainly reduce storage versus the FP32/BF16 source snapshot. No validated q4 or mixed q4/q8 package is published. |
+| Wan2.2 TI2V-5B | T2V and first-frame I2V | 31.9 GiB | `wan2.2-ti2v-5b-diffusers-bf16`<br>`wan2.2-ti2v-5b-diffusers-8bit` | 21.2 GiB<br>16.9 GiB | BF16 prepared package plus q8/BF16 package. BF16 mainly reduces storage versus the FP32/BF16 source snapshot; q8 further reduces storage. No validated q4 or mixed q4/q8 package is published. |
 | Wan2.2 T2V-A14B | T2V | 117.5 GiB | `wan2.2-t2v-a14b-diffusers-bf16`<br>`wan2.2-t2v-a14b-diffusers-8bit` | 64.1 GiB<br>39.5 GiB | BF16 prepared package plus mixed q8/BF16 package. Runtime measurements are below. |
 | Wan2.2 I2V-A14B | I2V | 117.5 GiB | `wan2.2-i2v-a14b-diffusers-bf16`<br>`wan2.2-i2v-a14b-diffusers-8bit` | 64.1 GiB<br>39.5 GiB | BF16 prepared package plus mixed q8/BF16 package. Runtime measurements are below. |
 
@@ -106,14 +106,15 @@ BF16:
 - BF16 for the UMT5 text encoder, scheduler metadata, tokenizer files, norms, convolutions, and
   other non-quantizable parameters.
 
-The current published TI2V-5B prepared package is
+The published TI2V-5B prepared packages are
+`AbstractFramework/wan2.2-ti2v-5b-diffusers-bf16` and
 `AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit`. The upstream TI2V-5B source snapshot is about
 31.9 GiB and is not uniformly 16-bit on disk: its transformer and VAE safetensors are FP32, while
 the UMT5 text encoder is BF16. MLX-Gen loads and prepares Wan transformer/VAE weights at BF16
-runtime precision, so a prepared BF16 TI2V-5B package would mainly reduce storage and provide a
+runtime precision, so the 21.2 GiB prepared BF16 package mainly reduces storage and provides a
 reusable MLX-Gen folder; it is not expected to materially reduce runtime memory versus source
-generation. TI2V-5B q4 or mixed q4/q8 remains under validation and is not published as a supported
-package.
+generation. The q8 package is 16.9 GiB. TI2V-5B q4 or mixed q4/q8 remains under validation and is
+not published as a supported package.
 
 The upstream Wan A14B source snapshots are about 118 GiB. MLX-Gen also publishes prepared BF16
 folders for users who want a smaller reusable MLX-Gen package without quantizing runtime-sensitive
