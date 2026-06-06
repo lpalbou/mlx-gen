@@ -1,0 +1,50 @@
+{
+    "mflux_version": "0.18.11",
+    "model": "AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit",
+    "base_model": "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+    "task": "text-to-video",
+    "seed": 4242,
+    "steps": 15,
+    "guidance": 4.0,
+    "guidance_2": 3.0,
+    "height": 240,
+    "width": 480,
+    "requested_height": null,
+    "requested_width": null,
+    "source_image_height": null,
+    "source_image_width": null,
+    "frames": 41,
+    "fps": 16,
+    "duration_seconds": 2.562,
+    "precision": "mlx.core.bfloat16",
+    "quantize": 8,
+    "generation_time_seconds": 345.92,
+    "created_at": "2026-06-07T00:00:06.698889",
+    "image_path": null,
+    "prompt": "A cinematic scene of a scientist working on Agentic AI hours after hours.",
+    "negative_prompt": "\u8272\u8c03\u8273\u4e3d\uff0c\u8fc7\u66dd\uff0c\u9759\u6001\uff0c\u7ec6\u8282\u6a21\u7cca\u4e0d\u6e05\uff0c\u5b57\u5e55\uff0c\u98ce\u683c\uff0c\u4f5c\u54c1\uff0c\u753b\u4f5c\uff0c\u753b\u9762\uff0c\u9759\u6b62\uff0c\u6574\u4f53\u53d1\u7070\uff0c\u6700\u5dee\u8d28\u91cf\uff0c\u4f4e\u8d28\u91cf\uff0cJPEG\u538b\u7f29\u6b8b\u7559\uff0c\u4e11\u964b\u7684\uff0c\u6b8b\u7f3a\u7684\uff0c\u591a\u4f59\u7684\u624b\u6307\uff0c\u753b\u5f97\u4e0d\u597d\u7684\u624b\u90e8\uff0c\u753b\u5f97\u4e0d\u597d\u7684\u8138\u90e8\uff0c\u7578\u5f62\u7684\uff0c\u6bc1\u5bb9\u7684\uff0c\u5f62\u6001\u7578\u5f62\u7684\u80a2\u4f53\uff0c\u624b\u6307\u878d\u5408\uff0c\u9759\u6b62\u4e0d\u52a8\u7684\u753b\u9762\uff0c\u6742\u4e71\u7684\u80cc\u666f\uff0c\u4e09\u6761\u817f\uff0c\u80cc\u666f\u4eba\u5f88\u591a\uff0c\u5012\u7740\u8d70",
+    "video_health": {
+        "frames": {
+            "source": "frames",
+            "frame_count": 41,
+            "width": 480,
+            "height": 240,
+            "fps": 16.0,
+            "luma_min": 0.0,
+            "luma_max": 255.0,
+            "luma_mean": 28.3954624082984,
+            "mean_temporal_delta": 5.198233312368393
+        },
+        "file": {
+            "source": "validation_outputs/wan_a14b_q8_release_2026_06_06/t2v_a14b_q8_480x240_41f_15steps_seed4242.mp4",
+            "frame_count": 41,
+            "width": 480,
+            "height": 240,
+            "fps": 16.0,
+            "luma_min": 0.0,
+            "luma_max": 255.0,
+            "luma_mean": 27.29993466633122,
+            "mean_temporal_delta": 5.170741385221481
+        }
+    }
+}

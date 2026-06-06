@@ -136,6 +136,37 @@ class TestPathResolutionHuggingFace:
         assert result == repo_cache
 
     @pytest.mark.fast
+    def test_huggingface_uses_complete_local_prepared_folder(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        prepared = tmp_path / "models" / "model"
+        transformer = prepared / "transformer"
+        transformer.mkdir(parents=True)
+        (transformer / "0.safetensors").touch()
+        (transformer / "model.safetensors.index.json").write_text(json.dumps({"weight_map": {"a": "0.safetensors"}}))
+
+        result = PathResolution.resolve(
+            path="org/model",
+            patterns=["transformer/*.safetensors", "transformer/*.json"],
+        )
+
+        assert result == prepared
+
+    @pytest.mark.fast
+    def test_huggingface_ignores_incomplete_local_prepared_folder(self, tmp_path, monkeypatch):
+        monkeypatch.chdir(tmp_path)
+        prepared = tmp_path / "models" / "model" / "transformer"
+        prepared.mkdir(parents=True)
+        (prepared / "model.safetensors.index.json").write_text(json.dumps({"weight_map": {"a": "0.safetensors"}}))
+
+        with pytest.raises(FileNotFoundError) as exc_info:
+            PathResolution.resolve(
+                path="org/model",
+                patterns=["transformer/*.safetensors", "transformer/*.json"],
+            )
+
+        assert "will not download model files during generation" in str(exc_info.value)
+
+    @pytest.mark.fast
     def test_huggingface_cached_sharded_snapshot_requires_all_index_shards(self, tmp_path):
         repo_cache = tmp_path / "models--org--model" / "snapshots" / "abc123"
         transformer = repo_cache / "transformer"

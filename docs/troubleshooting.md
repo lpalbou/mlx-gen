@@ -12,6 +12,14 @@ mlxgen prepare --model Qwen/Qwen-Image --path ./models/qwen-image-8bit --quantiz
 mlxgen download --model depth-pro
 ```
 
+If you prepared a local folder under `./models/<repo-name>`, you can use either that local path or
+the matching Hugging Face handle. MLX-Gen checks the prepared folder only when it is complete:
+
+```sh
+mlxgen generate --model ./models/wan2.2-i2v-a14b-diffusers-8bit ...
+mlxgen generate --model AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit ...
+```
+
 ## Local Path Cannot Be Classified
 
 When using a local model path, MLX-Gen may not be able to infer the model family from the folder name. Add `--family`:

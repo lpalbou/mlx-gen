@@ -12,8 +12,8 @@
 - `docs/api.md`: public CLI, router behavior, task/mode resolution, I2I mode selection and canvas policy, negative prompts, Qwen edit-version routing, outpaint/reframe status, Wan video sizes, `mlxgen capabilities`, and Python routing helpers.
 - `docs/edit-capabilities.md`: image-edit validation evidence, contact sheets, model/package status summaries, and exact command logs for Qwen Image Edit, Qwen EditPlus, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate` in the current release.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
-- `docs/model-management.md`: cache-only runtime policy, explicit `download` and `prepare`, local model folders, and `DownloadRequiredError`.
-- `docs/quantization.md`: complete published package matrix, q8/q4/BF16 policies, model-family compatibility, and Wan TI2V/A14B package status.
+- `docs/model-management.md`: cache-only runtime policy, explicit `download` and `prepare`, local model folders, matching Hugging Face handle resolution, and `DownloadRequiredError`.
+- `docs/quantization.md`: complete published package matrix, q8/q4/BF16 policies, model-family compatibility, Wan TI2V/A14B package status, and A14B q8 release-validation evidence.
 - `docs/huggingface-publishing.md`: generated model cards and AbstractFramework Hugging Face upload guidance.
 - `docs/python-integration.md`: embedding MLX-Gen, capability checks, negative prompts, progress callbacks, AbstractVision integration, and threading behavior.
 - `docs/faq.md`: common conceptual questions, I2I mode selection and output sizing, Qwen edit variants, negative prompts, outpaint/reframe status, Wan resolutions, prompting guidance, and usage limits.
@@ -61,6 +61,11 @@ MLX-Gen separates setup from generation:
 Missing model, tokenizer, LoRA, or Depth Pro artifacts raise `DownloadRequiredError` with explicit
 download or prepare commands. This behavior is important for application integrations because long
 jobs should not unexpectedly start a network transfer.
+
+A complete prepared folder under `./models/<repo-name>` can satisfy a matching Hugging Face handle.
+For example, `./models/wan2.2-i2v-a14b-diffusers-8bit` can be used when generation is requested as
+`AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit`, as long as the folder contains all required
+indexes and shard files.
 
 ---
 
@@ -247,6 +252,12 @@ In those benchmark runs, mixed q8/BF16 reduced disk usage by about 38% versus pr
 and reduced full-process physical peak memory by about 36-37%. It is not documented as a speed
 improvement. Full-size Wan video memory and runtime vary with resolution, frame count, step count,
 task, cache settings, and prompt/image conditioning.
+
+The 0.18.11 release validates the published A14B q8 handles on a short practical profile. The T2V
+handle generated 480x240, 41 frames, 15 steps in 348.9 s with 19.5 GiB max RSS. The I2V handle used
+a 480x240 target, preserved the source aspect ratio as 448x256, generated 41 frames at 15 steps in
+360.3 s with 19.6 GiB max RSS. The MP4s, metadata JSON, and contact sheets are linked from
+`docs/quantization.md`.
 
 ---
 

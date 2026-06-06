@@ -65,6 +65,19 @@ mlxgen generate \
 
 If the local folder name does not clearly identify the model family, add `--family` during generation. The supported router families are `qwen`, `flux2`, `bonsai`, `fibo`, `z-image`, `ernie-image`, and `wan`.
 
+When the prepared folder name matches a Hugging Face repository basename, MLX-Gen can also resolve
+the repository handle to that complete local folder. For example, if
+`./models/wan2.2-i2v-a14b-diffusers-8bit` exists and contains all required indexes and shard files,
+then this command can run from that local folder without a Hugging Face cache snapshot:
+
+```sh
+mlxgen generate \
+  --model AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit \
+  --image source.png \
+  --prompt "The spacecraft slowly lifts off" \
+  --output video.mp4
+```
+
 The generated card records the source model, MLX-Gen compatibility, mflux attribution, generator version, quantization policy, and default contributor attribution. See [Hugging Face Publishing](huggingface-publishing.md) for upload and collection guidance.
 
 ## Choosing Download Or Prepare

@@ -45,6 +45,10 @@ def test_generated_video_saves_mp4_and_metadata(tmp_path):
     assert metadata["fps"] == 12
     assert metadata["duration_seconds"] == 0.25
     assert metadata["guidance_2"] == 3.0
+    assert metadata["video_health"]["frames"]["frame_count"] == 3
+    assert metadata["video_health"]["file"]["frame_count"] == 3
+    assert metadata["video_health"]["file"]["width"] == 32
+    assert metadata["video_health"]["file"]["height"] == 24
 
     first_frame = VideoUtil.extract_frame(output_path)
     assert first_frame.size == (32, 24)

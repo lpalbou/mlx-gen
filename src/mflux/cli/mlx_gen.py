@@ -271,7 +271,7 @@ def _parser() -> argparse.ArgumentParser:
             "--prompt-file, --width, --height, --steps, --guidance, --seed, --auto-seeds, "
             "--negative-prompt/--negative, --canvas-policy, --quantize, --lora-paths, --lora-scales, --metadata, "
             "--config-from-metadata/-C, --output, --replace, --frames, --fps, --guidance-2, "
-            "and --progress/--no-progress."
+            "--low-ram, --tensor-health-check-interval, --failure-diagnostics, and --progress/--no-progress."
         ),
     )
     parser.add_argument("--model", "-m", type=str, help="Model alias, Hugging Face repo, or local model path.")

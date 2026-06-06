@@ -1,8 +1,12 @@
+import os
+from typing import Any
+
 import mlx.core as mx
 from mlx import nn
 
 from mflux.models.wan.model.wan_transformer.wan_activation import WanActivation
 from mflux.models.wan.model.wan_transformer.wan_attention import WanAttention
+from mflux.utils.tensor_health import TensorHealth
 
 
 class WanFeedForward(nn.Module):
@@ -57,7 +61,11 @@ class WanTransformerBlock(nn.Module):
         encoder_hidden_states: mx.array,
         temb: mx.array,
         rotary_emb: tuple[mx.array, mx.array],
+        block_name: str | None = None,
+        block_health_context: Any | None = None,
     ) -> mx.array:
+        block_name = block_name or "block"
+        block_health_enabled = self._block_health_enabled()
         if temb.ndim == 4:
             modulation = self.scale_shift_table[None, :, :, :] + temb.astype(mx.float32)
             shift_msa, scale_msa, gate_msa, c_shift_msa, c_scale_msa, c_gate_msa = mx.split(
@@ -79,17 +87,102 @@ class WanTransformerBlock(nn.Module):
             )
 
         norm_hidden_states = self.norm1(hidden_states.astype(mx.float32)) * (1 + scale_msa) + shift_msa
-        attn_output = self.attn1(norm_hidden_states.astype(hidden_states.dtype), rotary_emb=rotary_emb)
+        self._check_tensor_health(
+            enabled=block_health_enabled,
+            name=f"{block_name}.norm1",
+            tensor=norm_hidden_states,
+            context=block_health_context,
+        )
+        attn_output = self.attn1(
+            norm_hidden_states.astype(hidden_states.dtype),
+            rotary_emb=rotary_emb,
+            attention_name=f"{block_name}.attn1",
+            block_health_context=block_health_context,
+        )
+        self._check_tensor_health(
+            enabled=block_health_enabled,
+            name=f"{block_name}.attn1",
+            tensor=attn_output,
+            context=block_health_context,
+        )
         hidden_states = (hidden_states.astype(mx.float32) + attn_output * gate_msa).astype(hidden_states.dtype)
+        self._check_tensor_health(
+            enabled=block_health_enabled,
+            name=f"{block_name}.attn1_residual",
+            tensor=hidden_states,
+            context=block_health_context,
+        )
 
         norm_hidden_states = hidden_states.astype(mx.float32)
         if self.norm2 is not None:
             norm_hidden_states = self.norm2(norm_hidden_states)
-        attn_output = self.attn2(norm_hidden_states.astype(hidden_states.dtype), encoder_hidden_states)
+        self._check_tensor_health(
+            enabled=block_health_enabled,
+            name=f"{block_name}.norm2",
+            tensor=norm_hidden_states,
+            context=block_health_context,
+        )
+        attn_output = self.attn2(
+            norm_hidden_states.astype(hidden_states.dtype),
+            encoder_hidden_states,
+            attention_name=f"{block_name}.attn2",
+            block_health_context=block_health_context,
+        )
+        self._check_tensor_health(
+            enabled=block_health_enabled,
+            name=f"{block_name}.attn2",
+            tensor=attn_output,
+            context=block_health_context,
+        )
         hidden_states = hidden_states + attn_output
+        self._check_tensor_health(
+            enabled=block_health_enabled,
+            name=f"{block_name}.attn2_residual",
+            tensor=hidden_states,
+            context=block_health_context,
+        )
 
         norm_hidden_states = self.norm3(hidden_states.astype(mx.float32)) * (1 + c_scale_msa) + c_shift_msa
+        self._check_tensor_health(
+            enabled=block_health_enabled,
+            name=f"{block_name}.norm3",
+            tensor=norm_hidden_states,
+            context=block_health_context,
+        )
         ff_output = self.ffn(norm_hidden_states.astype(hidden_states.dtype))
+        self._check_tensor_health(
+            enabled=block_health_enabled,
+            name=f"{block_name}.ffn",
+            tensor=ff_output,
+            context=block_health_context,
+        )
         return (hidden_states.astype(mx.float32) + ff_output.astype(mx.float32) * c_gate_msa).astype(
             hidden_states.dtype
+        )
+
+    @staticmethod
+    def _block_health_enabled() -> bool:
+        return os.environ.get("MFLUX_WAN_BLOCK_HEALTH", "").lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+            "detail",
+            "detailed",
+            "all",
+        }
+
+    @staticmethod
+    def _check_tensor_health(*, enabled: bool, name: str, tensor: mx.array, context: Any | None) -> None:
+        if not enabled:
+            return
+        TensorHealth.ensure_finite(
+            tensor,
+            name=f"wan.transformer.{name}",
+            phase="wan-transformer-block",
+            step=getattr(context, "step", None),
+            total_steps=getattr(context, "total_steps", None),
+            timestep=getattr(context, "timestep", None),
+            denoiser=getattr(context, "denoiser", None),
+            guidance=getattr(context, "guidance", None),
         )

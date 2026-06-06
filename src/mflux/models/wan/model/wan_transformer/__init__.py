@@ -1,3 +1,3 @@
-from mflux.models.wan.model.wan_transformer.wan_transformer import WanTransformer
+from mflux.models.wan.model.wan_transformer.wan_transformer import WanBlockHealthContext, WanTransformer
 
-__all__ = ["WanTransformer"]
+__all__ = ["WanBlockHealthContext", "WanTransformer"]

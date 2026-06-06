@@ -1,10 +1,22 @@
 import math
+import os
+from dataclasses import dataclass
 
 import mlx.core as mx
 from mlx import nn
 
 from mflux.models.wan.model.wan_transformer.wan_embedding import WanRotaryPosEmbed, WanTimeTextImageEmbedding
 from mflux.models.wan.model.wan_transformer.wan_transformer_block import WanTransformerBlock
+from mflux.utils.tensor_health import TensorHealth
+
+
+@dataclass(frozen=True, kw_only=True)
+class WanBlockHealthContext:
+    step: int | None = None
+    total_steps: int | None = None
+    timestep: int | float | None = None
+    denoiser: str | None = None
+    guidance: float | None = None
 
 
 class WanTransformer(nn.Module):
@@ -67,6 +79,7 @@ class WanTransformer(nn.Module):
         timestep: mx.array,
         encoder_hidden_states: mx.array,
         clear_cache_each_block: bool = False,
+        block_health_context: WanBlockHealthContext | None = None,
     ) -> mx.array:
         batch_size, _, num_frames, height, width = hidden_states.shape
         if hidden_states.shape[1] != self.in_channels:
@@ -81,6 +94,12 @@ class WanTransformer(nn.Module):
 
         rotary_emb = self.rope(hidden_states)
         hidden_states = self._patch_embed(hidden_states)
+        self._check_block_health(
+            enabled=self._block_health_enabled(),
+            name="patch_embedding",
+            tensor=hidden_states,
+            context=block_health_context,
+        )
 
         if timestep.ndim == 2:
             timestep_seq_len = timestep.shape[1]
@@ -97,14 +116,52 @@ class WanTransformer(nn.Module):
             timestep_proj = timestep_proj.reshape(batch_size, timestep_seq_len, 6, -1)
         else:
             timestep_proj = timestep_proj.reshape(batch_size, 6, -1)
+        self._check_block_health(
+            enabled=self._block_health_enabled(),
+            name="condition_embedder.temb",
+            tensor=temb,
+            context=block_health_context,
+        )
+        self._check_block_health(
+            enabled=self._block_health_enabled(),
+            name="condition_embedder.timestep_proj",
+            tensor=timestep_proj,
+            context=block_health_context,
+        )
+        self._check_block_health(
+            enabled=self._block_health_enabled(),
+            name="condition_embedder.encoder_hidden_states",
+            tensor=encoder_hidden_states,
+            context=block_health_context,
+        )
 
-        for block in self.blocks:
-            hidden_states = block(hidden_states, encoder_hidden_states, timestep_proj, rotary_emb)
+        block_health_enabled = self._block_health_enabled()
+        for block_index, block in enumerate(self.blocks):
+            hidden_states = block(
+                hidden_states,
+                encoder_hidden_states,
+                timestep_proj,
+                rotary_emb,
+                block_name=f"blocks.{block_index}",
+                block_health_context=block_health_context,
+            )
+            self._check_block_health(
+                enabled=block_health_enabled,
+                name=f"blocks.{block_index}.hidden_states",
+                tensor=hidden_states,
+                context=block_health_context,
+            )
             if clear_cache_each_block:
                 mx.eval(hidden_states)
                 mx.clear_cache()
 
         hidden_states = self._project_out(hidden_states, temb)
+        self._check_block_health(
+            enabled=block_health_enabled,
+            name="proj_out",
+            tensor=hidden_states,
+            context=block_health_context,
+        )
         hidden_states = hidden_states.reshape(
             batch_size,
             post_patch_num_frames,
@@ -133,3 +190,37 @@ class WanTransformer(nn.Module):
             shift, scale = mx.split(self.scale_shift_table + temb[:, None, :], 2, axis=1)
         hidden_states = self.norm_out(hidden_states.astype(mx.float32)) * (1 + scale) + shift
         return self.proj_out(hidden_states.astype(temb.dtype))
+
+    @staticmethod
+    def _block_health_enabled() -> bool:
+        return os.environ.get("MFLUX_WAN_BLOCK_HEALTH", "").lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+            "blocks",
+            "detail",
+            "detailed",
+            "all",
+        }
+
+    @staticmethod
+    def _check_block_health(
+        *,
+        enabled: bool,
+        name: str,
+        tensor: mx.array,
+        context: WanBlockHealthContext | None,
+    ) -> None:
+        if not enabled:
+            return
+        TensorHealth.ensure_finite(
+            tensor,
+            name=f"wan.transformer.{name}",
+            phase="wan-transformer-block",
+            step=None if context is None else context.step,
+            total_steps=None if context is None else context.total_steps,
+            timestep=None if context is None else context.timestep,
+            denoiser=None if context is None else context.denoiser,
+            guidance=None if context is None else context.guidance,
+        )

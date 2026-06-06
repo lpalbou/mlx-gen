@@ -11,9 +11,9 @@ outside chat history.
 
 | State | Count |
 | --- | ---: |
-| Planned | 10 |
+| Planned | 9 |
 | Proposed | 6 |
-| Completed | 12 |
+| Completed | 13 |
 | Deprecated | 0 |
 | Recurrent | 1 |
 
@@ -24,47 +24,44 @@ outside chat history.
    focus on the true `briaai/Fibo-Edit` base model first, repair transformer/math parity against
    Diffusers/Transformers, and do not spend validation time on BF16/q8 packages until the base route
    passes.
-2. Finish the [Wan video integrity release gate](planned/0016_wan_video_integrity_release_gate.md)
-   before expanding any Wan A14B q8 full-size claim: wire health reports into release artifacts,
-   add optional latent diagnostics, and revalidate exact full-size settings with the 0.18.9 guards.
-3. Run [Wan prompt adherence parity validation](planned/0015_wan_prompt_adherence_parity_validation.md)
+2. Run [Wan prompt adherence parity validation](planned/0015_wan_prompt_adherence_parity_validation.md)
    before treating T2V/I2V prompt or motion behavior as quality-proven; explicitly match official
    Wan negative prompts and A14B guidance pairs in Diffusers-vs-MLX runs.
-4. Validate and finish
+3. Validate and finish
    [Wan A14B boundary memory recovery and full-size validation](planned/0013_wan_a14b_boundary_memory_recovery.md)
    after the full-size I2V retry captures memory, exit-code, metadata, and output evidence across
    the high-noise to low-noise denoiser boundary.
-5. Finish the [Wan quantization and motion parity](planned/0002_wan_quantization_motion_parity.md)
+4. Finish the [Wan quantization and motion parity](planned/0002_wan_quantization_motion_parity.md)
    residuals: TI2V-5B now has clean source/BF16/q8 evidence at 1280x704, 17 frames, 20 steps, but
    the TI2V-5B memory result is storage/MLX-footprint focused rather than a full-process physical
    peak reduction; full-duration validation, I2V-A14B mixed q8 quality, q4 policy, and exact-setting
    card claims still need to stay tied to passed settings.
-6. Implement the
+5. Implement the
    [LoRA capability matrix and strict application](planned/0007_lora_capability_matrix_and_strict_application.md)
    item so user-requested adapters cannot be silently ignored after resolution.
-7. Implement
+6. Implement
    [first-class I2I modes and outpaint/reframe UX](planned/0019_first_class_i2i_modes_and_outpaint_reframe.md)
    so FLUX.1 Fill outpainting/reframing has a tested unified command/API that prepares the expanded
    canvas and mask internally.
-8. Use the completed
+7. Use the completed
    [edit model prepared-package capability contact sheets](completed/0026_edit_model_prepared_capability_contact_sheets.md)
    as the current release gate for image-edit quality claims: FLUX.2 Klein source/q8 and Qwen Edit
    2509 source/q8 passed the standardized sequence. Qwen Edit 2511 has newer source/q8/q4 proof in
    [item 0029](completed/0029_qwen_image_edit_2511_base_parity.md). FIBO Edit remains unsupported
    through unified `mlxgen generate`. Use the [release validation registry](completed/0028_release_validation_registry.md)
    for machine-readable package status.
-9. Keep Bonsai binary 1-bit deferred in
+8. Keep Bonsai binary 1-bit deferred in
    [proposed item 0004](proposed/0004_bonsai_binary_1bit_runtime_support.md) until stock MLX can
    execute the required 1-bit packed affine matmul or an ADR accepts a custom kernel path.
-10. Investigate [Wan q8 performance](planned/0005_wan_q8_performance_investigation.md) only after
+9. Investigate [Wan q8 performance](planned/0005_wan_q8_performance_investigation.md) only after
    integrity-gated outputs are healthy enough for timing claims; current public docs describe mixed
    q8/BF16 as model-size and measured-profile footprint focused, not speed-improving.
-11. Continue the [model integration roadmap](planned/0001_model_integration_roadmap.md) in priority
+10. Continue the [model integration roadmap](planned/0001_model_integration_roadmap.md) in priority
    order, starting with automated publication audits, supported q4/q8 validation, and
    gated-derivative hygiene.
-12. Continue ERNIE-Image/Turbo after the Turbo text-to-image, Prompt Enhancer, and q4/q8
+11. Continue ERNIE-Image/Turbo after the Turbo text-to-image, Prompt Enhancer, and q4/q8
    validation work: add stronger Diffusers parity tests and non-turbo validation.
-13. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
+12. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
    stronger quality/performance checks, remaining cancel APIs, and keep SeedVR2 as the lower-risk
    existing-code video utility track.
 
@@ -78,7 +75,6 @@ outside chat history.
 | 0007 | [LoRA capability matrix and strict application](planned/0007_lora_capability_matrix_and_strict_application.md) | LoRA, routing, validation | P1 | Planned |
 | 0013 | [Wan A14B boundary memory recovery and full-size validation](planned/0013_wan_a14b_boundary_memory_recovery.md) | Video, memory, progress, validation | P0 | Planned |
 | 0015 | [Wan prompt adherence parity validation](planned/0015_wan_prompt_adherence_parity_validation.md) | Video, Diffusers parity, prompt adherence | P0 | Planned |
-| 0016 | [Wan video integrity release gate](planned/0016_wan_video_integrity_release_gate.md) | Video, numerical integrity, release validation | P0 | Planned |
 | 0019 | [First-class I2I modes and outpaint/reframe UX](planned/0019_first_class_i2i_modes_and_outpaint_reframe.md) | Image routing, I2I modes, FLUX Fill outpainting | P1 | Planned |
 | 0024 | [FIBO Edit unified I2I validation](planned/0024_fibo_edit_unified_i2i_validation.md) | Image routing, FIBO Edit, validation | P1 | Planned |
 | 0027 | [FIBO Edit Diffusers parity and release-quality validation](planned/0027_fibo_edit_diffusers_parity_release_quality.md) | Image edit, FIBO Edit, Diffusers parity | P0 | Planned |
@@ -101,6 +97,7 @@ outside chat history.
 | 0003 | [Bonsai ternary FLUX.2 support](completed/0003_bonsai_ternary_flux2_support.md) | T2I, FLUX.2, low-bit packed MLX | 2026-05-27 | Added Bonsai ternary 2-bit routing, packed transformer loading, q4 Qwen3 text-encoder loading, binary 1-bit runtime gating, docs, and local quality/speed validation against FLUX.2 Klein 4B q8. |
 | 0012 | [Wan2.2 A14B T2V/I2V support](completed/0012_wan_a14b_t2v_i2v_support.md) | Video, Wan A14B, Diffusers parity | 2026-05-31 | Added T2V-A14B and I2V-A14B configs, dynamic two-transformer loading, Wan2.1-style VAE support, boundary routing, optional `--guidance-2`, fail-closed model identity checks, docs, tests, and MP4 smoke validation. |
 | 0014 | [Shared progress callbacks for image and video pipelines](completed/0014_shared_progress_callbacks.md) | Callbacks, Python API, image/video progress | 2026-06-03 | Added one shared `ProgressEvent`, image progress subscriptions, Wan shared step-based progress events, CLI denoise-step progress, docs, and focused tests. |
+| 0016 | [Wan video integrity release gate](completed/0016_wan_video_integrity_release_gate.md) | Video, numerical integrity, release validation | 2026-06-06 | Added fail-closed decoded-frame/video-health gates, saved-video health metadata, Wan failure diagnostics, diagnostic opt-in behavior, and targeted T2V/I2V A14B q8 release-validation artifacts. |
 | 0018 | [Taskless generation routing](completed/0018_taskless_generation_routing.md) | Routing, Python API, task validation | 2026-06-04 | Added public task inference, taskless T2I/I2I/T2V/I2V routing, FLUX.2 single-image I2I behavior, Wan A14B early fixed-task validation, generated-card/doc updates, and focused validation. |
 | 0020 | [Generation capability contract and route planning](completed/0020_generation_capability_contract.md) | Routing, Python API, capabilities, I2I modes | 2026-06-04 | Added typed generation capabilities, public generation plans, `mlxgen capabilities`, `--i2i-mode`, metadata-aware route planning, local-path base-model hints, early option rejection, edit/I2I progress labeling, docs, and focused validation. |
 | 0021 | [Wan I2V source aspect-ratio preservation](completed/0021_wan_i2v_source_aspect_ratio.md) | Video, I2V, geometry | 2026-06-04 | Wan image-to-video now resolves output dimensions from the source image ratio and model spatial multiples before conditioning, records requested/source/resolved dimensions in metadata, and has TI2V-5B plus A14B local proof outputs. |

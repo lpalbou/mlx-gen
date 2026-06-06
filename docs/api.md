@@ -381,6 +381,11 @@ mlxgen prepare \
 
 Use `prepare` when you need the local saved-weight folder. It is the public MLX-Gen workflow for creating quantized model folders and generated Hugging Face cards.
 
+If a complete prepared folder exists at `./models/<repo-name>`, a matching Hugging Face handle can
+resolve to it before requiring a cache snapshot. This lets applications use stable handles such as
+`AbstractFramework/qwen-image-edit-2511-8bit` or
+`AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit` while still running from a local prepared folder.
+
 Generation output replaces the requested `--output` path by default. Use `--replace false` or `--no-replace` to preserve an existing file and save to a suffixed filename.
 
 Wan video failures write a compact manifest next to the intended output path, such as

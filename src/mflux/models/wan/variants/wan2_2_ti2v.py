@@ -17,7 +17,7 @@ from mflux.callbacks.callback_registry import CallbackRegistry
 from mflux.models.common.config.model_config import ModelConfig
 from mflux.models.common.weights.saving.model_saver import ModelSaver
 from mflux.models.wan.latent_creator import WanTimestepPolicy
-from mflux.models.wan.model.wan_transformer import WanTransformer
+from mflux.models.wan.model.wan_transformer import WanBlockHealthContext, WanTransformer
 from mflux.models.wan.model.wan_vae import Wan2_2_VAE
 from mflux.models.wan.scheduler import WanUniPCMultistepScheduler
 from mflux.models.wan.wan_initializer import WanInitializer
@@ -77,7 +77,7 @@ class Wan2_2_TI2V(nn.Module):
         release_denoisers_before_decode: bool = False,
         clear_cache_each_step: bool = False,
         clear_cache_each_transformer_block: bool = False,
-        tensor_health_check_interval: int | None = 1,
+        tensor_health_check_interval: int | None = None,
     ) -> GeneratedVideo:
         start_time = time.time()
         health_check_interval = self._validate_tensor_health_check_interval(tensor_health_check_interval)
@@ -179,6 +179,13 @@ class Wan2_2_TI2V(nn.Module):
                 guidance_2=guidance_2,
             )
             denoiser_name = self._denoiser_name(current_transformer)
+            block_health_context = WanBlockHealthContext(
+                step=step_number,
+                total_steps=total_steps,
+                timestep=timestep,
+                denoiser=denoiser_name,
+                guidance=current_guidance,
+            )
             if first_frame_mask is not None and condition is not None:
                 latent_model_input = WanTimestepPolicy.apply_first_frame_condition(
                     latents=latents,
@@ -209,11 +216,13 @@ class Wan2_2_TI2V(nn.Module):
                 timestep=expanded_timestep,
                 encoder_hidden_states=prompt_embeds,
                 clear_cache_each_block=clear_cache_each_transformer_block,
+                block_health_context=block_health_context,
             )
-            self._materialize_denoise_prediction(
-                noise_pred,
-                clear_cache=clear_cache_each_transformer_block,
-            )
+            if should_check_tensors or clear_cache_each_transformer_block:
+                self._materialize_denoise_prediction(
+                    noise_pred,
+                    clear_cache=clear_cache_each_transformer_block,
+                )
             if should_check_tensors:
                 self._require_tensor_health(
                     noise_pred,
@@ -231,11 +240,13 @@ class Wan2_2_TI2V(nn.Module):
                     timestep=expanded_timestep,
                     encoder_hidden_states=negative_prompt_embeds,
                     clear_cache_each_block=clear_cache_each_transformer_block,
+                    block_health_context=block_health_context,
                 )
-                self._materialize_denoise_prediction(
-                    noise_uncond,
-                    clear_cache=clear_cache_each_transformer_block,
-                )
+                if should_check_tensors or clear_cache_each_transformer_block:
+                    self._materialize_denoise_prediction(
+                        noise_uncond,
+                        clear_cache=clear_cache_each_transformer_block,
+                    )
                 if should_check_tensors:
                     self._require_tensor_health(
                         noise_uncond,
@@ -248,10 +259,11 @@ class Wan2_2_TI2V(nn.Module):
                         guidance=current_guidance,
                     )
                 noise_pred = noise_uncond + current_guidance * (noise_pred - noise_uncond)
-                self._materialize_denoise_prediction(
-                    noise_pred,
-                    clear_cache=clear_cache_each_transformer_block,
-                )
+                if should_check_tensors or clear_cache_each_transformer_block:
+                    self._materialize_denoise_prediction(
+                        noise_pred,
+                        clear_cache=clear_cache_each_transformer_block,
+                    )
                 if should_check_tensors:
                     self._require_tensor_health(
                         noise_pred,

@@ -7,36 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.11] - 2026-06-06
+
 ### Added
 
 - **Image-edit validation evidence**: add a current Qwen Image Edit 2511 source/q8/q4 parity sheet
   with exact commands for pencil sketch, hard-landing edit, and multi-reference composition, and
   document the existing Qwen Image Edit 2509 plus FLUX.2 Klein 4B/9B proof matrices.
+- **Wan video health metadata**: saved Wan MP4 metadata now includes decoded frame/file health
+  measurements such as frame count, output size, luma range, and mean temporal delta.
+- **Wan failure diagnostics**: `mlxgen generate` can pass `--failure-diagnostics` to include
+  runtime memory and tensor-health details in Wan failure manifests.
 
 ### Changed
 
 - **FIBO Edit public status**: keep FIBO Edit unavailable through unified `mlxgen generate`
   capability discovery until source-model parity and release-quality edit validation pass.
-
-### Fixed
-
-- **Qwen Image/Edit FlowMatch scheduler parity**: use the model-config dynamic-shift scheduler
-  values and terminal sigma stretch for Qwen Image/Edit FlowMatch runs, matching the upstream
-  Diffusers scheduler contract and fixing Qwen Image Edit 2511 edit/composition adherence.
-
-## [0.18.11] - 2026-06-04
-
-### Changed
-
+- **Prepared local folder routing**: Hugging Face model handles such as
+  `AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit` can resolve to a complete matching
+  `./models/<repo-name>` prepared folder before requiring a Hugging Face cache snapshot.
 - **Wan image-to-video sizing**: image-to-video now treats `width` and `height` as a size target,
   resolves the actual output canvas from the input image aspect ratio and model spatial multiples,
   and records requested, source, and resolved dimensions in MP4 metadata.
 
 ### Fixed
 
+- **Qwen Image/Edit FlowMatch scheduler parity**: use the model-config dynamic-shift scheduler
+  values and terminal sigma stretch for Qwen Image/Edit FlowMatch runs, matching the upstream
+  Diffusers scheduler contract and fixing Qwen Image Edit 2511 edit/composition adherence.
 - **`mlxgen` alias imports**: importing `mlxgen.models.*` no longer replaces the `mflux.models`
   parent package with an alias module, keeping mixed `mlxgen` and `mflux` imports stable in the
   same Python process.
+- **Wan q8 default generation path**: tensor-health diagnostics are opt-in so ordinary Wan q8
+  generation keeps the default lazy MLX execution path. The published A14B q8 T2V and I2V packages
+  passed the 480x240-target, 41-frame, 15-step release profile documented in `docs/quantization.md`.
 
 ## [0.18.10] - 2026-06-04
 

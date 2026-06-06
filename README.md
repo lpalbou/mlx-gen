@@ -105,7 +105,9 @@ mlxgen prepare \
 ```
 
 `mlxgen generate` does not download missing files. If something is not cached, MLX-Gen raises a
-clear `DownloadRequiredError` with the command to run.
+clear `DownloadRequiredError` with the command to run. A complete prepared folder at
+`./models/<repo-name>` can also satisfy a matching Hugging Face handle such as
+`AbstractFramework/qwen-image-edit-2511-8bit`.
 
 ## Reproducible Example
 
@@ -184,6 +186,8 @@ In these runs, mixed q8/BF16 reduces disk usage by about 38% versus prepared BF1
 reduces full-process physical peak memory by about 36-37%. It is not documented as a speed
 improvement. See
 [docs/quantization.md](docs/quantization.md) for model-family quantization details and metrics JSON.
+The 0.18.11 release also validates the published A14B q8 T2V/I2V handles on a 41-frame,
+15-step, 480x240-target profile with saved MP4/contact-sheet evidence in the quantization docs.
 
 ## Ecosystem
 

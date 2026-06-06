@@ -1,4 +1,5 @@
 import logging
+from dataclasses import asdict
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 
@@ -80,8 +81,10 @@ class VideoUtil:
         file_path = ImageUtil.resolve_output_path(path=path, overwrite=overwrite)
         file_path.parent.mkdir(parents=True, exist_ok=True)
         width, height = frames[0].size
+        frame_health = None
+        file_health = None
         if validate_health:
-            VideoHealth.validate_frames(
+            frame_health = VideoHealth.validate_frames(
                 frames,
                 fps=fps,
                 expected_width=width,
@@ -90,7 +93,7 @@ class VideoUtil:
             )
         VideoUtil._save_video_with_pyav(frames=frames, file_path=file_path, fps=fps, width=width, height=height)
         if validate_health:
-            VideoHealth.validate_file(
+            file_health = VideoHealth.validate_file(
                 file_path,
                 expected_width=width,
                 expected_height=height,
@@ -98,6 +101,13 @@ class VideoUtil:
                 expected_fps=fps,
                 strict_visual=True,
             )
+
+        if metadata is not None and validate_health:
+            metadata = dict(metadata)
+            metadata["video_health"] = {
+                "frames": asdict(frame_health),
+                "file": asdict(file_health),
+            }
 
         VideoUtil._save_metadata(
             file_path=file_path,

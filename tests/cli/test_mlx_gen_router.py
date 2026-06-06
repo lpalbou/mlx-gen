@@ -1454,7 +1454,7 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
     assert observed["generate"]["release_inactive_denoiser"] is True
     assert observed["generate"]["clear_cache_each_step"] is False
     assert observed["generate"]["clear_cache_each_transformer_block"] is False
-    assert observed["generate"]["tensor_health_check_interval"] == 1
+    assert observed["generate"]["tensor_health_check_interval"] is None
     assert observed["save"]["path"] == "out.mp4"
     assert observed["save"]["overwrite"] is False
 
@@ -1546,6 +1546,7 @@ def test_wan_cli_writes_failure_manifest(monkeypatch, tmp_path):
             "123",
             "--output",
             str(output_path),
+            "--failure-diagnostics",
             "--no-progress",
         ],
     )
@@ -1560,6 +1561,24 @@ def test_wan_cli_writes_failure_manifest(monkeypatch, tmp_path):
     assert manifest["run"]["prompt"] == "a city timelapse"
     assert manifest["run"]["seed"] == 123
     assert manifest["run"]["output"] == str(output_path)
+    assert manifest["run"]["failure_diagnostics"] is True
+    assert "runtime_diagnostics" in manifest
+    assert "mlx_peak_memory_bytes" in manifest["runtime_diagnostics"]
+
+
+def test_routes_wan_failure_diagnostics_to_backend():
+    invocation = mlx_gen._resolve_invocation(
+        [
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--failure-diagnostics",
+        ]
+    )
+
+    assert invocation.target_name == "mlxgen-generate-wan"
+    assert "--failure-diagnostics" in invocation.argv
 
 
 def test_wan_cli_low_ram_releases_denoisers_before_decode_and_sets_cache_limit(monkeypatch):

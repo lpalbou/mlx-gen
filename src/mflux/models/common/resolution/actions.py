@@ -10,6 +10,7 @@ class QuantizationAction(Enum):
 
 class PathAction(Enum):
     LOCAL = "Use local filesystem path"
+    LOCAL_PREPARED = "Use local prepared model folder"
     HUGGINGFACE_CACHED = "Use cached HuggingFace files (no network)"
     HUGGINGFACE = "Download from HuggingFace"
     ERROR = "Path not found"

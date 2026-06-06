@@ -17,9 +17,10 @@ class PathResolution:
         {
             Rule(priority=0, name="none", check="is_none", action=PathAction.LOCAL),
             Rule(priority=1, name="local", check="exists_locally", action=PathAction.LOCAL),
-            Rule(priority=2, name="hf_cached", check="is_hf_cached", action=PathAction.HUGGINGFACE_CACHED),
-            Rule(priority=3, name="hf_download", check="is_hf_format", action=PathAction.HUGGINGFACE),
-            Rule(priority=4, name="error", check="always", action=PathAction.ERROR),
+            Rule(priority=2, name="local_prepared_hf", check="has_local_prepared_hf", action=PathAction.LOCAL_PREPARED),
+            Rule(priority=3, name="hf_cached", check="is_hf_cached", action=PathAction.HUGGINGFACE_CACHED),
+            Rule(priority=4, name="hf_download", check="is_hf_format", action=PathAction.HUGGINGFACE),
+            Rule(priority=5, name="error", check="always", action=PathAction.ERROR),
         }
     )
 
@@ -63,6 +64,10 @@ class PathResolution:
                 return False
             # Check if we have a complete cached snapshot
             return PathResolution._find_complete_cached_snapshot(path, patterns) is not None
+        if check == "has_local_prepared_hf":
+            if not PathResolution._is_hf_format(path):
+                return False
+            return PathResolution._find_local_prepared_model(path, patterns) is not None
         if check == "is_hf_format":
             return PathResolution._is_hf_format(path)
         if check == "always":
@@ -73,6 +78,11 @@ class PathResolution:
     def _execute(action: PathAction, path: str | None, patterns: list[str]) -> Path | None:
         if action == PathAction.LOCAL:
             return Path(path).expanduser() if path else None
+        if action == PathAction.LOCAL_PREPARED:
+            prepared_path = PathResolution._find_local_prepared_model(path, patterns)
+            if prepared_path:
+                return prepared_path
+            raise_download_required(path)
         if action == PathAction.HUGGINGFACE_CACHED:
             # Find the best complete cached snapshot
             cached_path = PathResolution._find_complete_cached_snapshot(path, patterns)
@@ -91,6 +101,26 @@ class PathResolution:
                 f"If local path, make sure it exists. "
                 f"If HuggingFace repo, use 'org/model' format."
             )
+        return None
+
+    @staticmethod
+    def _find_local_prepared_model(repo_id: str | None, patterns: list[str]) -> Path | None:
+        if repo_id is None:
+            return None
+
+        repo_name = repo_id.split("/")[-1]
+        candidates = [
+            Path("models") / repo_name,
+            Path.home() / "models" / repo_name,
+        ]
+        required_subdirs = PathResolution._get_required_subdirs_with_safetensors(patterns)
+
+        for candidate in candidates:
+            candidate = candidate.expanduser()
+            if not candidate.is_dir():
+                continue
+            if PathResolution._is_snapshot_complete(candidate, required_subdirs, patterns):
+                return candidate.resolve()
         return None
 
     @staticmethod

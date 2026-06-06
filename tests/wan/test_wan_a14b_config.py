@@ -375,6 +375,7 @@ def test_wan_generate_fails_on_non_finite_noise_prediction(monkeypatch):
             guidance=1,
             guidance_2=1,
             progress_callback=events.append,
+            tensor_health_check_interval=1,
         )
 
     message = str(exc_info.value)
@@ -407,6 +408,7 @@ def test_wan_generate_fails_on_non_finite_scheduler_latents(monkeypatch):
             guidance=1,
             guidance_2=1,
             progress_callback=events.append,
+            tensor_health_check_interval=1,
         )
 
     message = str(exc_info.value)

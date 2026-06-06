@@ -200,6 +200,20 @@ In these A14B low-RAM benchmarks, mixed q8/BF16 cuts disk usage by about 38% ver
 prepared BF16 folders and reduces full-process physical peak memory by about 36-37%. It is not
 currently claimed as a speed improvement.
 
+The 0.18.11 release also validated the published A14B q8 Hugging Face handles on a short practical
+video profile. These runs use the default generation path, not `--low-ram`, and keep tensor-health
+diagnostics opt-in. The I2V row uses a 16:9 source image and therefore resolves the 480x240 size
+target to 448x256 to preserve the source aspect ratio.
+
+| Model handle | Task | Requested size | Output size | Frames | Steps | Guidance | Time | Max RSS | Output |
+| --- | --- | ---: | ---: | ---: | ---: | --- | ---: | ---: | --- |
+| `AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit` | T2V | 480x240 | 480x240 | 41 | 15 | 4 / 3 | 348.9 s | 19.5 GiB | [MP4](assets/quantization/wan-a14b-q8-release/t2v_a14b_q8_480x240_41f_15steps_seed4242.mp4), [metadata](assets/quantization/wan-a14b-q8-release/t2v_a14b_q8_480x240_41f_15steps_seed4242.metadata.json) |
+| `AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit` | I2V | 480x240 | 448x256 | 41 | 15 | 4 / 3 | 360.3 s | 19.6 GiB | [MP4](assets/quantization/wan-a14b-q8-release/i2v_a14b_q8_480x240_41f_15steps_seed4243.mp4), [metadata](assets/quantization/wan-a14b-q8-release/i2v_a14b_q8_480x240_41f_15steps_seed4243.metadata.json) |
+
+![Wan A14B q8 T2V release-validation contact sheet](assets/quantization/wan-a14b-q8-release/t2v_a14b_q8_480x240_41f_15steps_seed4242_contact_sheet.jpg)
+
+![Wan A14B q8 I2V release-validation contact sheet](assets/quantization/wan-a14b-q8-release/i2v_a14b_q8_480x240_41f_15steps_seed4243_contact_sheet.jpg)
+
 Full-size Wan video memory and runtime vary with resolution, frame count, step count, task, cache
 settings, and prompt/image conditioning. Measure the profile you plan to use before starting long
 production jobs.

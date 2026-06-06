@@ -209,8 +209,19 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--tensor-health-check-interval",
         type=_positive_int,
-        default=1,
-        help=("Check Wan denoise latents for NaN/Inf every N steps. Default is 1, which checks every step."),
+        default=None,
+        help=(
+            "Check Wan denoise latents for NaN/Inf every N steps. Disabled by default to preserve "
+            "the normal MLX lazy execution path; use 1 for every-step diagnostics."
+        ),
+    )
+    parser.add_argument(
+        "--failure-diagnostics",
+        action="store_true",
+        help=(
+            "Add MLX allocator memory and tensor-health details to the failure manifest. "
+            "This does not serialize full video latents."
+        ),
     )
     return parser
 
@@ -411,10 +422,27 @@ def _write_failure_manifest(
             "output": output_path,
             "low_ram": bool(args.low_ram),
             "tensor_health_check_interval": args.tensor_health_check_interval,
+            "failure_diagnostics": bool(args.failure_diagnostics),
         },
     }
+    if args.failure_diagnostics:
+        manifest["runtime_diagnostics"] = _runtime_diagnostics()
     failure_path.write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     return failure_path
+
+
+def _runtime_diagnostics() -> dict:
+    def _mlx_memory(name: str):
+        try:
+            return int(getattr(mx, name)())
+        except Exception:
+            return None
+
+    return {
+        "mlx_active_memory_bytes": _mlx_memory("get_active_memory"),
+        "mlx_peak_memory_bytes": _mlx_memory("get_peak_memory"),
+        "mlx_cache_memory_bytes": _mlx_memory("get_cache_memory"),
+    }
 
 
 def _provided_options(argv: list[str]) -> set[str]:
