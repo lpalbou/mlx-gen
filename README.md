@@ -17,6 +17,11 @@ dedicated `mflux-upscale-seedvr2` command for SeedVR2 image super-resolution.
 
 ![MLX-Gen workflow example](https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/assets/examples/spaceship-snow/mlx-gen-example.png)
 
+This screenshot shows [AbstractFlow](https://github.com/lpalbou/abstractflow), a visual editor in
+the [AbstractFramework](https://abstractframework.ai/) ecosystem, orchestrating MLX-Gen image and
+video nodes. It is one way to compose the workflow visually; the same generation steps can also be
+run directly with the command-line examples below.
+
 ## What It Does
 
 MLX-Gen runs supported Hugging Face and prepared MLX-Gen model folders without starting network
@@ -240,7 +245,7 @@ MLX-Gen is used as the local Apple Silicon generation backend for:
 
 - [AbstractVision](https://github.com/lpalbou/abstractvision), the vision/generation layer of the
   AbstractFramework ecosystem;
-- [AbstractFramework](https://github.com/lpalbou/abstractframework), the broader framework for
+- [AbstractFramework](https://abstractframework.ai/), the broader framework for
   local agentic and generative workflows;
 - [AbstractFlow](https://github.com/lpalbou/abstractflow), a visual orchestration layer that can
   compose generative capabilities with persistent agentic tasks.

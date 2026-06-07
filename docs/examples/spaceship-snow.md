@@ -8,6 +8,11 @@ outputs into `outputs/spaceship-snow/`; adjust paths as needed.
 
 ![Workflow overview](../assets/examples/spaceship-snow/mlx-gen-example.png)
 
+The screenshot above is from [AbstractFlow](https://github.com/lpalbou/abstractflow), a visual
+editor for composing generation nodes and other persistent tasks in the
+[AbstractFramework](https://abstractframework.ai/) ecosystem. It shows the same kind of workflow
+as a visual graph; the sections below provide the equivalent CLI commands.
+
 ## Models
 
 Download the prepared models first:

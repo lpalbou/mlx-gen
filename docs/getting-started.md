@@ -275,6 +275,9 @@ For A14B text-to-video, `1280x720`, `832x480`, `448x256`, and `432x240` are vali
 For image-to-video, saved metadata records the requested size, source image size, and resolved
 output size.
 
+Use `448x256` or larger for visual Wan checks. Very small square canvases such as `128x128` are not
+representative of Wan video quality or prompt adherence.
+
 Wan uses the official model negative prompt by default. For simple abstract tests, pass
 `--negative-prompt ""` to run without it.
 

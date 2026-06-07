@@ -24,7 +24,7 @@ For user-facing applications, show the exception message or the `download_comman
 MLX-Gen is intended to be the Apple Silicon / MLX dependency for
 [AbstractVision](https://github.com/lpalbou/abstractvision), while AbstractVision remains a
 cross-platform orchestration package inside the wider
-[AbstractFramework](https://github.com/lpalbou/abstractframework) ecosystem.
+[AbstractFramework](https://abstractframework.ai/) ecosystem.
 
 That split means:
 

@@ -334,9 +334,10 @@ a 480x240 target, preserved the source aspect ratio as 448x256, generated 41 fra
 MLX-Gen is used by:
 
 - AbstractVision: the vision and generation layer for local/cross-platform workflows;
-- AbstractFramework: the broader framework for agentic and generative workflows;
-- AbstractFlow: visual orchestration that can compose generative capabilities with persistent
-  agentic tasks.
+- AbstractFramework: the broader framework for local agentic and generative workflows
+  (https://abstractframework.ai/);
+- AbstractFlow: a visual editor that can compose MLX-Gen image/video nodes with persistent
+  agentic tasks (https://github.com/lpalbou/abstractflow).
 
 MLX-Gen owns the local MLX runtime boundary: model loading, capability resolution, quantized local
 formats, fail-fast missing-artifact behavior, and progress events.

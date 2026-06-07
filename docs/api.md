@@ -358,6 +358,9 @@ Common Wan video sizes:
 
 The upstream TI2V-5B guidance is 1280x704 or 704x1280, 121 frames, 50 steps, and 24 fps. The upstream A14B guidance is 1280x720 or 720x1280, 81 frames, 40 steps, `--guidance 4`, optional `--guidance-2 3`, and 16 fps. Lower resolutions, frame counts, or step counts are useful for routing and prompt checks, but they should not be treated as final quality settings.
 
+For visual checks, use `448x256` or larger for Wan examples. Tiny square canvases such as `128x128`
+are not representative of Wan video quality or prompt adherence.
+
 Example outputs at 1280x704, 17 frames, and 20 steps:
 
 ![Wan2.2 TI2V 1280x704 text-to-video contact sheet](assets/generation/wan2.2-ti2v-5b-t2v-1280x704-17f-20steps-contact-sheet.png)
