@@ -372,8 +372,8 @@ The dedicated `mflux-generate-fibo-edit` command remains available for FIBO-spec
 testing, but it is not a release-quality public image-to-image route.
 
 Public capability discovery fails closed for FIBO Edit. Use base FIBO for text-to-image and use
-Qwen Image Edit, Qwen EditPlus, or FLUX.2 Klein for public image-edit workflows that have passing
-validation evidence.
+Qwen Image Edit, Qwen Image Edit 2509/2511, or FLUX.2 Klein for public image-edit workflows that
+have passing contact sheets.
 
 Mask-based FIBO Edit is validation-limited in MLX-Gen. The mask is used to gray-composite the
 conditioning image before VAE encoding, not as a hard compositing operation. It can over-edit or

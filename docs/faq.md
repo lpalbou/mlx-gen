@@ -196,10 +196,10 @@ Use the exact Qwen edit handle for the capability you need:
 | Model family | Best use | Multi-reference composition |
 | --- | --- | --- |
 | `Qwen/Qwen-Image-Edit` | One-source semantic or appearance edits, such as pencil sketch, object-state changes, color/style edits, and layout-preserving instruction edits. | No. MLX-Gen exposes this as `max_images=1`. |
-| `Qwen/Qwen-Image-Edit-2509` | EditPlus workflows, including one-source edits and multi-image reference composition. | Yes, when the selected source/prepared package passes validation for the prompt profile. |
-| `Qwen/Qwen-Image-Edit-2511` | EditPlus workflows with the 2511 checkpoint. | Yes. Source, q8, and q4 have passing 2026-06-06 proof for the documented pencil/crash/composition profile. |
+| `Qwen/Qwen-Image-Edit-2509` | One-source edits and multi-image reference composition. | Yes, when the selected source/prepared package passes validation for the prompt profile. |
+| `Qwen/Qwen-Image-Edit-2511` | One-source edits and multi-image reference composition with the 2511 checkpoint. | Yes. Source, q8, and q4 have passing 2026-06-06 proof for the documented pencil/crash/composition profile. |
 
-For composition with multiple images, repeat `--image` and use an EditPlus-capable model:
+For composition with multiple images, repeat `--image` and use a multi-reference edit model:
 
 ```sh
 mlxgen generate \

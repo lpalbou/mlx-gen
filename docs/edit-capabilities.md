@@ -28,7 +28,7 @@ The canonical validation source image is
 
 `Qwen/Qwen-Image-Edit` is the original single-reference edit checkpoint. It supports
 `edit-reference` with one input image. It does not support multi-reference composition; use
-`Qwen/Qwen-Image-Edit-2509` or `Qwen/Qwen-Image-Edit-2511` for EditPlus multi-reference routing.
+`Qwen/Qwen-Image-Edit-2509` or `Qwen/Qwen-Image-Edit-2511` for multi-reference edit routing.
 
 ![Qwen Image Edit base, q8, and q4 proof](assets/validation/i2i-edit-5x4-2026-06-05/qwen-image-edit-base-q8-q4-vl1024-contact-sheet.jpg)
 
@@ -41,7 +41,7 @@ The canonical validation source image is
 These rows used a `768x432`, 30-step, guidance `4` profile with
 `--scheduler flow_match_euler_discrete`.
 
-## EditPlus And FLUX.2 Matrix
+## Qwen 2509 And FLUX.2 Matrix
 
 The 5x4 edit validation profile tests the same spaceship source across:
 
@@ -76,7 +76,7 @@ directly.
 
 ### Qwen Image Edit 2509
 
-This matrix validates the EditPlus 2509 source checkpoint plus q8 and q4 prepared packages. Source
+This matrix validates the Qwen Image Edit 2509 source checkpoint plus q8 and q4 prepared packages. Source
 and q8 pass the full standardized edit-reference and multi-reference sequence; q4 remains partial
 on the multi-reference composition row in this profile.
 
@@ -96,7 +96,7 @@ from the generated pencil and crash images.
 FIBO Edit is not a supported public image-edit route in MLX-Gen at the moment.
 `mlxgen capabilities --model briaai/Fibo-Edit` exposes no unified generation capabilities for this
 model. The dedicated compatibility command remains for maintainer parity work, but user-facing
-image editing should use Qwen Image Edit, Qwen EditPlus, or FLUX.2 Klein routes with passing
+image editing should use Qwen Image Edit, Qwen Image Edit 2509/2511, or FLUX.2 Klein routes with passing
 contact sheets.
 
 ## Latent I2I Only
@@ -128,5 +128,5 @@ The full command logs are published with the proof assets:
 
 - [regular Qwen Image Edit command log](assets/validation/i2i-edit-5x4-2026-06-05/qwen-image-edit-command-log.md)
 - [Qwen Image Edit 2511 parity command log](assets/validation/qwen-edit-2511-parity-2026-06-06/qwen-image-edit-2511-command-log.md)
-- [5x4 FLUX.2 and Qwen EditPlus command log](assets/validation/i2i-edit-5x4-2026-06-05/edit-capability-command-log.md)
+- [5x4 FLUX.2 and Qwen Image Edit 2509 command log](assets/validation/i2i-edit-5x4-2026-06-05/edit-capability-command-log.md)
 - [latent I2I command log](assets/validation/i2i-edit-5x4-2026-06-05/latent-i2i-command-log.md)

@@ -159,7 +159,7 @@ included assets.
 ![Spaceship mode contact sheet](https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/assets/examples/spaceship-snow/spaceship_modes_real_generation_contact_sheet.png)
 
 For current image-edit contact sheets, command logs, and model/package status across Qwen Image
-Edit, Qwen EditPlus, FLUX.2 Klein, and latent I2I models, see
+Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, and latent I2I models, see
 [docs/edit-capabilities.md](docs/edit-capabilities.md).
 
 ## Published Models

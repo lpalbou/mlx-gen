@@ -168,8 +168,8 @@ The Qwen edit checkpoints have different contracts:
 | Checkpoint | MLX-Gen route | Input images |
 | --- | --- | --- |
 | `Qwen/Qwen-Image-Edit` | single-reference edit | 1 |
-| `Qwen/Qwen-Image-Edit-2509` | EditPlus single-reference or multi-reference edit | 1-3 recommended |
-| `Qwen/Qwen-Image-Edit-2511` | EditPlus single-reference or multi-reference edit | 1-3 recommended |
+| `Qwen/Qwen-Image-Edit-2509` | single-reference or multi-reference edit | 1-3 recommended |
+| `Qwen/Qwen-Image-Edit-2511` | single-reference or multi-reference edit | 1-3 recommended |
 
 Use the original `Qwen/Qwen-Image-Edit` checkpoint for one-source semantic or appearance edits.
 Use 2509 or 2511 when a prompt needs multiple reference images for composition. In unified
@@ -268,5 +268,5 @@ image.save("qwen_edit_monkey.png")
 > [!WARNING]
 > Qwen edit source checkpoints are large. Download the exact checkpoint you plan to use, such as
 > `Qwen/Qwen-Image-Edit` for single-reference editing or `Qwen/Qwen-Image-Edit-2509` /
-> `Qwen/Qwen-Image-Edit-2511` for EditPlus multi-reference routes. Prepared q8/q4 packages are
+> `Qwen/Qwen-Image-Edit-2511` for multi-reference edit routes. Prepared q8/q4 packages are
 > smaller, but validate the exact package when visual quality matters.

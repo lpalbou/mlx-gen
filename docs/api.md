@@ -99,8 +99,8 @@ In `auto` mode, the selected model's default capability wins. FLUX.2 routes one 
 multi-reference I2I with two or more images. The original `Qwen/Qwen-Image-Edit` checkpoint is a
 single-reference edit model in MLX-Gen. Use it for one-source semantic or appearance edits such as
 pencil sketch, object-state changes, style changes, and layout-preserving instruction edits. Qwen
-Image Edit 2509 and 2511 are EditPlus checkpoints and expose multi-reference routes through unified
-`mlxgen generate` when a package supports that route. Validation reports record which exact
+Image Edit 2509 and 2511 expose multi-reference edit routes through unified
+`mlxgen generate` when a package supports that route. The validation command records which exact
 source/prepared package rows passed visual review. Qwen Image Edit 2511 source, q8, and q4 now have
 passing 2026-06-06 proof rows for single-image pencil sketch, single-image hard-landing edit, and
 two-reference pencil-plus-crash composition.

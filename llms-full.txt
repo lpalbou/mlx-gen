@@ -11,7 +11,7 @@
 - `docs/getting-started.md`: install, first download, model preparation, image generation, image editing, SeedVR2 upscaling, and Wan video examples.
 - `docs/api.md`: public CLI, router behavior, task/mode resolution, I2I mode selection and canvas policy, SeedVR2 shortest-edge/scale-factor upscaling plus softness and tiling controls, negative prompts, Qwen edit-version routing, outpaint/reframe status, Wan video sizes, `mlxgen capabilities`, and Python routing helpers.
 - `docs/upscaling.md`: SeedVR2 image upscaling guide with shortest-edge and scale-factor sizing, quality controls, and a real 5x source/output comparison.
-- `docs/edit-capabilities.md`: image-edit contact sheets, model/package status summaries, and exact command logs for Qwen Image Edit, Qwen EditPlus, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate` in the current release.
+- `docs/edit-capabilities.md`: image-edit contact sheets, model/package status summaries, and exact command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate` in the current release.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
 - `docs/model-management.md`: explicit `download` and `prepare`, generation from local model files, local model folders, matching Hugging Face handle resolution, and `DownloadRequiredError`.
 - `docs/quantization.md`: complete published package matrix, q8/q4/BF16 policies, model-family compatibility, Wan TI2V/A14B package status, and A14B q8 generated-output records.
@@ -120,13 +120,13 @@ guidance above `1` uses true classifier-free guidance when a negative prompt is 
 uses the official blank negative-prompt behavior for Qwen edit models when the option is omitted.
 
 The Qwen edit checkpoints are distinct. `Qwen/Qwen-Image-Edit` is single-reference edit only
-(`max_images=1`). `Qwen/Qwen-Image-Edit-2509` and `Qwen/Qwen-Image-Edit-2511` are EditPlus
-checkpoints and expose multi-reference routes when the selected package supports and validates that
+(`max_images=1`). `Qwen/Qwen-Image-Edit-2509` and `Qwen/Qwen-Image-Edit-2511` expose
+multi-reference edit routes when the selected package supports and validates that
 route.
 
 `docs/edit-capabilities.md` is the current visual evidence page for image editing. It publishes the
 regular Qwen Image Edit base/q8/q4 contact sheet, the Qwen Image Edit 2511 source/q8/q4 parity
-sheet, the 5x4 FLUX.2/Qwen EditPlus matrices, and links the exact command logs used for the
+sheet, the 5x4 FLUX.2/Qwen Image Edit 2509 matrices, and links the exact command logs used for the
 validation profiles. In the documented spaceship profiles, FLUX.2 Klein 4B/9B q4/q8 pass latent,
 edit-reference, and multi-reference rows; Qwen Image Edit 2509 source/q8 pass the edit-reference
 and multi-reference rows while q4 is partial on composition; Qwen Image Edit 2511 source/q8/q4 pass
