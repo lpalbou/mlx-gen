@@ -33,14 +33,14 @@
 MLX-Gen runs supported image and video generation models locally with MLX. It started as a fork of
 `filipstrand/mflux`, and most credit for the current codebase remains with Filip Strand and the
 original mflux contributors. MLX-Gen now publishes independently as `mlx-gen` and exposes `mlxgen`
-as the public command surface. Its contribution is not a rename: it turns inherited MLX ports into
-a cache-only, application-friendly runtime with one interface to generate, prepare, query
-capabilities, and inspect validation status across supported models. Post-fork work includes
-working/release-validated T2I/I2I routes, Qwen Image Edit 2509/2511 routing, parity fixes, and
-validation, Bonsai Image support, Wan2.2 text-to-video and image-to-video support, model-specific
-mixed quantization policies, published prepared folders, and progress callbacks for embedding apps.
-The fork exists so AbstractFramework projects can move quickly without losing the option to merge
-useful changes back upstream if that becomes valuable for the wider mflux community.
+as the public command surface. It provides a cache-only, application-friendly runtime with one
+interface to generate, prepare, query capabilities, and inspect validation status across supported
+models. Post-fork work includes working/release-validated T2I/I2I routes, Qwen Image Edit
+2509/2511 routing, parity fixes, and validation, Bonsai Image support, Wan2.2 text-to-video and
+image-to-video support, model-specific mixed quantization policies, published prepared folders, and
+progress callbacks for embedding apps. The fork exists so AbstractFramework projects can move
+quickly without losing the option to merge useful changes back upstream if that becomes valuable
+for the wider mflux community.
 
 The project focuses on practical Apple Silicon workflows:
 
