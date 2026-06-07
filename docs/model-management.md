@@ -1,6 +1,6 @@
 # Model Management
 
-MLX-Gen generation is cache-only by default. It will not download model weights, tokenizers, LoRAs, or Depth Pro weights during generation or during ordinary Python model construction.
+MLX-Gen does not download model weights, tokenizers, LoRAs, or Depth Pro weights during generation or during ordinary Python model construction.
 
 This policy keeps CLI jobs and embedded application workflows predictable: a generation request either finds the required files locally or fails with a `DownloadRequiredError` that includes the command to run.
 

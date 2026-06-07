@@ -35,7 +35,7 @@ To choose the output image path during generation, use `--output`.
 
 ## Does Generation Download Missing Files?
 
-No. Generation and ordinary Python model construction are cache-only by default. Missing artifacts raise `DownloadRequiredError` with the exact `mlxgen download` or `mlxgen prepare` command to run.
+No. Generation and ordinary Python model construction use files that are already available locally. Missing artifacts raise `DownloadRequiredError` with the exact `mlxgen download` or `mlxgen prepare` command to run.
 
 ## Is `HF_HUB_ENABLE_HF_TRANSFER=1` Required?
 

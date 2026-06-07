@@ -37,7 +37,7 @@ Video support follows the same setup/runtime boundary. Wan2.2 loads local source
 
 ## Runtime Failure Contract
 
-Runtime model construction and generation are cache-only. Missing required files raise `DownloadRequiredError`, which is also a `FileNotFoundError` for compatibility with existing callers.
+Runtime model construction and generation use files that are already available locally. Missing required files raise `DownloadRequiredError`, which is also a `FileNotFoundError` for compatibility with existing callers.
 
 The error includes actionable command fields such as `download_command` and, when applicable, `prepare_command`. CLI entry points print the human-readable error without a traceback for common missing-artifact cases.
 

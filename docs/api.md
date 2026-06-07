@@ -16,7 +16,7 @@ The public workflows are:
 | --- | --- |
 | `mlxgen generate` | Generate images or supported videos from a cached or prepared model. Image input selects image-to-image or image-to-video when the model supports it. |
 | `mlxgen capabilities` | Inspect the public tasks, internal modes, and option support for a model without loading weights. |
-| `mlxgen validation` | Inspect release-validation evidence for exact model/package rows. |
+| `mlxgen validation` | Inspect generated-output and benchmark records for exact model/package rows. |
 | `mlxgen download` | Explicitly download model or LoRA files into the local cache. |
 | `mlxgen prepare` | Create a reusable local MLX-Gen model folder, optionally quantized, and write a Hugging Face model card. |
 
@@ -441,7 +441,7 @@ flags.
 
 ## Python Integration
 
-The current Python integration path uses model classes inherited from the mflux codebase, with `mlxgen` available as the package identity for new applications. See [Python Integration](python-integration.md) for the current expectations.
+The current Python integration path uses model classes inherited from the mflux codebase. New applications can import the `mlxgen` helpers documented in [Python Integration](python-integration.md).
 
 Python callers should prepare or download required model files before constructing model objects. Runtime constructors and generation calls do not start network downloads.
 

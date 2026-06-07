@@ -195,6 +195,6 @@ Both included videos are `448x256`, 41 frames, 10 fps, and 4.1 seconds.
 ## Related Docs
 
 - [API and CLI](../api.md) explains the router and internal image-to-image modes.
-- [Model management](../model-management.md) explains cache-only generation and explicit downloads.
+- [Model management](../model-management.md) explains how to download or prepare models before running generation.
 - [Quantization](../quantization.md) describes the mixed q8/BF16 Wan A14B packages.
 - [FAQ](../faq.md) includes Wan prompting and image-to-video quality guidance.

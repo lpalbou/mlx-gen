@@ -11,10 +11,10 @@
 - `docs/getting-started.md`: install, first download, model preparation, image generation, image editing, SeedVR2 upscaling, and Wan video examples.
 - `docs/api.md`: public CLI, router behavior, task/mode resolution, I2I mode selection and canvas policy, SeedVR2 shortest-edge/scale-factor upscaling plus softness and tiling controls, negative prompts, Qwen edit-version routing, outpaint/reframe status, Wan video sizes, `mlxgen capabilities`, and Python routing helpers.
 - `docs/upscaling.md`: SeedVR2 image upscaling guide with shortest-edge and scale-factor sizing, quality controls, and a real 5x source/output comparison.
-- `docs/edit-capabilities.md`: image-edit validation evidence, contact sheets, model/package status summaries, and exact command logs for Qwen Image Edit, Qwen EditPlus, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate` in the current release.
+- `docs/edit-capabilities.md`: image-edit contact sheets, model/package status summaries, and exact command logs for Qwen Image Edit, Qwen EditPlus, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate` in the current release.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
-- `docs/model-management.md`: cache-only runtime policy, explicit `download` and `prepare`, local model folders, matching Hugging Face handle resolution, and `DownloadRequiredError`.
-- `docs/quantization.md`: complete published package matrix, q8/q4/BF16 policies, model-family compatibility, Wan TI2V/A14B package status, and A14B q8 release-validation evidence.
+- `docs/model-management.md`: explicit `download` and `prepare`, generation from local model files, local model folders, matching Hugging Face handle resolution, and `DownloadRequiredError`.
+- `docs/quantization.md`: complete published package matrix, q8/q4/BF16 policies, model-family compatibility, Wan TI2V/A14B package status, and A14B q8 generated-output records.
 - `docs/huggingface-publishing.md`: generated model cards and AbstractFramework Hugging Face upload guidance.
 - `docs/python-integration.md`: embedding MLX-Gen, capability checks, negative prompts, progress callbacks, AbstractVision integration, and threading behavior.
 - `docs/faq.md`: common conceptual questions, I2I mode selection and output sizing, SeedVR2 sizing and quality controls, Qwen edit variants, negative prompts, outpaint/reframe status, Wan resolutions, prompting guidance, and usage limits.
@@ -33,18 +33,18 @@
 MLX-Gen runs supported image and video generation models locally with MLX. It started as a fork of
 `filipstrand/mflux`, and most credit for the current codebase remains with Filip Strand and the
 original mflux contributors. MLX-Gen now publishes independently as `mlx-gen` and exposes `mlxgen`
-as the public command surface. It provides a cache-only, application-friendly runtime with one
-interface to generate, prepare, query capabilities, and inspect validation status across supported
-models. Post-fork work includes working/release-validated T2I/I2I routes, Qwen Image Edit
-2509/2511 routing, parity fixes, and validation, Bonsai Image support, Wan2.2 text-to-video and
-image-to-video support, model-specific mixed quantization policies, published prepared folders, and
-progress callbacks for embedding apps. The fork exists so AbstractFramework projects can move
-quickly without losing the option to merge useful changes back upstream if that becomes valuable
-for the wider mflux community.
+as the public command surface. It keeps the mflux foundation and focuses on predictable local
+generation for real applications: users download or prepare models before running a job, then use
+one command to generate, inspect supported modes, and compare generated examples and measured
+results. MLX-Gen contributes by adding tested T2I/I2I routes, Qwen Image Edit 2509/2511 routing
+and parity fixes, Bonsai Image support, Wan2.2 text-to-video and image-to-video support,
+model-specific mixed quantization policies, published prepared folders, and progress callbacks for
+apps. The fork exists so AbstractFramework projects can move quickly without losing the option to
+merge useful changes back upstream if that becomes valuable for the wider mflux community.
 
 The project focuses on practical Apple Silicon workflows:
 
-- cache-only generation after explicit setup;
+- generation from local model files after explicit setup;
 - prepared local model folders, including quantized layouts;
 - Qwen Image/Edit, FLUX.2 Klein, Z-Image, ERNIE Image Turbo, Bonsai Image, base FIBO, Wan2.2, and SeedVR2 support;
 - model capability inspection before heavy runs;
@@ -64,7 +64,7 @@ MLX-Gen separates setup from generation:
 - `mlxgen prepare` explicitly creates reusable local MLX-Gen model folders and generated model cards.
 - `mlxgen generate` runs from cached or prepared files and does not start network downloads.
 - `mlxgen capabilities` inspects route-supported public tasks, internal modes, and option support without loading weights.
-- `mlxgen validation` reports release-validation evidence for exact model/package rows; it is separate from route support.
+- `mlxgen validation` reports generated-output and benchmark records for exact model/package rows; it is separate from route support.
 
 Missing model, tokenizer, LoRA, or Depth Pro artifacts raise `DownloadRequiredError` with explicit
 download or prepare commands. This behavior is important for application integrations because long

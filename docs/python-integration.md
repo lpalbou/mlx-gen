@@ -1,6 +1,6 @@
 # Python Integration
 
-MLX-Gen can be embedded directly in Python. The current runtime still exposes most model classes through the original `mflux` package layout, with `mlxgen` available as the package identity for new applications.
+MLX-Gen can be embedded directly in Python. The current runtime still exposes most model classes through the original `mflux` package layout, and new applications can import the `mlxgen` helper APIs documented below.
 
 ## Cache-Only Runtime
 

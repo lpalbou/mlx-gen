@@ -11,15 +11,15 @@ dedicated `mflux-upscale-seedvr2` command for SeedVR2 image super-resolution.
 
 > [!IMPORTANT]
 > MLX-Gen started as a fork of [mflux](https://github.com/filipstrand/mflux). Most credit for the
-> current codebase goes to Filip Strand and the original mflux contributors. MLX-Gen provides a
-> cache-only, application-friendly runtime with one `mlxgen` interface to generate, prepare, query
-> capabilities, and inspect validation status across supported models. Post-fork work includes
-> working/release-validated T2I/I2I routes, Qwen Image Edit 2509/2511 routing, parity fixes, and
-> validation, Bonsai Image support, Wan2.2 text-to-video and image-to-video support,
-> model-specific mixed quantization policies, published prepared folders, and progress callbacks
-> for embedding apps. The fork exists so AbstractFramework projects can move quickly without losing
-> the option to merge useful changes back upstream if that becomes valuable for the wider mflux
-> community.
+> current codebase goes to Filip Strand and the original mflux contributors. MLX-Gen keeps that
+> foundation and focuses on making local generation predictable for real applications: users
+> download or prepare models before running a job, then use one `mlxgen` command to generate,
+> inspect supported modes, and compare generated examples and measured results. MLX-Gen contributes
+> by adding tested T2I/I2I routes, Qwen Image Edit 2509/2511 routing and parity fixes, Bonsai Image
+> support, Wan2.2 text-to-video and image-to-video support, model-specific mixed quantization
+> policies, published prepared folders, and progress callbacks for apps. The fork exists so
+> AbstractFramework projects can move quickly without losing the option to merge useful changes back
+> upstream if that becomes valuable for the wider mflux community.
 
 ![MLX-Gen workflow example](https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/assets/examples/spaceship-snow/mlx-gen-example.png)
 
@@ -32,7 +32,8 @@ run directly with the command-line examples below.
 
 MLX-Gen runs supported Hugging Face and prepared MLX-Gen model folders without starting network
 downloads during generation. You explicitly download or prepare models first, then generation is a
-cache-only operation suitable for desktop apps, workflow engines, and long-running local jobs.
+job that uses only files already on disk, which suits desktop apps, workflow engines, and
+long-running local jobs.
 
 The main capabilities are:
 
@@ -157,8 +158,8 @@ included assets.
 
 ![Spaceship mode contact sheet](https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/assets/examples/spaceship-snow/spaceship_modes_real_generation_contact_sheet.png)
 
-For current image-edit validation evidence across Qwen Image Edit, Qwen EditPlus, FLUX.2 Klein,
-and latent I2I models, see
+For current image-edit contact sheets, command logs, and model/package status across Qwen Image
+Edit, Qwen EditPlus, FLUX.2 Klein, and latent I2I models, see
 [docs/edit-capabilities.md](docs/edit-capabilities.md).
 
 ## Published Models
@@ -256,9 +257,9 @@ MLX-Gen is used as the local Apple Silicon generation backend for:
 - [AbstractFlow](https://github.com/lpalbou/abstractflow), a visual orchestration layer that can
   compose generative capabilities with persistent agentic tasks.
 
-MLX-Gen remains useful as a standalone CLI package, but its cache-only runtime behavior, capability
-inspection, prepared model folders, and progress callbacks are designed so applications can embed it
-without surprise network transfers or ambiguous model routing.
+MLX-Gen remains useful as a standalone CLI package, and it is also designed for applications: jobs
+run from model files already on disk, apps can inspect supported modes before loading weights, and
+progress callbacks make long runs observable.
 
 ## Documentation
 
@@ -266,8 +267,8 @@ without surprise network transfers or ambiguous model routing.
 - [API and CLI](docs/api.md): command surface, router behavior, image-to-image modes, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.
 - [Example workflow](docs/examples/spaceship-snow.md): reproducible image and video commands.
 - [Image upscaling](docs/upscaling.md): SeedVR2 sizing, quality controls, and a 5x source/output comparison.
-- [Image edit capabilities](docs/edit-capabilities.md): visual edit-validation contact sheets, exact model/package status, and command logs.
-- [Model management](docs/model-management.md): download, prepare, cache-only runtime policy.
+- [Image edit capabilities](docs/edit-capabilities.md): image-edit contact sheets, exact model/package status, and command logs.
+- [Model management](docs/model-management.md): download, prepare, and run from local model files.
 - [Quantization](docs/quantization.md): q8/q4/BF16 policies and measurements.
 - [Python integration](docs/python-integration.md): embedding, progress callbacks, and AbstractVision notes.
 - [FAQ](docs/faq.md): recurring questions, image-to-image mode selection, SeedVR2 sizing, Qwen edit variants, negative prompts, outpaint/reframe status, Wan resolutions, and usage limits.

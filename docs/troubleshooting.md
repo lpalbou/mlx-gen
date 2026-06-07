@@ -2,7 +2,7 @@
 
 ## MLX-Gen Will Not Download Files During Generation
 
-This is expected. Runtime generation is cache-only. Run the command shown in the error message, then retry the generation.
+This is expected. Runtime generation uses files that are already available locally. Run the command shown in the error message, then retry the generation.
 
 Common commands:
 

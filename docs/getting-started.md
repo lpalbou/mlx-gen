@@ -25,7 +25,7 @@ The top-level command shows the public workflows:
 
 ## Prepare Model Files
 
-Generation is cache-only. Before generation, either download the source repository into the local Hugging Face cache or prepare a reusable local folder.
+Before generation, either download the source repository into the local Hugging Face cache or prepare a reusable local folder. Generation uses those local files and does not start a download.
 
 Download into the Hugging Face cache:
 
@@ -113,7 +113,7 @@ img2img variation only; edit/reference models do not use it.
 
 Use `qwen-image-edit` for the original single-reference edit checkpoint; use
 `qwen-image-edit-2509` or `qwen-image-edit-2511` when you need an Edit-Plus multi-reference route.
-Current validation evidence for Qwen Image Edit 2511 source, q8, and q4 is published in
+Current contact sheets and commands for Qwen Image Edit 2511 source, q8, and q4 are published in
 [Image Edit Capabilities](edit-capabilities.md).
 Use `--negative-prompt` or `--negative` to block concrete failure modes such as crop, blur, text,
 or unwanted color. Qwen edit models use the official blank negative-prompt behavior by default when

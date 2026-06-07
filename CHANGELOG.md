@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Image-edit validation evidence**: add a current Qwen Image Edit 2511 source/q8/q4 parity sheet
+- **Image-edit examples**: add a current Qwen Image Edit 2511 source/q8/q4 parity sheet
   with exact commands for pencil sketch, hard-landing edit, and multi-reference composition, and
   document the existing Qwen Image Edit 2509 plus FLUX.2 Klein 4B/9B proof matrices.
 - **Wan video health metadata**: saved Wan MP4 metadata now includes decoded frame/file health
@@ -280,7 +280,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Documentation
 
-- Document cache-only runtime behavior, Python integration expectations, AbstractVision usage context, and explicit model-management workflows.
+- Document that generation runs from local model files, plus Python integration expectations, AbstractVision usage context, and explicit model-management workflows.
 
 ---
 

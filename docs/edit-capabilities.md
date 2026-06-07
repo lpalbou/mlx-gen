@@ -1,6 +1,6 @@
 # Image Edit Capabilities
 
-This page summarizes the current image-to-image edit validation evidence for MLX-Gen. It separates
+This page summarizes the current image-to-image edit contact sheets, command logs, and model/package status for MLX-Gen. It separates
 three related concepts:
 
 - `latent-img2img`: the source image initializes latent denoising and `--image-strength` controls
@@ -97,7 +97,7 @@ FIBO Edit is not a supported public image-edit route in MLX-Gen at the moment.
 `mlxgen capabilities --model briaai/Fibo-Edit` exposes no unified generation capabilities for this
 model. The dedicated compatibility command remains for maintainer parity work, but user-facing
 image editing should use Qwen Image Edit, Qwen EditPlus, or FLUX.2 Klein routes with passing
-validation evidence.
+contact sheets.
 
 ## Latent I2I Only
 
