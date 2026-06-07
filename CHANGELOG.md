@@ -47,7 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   capability discovery until source-model parity and release-quality edit validation pass.
 - **Prepared local folder routing**: Hugging Face model handles such as
   `AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit` can resolve to a complete matching
-  `./models/<repo-name>` prepared folder before requiring a Hugging Face cache snapshot.
+  `./models/<repo-name>` local MLX-Gen package before requiring a Hugging Face cache snapshot.
 - **Wan image-to-video sizing**: image-to-video now treats `width` and `height` as a size target,
   resolves the actual output canvas from the input image aspect ratio and model spatial multiples,
   and records requested, source, and resolved dimensions in MP4 metadata.
@@ -142,7 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Wan model identity safety**: unknown or generic Wan names no longer infer the TI2V-5B runtime from the generic `wan` substring. Wan requests now require an exact supported repo or a local prepared folder with a specific Wan alias.
+- **Wan model identity safety**: unknown or generic Wan names no longer infer the TI2V-5B runtime from the generic `wan` substring. Wan requests now require an exact supported repo or a local MLX-Gen package with a specific Wan alias.
 - **Wan prompt and default handling**: Wan generation now applies model-specific default negative prompts, spatial defaults, guidance defaults, and optional A14B low-noise guidance consistently across CLI and Python generation.
 - **Wan low-cost runs**: valid low-resolution or short Wan runs no longer emit runtime quality warnings; docs now describe those settings as quick command checks rather than final quality settings.
 - **Wan source/runtime mismatch guard**: Wan initialization now compares available Diffusers source configs against the selected MLX-Gen runtime before loading weights, and transformer calls fail with a clear channel mismatch before entering MLX convolution.
@@ -174,7 +174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **ERNIE q8/q4 preparation and generation**: `mlxgen prepare --model baidu/ERNIE-Image-Turbo --quantize 8|4` now creates loadable prepared folders, and ERNIE generation can run from those q8/q4 folders.
+- **ERNIE q8/q4 preparation and generation**: `mlxgen prepare --model baidu/ERNIE-Image-Turbo --quantize 8|4` now creates loadable MLX-Gen packages, and ERNIE generation can run from those q8/q4 packages.
 - **ERNIE Prompt Enhancer**: `mflux-generate-ernie-image` / `mlxgen generate` can now run ERNIE's optional Prompt Enhancer when a full source snapshot with `pe/` and `pe_tokenizer/` files is available.
 
 ### Changed
@@ -258,7 +258,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Generated Hugging Face model cards**: `mlxgen prepare` now writes a `README.md` model card into prepared model folders with source-model attribution, mflux and MLX-Gen compatibility notes, quantization details, contributor attribution, and collection guidance.
+- **Generated Hugging Face model cards**: `mlxgen prepare` now writes a `README.md` model card into MLX-Gen model packages with source-model attribution, mflux and MLX-Gen compatibility notes, quantization details, contributor attribution, and collection guidance.
 
 ### Changed
 

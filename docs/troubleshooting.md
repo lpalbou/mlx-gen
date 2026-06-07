@@ -12,8 +12,8 @@ mlxgen prepare --model Qwen/Qwen-Image --path ./models/qwen-image-8bit --quantiz
 mlxgen download --model depth-pro
 ```
 
-If you prepared a local folder under `./models/<repo-name>`, you can use either that local path or
-the matching Hugging Face handle. MLX-Gen checks the prepared folder only when it is complete:
+If you created a local MLX-Gen package under `./models/<repo-name>`, you can use either that local path or
+the matching Hugging Face handle. MLX-Gen checks the local MLX-Gen package only when it is complete:
 
 ```sh
 mlxgen generate --model ./models/wan2.2-i2v-a14b-diffusers-8bit ...
@@ -149,9 +149,9 @@ If Wan generation or MP4 save validation fails, the CLI writes a failure manifes
 
 ## `generate --path` Fails
 
-`--path` belongs to `mlxgen prepare`, where it names the local model folder to create. It is not a generation option.
+`--path` belongs to `mlxgen prepare`, where it names the local MLX-Gen package to create. It is not a generation option.
 
-To prepare a quantized model folder:
+To create a quantized MLX-Gen package:
 
 ```sh
 mlxgen prepare --model black-forest-labs/FLUX.2-klein-4B --path models/flux.2-klein-4b-4bit --quantize 4

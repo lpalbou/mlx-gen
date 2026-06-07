@@ -4,7 +4,9 @@
 
 Use `mlxgen prepare`.
 
-`prepare` is the public MLX-Gen workflow for creating a reusable local model folder. It can quantize the model with `--quantize` and writes a Hugging Face `README.md` model card into the prepared folder.
+`prepare` creates a local MLX-Gen model package: a directory with MLX-Gen weights, config files,
+and a Hugging Face `README.md` model card. Use it when you want a reusable local package or a
+quantized package made specifically for MLX-Gen.
 
 ```sh
 mlxgen prepare \
@@ -17,15 +19,15 @@ New MLX-Gen integrations should not call a separate save workflow; use `mlxgen p
 
 ## What Is The Difference Between Download And Prepare?
 
-`mlxgen download` populates the local Hugging Face cache with source files. It does not create a separate model folder and does not write a model card.
+`mlxgen download` populates the local Hugging Face cache with source files. It does not create a separate MLX-Gen package and does not write a model card.
 
-`mlxgen prepare` creates a reusable local MLX-Gen folder at `--path`. It can quantize weights and writes a generated Hugging Face model card.
+`mlxgen prepare` creates a reusable local MLX-Gen package at `--path`. It can quantize weights and writes a generated Hugging Face model card.
 
-## Can Generate Prepare A Model Folder?
+## Can Generate Prepare A Model Package?
 
 No. `mlxgen generate` is only for inference. It does not accept `--path` for model preparation.
 
-To create a model folder, use:
+To create a model package, use:
 
 ```sh
 mlxgen prepare --model black-forest-labs/FLUX.2-klein-4B --path models/flux.2-klein-4b-4bit --quantize 4
@@ -41,9 +43,9 @@ No. Generation and ordinary Python model construction use files that are already
 
 No. It is optional acceleration for explicit Hugging Face downloads and prepare operations. `mlxgen download` and `mlxgen prepare` already authorize network access.
 
-## Can Prepared Folders Load In Diffusers Or Transformers?
+## Can MLX-Gen Packages Load In Diffusers Or Transformers?
 
-No. Prepared MLX-Gen folders use the MLX/mflux saved-weight layout and MLX quantization tensors. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers `from_pretrained()` loading.
+No. MLX-Gen packages use the MLX/mflux saved-weight layout and MLX quantization tensors. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers `from_pretrained()` loading.
 
 ## Why Can q8 Show The Same Physical Peak As BF16?
 
@@ -68,7 +70,7 @@ tables and definitions.
 
 ## Can I Quantize ERNIE Image Turbo?
 
-Yes. ERNIE Image Turbo supports q8 and q4 prepared folders:
+Yes. ERNIE Image Turbo supports MLX-Gen 8-bit and 4-bit optimized packages:
 
 ```sh
 mlxgen prepare --model baidu/ERNIE-Image-Turbo --path ./models/ernie-image-turbo-8bit --quantize 8
@@ -132,7 +134,7 @@ Multi-image edit is not supported for ERNIE. ERNIE's single-image path is latent
 `--image-strength` follows latent img2img denoising semantics: higher values add more noise and
 allow more transformation, while lower positive values stay closer to the encoded source image.
 
-Prepared ERNIE q8/q4 folders do not bundle Prompt Enhancer files; use the full source snapshot path or the Hugging Face repo after `mlxgen download --all-files` when you need `--use-prompt-enhancer`.
+ERNIE q8/q4 MLX-Gen packages do not bundle Prompt Enhancer files; use the full source snapshot path or the Hugging Face repo after `mlxgen download --all-files` when you need `--use-prompt-enhancer`.
 
 ## How Do I Choose Between Latent I2I And Image Edit?
 
@@ -186,8 +188,8 @@ images as conditioning or references, not as a noised latent initialization. MLX
 `--image-strength` for those modes before loading weights.
 
 For Qwen edit models, use the exact version you intend. `qwen-image-edit` is the original
-single-reference edit checkpoint. `qwen-image-edit-2509` and `qwen-image-edit-2511` are Edit-Plus
-checkpoints and can route multi-reference requests.
+single-reference edit checkpoint. Use `qwen-image-edit-2509` or `qwen-image-edit-2511` when you
+need a Qwen edit model that can route multi-reference requests.
 
 ## Which Qwen Image Edit Model Should I Use?
 
@@ -196,7 +198,7 @@ Use the exact Qwen edit handle for the capability you need:
 | Model family | Best use | Multi-reference composition |
 | --- | --- | --- |
 | `Qwen/Qwen-Image-Edit` | One-source semantic or appearance edits, such as pencil sketch, object-state changes, color/style edits, and layout-preserving instruction edits. | No. MLX-Gen exposes this as `max_images=1`. |
-| `Qwen/Qwen-Image-Edit-2509` | One-source edits and multi-image reference composition. | Yes, when the selected source/prepared package passes validation for the prompt profile. |
+| `Qwen/Qwen-Image-Edit-2509` | One-source edits and multi-image reference composition. | Yes, when the selected source model or MLX-Gen optimized package passes validation for the prompt profile. |
 | `Qwen/Qwen-Image-Edit-2511` | One-source edits and multi-image reference composition with the 2511 checkpoint. | Yes. Source, q8, and q4 have passing 2026-06-06 proof for the documented pencil/crash/composition profile. |
 
 For composition with multiple images, repeat `--image` and use a multi-reference edit model:

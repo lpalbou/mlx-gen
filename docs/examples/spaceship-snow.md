@@ -15,7 +15,7 @@ as a visual graph; the sections below provide the equivalent CLI commands.
 
 ## Models
 
-Download the prepared models first:
+Download the MLX-Gen optimized model packages first:
 
 ```sh
 mlxgen download --model AbstractFramework/flux.2-klein-9b-8bit

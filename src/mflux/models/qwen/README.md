@@ -260,7 +260,7 @@ image.save("qwen_edit_monkey.png")
 3. **Single Focus**: Focus on one or a few related edits at a time for more predictable results
 4. **LoRA Combinations**: Combine multiple LoRAs for complex effects (e.g., fast generation + camera control)
 5. **Negative Prompts**: `--negative-prompt` and `--negative` are aliases. Use them to block crop, blur, text, watermark, unwanted color, or an object state that conflicts with the edit.
-6. **Quantization**: Low-bit Qwen edit packages use MLX-Gen's model-specific q8/q4 policies. Validate the exact prepared package when quality matters.
+6. **Quantization**: Low-bit Qwen edit packages use MLX-Gen's model-specific q8/q4 policies. Validate the exact MLX-Gen optimized package when quality matters.
 7. **Seed Variation**: Qwen models typically do not vary much with seed changes. If you want more variation, vary the prompt instead.
 8. **Image Quality**: Qwen images can be softer than FLUX.2 outputs.
 9. **Output Size**: By default, edits preserve the first input image aspect ratio. Use `--width`/`--height` or scale factors like `2x` when you want resizing.
@@ -268,5 +268,5 @@ image.save("qwen_edit_monkey.png")
 > [!WARNING]
 > Qwen edit source checkpoints are large. Download the exact checkpoint you plan to use, such as
 > `Qwen/Qwen-Image-Edit` for single-reference editing or `Qwen/Qwen-Image-Edit-2509` /
-> `Qwen/Qwen-Image-Edit-2511` for multi-reference edit routes. Prepared q8/q4 packages are
+> `Qwen/Qwen-Image-Edit-2511` for multi-reference edit routes. Optimized q8/q4 packages are
 > smaller, but validate the exact package when visual quality matters.

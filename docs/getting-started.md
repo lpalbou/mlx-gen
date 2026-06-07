@@ -21,11 +21,12 @@ The top-level command shows the public workflows:
 - `mlxgen generate` for image generation and supported video generation.
 - `mlxgen capabilities` for inspecting model tasks, image-to-image modes, and option support without loading weights.
 - `mlxgen download` for explicit Hugging Face cache downloads.
-- `mlxgen prepare` for reusable local MLX-Gen model folders.
+- `mlxgen prepare` for reusable local MLX-Gen model packages.
 
 ## Prepare Model Files
 
-Before generation, either download the source repository into the local Hugging Face cache or prepare a reusable local folder. Generation uses those local files and does not start a download.
+Before generation, either download the source repository into the local Hugging Face cache or create
+a reusable local MLX-Gen package. Generation uses those local files and does not start a download.
 
 Download into the Hugging Face cache:
 
@@ -33,7 +34,7 @@ Download into the Hugging Face cache:
 mlxgen download --model z-image-turbo
 ```
 
-Prepare a reusable local folder with quantized weights and a generated Hugging Face model card:
+Create a reusable local MLX-Gen package with quantized weights and a generated Hugging Face model card:
 
 ```sh
 mlxgen prepare \
@@ -42,7 +43,8 @@ mlxgen prepare \
   --quantize 8
 ```
 
-Use `mlxgen prepare` when you need a local model folder. There is no separate MLX-Gen `save` workflow in the public documentation.
+Use `mlxgen prepare` when you need a local MLX-Gen model package. There is no separate MLX-Gen
+`save` workflow in the public documentation.
 
 `HF_HUB_ENABLE_HF_TRANSFER=1` is optional. It can speed up explicit Hugging Face download or prepare commands when the accelerated transfer backend is available, but it is not required to authorize downloads.
 
@@ -64,7 +66,7 @@ mlxgen generate \
   --quantize 8
 ```
 
-Run generation from a prepared local folder:
+Run generation from a local MLX-Gen model package:
 
 ```sh
 mlxgen generate \
@@ -112,7 +114,7 @@ edit/reference image-to-image, or multi-reference image-to-image. `--image-stren
 img2img variation only; edit/reference models do not use it.
 
 Use `qwen-image-edit` for the original single-reference edit checkpoint; use
-`qwen-image-edit-2509` or `qwen-image-edit-2511` when you need an Edit-Plus multi-reference route.
+`qwen-image-edit-2509` or `qwen-image-edit-2511` when you need multi-reference editing.
 Current contact sheets and commands for Qwen Image Edit 2511 source, q8, and q4 are published in
 [Image Edit Capabilities](edit-capabilities.md).
 Use `--negative-prompt` or `--negative` to block concrete failure modes such as crop, blur, text,

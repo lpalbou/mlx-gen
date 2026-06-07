@@ -6,7 +6,7 @@
 
 MLX-Gen is a local image and video generation runtime for Apple Silicon and MLX. It exposes
 `mlxgen` for text-to-image, image-to-image, text-to-video, image-to-video, model download, model
-preparation, quantized local folders, and application progress callbacks. It also includes the
+preparation, optimized quantized model variants, and application progress callbacks. It also includes the
 dedicated `mflux-upscale-seedvr2` command for SeedVR2 image super-resolution.
 
 > [!IMPORTANT]
@@ -17,7 +17,7 @@ dedicated `mflux-upscale-seedvr2` command for SeedVR2 image super-resolution.
 > inspect supported modes, and compare generated examples and measured results. MLX-Gen contributes
 > by adding tested T2I/I2I routes, Qwen Image Edit 2509/2511 routing and parity fixes, Bonsai Image
 > support, Wan2.2 text-to-video and image-to-video support, model-specific mixed quantization
-> policies, published prepared folders, and progress callbacks for apps. The fork exists so
+> policies, published quantized Hugging Face repos optimized for MLX-Gen, and progress callbacks for apps. The fork exists so
 > AbstractFramework projects can move quickly without losing the option to merge useful changes back
 > upstream if that becomes valuable for the wider mflux community.
 
@@ -30,29 +30,31 @@ run directly with the command-line examples below.
 
 ## What It Does
 
-MLX-Gen runs supported Hugging Face and prepared MLX-Gen model folders without starting network
-downloads during generation. You explicitly download or prepare models first, then generation is a
-job that uses only files already on disk, which suits desktop apps, workflow engines, and
+MLX-Gen runs supported Hugging Face source models after you download them locally. It also runs
+quantized model variants that are published on Hugging Face for MLX-Gen. Some of those variants keep
+precision-sensitive layers at 8-bit or BF16 instead of blindly quantizing every layer, which is why
+they are published as MLX-Gen-specific repos. You explicitly download or prepare models first, then
+generation uses only files already on disk, which suits desktop apps, workflow engines, and
 long-running local jobs.
 
 The main capabilities are:
 
 - text-to-image generation with Qwen Image, FLUX.2 Klein, Z-Image, ERNIE Image Turbo, Bonsai Image,
-  FIBO, and related prepared folders;
+  FIBO, and their optimized quantized variants where available;
 - image-to-image modes, including latent img2img, instruction/reference edits, and multi-reference
   edits where the selected model supports them;
 - Wan2.2 text-to-video and image-to-video, including TI2V-5B BF16/q8 packages plus A14B
-  T2V/I2V prepared BF16 and mixed q8/BF16 packages; Wan I2V resolves output size from the source
+  T2V/I2V BF16 and mixed q8/BF16 packages; Wan I2V resolves output size from the source
   image aspect ratio so inputs are not stretched into a mismatched canvas;
 - SeedVR2 image super-resolution through `mflux-upscale-seedvr2`, with shortest-edge target sizing
   or explicit scale factors such as `2x` and `3x`;
-- explicit `download` and `prepare` workflows for reproducible local model folders;
+- explicit `download` and `prepare` workflows for local MLX-Gen model packages;
 - JSON model capability inspection before starting a heavy run;
 - shared progress events for applications embedding MLX-Gen.
 
 Use `mlxgen capabilities --model ...` before long image-edit runs. Capability output describes the
 available route; validation reports and contact sheets describe whether an exact source handle or
-prepared package passed a visual release gate. Release evidence should use true handles such as
+MLX-Gen optimized package passed a visual release gate. Release evidence should use true handles such as
 `briaai/Fibo-Edit` or `AbstractFramework/flux.2-klein-9b-8bit`, not short aliases.
 
 ## Install
@@ -128,7 +130,7 @@ selected model can dispatch. For release QA evidence on exact packages, use:
 mlxgen validation --model AbstractFramework/qwen-image-edit-2509-8bit
 ```
 
-Create a reusable local prepared folder:
+Create a local MLX-Gen model package, for example an 8-bit Qwen Image package:
 
 ```sh
 mlxgen prepare \
@@ -138,7 +140,7 @@ mlxgen prepare \
 ```
 
 `mlxgen generate` does not download missing files. If something is not cached, MLX-Gen raises a
-clear `DownloadRequiredError` with the command to run. A complete prepared folder at
+clear `DownloadRequiredError` with the command to run. A complete local MLX-Gen package at
 `./models/<repo-name>` can also satisfy a matching Hugging Face handle such as
 `AbstractFramework/qwen-image-edit-2511-8bit`.
 
@@ -164,7 +166,7 @@ Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, and latent I2I models, see
 
 ## Published Models
 
-Prepared MLX-Gen model folders are published under the
+Quantized and BF16 model variants optimized for MLX-Gen are published under the
 [AbstractFramework organization on Hugging Face](https://huggingface.co/AbstractFramework). Current
 published packages include:
 
@@ -215,9 +217,9 @@ Wan2.2 video:
 Use `mlxgen download --model <repo-id>` to cache a published model, or pass the repository id
 directly to `mlxgen generate` after it is cached. See
 [docs/quantization.md](docs/quantization.md) for the complete current package matrix with source
-sizes, prepared package sizes, task coverage, and quantization notes.
+sizes, optimized package sizes, task coverage, and quantization notes.
 
-For Wan2.2 TI2V-5B, the published BF16 prepared package is 21.2 GiB versus 31.9 GiB for the
+For Wan2.2 TI2V-5B, the published BF16 MLX-Gen package is 21.2 GiB versus 31.9 GiB for the
 upstream source snapshot. It is mainly a smaller reusable source-equivalent package because
 MLX-Gen already loads Wan transformer/VAE weights at BF16 runtime precision. The published q8
 package is 16.9 GiB. In the documented 1280x704 benchmark profile, q8 reduced logical model
@@ -239,7 +241,7 @@ scale with resolution, frame count, step count, cache settings, and image-to-vid
 | Wan2.2 I2V-A14B | BF16 | 64.1 GiB | 33.7 GiB | 31.8 GiB | 28.2 GiB | 228.2 s | 384x384, 33 frames, 12 steps, 8 fps |
 | Wan2.2 I2V-A14B | mixed q8/BF16 | 39.5 GiB | 21.5 GiB | 19.6 GiB | 15.9 GiB | 242.2 s | 384x384, 33 frames, 12 steps, 8 fps |
 
-In these runs, mixed q8/BF16 reduces disk usage by about 38% versus prepared BF16 folders and
+In these runs, mixed q8/BF16 reduces disk usage by about 38% versus BF16 MLX-Gen packages and
 reduces full-process physical peak memory by about 36-37%. It is not documented as a speed
 improvement. See
 [docs/quantization.md](docs/quantization.md) for model-family quantization details and metrics JSON.

@@ -1,15 +1,19 @@
 # Hugging Face Publishing
 
-`mlxgen prepare` creates a `README.md` model card in the prepared model folder. The generated card cites the source model, mflux, MLX-Gen, the exact `mlx-gen` version used to generate the card, the quantization policy, the source license/access policy when MLX-Gen can infer it, and the default contributor attribution to [@lpalbou](https://huggingface.co/lpalbou).
+`mlxgen prepare` creates a local MLX-Gen model package and writes a `README.md` model card into it.
+The generated card cites the source model, mflux, MLX-Gen, the exact `mlx-gen` version used to
+generate the card, the quantization policy, the source license/access policy when MLX-Gen can infer
+it, and the default contributor attribution to [@lpalbou](https://huggingface.co/lpalbou).
 
 Generated cards include `python -m pip install -U mlx-gen` in the usage block so Hugging Face readers can copy and paste a complete baseline command without needing uv. Repository development and release workflows still use uv.
 
-Use `mlxgen prepare` before upload whenever you want to publish a quantized MLX-Gen folder. `mlxgen download` only fills the local Hugging Face cache and does not create an uploadable prepared folder.
+Use `mlxgen prepare` before upload whenever you want to publish a quantized MLX-Gen package.
+`mlxgen download` only fills the local Hugging Face cache and does not create an uploadable package.
 
 Bonsai Image is an exception: Prism's Bonsai repositories are already packed MLX artifacts, so
-MLX-Gen supports download/generate rather than preparing or republishing a derivative folder.
+MLX-Gen supports download/generate rather than preparing or republishing a derivative package.
 
-## Prepare A Model Folder
+## Prepare A Model Package
 
 ```sh
 mlxgen prepare \
@@ -18,9 +22,11 @@ mlxgen prepare \
   --quantize 4
 ```
 
-The prepared folder contains the MLX-Gen saved-weight layout plus the generated `README.md` model card. The card includes a `Generated with mlx-gen <version>` line so published quantized checkpoints can be traced back to the package version that prepared them.
+The local package contains the MLX-Gen saved-weight layout plus the generated `README.md` model
+card. The card includes a `Generated with mlx-gen <version>` line so published quantized
+checkpoints can be traced back to the package version that created them.
 
-The prepared folder can then be uploaded to Hugging Face:
+The package can then be uploaded to Hugging Face:
 
 ```sh
 huggingface-cli upload AbstractFramework/qwen-image-edit-2511-4bit ./models/qwen-image-edit-2511-4bit .

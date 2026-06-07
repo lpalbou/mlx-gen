@@ -29,7 +29,7 @@ Wan full-model parity checks are opt-in because they require the cached Wan sour
 MFLUX_RUN_LOCAL_WAN_PARITY=1 MFLUX_PRESERVE_TEST_OUTPUT=1 uv run pytest tests/wan/test_wan_local_parity.py -q
 ```
 
-Set `MFLUX_WAN_PARITY_MODEL=/path/to/local/Wan2.2-TI2V-5B-Diffusers` when you want to validate against a specific local snapshot or prepared folder.
+Set `MFLUX_WAN_PARITY_MODEL=/path/to/local/Wan2.2-TI2V-5B-Diffusers` when you want to validate against a specific local snapshot or MLX-Gen model package.
 
 These checks validate component parity for the Wan transformer, VAE encoder/decoder, prompt embeddings, scheduler replay, and a tiny latent-only CFG denoise loop. They do not replace visual review or decoded video quality checks.
 

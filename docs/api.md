@@ -14,11 +14,11 @@ The public workflows are:
 
 | Command | Purpose |
 | --- | --- |
-| `mlxgen generate` | Generate images or supported videos from a cached or prepared model. Image input selects image-to-image or image-to-video when the model supports it. |
+| `mlxgen generate` | Generate images or supported videos from a downloaded source model or MLX-Gen model package. Image input selects image-to-image or image-to-video when the model supports it. |
 | `mlxgen capabilities` | Inspect the public tasks, internal modes, and option support for a model without loading weights. |
 | `mlxgen validation` | Inspect generated-output and benchmark records for exact model/package rows. |
 | `mlxgen download` | Explicitly download model or LoRA files into the local cache. |
-| `mlxgen prepare` | Create a reusable local MLX-Gen model folder, optionally quantized, and write a Hugging Face model card. |
+| `mlxgen prepare` | Create a reusable local MLX-Gen model package, optionally quantized, and write a Hugging Face model card. |
 
 The package also installs dedicated entry points from the mflux codebase for workflows that are not
 yet routed through unified `mlxgen generate`, including `mflux-upscale-seedvr2` for SeedVR2 image
@@ -101,14 +101,14 @@ single-reference edit model in MLX-Gen. Use it for one-source semantic or appear
 pencil sketch, object-state changes, style changes, and layout-preserving instruction edits. Qwen
 Image Edit 2509 and 2511 expose multi-reference edit routes through unified
 `mlxgen generate` when a package supports that route. The validation command records which exact
-source/prepared package rows passed visual review. Qwen Image Edit 2511 source, q8, and q4 now have
+source model or MLX-Gen optimized package rows passed visual review. Qwen Image Edit 2511 source, q8, and q4 now have
 passing 2026-06-06 proof rows for single-image pencil sketch, single-image hard-landing edit, and
 two-reference pencil-plus-crash composition.
 
 Latent-only image models such as ERNIE Image Turbo, Z-Image, and base Qwen Image require explicit
 `--image-strength` for `latent-img2img`. Base FIBO exposes text-to-image through unified
 `mlxgen generate`. FIBO Edit is not exposed as a public `mlxgen generate` capability until it has
-passing source-model and prepared-package visual proof; use the dedicated FIBO Edit command only for
+passing source-model and optimized-variant visual proof; use the dedicated FIBO Edit command only for
 experimental parity work.
 
 ### Image-To-Image Canvas Policy
@@ -228,7 +228,7 @@ mlxgen generate \
   --output image.png
 ```
 
-ERNIE Image Turbo supports BF16 source weights plus prepared q8/q4 folders. MLX-Gen also provides single-image latent image-to-image for ERNIE:
+ERNIE Image Turbo supports BF16 source weights plus MLX-Gen q8/q4 optimized packages. MLX-Gen also provides single-image latent image-to-image for ERNIE:
 
 ```sh
 mlxgen generate \
@@ -251,7 +251,7 @@ visible stylization, `0.45` to `0.6` for stronger source preservation, and 12-16
 output needs more polished stylization. Use Qwen Image Edit for single-image instruction edits when
 source layout matters, and use FLUX.2 when the workflow needs validated multi-reference composition.
 
-ERNIE's optional Prompt Enhancer is available with `--use-prompt-enhancer` when the full source snapshot is present. The default `mlxgen download --model baidu/ERNIE-Image-Turbo` command downloads only generation components; run `mlxgen download --model baidu/ERNIE-Image-Turbo --all-files` before using Prompt Enhancer. Prepared q8/q4 ERNIE folders created by `mlxgen prepare` do not include Prompt Enhancer files.
+ERNIE's optional Prompt Enhancer is available with `--use-prompt-enhancer` when the full source snapshot is present. The default `mlxgen download --model baidu/ERNIE-Image-Turbo` command downloads only generation components; run `mlxgen download --model baidu/ERNIE-Image-Turbo --all-files` before using Prompt Enhancer. ERNIE q8/q4 MLX-Gen packages created by `mlxgen prepare` do not include Prompt Enhancer files.
 
 Wan2.2 routes through the same command surface for video generation. TI2V-5B is the smaller text-to-video and first-frame image-to-video path:
 
@@ -425,12 +425,13 @@ mlxgen prepare \
   --quantize 8
 ```
 
-Use `prepare` when you need the local saved-weight folder. It is the public MLX-Gen workflow for creating quantized model folders and generated Hugging Face cards.
+Use `prepare` when you need a local MLX-Gen model package. It creates MLX-Gen saved weights,
+optional quantized weights, and a generated Hugging Face card.
 
-If a complete prepared folder exists at `./models/<repo-name>`, a matching Hugging Face handle can
+If a complete local MLX-Gen package exists at `./models/<repo-name>`, a matching Hugging Face handle can
 resolve to it before requiring a cache snapshot. This lets applications use stable handles such as
 `AbstractFramework/qwen-image-edit-2511-8bit` or
-`AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit` while still running from a local prepared folder.
+`AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit` while still running from local files.
 
 Generation output replaces the requested `--output` path by default. Use `--replace false` or `--no-replace` to preserve an existing file and save to a suffixed filename.
 
@@ -465,4 +466,4 @@ except DownloadRequiredError as exc:
 
 ## Compatibility Boundary
 
-MLX-Gen prepared model folders use the MLX/mflux saved-weight layout and MLX quantization tensors. They are intended for MLX-Gen and compatible mflux code, not for direct Diffusers or Transformers `from_pretrained()` loading.
+MLX-Gen model packages use the MLX/mflux saved-weight layout and MLX quantization tensors. They are intended for MLX-Gen and compatible mflux code, not for direct Diffusers or Transformers `from_pretrained()` loading.

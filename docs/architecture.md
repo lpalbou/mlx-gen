@@ -29,9 +29,9 @@ This boundary is important for embedded workflow systems such as AbstractVision:
 Source model files usually come from Hugging Face. They can be used in two ways:
 
 1. Cache the source files with `mlxgen download` and run by alias or repository id.
-2. Create a reusable MLX-Gen folder with `mlxgen prepare --model ... --path ... --quantize ...`.
+2. Create a reusable local MLX-Gen model package with `mlxgen prepare --model ... --path ... --quantize ...`.
 
-Prepared folders use the MLX/mflux saved-weight layout. They may contain MLX quantization tensors and generated Hugging Face model cards. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers loading.
+MLX-Gen model packages use the MLX/mflux saved-weight layout. They may contain MLX quantization tensors and generated Hugging Face model cards. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers loading.
 
 Video support follows the same setup/runtime boundary. Wan2.2 loads local source files and writes MP4 output. Text-to-video starts from random video latents. TI2V-5B image-to-video VAE-encodes the first frame, masks first-frame timesteps, keeps the condition active during denoising, and reinserts the condition before decode. A14B uses Diffusers-compatible two-transformer boundary routing and, for the separate I2V model, concatenated image-condition latents.
 

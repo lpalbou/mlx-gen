@@ -13,7 +13,7 @@
 - `docs/upscaling.md`: SeedVR2 image upscaling guide with shortest-edge and scale-factor sizing, quality controls, and a real 5x source/output comparison.
 - `docs/edit-capabilities.md`: image-edit contact sheets, model/package status summaries, and exact command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate` in the current release.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
-- `docs/model-management.md`: explicit `download` and `prepare`, generation from local model files, local model folders, matching Hugging Face handle resolution, and `DownloadRequiredError`.
+- `docs/model-management.md`: explicit `download` and `prepare`, generation from local model files, local MLX-Gen packages, matching Hugging Face handle resolution, and `DownloadRequiredError`.
 - `docs/quantization.md`: complete published package matrix, q8/q4/BF16 policies, model-family compatibility, Wan TI2V/A14B package status, and A14B q8 generated-output records.
 - `docs/huggingface-publishing.md`: generated model cards and AbstractFramework Hugging Face upload guidance.
 - `docs/python-integration.md`: embedding MLX-Gen, capability checks, negative prompts, progress callbacks, AbstractVision integration, and threading behavior.
@@ -38,14 +38,14 @@ generation for real applications: users download or prepare models before runnin
 one command to generate, inspect supported modes, and compare generated examples and measured
 results. MLX-Gen contributes by adding tested T2I/I2I routes, Qwen Image Edit 2509/2511 routing
 and parity fixes, Bonsai Image support, Wan2.2 text-to-video and image-to-video support,
-model-specific mixed quantization policies, published prepared folders, and progress callbacks for
+model-specific mixed quantization policies, published MLX-Gen optimized packages, and progress callbacks for
 apps. The fork exists so AbstractFramework projects can move quickly without losing the option to
 merge useful changes back upstream if that becomes valuable for the wider mflux community.
 
 The project focuses on practical Apple Silicon workflows:
 
 - generation from local model files after explicit setup;
-- prepared local model folders, including quantized layouts;
+- local MLX-Gen model packages, including quantized layouts;
 - Qwen Image/Edit, FLUX.2 Klein, Z-Image, ERNIE Image Turbo, Bonsai Image, base FIBO, Wan2.2, and SeedVR2 support;
 - model capability inspection before heavy runs;
 - progress events for applications;
@@ -61,8 +61,8 @@ commands and integrations should prefer `mlxgen`.
 MLX-Gen separates setup from generation:
 
 - `mlxgen download` explicitly downloads model artifacts into the local cache.
-- `mlxgen prepare` explicitly creates reusable local MLX-Gen model folders and generated model cards.
-- `mlxgen generate` runs from cached or prepared files and does not start network downloads.
+- `mlxgen prepare` explicitly creates reusable local MLX-Gen model packages and generated model cards.
+- `mlxgen generate` runs from downloaded source files or local MLX-Gen packages and does not start network downloads.
 - `mlxgen capabilities` inspects route-supported public tasks, internal modes, and option support without loading weights.
 - `mlxgen validation` reports generated-output and benchmark records for exact model/package rows; it is separate from route support.
 
@@ -70,7 +70,7 @@ Missing model, tokenizer, LoRA, or Depth Pro artifacts raise `DownloadRequiredEr
 download or prepare commands. This behavior is important for application integrations because long
 jobs should not unexpectedly start a network transfer.
 
-A complete prepared folder under `./models/<repo-name>` can satisfy a matching Hugging Face handle.
+A complete local MLX-Gen package under `./models/<repo-name>` can satisfy a matching Hugging Face handle.
 For example, `./models/wan2.2-i2v-a14b-diffusers-8bit` can be used when generation is requested as
 `AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit`, as long as the folder contains all required
 indexes and shard files.
@@ -223,7 +223,7 @@ abstract scenes where the default negative prompt creates unwanted texture.
 
 ## Published Models
 
-Prepared MLX-Gen model folders are published under the Hugging Face
+MLX-Gen optimized model packages are published under the Hugging Face
 `AbstractFramework` organization. Current repositories include:
 
 FLUX.2 Klein:
@@ -272,7 +272,7 @@ Wan2.2 video:
 
 There is no published TI2V-5B q4/mixed q4/q8 package yet.
 
-Prepared folders are MLX-Gen/mflux saved-weight layouts. They are intended for MLX-Gen and
+MLX-Gen model packages use the MLX-Gen/mflux saved-weight layout. They are intended for MLX-Gen and
 compatible mflux code, not direct Diffusers or Transformers `from_pretrained()` loading.
 
 ---
@@ -292,18 +292,18 @@ Wan A14B uses a mixed q8/BF16 policy for 8-bit packages:
   non-quantizable parameters.
 
 For TI2V-5B, the upstream source snapshot is about 31.9 GiB and stores transformer and VAE files as
-FP32 while the UMT5 text encoder is BF16. MLX-Gen loads and prepares Wan transformer/VAE weights at
-BF16 runtime precision. The published prepared BF16 package is about 21.2 GiB and the q8 package is
-about 16.9 GiB; BF16 is mainly a smaller source-equivalent folder, not a separate runtime-memory
+FP32 while the UMT5 text encoder is BF16. MLX-Gen loads and converts Wan transformer/VAE weights at
+BF16 runtime precision. The published BF16 package is about 21.2 GiB and the q8 package is
+about 16.9 GiB; BF16 is mainly a smaller source-equivalent package, not a separate runtime-memory
 optimization. A TI2V-5B 1280x704, 17-frame, 20-step benchmark with
-`--negative-prompt ""` produced byte-identical decoded frames for source and prepared BF16, and a
+`--negative-prompt ""` produced byte-identical decoded frames for source and the BF16 package, and a
 matching q8/BF16 output with mean frame MAE 1.66 versus source/BF16. The MP4s, contact sheet, and
 metrics are linked from `docs/quantization.md`. The measured TI2V profile was:
 
 - TI2V-5B upstream source: 31.9 GiB storage, 10.6 GiB Wan MLX model footprint, 10.3 GiB MLX
   active after generation, 102.7 GiB physical peak, 13.7 GiB max RSS, 58.5 GiB MLX peak,
   216.2 s.
-- TI2V-5B prepared BF16: 21.2 GiB storage, 10.6 GiB Wan MLX model footprint, 10.3 GiB MLX active
+- TI2V-5B BF16 package: 21.2 GiB storage, 10.6 GiB Wan MLX model footprint, 10.3 GiB MLX active
   after generation, 102.6 GiB physical peak, 14.5 GiB max RSS, 58.5 GiB MLX peak, 261.6 s.
 - TI2V-5B mixed q8/BF16: 16.9 GiB storage, 6.3 GiB Wan MLX model footprint, 6.1 GiB MLX active
   after generation, 103.7 GiB physical peak, 13.8 GiB max RSS, 54.2 GiB MLX peak, 243.4 s.
@@ -323,7 +323,7 @@ On an Apple M5 Max with 128 GB unified memory, A14B measurements use short low-R
 - I2V-A14B mixed q8/BF16: 39.5 GiB disk, 21.5 GiB physical peak, 19.6 GiB max RSS, 15.9 GiB MLX
   peak, 242.2 s on the same profile.
 
-In those benchmark runs, mixed q8/BF16 reduced disk usage by about 38% versus prepared BF16 folders
+In those benchmark runs, mixed q8/BF16 reduced disk usage by about 38% versus BF16 MLX-Gen packages
 and reduced full-process physical peak memory by about 36-37%. It is not documented as a speed
 improvement. Full-size Wan video memory and runtime vary with resolution, frame count, step count,
 task, cache settings, and prompt/image conditioning.

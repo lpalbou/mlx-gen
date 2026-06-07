@@ -27,7 +27,7 @@ The project routes or prepares model families from these upstream communities an
 - InstantX, JasperAI, CatVTON, and Apple Depth Pro for optional control, upscaling, fill, virtual
   try-on, and depth-related model components used by inherited mflux routes.
 
-Prepared models published under the AbstractFramework Hugging Face organization remain derivative
-MLX-Gen/mflux saved-weight layouts of their respective source repositories. Model weights,
-licenses, access restrictions, and attribution requirements remain governed by the original model
-owners and source repositories.
+Optimized model variants published under the AbstractFramework Hugging Face organization remain
+derivative MLX-Gen/mflux saved-weight layouts of their respective source repositories. Model
+weights, licenses, access restrictions, and attribution requirements remain governed by the original
+model owners and source repositories.

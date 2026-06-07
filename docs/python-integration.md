@@ -32,7 +32,7 @@ That split means:
 - MLX-Gen owns MLX model loading, model-family behavior, local quantized formats, and runtime compatibility fixes.
 - MLX-Gen should fail early when required local artifacts are missing so AbstractVision can surface a clear remediation message instead of starting a network transfer.
 
-The current integration path is still model-specific Python classes. A future higher-level facade may expose explicit prepared/loaded/warmed model states, but current docs only describe the APIs that exist now.
+The current integration path is still model-specific Python classes. A future higher-level facade may expose explicit model lifecycle states, but current docs only describe the APIs that exist now.
 
 [AbstractFlow](https://github.com/lpalbou/abstractflow) can orchestrate these generation
 capabilities visually alongside other persistent agentic tasks. MLX-Gen remains the local model
@@ -97,8 +97,8 @@ as AbstractVision can use capabilities for routing and validation status for UI 
 or release gates.
 
 Qwen edit versions are distinct. `qwen-image-edit` is the original single-reference edit
-checkpoint. `qwen-image-edit-2509` and `qwen-image-edit-2511` are Edit-Plus checkpoints and expose
-multi-reference capabilities when the selected package supports that route.
+checkpoint. Use `qwen-image-edit-2509` or `qwen-image-edit-2511` when you need multi-reference
+capabilities and the selected package supports that route.
 
 Negative prompts are part of the model-specific generation API. The CLI aliases
 `--negative-prompt` and `--negative` both map to `negative_prompt=...` in Python. For Qwen image

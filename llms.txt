@@ -4,7 +4,7 @@
 > `mlx-gen` and exposed through the `mlxgen` CLI and Python helpers.
 
 Use these docs to understand installation, local model setup, generation routing, model
-capabilities, quantized prepared folders, Wan video behavior, and application integration.
+capabilities, MLX-Gen optimized quantized packages, Wan video behavior, and application integration.
 
 ## Core Docs
 
@@ -14,7 +14,7 @@ capabilities, quantized prepared folders, Wan video behavior, and application in
 - [docs/api.md](docs/api.md): `mlxgen` command surface, generation router, public tasks, internal I2I modes, I2I canvas policy, SeedVR2 shortest-edge/scale-factor upscaling plus softness and tiling controls, negative prompts, Qwen edit-version routing, outpaint/reframe status, Wan video sizes and I2V aspect-ratio behavior, route capabilities, generated-output records, and Python plan resolution.
 - [docs/upscaling.md](docs/upscaling.md): SeedVR2 image upscaling guide with shortest-edge and scale-factor sizing, quality controls, and a real 5x source/output comparison.
 - [docs/edit-capabilities.md](docs/edit-capabilities.md): current image-edit contact sheets, exact model/package statuses, and command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate` in the current release.
-- [docs/model-management.md](docs/model-management.md): explicit download/prepare commands, generation from local files, local prepared folders, matching Hugging Face handle resolution, and missing-artifact errors.
+- [docs/model-management.md](docs/model-management.md): explicit download/prepare commands, generation from local files, local MLX-Gen packages, matching Hugging Face handle resolution, and missing-artifact errors.
 - [docs/quantization.md](docs/quantization.md): complete published package matrix, q8/q4/BF16 policies, Wan TI2V/A14B package status, A14B q8 measured run, Bonsai ternary support, and model-family compatibility.
 - [docs/python-integration.md](docs/python-integration.md): embedding MLX-Gen, AbstractVision integration, capability/canvas planning, negative prompts, progress callbacks, and threading guidance.
 - [docs/faq.md](docs/faq.md): common questions about tasks, image-to-image mode selection, SeedVR2 sizing and quality controls, Qwen edit variants, negative prompts, I2I output sizing, `--image-strength`, outpaint/reframe status, Wan resolutions and prompting, model preparation, and package naming.

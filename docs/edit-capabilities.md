@@ -11,7 +11,7 @@ three related concepts:
 
 Use `mlxgen capabilities --model <model>` to inspect route support before a run. Use the contact
 sheets and status tables below when you need visual release evidence for exact source handles or
-prepared packages.
+MLX-Gen optimized packages.
 
 ## Status Labels
 
@@ -35,8 +35,8 @@ The canonical validation source image is
 | Model | Package | Capabilities validated | Result |
 | --- | --- | --- | --- |
 | `Qwen/Qwen-Image-Edit` | source | pencil sketch, crash edit | `PASS` |
-| `AbstractFramework/qwen-image-edit-8bit` | q8 prepared | pencil sketch, crash edit | `PASS` |
-| `AbstractFramework/qwen-image-edit-4bit` | mixed q4/q8 prepared | pencil sketch, crash edit | `PASS` |
+| `AbstractFramework/qwen-image-edit-8bit` | q8 optimized variant | pencil sketch, crash edit | `PASS` |
+| `AbstractFramework/qwen-image-edit-4bit` | mixed q4/q8 optimized variant | pencil sketch, crash edit | `PASS` |
 
 These rows used a `768x432`, 30-step, guidance `4` profile with
 `--scheduler flow_match_euler_discrete`.
@@ -76,7 +76,7 @@ directly.
 
 ### Qwen Image Edit 2509
 
-This matrix validates the Qwen Image Edit 2509 source checkpoint plus q8 and q4 prepared packages. Source
+This matrix validates the Qwen Image Edit 2509 source checkpoint plus q8 and q4 MLX-Gen optimized packages. Source
 and q8 pass the full standardized edit-reference and multi-reference sequence; q4 remains partial
 on the multi-reference composition row in this profile.
 
@@ -85,7 +85,7 @@ on the multi-reference composition row in this profile.
 ### Qwen Image Edit 2511
 
 The current Qwen Image Edit 2511 proof uses the same source image across the upstream source
-checkpoint, the q8 prepared package, and the q4 prepared package. The profile validates a
+checkpoint, the q8 MLX-Gen package, and the q4 MLX-Gen package. The profile validates a
 single-image pencil sketch, a single-image hard-landing crash edit, and a two-reference composition
 from the generated pencil and crash images.
 
