@@ -463,9 +463,11 @@ MLX-Gen is currently built on the mflux codebase. Some internal modules and comp
 
 MLX-Gen is intended to be the Apple Silicon / MLX backend dependency for
 [AbstractVision](https://github.com/lpalbou/abstractvision), which sits inside the wider
-[AbstractFramework](https://abstractframework.ai/) ecosystem. AbstractVision remains
-a cross-platform orchestration layer, while MLX-Gen owns MLX model loading, quantized local formats,
-capability reporting, progress callbacks, and Apple Silicon runtime behavior.
+[AbstractFramework](https://abstractframework.ai/) ecosystem. AbstractVision abstracts generative
+image and video capabilities across local and hosted providers, while MLX-Gen owns MLX model
+loading, quantized local formats, capability reporting, progress callbacks, and Apple Silicon
+runtime behavior.
 
-[AbstractFlow](https://github.com/lpalbou/abstractflow) can use those capabilities in visual
-workflows alongside other persistent agentic tasks.
+[AbstractCore](https://abstractcore.ai/) can expose OpenAI-compatible endpoints backed by
+AbstractVision providers. [AbstractFlow](https://github.com/lpalbou/abstractflow) can use those
+capabilities in visual workflows alongside other media, text, and agent tasks.

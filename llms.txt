@@ -16,7 +16,7 @@ capabilities, MLX-Gen optimized quantized packages, Wan video behavior, and appl
 - [docs/edit-capabilities.md](docs/edit-capabilities.md): current image-edit contact sheets, exact model/package statuses, and command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate` in the current release.
 - [docs/model-management.md](docs/model-management.md): explicit download/prepare commands, generation from local files, local MLX-Gen packages, matching Hugging Face handle resolution, and missing-artifact errors.
 - [docs/quantization.md](docs/quantization.md): complete published package matrix, q8/q4/BF16 policies, Wan TI2V/A14B package status, A14B q8 measured run, Bonsai ternary support, and model-family compatibility.
-- [docs/python-integration.md](docs/python-integration.md): embedding MLX-Gen, AbstractVision integration, capability/canvas planning, negative prompts, progress callbacks, and threading guidance.
+- [docs/python-integration.md](docs/python-integration.md): embedding MLX-Gen, AbstractVision and AbstractCore integration, capability/canvas planning, negative prompts, progress callbacks, and threading guidance.
 - [docs/faq.md](docs/faq.md): common questions about tasks, image-to-image mode selection, SeedVR2 sizing and quality controls, Qwen edit variants, negative prompts, I2I output sizing, `--image-strength`, outpaint/reframe status, Wan resolutions and prompting, model preparation, and package naming.
 - [docs/troubleshooting.md](docs/troubleshooting.md): symptoms and fixes for missing files, local paths, I2I sizing, unsupported options, Wan video settings, LoRA, and transfer issues.
 

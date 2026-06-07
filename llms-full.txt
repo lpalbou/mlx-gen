@@ -16,7 +16,7 @@
 - `docs/model-management.md`: explicit `download` and `prepare`, generation from local model files, local MLX-Gen packages, matching Hugging Face handle resolution, and `DownloadRequiredError`.
 - `docs/quantization.md`: complete published package matrix, q8/q4/BF16 policies, model-family compatibility, Wan TI2V/A14B package status, and A14B q8 generated-output records.
 - `docs/huggingface-publishing.md`: generated model cards and AbstractFramework Hugging Face upload guidance.
-- `docs/python-integration.md`: embedding MLX-Gen, capability checks, negative prompts, progress callbacks, AbstractVision integration, and threading behavior.
+- `docs/python-integration.md`: embedding MLX-Gen, capability checks, negative prompts, progress callbacks, AbstractVision/AbstractCore integration, and threading behavior.
 - `docs/faq.md`: common conceptual questions, I2I mode selection and output sizing, SeedVR2 sizing and quality controls, Qwen edit variants, negative prompts, outpaint/reframe status, Wan resolutions, prompting guidance, and usage limits.
 - `docs/troubleshooting.md`: user-facing failure symptoms, diagnostics, and fixes.
 - `docs/release.md`: release and publishing process.
@@ -49,7 +49,7 @@ The project focuses on practical Apple Silicon workflows:
 - Qwen Image/Edit, FLUX.2 Klein, Z-Image, ERNIE Image Turbo, Bonsai Image, base FIBO, Wan2.2, and SeedVR2 support;
 - model capability inspection before heavy runs;
 - progress events for applications;
-- integration with AbstractVision, AbstractFramework, and AbstractFlow.
+- integration with AbstractVision, AbstractCore, AbstractFramework, and AbstractFlow.
 
 Some implementation internals still use the original `mflux.*` package layout. New user-facing
 commands and integrations should prefer `mlxgen`.
@@ -340,11 +340,12 @@ a 480x240 target, preserved the source aspect ratio as 448x256, generated 41 fra
 
 MLX-Gen is used by:
 
-- AbstractVision: the vision and generation layer for local/cross-platform workflows;
-- AbstractFramework: the broader framework for local agentic and generative workflows
-  (https://abstractframework.ai/);
-- AbstractFlow: a visual editor that can compose MLX-Gen image/video nodes with persistent
-  agentic tasks (https://github.com/lpalbou/abstractflow).
+- AbstractVision: the direct integration layer for abstracting generative image and video
+  capabilities across local and hosted providers (https://github.com/lpalbou/abstractvision);
+- AbstractCore: the endpoint layer that can expose OpenAI-compatible image/video capabilities backed
+  by AbstractVision providers (https://abstractcore.ai/);
+- AbstractFlow: a visual workflow authoring layer that can compose generative image/video nodes with
+  other media, text, and agent workflows (https://github.com/lpalbou/abstractflow).
 
 MLX-Gen owns the local MLX runtime boundary: model loading, capability resolution, quantized local
 formats, fail-fast missing-artifact behavior, and progress events.

@@ -17,16 +17,17 @@ dedicated `mflux-upscale-seedvr2` command for SeedVR2 image super-resolution.
 > inspect supported modes, and compare generated examples and measured results. MLX-Gen contributes
 > by adding tested T2I/I2I routes, Qwen Image Edit 2509/2511 routing and parity fixes, Bonsai Image
 > support, Wan2.2 text-to-video and image-to-video support, model-specific mixed quantization
-> policies, published quantized Hugging Face repos optimized for MLX-Gen, and progress callbacks for apps. The fork exists so
-> AbstractFramework projects can move quickly without losing the option to merge useful changes back
-> upstream if that becomes valuable for the wider mflux community.
+> policies, published quantized Hugging Face repos optimized for MLX-Gen, and progress callbacks
+> for apps. The fork exists so AbstractVision and related AbstractFramework projects can move
+> quickly without losing the option to merge useful changes back upstream if that becomes valuable
+> for the wider mflux community.
 
 ![MLX-Gen workflow example](https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/assets/examples/spaceship-snow/mlx-gen-example.png)
 
-This screenshot shows [AbstractFlow](https://github.com/lpalbou/abstractflow), a visual editor in
-the [AbstractFramework](https://abstractframework.ai/) ecosystem, orchestrating MLX-Gen image and
-video nodes. It is one way to compose the workflow visually; the same generation steps can also be
-run directly with the command-line examples below.
+This screenshot shows [AbstractFlow](https://github.com/lpalbou/abstractflow), a visual workflow
+authoring tool in the [AbstractFramework](https://abstractframework.ai/) ecosystem. AbstractFlow can
+orchestrate generative image/video capabilities exposed through AbstractVision and AbstractCore; the
+same MLX-Gen steps can also be run directly with the command-line examples below.
 
 ## What It Does
 
@@ -252,12 +253,12 @@ The 0.18.11 release also validates the published A14B q8 T2V/I2V handles on a 41
 
 MLX-Gen is used as the local Apple Silicon generation backend for:
 
-- [AbstractVision](https://github.com/lpalbou/abstractvision), the vision/generation layer of the
-  AbstractFramework ecosystem;
-- [AbstractFramework](https://abstractframework.ai/), the broader framework for
-  local agentic and generative workflows;
-- [AbstractFlow](https://github.com/lpalbou/abstractflow), a visual orchestration layer that can
-  compose generative capabilities with persistent agentic tasks.
+- [AbstractVision](https://github.com/lpalbou/abstractvision), the direct integration layer for
+  abstracting generative image and video capabilities across local and hosted providers;
+- [AbstractCore](https://abstractcore.ai/), which can expose OpenAI-compatible endpoints backed by
+  AbstractVision providers, including image and video capabilities;
+- [AbstractFlow](https://github.com/lpalbou/abstractflow), a visual workflow authoring layer that
+  can compose generative image/video nodes alongside other media, text, and agent workflows.
 
 MLX-Gen remains useful as a standalone CLI package, and it is also designed for applications: jobs
 run from model files already on disk, apps can inspect supported modes before loading weights, and
@@ -272,7 +273,7 @@ progress callbacks make long runs observable.
 - [Image edit capabilities](docs/edit-capabilities.md): image-edit contact sheets, exact model/package status, and command logs.
 - [Model management](docs/model-management.md): download, prepare, and run from local model files.
 - [Quantization](docs/quantization.md): q8/q4/BF16 policies and measurements.
-- [Python integration](docs/python-integration.md): embedding, progress callbacks, and AbstractVision notes.
+- [Python integration](docs/python-integration.md): embedding, progress callbacks, and AbstractVision/AbstractCore notes.
 - [FAQ](docs/faq.md): recurring questions, image-to-image mode selection, SeedVR2 sizing, Qwen edit variants, negative prompts, outpaint/reframe status, Wan resolutions, and usage limits.
 - [Troubleshooting](docs/troubleshooting.md): common setup and runtime failures.
 - [Acknowledgements](ACKNOWLEDGEMENTS.md): upstream mflux and model-community credits.

@@ -23,21 +23,25 @@ For user-facing applications, show the exception message or the `download_comman
 
 MLX-Gen is intended to be the Apple Silicon / MLX dependency for
 [AbstractVision](https://github.com/lpalbou/abstractvision), while AbstractVision remains a
-cross-platform orchestration package inside the wider
+cross-platform image/video generation abstraction inside the wider
 [AbstractFramework](https://abstractframework.ai/) ecosystem.
 
 That split means:
 
-- AbstractVision owns provider-neutral request objects, artifact storage, capability checks, and AbstractCore plugin integration.
+- AbstractVision owns provider-neutral image/video request objects, artifact storage, capability checks, and AbstractCore integration.
 - MLX-Gen owns MLX model loading, model-family behavior, local quantized formats, and runtime compatibility fixes.
 - MLX-Gen should fail early when required local artifacts are missing so AbstractVision can surface a clear remediation message instead of starting a network transfer.
 
 The current integration path is still model-specific Python classes. A future higher-level facade may expose explicit model lifecycle states, but current docs only describe the APIs that exist now.
 
+[AbstractCore](https://abstractcore.ai/) can expose OpenAI-compatible endpoints backed by
+AbstractVision providers, including image and video generation. In that path, MLX-Gen remains the
+local Apple Silicon runtime behind the AbstractVision provider.
+
 [AbstractFlow](https://github.com/lpalbou/abstractflow) can orchestrate these generation
-capabilities visually alongside other persistent agentic tasks. MLX-Gen remains the local model
-runtime boundary: it reports capabilities, validates local artifacts, emits progress events, and
-writes generated assets.
+capabilities visually alongside other media, text, and agent workflows. MLX-Gen remains the local
+model runtime boundary: it reports capabilities, validates local artifacts, emits progress events,
+and writes generated assets.
 
 ## Capability And Plan Resolution
 
