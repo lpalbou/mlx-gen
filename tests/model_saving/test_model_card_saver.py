@@ -85,6 +85,22 @@ class FIBO:
     )
 
 
+class SeedVR2:
+    model_config = SimpleNamespace(
+        model_name="ByteDance-Seed/SeedVR2-3B",
+        base_model=None,
+        aliases=["seedvr2-3b", "seedvr2"],
+    )
+
+
+class SeedVR2_7B:
+    model_config = SimpleNamespace(
+        model_name="ByteDance-Seed/SeedVR2-7B",
+        base_model=None,
+        aliases=["seedvr2-7b"],
+    )
+
+
 class EmptyWeightDefinition:
     @staticmethod
     def get_tokenizers():
@@ -161,6 +177,33 @@ def test_model_card_for_fibo_q4_documents_mixed_bf16_policy(tmp_path):
     assert "mixed q4/BF16 checkpoint for base FIBO text-to-image generation" in card
     assert "q4 for quantizable FIBO transformer and text-encoder linears" in card
     assert "BF16 for the FIBO VAE" in card
+
+
+def test_model_card_for_seedvr2_q8_uses_upscale_command(tmp_path):
+    card = ModelCardSaver.render_model_card(str(tmp_path / "seedvr2-3b-8bit"), SeedVR2(), 8)
+
+    assert "base_model: ByteDance-Seed/SeedVR2-3B" in card
+    assert "license: apache-2.0" in card
+    assert "pipeline_tag: image-to-image" in card
+    assert "- seedvr2" in card
+    assert "- image-upscaling" in card
+    assert "SeedVR2 3B image super-resolution" in card
+    assert "q8 for quantizable SeedVR2 transformer linears and VAE attention linears" in card
+    assert "mlxgen upscale" in card
+    assert "mflux-upscale-seedvr2" not in card
+    assert "mlxgen generate" not in card
+    assert "mlxgen download --model AbstractFramework/seedvr2-3b-8bit" in card
+    assert "--resolution 2x" in card
+
+
+def test_model_card_for_seedvr2_7b_q4_uses_7b_wording(tmp_path):
+    card = ModelCardSaver.render_model_card(str(tmp_path / "seedvr2-7b-4bit"), SeedVR2_7B(), 4)
+
+    assert "base_model: ByteDance-Seed/SeedVR2-7B" in card
+    assert "SeedVR2 7B image super-resolution" in card
+    assert "SeedVR2 3B image super-resolution" not in card
+    assert "mlxgen download --model AbstractFramework/seedvr2-7b-4bit" in card
+    assert "mlxgen upscale" in card
 
 
 def test_model_card_for_ernie_documents_bf16_usage(tmp_path):

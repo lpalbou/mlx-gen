@@ -681,7 +681,7 @@ AVAILABLE_MODELS = {
     "seedvr2-3b": ModelConfig(
         priority=23,
         aliases=["seedvr2-3b", "seedvr2"],
-        model_name="numz/SeedVR2_comfyUI",
+        model_name="ByteDance-Seed/SeedVR2-3B",
         base_model=None,
         controlnet_model=None,
         custom_transformer_model=None,
@@ -693,7 +693,7 @@ AVAILABLE_MODELS = {
     "seedvr2-7b": ModelConfig(
         priority=24,
         aliases=["seedvr2-7b", "seedvr2-7B"],
-        model_name="numz/SeedVR2_comfyUI",
+        model_name="ByteDance-Seed/SeedVR2-7B",
         base_model=None,
         controlnet_model=None,
         custom_transformer_model=None,

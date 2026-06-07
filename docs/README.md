@@ -8,10 +8,10 @@ MLX-Gen is an MLX-native generative image and video runtime forked from mflux. I
 - [Architecture](architecture.md): package shape, command boundaries, model-file lifecycle, runtime failure contract, and Python integration boundary.
 - [API and CLI](api.md): public `mlxgen` command surface, generation router behavior, image-to-image modes and canvas policy, SeedVR2 upscale sizing, negative prompts, Qwen edit variants, Wan video size rules, model-management commands, and Python integration boundary.
 - [Spaceship snow workflow](examples/spaceship-snow.md): reproducible model-backed T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B commands with included assets.
-- [Image upscaling](upscaling.md): SeedVR2 command usage, shortest-edge and scale-factor sizing, quality controls, and a real 5x comparison from a `133x113` source.
+- [Image upscaling](upscaling.md): SeedVR2 command usage, published 3B/7B q8/q4 package handles, shortest-edge and scale-factor sizing, quality controls, and real 5x comparisons from a `133x113` source.
 - [Image edit capabilities](edit-capabilities.md): current image-edit contact sheets, exact model/package status, and command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, and latent I2I rows. FIBO Edit is documented as unsupported through unified `mlxgen generate` in the current release.
 - [Model management](model-management.md): explicit download and prepare workflows, generation from local model files, local MLX-Gen package resolution, and Depth Pro downloads.
-- [Quantization](quantization.md): current low-bit compatibility by model family, including the complete published package matrix, benchmark panels, Bonsai ternary 2-bit support, Qwen and ERNIE mixed q4/q8 policies, and Wan TI2V/A14B package status.
+- [Quantization](quantization.md): current low-bit compatibility by model family, including the complete published package matrix, benchmark panels, Bonsai ternary 2-bit support, published SeedVR2 3B q8/q4 packages, local SeedVR2 7B q8/q4 package preparation, Qwen and ERNIE mixed q4/q8 policies, and Wan TI2V/A14B package status.
 - [Hugging Face publishing](huggingface-publishing.md): generated model cards, source license/access wording, default `AbstractFramework/<repo-name>` usage, upload flow, and optional collection membership.
 - [Python integration](python-integration.md): current in-process API, AbstractVision and AbstractCore integration notes, shared progress callbacks, and error handling.
 - [Release](release.md): GitHub Release and PyPI trusted publishing workflow.

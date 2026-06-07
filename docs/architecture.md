@@ -1,12 +1,12 @@
 # Architecture
 
-MLX-Gen is an independent package forked from mflux. It keeps the MLX-native model runtime from mflux while exposing a cleaner `mlxgen` command surface for new users and applications. The supported video paths include Wan2.2 TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, Wan2.2 A14B text-to-video, and Wan2.2 A14B image-to-video. SeedVR2 image super-resolution currently uses the dedicated `mflux-upscale-seedvr2` entry point.
+MLX-Gen is an independent package forked from mflux. It keeps the MLX-native model runtime from mflux while exposing a cleaner `mlxgen` command surface for new users and applications. The supported video paths include Wan2.2 TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, Wan2.2 A14B text-to-video, and Wan2.2 A14B image-to-video. SeedVR2 image super-resolution uses `mlxgen upscale`.
 
 ## Package Shape
 
 - PyPI distribution: `mlx-gen`
 - Public CLI root: `mlxgen`
-- Dedicated compatibility CLI for SeedVR2 upscaling: `mflux-upscale-seedvr2`
+- Compatibility CLI for older SeedVR2 scripts: `mflux-upscale-seedvr2`
 - New application import identity: `mlxgen`
 - Current runtime internals: primarily `mflux.*`
 
@@ -19,8 +19,7 @@ The public command surface separates setup from inference:
 - `mlxgen download` is an explicit cache population command.
 - `mlxgen prepare` is an explicit local model-folder creation command.
 - `mlxgen generate` is the inference command and does not start downloads by default.
-- `mflux-upscale-seedvr2` is the current dedicated inference command for SeedVR2 image
-  super-resolution; it is documented separately until that workflow is unified under `mlxgen`.
+- `mlxgen upscale` is the inference command for SeedVR2 image super-resolution.
 
 This boundary is important for embedded workflow systems such as AbstractVision: a generation request should not unexpectedly start a large network transfer in the middle of a larger job.
 
@@ -43,7 +42,7 @@ The error includes actionable command fields such as `download_command` and, whe
 
 ## Quantization Policy
 
-Quantization is model-specific. Qwen and ERNIE q4 paths use mixed q4/q8 policies because fully q4 checkpoints can lose coherent generative behavior for those model families. Bonsai Image uses Prism's pre-packed ternary 2-bit transformer path instead of MLX-Gen's q4/q8 `prepare` flow; it follows the same quality principle of keeping sensitive paths at higher precision, but ships as a pre-packed artifact. Other model families keep their existing quantization predicates unless their model behavior requires a dedicated policy.
+Quantization is model-specific. Qwen and ERNIE q4 paths use mixed q4/q8 policies because fully q4 checkpoints can lose coherent generative behavior for those model families. SeedVR2 3B uses standard q4/q8 MLX-Gen packages for the transformer linears and VAE attention linears that support MLX quantization. Bonsai Image uses Prism's pre-packed ternary 2-bit transformer path instead of MLX-Gen's q4/q8 `prepare` flow; it follows the same quality principle of keeping sensitive paths at higher precision, but ships as a pre-packed artifact. Other model families keep their existing quantization predicates unless their model behavior requires a dedicated policy.
 
 See [Quantization](quantization.md) for the current rules.
 

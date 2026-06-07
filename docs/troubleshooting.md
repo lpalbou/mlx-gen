@@ -55,7 +55,7 @@ mlxgen generate \
 
 Generation commands replace the requested output path by default. If `--output image.png` already exists, MLX-Gen writes the new image to `image.png`.
 
-Use `--replace false` or `--no-replace` when you want to preserve an existing output file. In that mode, MLX-Gen writes the new image as `image_1.png`, then `image_2.png`, and continues silently.
+Use `--replace false` or `--no-replace` when you want to preserve an existing output file. In that mode, MLX-Gen writes the new image as `image_1.png`, then `image_2.png`, and keeps incrementing the suffix without overwriting the existing file.
 
 ## ERNIE Prompt Enhancer Files Are Missing
 

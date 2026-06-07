@@ -65,20 +65,12 @@ class ModelCardSaver:
             "",
             f"Generated with `mlx-gen {VersionUtil.get_mflux_version()}`.",
             "",
-            "Use the `mlxgen` command and Python import path for new MLX-Gen projects.",
+            ModelCardSaver._command_surface_line(terms),
             "",
             "## Usage",
             "",
             *ModelCardSaver._usage_note(terms, bits),
-            "```bash",
-            "python -m pip install -U mlx-gen",
-            "",
-            f"mlxgen download --model {repo_id}",
-            "",
-            "mlxgen generate \\",
-            f"  --model {repo_id} \\",
-            *ModelCardSaver._usage_lines(pipeline_tag, terms, bits),
-            "```",
+            *ModelCardSaver._usage_block(repo_id, pipeline_tag, terms, bits),
             "",
             "## Attribution",
             "",
@@ -355,6 +347,28 @@ class ModelCardSaver:
                 "quantization level. FIBO Edit is a separate source model and is not bundled."
             )
 
+        if bits is not None and "seedvr2" in terms:
+            seedvr2_label = ModelCardSaver._seedvr2_model_label(terms)
+            return "\n".join(
+                [
+                    f"This is an MLX {bits}-bit checkpoint for {seedvr2_label} image super-resolution.",
+                    "",
+                    f"- q{bits} for quantizable SeedVR2 transformer linears and VAE attention linears.",
+                    "- BF16 for convolutions, normalization layers, and other non-quantizable parameters.",
+                    "- The static SeedVR2 positive embedding is provided by the MLX-Gen runtime.",
+                    "",
+                    f"See the [MLX-Gen quantization docs]({ModelCardSaver.QUANTIZATION_DOC_URL}) "
+                    "for compatibility notes and measured behavior.",
+                ]
+            )
+
+        if bits is None and "seedvr2" in terms:
+            seedvr2_label = ModelCardSaver._seedvr2_model_label(terms)
+            return (
+                f"This checkpoint stores MLX-Gen {seedvr2_label} image super-resolution weights without "
+                "an explicit quantization level."
+            )
+
         if bits == 8:
             section = (
                 "This is an MLX q8 checkpoint. Quantizable modules are saved at 8-bit where "
@@ -409,6 +423,42 @@ class ModelCardSaver:
                 "",
             ]
         return []
+
+    @staticmethod
+    def _command_surface_line(terms: str) -> str:
+        if "seedvr2" in terms:
+            return "Use `mlxgen download` and `mlxgen upscale` for this SeedVR2 package."
+        return "Use the `mlxgen` command and Python import path for new MLX-Gen projects."
+
+    @staticmethod
+    def _usage_block(repo_id: str, pipeline_tag: str, terms: str, bits: int | None) -> list[str]:
+        if "seedvr2" in terms:
+            return [
+                "```bash",
+                "python -m pip install -U mlx-gen",
+                "",
+                f"mlxgen download --model {repo_id}",
+                "",
+                "mlxgen upscale \\",
+                f"  --model {repo_id} \\",
+                "  --image-path input.png \\",
+                "  --resolution 2x \\",
+                "  --seed 42 \\",
+                "  --metadata \\",
+                "  --output upscaled.png",
+                "```",
+            ]
+        return [
+            "```bash",
+            "python -m pip install -U mlx-gen",
+            "",
+            f"mlxgen download --model {repo_id}",
+            "",
+            "mlxgen generate \\",
+            f"  --model {repo_id} \\",
+            *ModelCardSaver._usage_lines(pipeline_tag, terms, bits),
+            "```",
+        ]
 
     @staticmethod
     def _usage_lines(pipeline_tag: str, terms: str, bits: int | None) -> list[str]:
@@ -536,7 +586,7 @@ class ModelCardSaver:
             tags.append("mixed-q8-bf16")
         if "qwen" in terms:
             tags.extend(["qwen", "qwen-image"])
-        if "edit" in terms or pipeline_tag == "image-to-image":
+        if ("edit" in terms or pipeline_tag == "image-to-image") and "seedvr2" not in terms:
             tags.append("image-editing")
         if "flux" in terms:
             tags.append("flux")
@@ -556,6 +606,8 @@ class ModelCardSaver:
                 tags.append("wan-a14b")
         if "fibo" in terms:
             tags.append("fibo")
+        if "seedvr2" in terms:
+            tags.extend(["seedvr2", "image-upscaling", "super-resolution"])
         return ModelCardSaver._deduplicate(tags)
 
     @staticmethod
@@ -564,6 +616,8 @@ class ModelCardSaver:
             if ModelCardSaver._wan_is_i2v_only(terms):
                 return "image-to-video"
             return "text-to-video"
+        if "seedvr2" in terms:
+            return "image-to-image"
         if any(term in terms for term in ("edit", "kontext", "fill", "depth", "controlnet", "redux")):
             return "image-to-image"
         return "text-to-image"
@@ -586,6 +640,12 @@ class ModelCardSaver:
         if "ti2v" in terms or "5b" in terms:
             return "Wan2.2 TI2V-5B"
         return "Wan2.2"
+
+    @staticmethod
+    def _seedvr2_model_label(terms: str) -> str:
+        if "7b" in terms:
+            return "SeedVR2 7B"
+        return "SeedVR2 3B"
 
     @staticmethod
     def _wan_supports_text_to_video(terms: str) -> bool:
@@ -654,6 +714,7 @@ class ModelCardSaver:
             or "zimage" in normalized
             or "ernie" in normalized
             or "wan" in normalized
+            or "seedvr2" in normalized
             or ("flux.2-klein" in normalized and "4b" in normalized)
         )
 

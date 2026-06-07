@@ -7,6 +7,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.13] - 2026-06-07
+
+### Added
+
+- **SeedVR2 official source and packages**: route `seedvr2` and `seedvr2-3b` to the official
+  `ByteDance-Seed/SeedVR2-3B` checkpoint, add `mlxgen prepare` support for reusable SeedVR2
+  packages, and document the `AbstractFramework/seedvr2-3b-8bit` and
+  `AbstractFramework/seedvr2-3b-4bit` package profiles.
+- **Official SeedVR2 7B route and package validation**: route `seedvr2-7b` to the official
+  `ByteDance-Seed/SeedVR2-7B` checkpoint, add official 7B source loading, validate local q8/q4 7B
+  packages, and document storage, timing, Max RSS, and 5x contact-sheet outputs.
+- **SeedVR2 3B/7B comparison sheet**: add a single side-by-side documentation asset stacking 3B
+  and 7B source/q8/q4 outputs so users can compare the same 5x upscale profile directly.
+- **Unified SeedVR2 upscale command**: add `mlxgen upscale` as the public SeedVR2 image
+  super-resolution command while keeping `mflux-upscale-seedvr2` available for compatibility.
+
+### Fixed
+
+- **SeedVR2 package resolution**: reject unsupported Hugging Face-style SeedVR2 model handles before
+  loading weights and preserve recognized `AbstractFramework/seedvr2-*` package handles through
+  weight resolution. Missing q8/q4 packages now fail with the explicit download/prepare guidance
+  instead of resolving to another SeedVR2 source.
+
 ## [0.18.12] - 2026-06-07
 
 ### Added
@@ -276,7 +299,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Explicit model preparation**: Runtime generation and Python model construction no longer download missing model, tokenizer, LoRA, or Depth Pro files. Missing artifacts now raise `DownloadRequiredError` with the exact `mlxgen download` or `mlxgen prepare` command to run.
 - **Smart MLX-Gen commands**: Add `mlxgen download` and `mlxgen prepare` as explicit preparation flows. `mlxgen download --model depth-pro` handles the direct Apple Depth Pro weights.
-- **LoRA handling**: User-requested LoRAs are required; missing LoRA files now fail instead of being silently ignored.
+- **LoRA handling**: User-requested LoRAs are required; missing LoRA files now fail instead of being ignored.
 
 ### Documentation
 
@@ -677,7 +700,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 🎨 New Model Support
 
-- **SeedVR2 Diffusion Upscaler**: Added support for [SeedVR2](https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler), a powerful diffusion-based image upscaler.
+- **SeedVR2 Diffusion Upscaler**: Added initial SeedVR2 image upscaling support.
 - **New command**: `mflux-upscale-seedvr2` for high-quality image upscaling.
 - **Tiling support**: Tiling is enabled by default for SeedVR2 to support high-resolution upscaling on standard memory configurations.
 

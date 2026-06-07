@@ -1,21 +1,25 @@
 # Image Upscaling
 
-MLX-Gen routes SeedVR2 image super-resolution through the dedicated
-`mflux-upscale-seedvr2` command. SeedVR2 is a diffusion restoration/upscaling model: it increases
-pixel dimensions while reconstructing detail and smoothing low-resolution artifacts. It does not
-require a text prompt.
+MLX-Gen routes SeedVR2 image super-resolution through `mlxgen upscale`. SeedVR2 is a diffusion
+restoration/upscaling model: it increases pixel dimensions while reconstructing detail and smoothing
+low-resolution artifacts. It does not require a text prompt.
+
+The older `mflux-upscale-seedvr2` entry point remains available for compatibility. New examples use
+`mlxgen upscale`.
 
 ## 5x Example
 
-The included example starts from a `133x113` JPEG and generates a `658x560` PNG with SeedVR2 3B at
-q8 runtime quantization:
+The included example starts from a `133x113` JPEG and generates a `658x560` PNG with the
+published `AbstractFramework/seedvr2-3b-8bit` package:
 
 ```sh
-uv run mflux-upscale-seedvr2 \
+mlxgen download --model AbstractFramework/seedvr2-3b-8bit
+
+mlxgen upscale \
+  --model AbstractFramework/seedvr2-3b-8bit \
   --image-path docs/assets/upscaling/seedvr2-5x-source.jpg \
   --resolution 5x \
   --seed 42 \
-  --quantize 8 \
   --metadata \
   --output seedvr2-5x-output.png
 ```
@@ -29,6 +33,133 @@ The source and generated output are also included separately:
 
 - [seedvr2-5x-source.jpg](assets/upscaling/seedvr2-5x-source.jpg)
 - [seedvr2-5x-output.png](assets/upscaling/seedvr2-5x-output.png)
+
+## Published Packages
+
+For regular 3B use, prefer the reusable AbstractFramework packages:
+
+```sh
+mlxgen download --model AbstractFramework/seedvr2-3b-8bit
+mlxgen download --model AbstractFramework/seedvr2-3b-4bit
+```
+
+Then pass the selected package to `mlxgen upscale`:
+
+```sh
+mlxgen upscale \
+  --model AbstractFramework/seedvr2-3b-8bit \
+  --image-path input.png \
+  --resolution 2x \
+  --seed 42 \
+  --metadata \
+  --output input_seedvr2_3b_q8_2x.png
+```
+
+The 3B packages are generated from the official `ByteDance-Seed/SeedVR2-3B` source model. They use
+MLX-Gen's saved-weight layout and are intended for MLX-Gen, not Diffusers or Transformers
+`from_pretrained()` loading. The q8 package is the closest low-memory option to the source path;
+the q4 package is smaller and passed the included 5x validation profile.
+
+The 7B section below includes a combined 3B/7B contact sheet using the same source image and `5x`
+profile for direct comparison across source, q8, and q4 outputs.
+
+## SeedVR2 7B
+
+The `seedvr2-7b` alias resolves to the official `ByteDance-Seed/SeedVR2-7B` source model:
+
+```sh
+mlxgen download --model ByteDance-Seed/SeedVR2-7B
+
+mlxgen upscale \
+  --model seedvr2-7b \
+  --image-path input.png \
+  --resolution 2x \
+  --seed 42 \
+  --metadata \
+  --output input_seedvr2_7b_2x.png
+```
+
+You can prepare reusable local q8/q4 packages from the official 7B source:
+
+```sh
+mlxgen prepare \
+  --model ByteDance-Seed/SeedVR2-7B \
+  --path ./models/seedvr2-7b-8bit \
+  --quantize 8
+
+mlxgen prepare \
+  --model ByteDance-Seed/SeedVR2-7B \
+  --path ./models/seedvr2-7b-4bit \
+  --quantize 4
+```
+
+The same package layout is used for the `AbstractFramework` 7B q8/q4 packages:
+
+```sh
+mlxgen download --model AbstractFramework/seedvr2-7b-8bit
+mlxgen download --model AbstractFramework/seedvr2-7b-4bit
+```
+
+Run from a local or downloaded 7B package with the same command:
+
+```sh
+mlxgen upscale \
+  --model ./models/seedvr2-7b-8bit \
+  --image-path input.png \
+  --resolution 2x \
+  --seed 42 \
+  --metadata \
+  --output input_seedvr2_7b_q8_2x.png
+```
+
+The 7B source, q8 package, and q4 package passed the same checked-in `5x` profile used for 3B.
+The sheet below stacks the 3B and 7B results so you can compare detail reconstruction directly:
+
+![SeedVR2 3B and 7B source, q8, and q4 5x comparison](assets/upscaling/seedvr2-3b-7b-5x-contact-sheet.jpg)
+
+## Model Sources
+
+The short aliases `seedvr2` and `seedvr2-3b` resolve to the official upstream 3B checkpoint:
+
+```sh
+mlxgen download --model ByteDance-Seed/SeedVR2-3B
+
+mlxgen upscale \
+  --model ByteDance-Seed/SeedVR2-3B \
+  --image-path input.png \
+  --resolution 2x \
+  --seed 42 \
+  --metadata \
+  --output input_seedvr2_official_3b_2x.png
+```
+
+Runtime quantization also works on the official source path:
+
+```sh
+mlxgen upscale \
+  --model ByteDance-Seed/SeedVR2-3B \
+  --image-path input.png \
+  --resolution 2x \
+  --seed 42 \
+  --quantize 8 \
+  --metadata \
+  --output input_seedvr2_official_3b_q8_2x.png
+```
+
+Use `--quantize 4` the same way for a q4 runtime check. Runtime quantization loads the official
+checkpoint first, then quantizes applicable MLX modules in memory. Published q8/q4 packages skip
+that source-load step and are smaller on disk.
+
+To create your own local package from the official source:
+
+```sh
+mlxgen prepare \
+  --model ByteDance-Seed/SeedVR2-3B \
+  --path ./models/seedvr2-3b-8bit \
+  --quantize 8
+```
+
+Use `ByteDance-Seed/SeedVR2-7B` and a `seedvr2-7b-*` path for 7B packages.
 
 ## Sizing
 
@@ -57,5 +188,13 @@ Useful options:
 | `--softness 0.25` to `0.5` | Smooth noisy low-resolution conditioning before reconstruction. |
 | `--vae-tiling` | Opt into tiled VAE encode/decode for very large memory-bound upscales. The default is untiled for image quality. |
 | `--metadata` | Save a `.metadata.json` sidecar with source/output dimensions and generation settings. |
+
+`--softness` controls how strongly MLX-Gen smooths the source image before SeedVR2 conditions on
+it. At `0.0`, the model receives the source at full preprocessed detail. At higher values, MLX-Gen
+temporarily downsamples the conditioning image and scales it back to the target size before
+generation; this suppresses source grain, JPEG texture, and small sensor noise that SeedVR2 might
+otherwise reconstruct as detail. Use `0.0` for clean sources and fine detail preservation, try
+`0.25` to `0.5` for noisy or compressed sources, and reserve higher values for sources where a
+smoother, less faithful reconstruction is acceptable.
 
 Use `--vae-tiling` only when the untiled path is too memory-heavy for the requested output size.

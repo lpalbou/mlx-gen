@@ -1,16 +1,17 @@
 # MLX-Gen Full Documentation Context
 
 > MLX-Gen is a local MLX image and video generation runtime for Apple Silicon. It is published as
-> the `mlx-gen` Python package and exposes the `mlxgen` command surface for generation, model
-> download, model preparation, capability inspection, and application integration.
+> the `mlx-gen` Python package and exposes the `mlxgen` command surface for generation, SeedVR2
+> image upscaling, model download, model preparation, capability inspection, and application
+> integration.
 
 ## Document Index
 
 - `README.md`: project overview, install commands, mflux credit, main workflows, published model links, Wan TI2V/A14B notes, and ecosystem links.
 - `docs/README.md`: documentation tree index.
 - `docs/getting-started.md`: install, first download, model preparation, image generation, image editing, SeedVR2 upscaling, and Wan video examples.
-- `docs/api.md`: public CLI, router behavior, task/mode resolution, I2I mode selection and canvas policy, SeedVR2 shortest-edge/scale-factor upscaling plus softness and tiling controls, negative prompts, Qwen edit-version routing, outpaint/reframe status, Wan video sizes, `mlxgen capabilities`, and Python routing helpers.
-- `docs/upscaling.md`: SeedVR2 image upscaling guide with shortest-edge and scale-factor sizing, quality controls, and a real 5x source/output comparison.
+- `docs/api.md`: public CLI, router behavior, task/mode resolution, I2I mode selection and canvas policy, SeedVR2 official-source and q8/q4 package usage for 3B/7B, shortest-edge/scale-factor upscaling plus softness and tiling controls, negative prompts, Qwen edit-version routing, outpaint/reframe status, Wan video sizes, `mlxgen capabilities`, and Python routing helpers.
+- `docs/upscaling.md`: SeedVR2 image upscaling guide with official 3B/7B source usage, published 3B/7B q8/q4 package handles, shortest-edge and scale-factor sizing, quality controls, and real 5x source/output comparisons.
 - `docs/edit-capabilities.md`: image-edit contact sheets, model/package status summaries, and exact command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate` in the current release.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
 - `docs/model-management.md`: explicit `download` and `prepare`, generation from local model files, local MLX-Gen packages, matching Hugging Face handle resolution, and `DownloadRequiredError`.
@@ -137,8 +138,7 @@ is unsupported through unified `mlxgen generate` in the current release.
 
 ## SeedVR2 Upscaling
 
-SeedVR2 image super-resolution uses the dedicated `mflux-upscale-seedvr2` command. It is not yet
-routed through unified `mlxgen generate`.
+SeedVR2 image super-resolution uses `mlxgen upscale`. It is not routed through `mlxgen generate`.
 
 `--resolution` accepts either an integer shorter-edge target or a scale factor:
 
@@ -152,12 +152,15 @@ factors are useful for direct 2x/3x comparisons. SeedVR2 also restores and denoi
 target sizes mainly validate restoration behavior rather than visible super-resolution quality.
 
 Use `--softness 0.25` to `0.5` when noisy source texture should be smoothed before reconstruction.
-SeedVR2 defaults to untiled VAE encode/decode for image quality; `--vae-tiling` opts into tiled
-VAE processing for very large memory-bound upscales.
+`--softness 0.0` keeps source conditioning most direct; higher values can suppress grain or JPEG
+texture but can soften fine detail. SeedVR2 defaults to untiled VAE encode/decode for image
+quality; `--vae-tiling` opts into tiled VAE processing for very large memory-bound upscales.
 
-`docs/upscaling.md` includes a checked-in 5x comparison: a `133x113` source enlarged to the
-generated `658x560` size next to the SeedVR2 q8 output generated with `--resolution 5x`,
-`--seed 42`, and `--metadata`.
+`docs/upscaling.md` includes published `AbstractFramework/seedvr2-3b-8bit`,
+`AbstractFramework/seedvr2-3b-4bit`, `AbstractFramework/seedvr2-7b-8bit`, and
+`AbstractFramework/seedvr2-7b-4bit` usage, plus checked-in 5x comparisons: a `133x113` source
+enlarged to the generated `658x560` size next to SeedVR2
+3B and 7B source/q8/q4 outputs generated with `--resolution 5x`, `--seed 42`, and `--metadata`.
 
 ---
 

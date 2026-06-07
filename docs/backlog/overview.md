@@ -13,7 +13,7 @@ outside chat history.
 | --- | ---: |
 | Planned | 9 |
 | Proposed | 6 |
-| Completed | 14 |
+| Completed | 15 |
 | Deprecated | 0 |
 | Recurrent | 1 |
 
@@ -63,7 +63,8 @@ outside chat history.
    validation work: add stronger Diffusers parity tests and non-turbo validation.
 12. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
    stronger quality/performance checks, and remaining cancel APIs. SeedVR2 has a validated
-   dedicated upscale command; its remaining roadmap question is unified `mlxgen prepare` support.
+   `mlxgen upscale` command, official 3B/7B source loading, and q8/q4 `mlxgen prepare` package
+   support.
 
 ## Planned ledger
 
@@ -107,7 +108,8 @@ outside chat history.
 | 0026 | [Edit model prepared-package capability contact sheets](completed/0026_edit_model_prepared_capability_contact_sheets.md) | Image edit, q8 validation, contact sheets | 2026-06-05 | Rebuilt source-handle and per-variant proof matrices: FLUX.2 Klein 4B/9B source/q8/q4 passed; Qwen Edit 2509 source/q8 passed and q4 is partial on multi-reference; the Qwen Edit 2511 rows were superseded by completed item 0029; FIBO Edit source validation failed and remains unsupported through unified generation. |
 | 0028 | [Release validation registry for I2I evidence](completed/0028_release_validation_registry.md) | Image routing, validation API, release evidence | 2026-06-05 | Added route-separated release-validation metadata, public Python lookup helpers, `mlxgen validation`, clearer capabilities wording, exact-command manifest coverage for q4 matrix rows, and regenerated the legacy summary contact sheet as the clear 5x4 matrix. |
 | 0029 | [Qwen Image Edit 2511 base parity](completed/0029_qwen_image_edit_2511_base_parity.md) | Image edit, Qwen 2511, Diffusers parity | 2026-06-06 | Fixed Qwen FlowMatch dynamic-shift scheduler parity and validated Qwen Image Edit 2511 source/q8/q4 on the focused pencil, crash, and multi-reference composition profile. |
-| 0030 | [SeedVR2 upscale smoke, metadata, and quality defaults](completed/0030_seedvr2_upscale_smoke_and_metadata.md) | Upscale, SeedVR2, metadata | 2026-06-07 | Validated the dedicated SeedVR2 3B q8 upscaler on a small real image, fixed non-16-multiple output metadata, defaulted SeedVR2 to untiled VAE processing for image quality, added `--vae-tiling`, and added fast regression tests for final output dimensions, source-image metadata, and CLI routing. |
+| 0030 | [SeedVR2 upscale smoke, metadata, and quality defaults](completed/0030_seedvr2_upscale_smoke_and_metadata.md) | Upscale, SeedVR2, metadata | 2026-06-07 | Validated the SeedVR2 3B q8 upscaler on a small real image, fixed non-16-multiple output metadata, defaulted SeedVR2 to untiled VAE processing for image quality, added `--vae-tiling`, and added fast regression tests for final output dimensions, source-image metadata, and CLI routing. |
+| 0031 | [SeedVR2 official ByteDance checkpoint support](completed/0031_seedvr2_official_bytedance_checkpoint_support.md) | Upscale, SeedVR2, official checkpoints | 2026-06-07 | Added direct official `ByteDance-Seed/SeedVR2-3B` and `ByteDance-Seed/SeedVR2-7B` `.pth` loading, switched SeedVR2 aliases to official sources, added q8/q4 `mlxgen prepare` support, generated reusable package cards, and validated source/q8/q4 5x upscale profiles. |
 
 ## Deprecated ledger
 
@@ -299,3 +301,7 @@ No deprecated backlog items yet.
   target-short-edge restoration smoke. SeedVR2 now records final output dimensions and source-image
   metadata correctly, wires the CLI `--metadata` flag to JSON sidecar export, defaults to untiled
   VAE processing for image quality, and exposes `--vae-tiling` as an explicit memory-saving opt-in.
+- Completed 2026-06-07 SeedVR2 official package support: `seedvr2`/`seedvr2-3b` now route to the
+  official `ByteDance-Seed/SeedVR2-3B` source model, `seedvr2-7b` routes to
+  `ByteDance-Seed/SeedVR2-7B`, `mlxgen prepare` can write reusable SeedVR2 q8/q4 packages, and the
+  source/q8/q4 5x profiles are documented with storage, timing, memory, and contact-sheet evidence.

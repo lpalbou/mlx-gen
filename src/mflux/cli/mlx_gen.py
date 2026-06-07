@@ -37,7 +37,7 @@ def main() -> None:
         _top_level_parser().print_help()
         return
 
-    if argv and argv[0] in {"download", "prepare", "capabilities", "validation"}:
+    if argv and argv[0] in {"download", "prepare", "capabilities", "validation", "upscale"}:
         _run_model_command(argv)
         return
 
@@ -161,11 +161,12 @@ def _normalize_command(argv: list[str]) -> list[str]:
 def _top_level_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="mlxgen",
-        usage="mlxgen [generate|capabilities|validation|download|prepare] ...",
+        usage="mlxgen [generate|upscale|capabilities|validation|download|prepare] ...",
         description="Prepare local model assets and generate images or videos with MLX-Gen.",
         epilog=(
             "Commands:\n"
             "  generate    Generate or edit images and videos from a prepared or cached model.\n"
+            "  upscale     Upscale/restore images with SeedVR2.\n"
             "  capabilities Inspect model generation tasks, modes, and option support.\n"
             "  validation   Inspect release-validation evidence for exact model/package rows.\n"
             "  download     Explicitly download a model snapshot into the Hugging Face cache.\n"
@@ -174,6 +175,7 @@ def _top_level_parser() -> argparse.ArgumentParser:
             "Examples:\n"
             "  mlxgen generate --model z-image-turbo --prompt 'A puffin standing on a cliff'\n"
             "  mlxgen generate --model wan2.2-ti2v-5b --prompt 'A city timelapse'\n"
+            "  mlxgen upscale --model seedvr2-3b --image-path input.png --resolution 2x --output upscaled.png\n"
             "  mlxgen capabilities --model flux2-klein-4b\n"
             "  mlxgen validation --model AbstractFramework/qwen-image-edit-2509-8bit\n"
             "  mlxgen download --model Qwen/Qwen-Image\n"
@@ -351,6 +353,9 @@ def _run_model_command(argv: list[str]) -> None:
     if command == "validation":
         _show_validation(argv[1:])
         return
+    if command == "upscale":
+        _upscale_image(argv[1:])
+        return
     if command == "download":
         _download_model(argv[1:])
         return
@@ -358,6 +363,17 @@ def _run_model_command(argv: list[str]) -> None:
         _prepare_model(argv[1:])
         return
     raise AssertionError("unreachable")
+
+
+def _upscale_image(argv: list[str]) -> None:
+    from mflux.models.seedvr2.cli.seedvr2_upscale import main as upscale_main
+
+    previous_argv = sys.argv
+    try:
+        sys.argv = ["mlxgen upscale", *argv]
+        upscale_main()
+    finally:
+        sys.argv = previous_argv
 
 
 def _show_capabilities(argv: list[str]) -> None:
@@ -454,10 +470,16 @@ def _download_model(argv: list[str]) -> None:
         path = snapshot_download(repo_id=repo_id, allow_patterns=patterns)
     print(f"Downloaded snapshot: {path}")
     print("You can now run generation without a runtime download, for example:")
-    print(
-        "  mlxgen generate --model "
-        f"{shlex.quote(repo_id)} --prompt 'A product photo of a ceramic teapot' --output image.png"
-    )
+    if model_config is not None and _is_seedvr2(set(model_config.aliases), _model_key(repo_id, model_config.base_model)):
+        print(
+            "  mlxgen upscale --model "
+            f"{shlex.quote(repo_id)} --image-path input.png --resolution 2x --output upscaled.png"
+        )
+    else:
+        print(
+            "  mlxgen generate --model "
+            f"{shlex.quote(repo_id)} --prompt 'A product photo of a ceramic teapot' --output image.png"
+        )
 
 
 def _is_depth_pro_download(model: str) -> bool:
@@ -501,7 +523,10 @@ def _download_patterns(model_config: ModelConfig | None, repo_id: str) -> list[s
     if weight_definition is None:
         return None
 
-    patterns = list(weight_definition.get_download_patterns())
+    if _is_seedvr2(aliases, model_key):
+        patterns = list(weight_definition.get_download_patterns_for_source(model_config, repo_id))
+    else:
+        patterns = list(weight_definition.get_download_patterns())
     for tokenizer in weight_definition.get_tokenizers():
         patterns.extend(tokenizer.download_patterns or [f"{tokenizer.hf_subdir}/**"])
     return sorted(set(patterns))
@@ -538,6 +563,10 @@ def _weight_definition_for(aliases: set[str], model_key: str, model_config: Mode
         if model_config is not None:
             return WanWeightDefinition.for_config(model_config)
         return WanWeightDefinition
+    if _is_seedvr2(aliases, model_key):
+        from mflux.models.seedvr2.weights.seedvr2_weight_definition import SeedVR2WeightDefinition
+
+        return SeedVR2WeightDefinition
     return None
 
 
@@ -712,6 +741,10 @@ def _is_ernie(aliases: set[str], model_key: str) -> bool:
 
 def _is_wan(aliases: set[str], model_key: str) -> bool:
     return any(alias.startswith("wan") for alias in aliases) or "wan" in model_key
+
+
+def _is_seedvr2(aliases: set[str], model_key: str) -> bool:
+    return any(alias.startswith("seedvr2") for alias in aliases) or "seedvr2" in model_key
 
 
 def _qwen_route() -> _Route:

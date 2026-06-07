@@ -6,8 +6,8 @@
 
 MLX-Gen is a local image and video generation runtime for Apple Silicon and MLX. It exposes
 `mlxgen` for text-to-image, image-to-image, text-to-video, image-to-video, model download, model
-preparation, optimized quantized model variants, and application progress callbacks. It also includes the
-dedicated `mflux-upscale-seedvr2` command for SeedVR2 image super-resolution.
+preparation, SeedVR2 image upscaling, optimized quantized model variants, and application progress
+callbacks.
 
 > [!IMPORTANT]
 > MLX-Gen started as a fork of [mflux](https://github.com/filipstrand/mflux). Most credit for the
@@ -47,8 +47,9 @@ The main capabilities are:
 - Wan2.2 text-to-video and image-to-video, including TI2V-5B BF16/q8 packages plus A14B
   T2V/I2V BF16 and mixed q8/BF16 packages; Wan I2V resolves output size from the source
   image aspect ratio so inputs are not stretched into a mismatched canvas;
-- SeedVR2 image super-resolution through `mflux-upscale-seedvr2`, with shortest-edge target sizing
-  or explicit scale factors such as `2x` and `3x`;
+- SeedVR2 image super-resolution through `mlxgen upscale`, with official 3B/7B source support,
+  published q8/q4 packages, shortest-edge target sizing, and explicit scale factors such as `2x`
+  and `3x`;
 - explicit `download` and `prepare` workflows for local MLX-Gen model packages;
 - JSON model capability inspection before starting a heavy run;
 - shared progress events for applications embedding MLX-Gen.
@@ -103,10 +104,12 @@ mlxgen generate \
 Upscale an image with SeedVR2:
 
 ```sh
-mflux-upscale-seedvr2 \
+mlxgen download --model AbstractFramework/seedvr2-3b-8bit
+
+mlxgen upscale \
+  --model AbstractFramework/seedvr2-3b-8bit \
   --image-path input.png \
   --resolution 2x \
-  --quantize 8 \
   --softness 0.25 \
   --metadata \
   --output input_2x.png
@@ -206,6 +209,18 @@ Z-Image, ERNIE, and FIBO:
 - `AbstractFramework/fibo-4bit`
 - `AbstractFramework/fibo-8bit`
 
+SeedVR2 upscaling:
+
+- `AbstractFramework/seedvr2-3b-4bit`
+- `AbstractFramework/seedvr2-3b-8bit`
+- `AbstractFramework/seedvr2-7b-4bit`
+- `AbstractFramework/seedvr2-7b-8bit`
+
+SeedVR2 7B can also run from the official `ByteDance-Seed/SeedVR2-7B` source model and can be
+prepared locally as q8/q4 packages with `mlxgen prepare`. See
+[docs/upscaling.md](docs/upscaling.md) and [docs/quantization.md](docs/quantization.md) for the
+validated 7B source/q8/q4 profile.
+
 Wan2.2 video:
 
 - `AbstractFramework/wan2.2-ti2v-5b-diffusers-bf16`
@@ -215,8 +230,9 @@ Wan2.2 video:
 - `AbstractFramework/wan2.2-i2v-a14b-diffusers-bf16`
 - `AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit`
 
-Use `mlxgen download --model <repo-id>` to cache a published model, or pass the repository id
-directly to `mlxgen generate` after it is cached. See
+Use `mlxgen download --model <repo-id>` to cache a published model, then pass the repository id to
+the relevant command: `mlxgen generate` for image/video generation or `mlxgen upscale` for SeedVR2
+upscaling. See
 [docs/quantization.md](docs/quantization.md) for the complete current package matrix with source
 sizes, optimized package sizes, task coverage, and quantization notes.
 
@@ -269,7 +285,7 @@ progress callbacks make long runs observable.
 - [Getting started](docs/getting-started.md): installation, first runs, SeedVR2 upscaling, and Wan video.
 - [API and CLI](docs/api.md): command surface, router behavior, image-to-image modes, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.
 - [Example workflow](docs/examples/spaceship-snow.md): reproducible image and video commands.
-- [Image upscaling](docs/upscaling.md): SeedVR2 sizing, quality controls, and a 5x source/output comparison.
+- [Image upscaling](docs/upscaling.md): SeedVR2 sizing, published 3B/7B q8/q4 package usage, quality controls, and 5x source/output comparisons.
 - [Image edit capabilities](docs/edit-capabilities.md): image-edit contact sheets, exact model/package status, and command logs.
 - [Model management](docs/model-management.md): download, prepare, and run from local model files.
 - [Quantization](docs/quantization.md): q8/q4/BF16 policies and measurements.

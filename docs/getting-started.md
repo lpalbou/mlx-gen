@@ -131,18 +131,23 @@ edits, and multi-reference image-to-image with copy/pasteable commands.
 
 ## Upscale An Image
 
-SeedVR2 is available through the dedicated `mflux-upscale-seedvr2` command. It is a diffusion
-super-resolution/restoration model: it can increase image size while also cleaning noise and
-reconstructing detail.
+SeedVR2 is available through `mlxgen upscale`. It is a diffusion super-resolution/restoration
+model: it can increase image size while also cleaning noise and reconstructing detail.
+
+Use a published q8 package for a smaller reusable SeedVR2 model:
+
+```sh
+mlxgen download --model AbstractFramework/seedvr2-3b-8bit
+```
 
 Use an integer `--resolution` when you want to set the shorter output edge while preserving aspect
 ratio:
 
 ```sh
-mflux-upscale-seedvr2 \
+mlxgen upscale \
+  --model AbstractFramework/seedvr2-3b-8bit \
   --image-path input.png \
   --resolution 1024 \
-  --quantize 8 \
   --metadata \
   --output input_short_edge_1024.png
 ```
@@ -150,10 +155,10 @@ mflux-upscale-seedvr2 \
 Use a scale factor when you want a direct multiplier:
 
 ```sh
-mflux-upscale-seedvr2 \
+mlxgen upscale \
+  --model AbstractFramework/seedvr2-3b-8bit \
   --image-path input.png \
   --resolution 2x \
-  --quantize 8 \
   --softness 0.25 \
   --metadata \
   --output input_2x.png
@@ -163,12 +168,30 @@ For example, a `320x192` source becomes `640x384` with `--resolution 2x` and `96
 `--resolution 3x`. For visual quality checks, choose a target that changes the dimensions
 materially; a near-same-size target is mainly useful for restoration/denoising checks.
 
-SeedVR2 defaults to untiled VAE encode/decode for image quality. If the source has visible grain in
-smooth regions, use `--softness 0.25` to `0.5` to smooth the conditioning image before
-reconstruction. Add `--vae-tiling` only when a very large upscale needs lower peak memory.
+SeedVR2 defaults to untiled VAE encode/decode for image quality. `--softness` controls input
+smoothing before reconstruction: `0.0` keeps the source conditioning most direct, while higher
+values suppress grain or JPEG texture at the cost of softer fine detail. If the source has visible
+grain in smooth regions, try `--softness 0.25` to `0.5`. Add `--vae-tiling` only when a very large
+upscale needs lower peak memory.
 
-See [Image Upscaling](upscaling.md) for a 5x SeedVR2 example that compares a low-resolution source
-enlarged to the output size against the generated upscale.
+The `seedvr2` and `seedvr2-3b` aliases resolve to the official upstream 3B checkpoint. To run that
+source model directly, download it and pass its full handle:
+
+```sh
+mlxgen download --model ByteDance-Seed/SeedVR2-3B
+
+mlxgen upscale \
+  --model ByteDance-Seed/SeedVR2-3B \
+  --image-path input.png \
+  --resolution 2x \
+  --seed 42 \
+  --metadata \
+  --output input_seedvr2_official_3b_2x.png
+```
+
+Use `seedvr2-7b` for the official 7B source model after downloading
+`ByteDance-Seed/SeedVR2-7B`. See [Image Upscaling](upscaling.md) for 5x SeedVR2 3B and 7B
+examples, source/q8/q4 comparisons, package sizes, and measured memory profiles.
 
 ## Generate A Video
 

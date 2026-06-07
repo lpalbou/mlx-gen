@@ -11,7 +11,10 @@ class SeedVR2TextEmbeddings:
 
     @staticmethod
     def load_positive(batch_size: int = 1) -> mx.array:
-        emb = mx.load(str(_POS_EMB_PATH))["embedding"]
+        return SeedVR2TextEmbeddings.prepare_positive(mx.load(str(_POS_EMB_PATH))["embedding"], batch_size=batch_size)
+
+    @staticmethod
+    def prepare_positive(emb: mx.array, batch_size: int = 1) -> mx.array:
         if emb.ndim == 2:
             emb = emb[None, ...]
 

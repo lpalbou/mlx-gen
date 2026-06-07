@@ -232,7 +232,7 @@ class WeightLoader:
     @staticmethod
     def _load_torch_checkpoint(file_path: Path) -> dict[str, mx.array]:
         pt_weights = torch.load(file_path, map_location="cpu", weights_only=False)
-        return {k: mx.array(v.numpy()) for k, v in pt_weights.items() if isinstance(v, torch.Tensor)}
+        return WeightLoader._torch_object_to_mx_weights(pt_weights)
 
     @staticmethod
     def _load_safetensors(path: Path, loading_mode: str, weight_files: list[str] | None = None) -> dict[str, mx.array]:
@@ -248,8 +248,68 @@ class WeightLoader:
             return WeightLoader._load_single(path)
         elif loading_mode == "multi_glob":
             return WeightLoader._load_multi_glob(path)
+        elif loading_mode == "torch_checkpoint":
+            return WeightLoader._load_torch_checkpoint_directory(path, weight_files)
+        elif loading_mode == "torch_tensor":
+            return WeightLoader._load_torch_tensor_directory(path, weight_files)
         else:
             raise ValueError(f"Unknown loading mode: {loading_mode}")
+
+    @staticmethod
+    def _load_torch_checkpoint_directory(path: Path, weight_files: list[str] | None = None) -> dict[str, mx.array]:
+        shard_files = WeightLoader._resolve_weight_files(path, weight_files, "*.pth")
+        all_weights: dict[str, mx.array] = {}
+        for shard in shard_files:
+            all_weights.update(WeightLoader._load_torch_checkpoint(shard))
+        return all_weights
+
+    @staticmethod
+    def _load_torch_tensor_directory(path: Path, weight_files: list[str] | None = None) -> dict[str, mx.array]:
+        shard_files = WeightLoader._resolve_weight_files(path, weight_files, "*.pt")
+        if len(shard_files) != 1:
+            raise ValueError(f"Expected exactly one tensor file in {path}, found {len(shard_files)}.")
+        loaded = WeightLoader._load_torch_checkpoint(shard_files[0])
+        if len(loaded) == 1:
+            return loaded
+        raise ValueError(f"Expected a tensor checkpoint in {shard_files[0]}, found {len(loaded)} tensors.")
+
+    @staticmethod
+    def _resolve_weight_files(path: Path, weight_files: list[str] | None, fallback_pattern: str) -> list[Path]:
+        if weight_files:
+            missing = [f for f in weight_files if not (path / f).exists()]
+            if missing:
+                raise FileNotFoundError(f"Missing specified weight files in {path}: {missing}")
+            return [path / f for f in weight_files]
+
+        shard_files = sorted(f for f in path.glob(fallback_pattern) if not f.name.startswith("._"))
+        if not shard_files:
+            raise FileNotFoundError(f"No {fallback_pattern} files found in {path}")
+        return shard_files
+
+    @staticmethod
+    def _torch_object_to_mx_weights(obj) -> dict[str, mx.array]:
+        if isinstance(obj, torch.Tensor):
+            return {"embedding": WeightLoader._torch_tensor_to_mx(obj)}
+
+        if isinstance(obj, dict):
+            for key in ("state_dict", "model", "module"):
+                nested = obj.get(key)
+                if isinstance(nested, dict):
+                    obj = nested
+                    break
+            return {
+                str(k): WeightLoader._torch_tensor_to_mx(v)
+                for k, v in obj.items()
+                if isinstance(v, torch.Tensor)
+            }
+
+        raise TypeError(f"Unsupported torch checkpoint object: {type(obj).__name__}")
+
+    @staticmethod
+    def _torch_tensor_to_mx(tensor: torch.Tensor) -> mx.array:
+        if tensor.dtype == torch.bfloat16:
+            tensor = tensor.to(torch.float16)
+        return mx.array(tensor.detach().cpu().numpy())
 
     @staticmethod
     def _load_mlx_native(path: Path, weight_files: list[str] | None = None) -> dict[str, mx.array]:

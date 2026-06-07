@@ -141,5 +141,6 @@ old tiled behavior, new default no-tiling behavior, explicit tiling, and the rec
 
 ## Follow-ups
 
-- The dedicated SeedVR2 command works. The remaining roadmap question is whether SeedVR2 should be
-  exposed through unified `mlxgen prepare` and model-management docs.
+- The dedicated SeedVR2 command works, and completed item 0031 adds official 3B source loading plus
+  q8/q4 `mlxgen prepare` package support. Future SeedVR2 work should focus on broader quality
+  validation or separate official 7B/sharp support.

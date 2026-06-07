@@ -1144,7 +1144,7 @@ wheels = [
 
 [[package]]
 name = "mlx-gen"
-version = "0.18.12"
+version = "0.18.13"
 source = { editable = "." }
 dependencies = [
     { name = "av" },

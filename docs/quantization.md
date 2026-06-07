@@ -20,6 +20,7 @@ The current quantized-model compatibility surface is:
 | Bonsai Image | Not an MLX-Gen q8 package | Ternary 2-bit pre-packed checkpoint supported | Bonsai checkpoints are already packed MLX artifacts. Use `mlxgen download` and `mlxgen generate`; do not run `prepare`. Binary 1-bit is detected but blocked until stock MLX supports 1-bit packed affine matmul. |
 | Z-Image / Z-Image Turbo | Supported | Supported | Standard MLX quantization policy with model-specific generation defaults. |
 | FIBO | Supported with mixed q8/BF16 when source access is available | Supported with mixed q4/BF16 when source access is available | Base FIBO text-to-image only. FIBO Edit is a separate model family and is not exposed as a public unified generation capability in this release. |
+| SeedVR2 3B/7B | Supported | Supported | Image super-resolution through `mlxgen upscale`. Published q8/q4 packages are generated from the official `ByteDance-Seed/SeedVR2-3B` and `ByteDance-Seed/SeedVR2-7B` source models. |
 | Wan2.2 | Supported with mixed q8/BF16 | Not published | MLX-Gen keeps Wan conditioning/output projection linears BF16 and quantizes the bulky transformer block linears at q8. |
 
 MLX-Gen treats low-bit quality as model-specific, not automatic. Qwen and ERNIE use mixed q4/q8 policies to preserve generation quality. FIBO uses mixed q8/BF16 and q4/BF16 policies that keep precision-sensitive conditioning and output paths at BF16. Bonsai uses Prism's pre-packed ternary 2-bit transformer plus a 4-bit Qwen3 text encoder rather than MLX-Gen's `prepare` flow. q8 remains the closest optimized-package option to BF16 when memory allows.
@@ -30,6 +31,7 @@ The difference between Bonsai ternary 2-bit and MLX-Gen's mixed q4/q8 policies i
 | --- | --- | --- | --- |
 | Mixed q4/q8 MLX-Gen packages | Qwen Image/Edit and ERNIE Image Turbo q4 packages created by `mlxgen prepare` | q4 for bulk transformer paths, q8 for empirically sensitive linears, BF16 for non-quantizable weights and selected runtime components. | ERNIE mixed q4/q8: 8.2 GiB package, 9.34 GiB peak RSS, 7.83 s at 512px. Qwen uses the same policy shape on larger source models. |
 | Mixed q4/BF16 and q8/BF16 MLX-Gen packages | Base FIBO text-to-image packages created by `mlxgen prepare` | q4 or q8 for quantizable transformer/text-encoder linears, BF16 for the VAE and precision-sensitive FIBO conditioning, timestep, caption-projection, norm, and output paths. | FIBO q8/BF16: 14.5 GiB package, 15.89 GB max RSS, 16.45 s at 512px. FIBO q4/BF16: 10.2 GiB package, 11.39 GB max RSS, 15.24 s at 512px. |
+| SeedVR2 q4/q8 MLX-Gen packages | SeedVR2 3B and 7B image super-resolution packages created by `mlxgen prepare` | q4 or q8 for quantizable SeedVR2 transformer linears and VAE attention linears, BF16 for convolutions, norms, and other non-quantizable parameters. | 3B q8: 4.39 GiB package, 4.73 GiB max RSS. 3B q4: 2.54 GiB package, 2.89 GiB max RSS. 7B q8: 8.62 GiB package, 8.90 GiB max RSS. 7B q4: 4.79 GiB package, 5.10 GiB max RSS. |
 | Pre-packed ternary 2-bit checkpoint | Bonsai Image 2-bit from Prism | The transformer is already packed at 2-bit, the Qwen3 text encoder is 4-bit, and the Flux2 VAE stays BF16. | Bonsai ternary: 3.6 GiB cached snapshot, 3.57 GiB peak RSS, 2.92 s at 512px. |
 
 These are not model-quality rankings across unrelated models. They show the current MLX-Gen rule: use the smallest validated layout that still stays in the same visual family as a higher-precision baseline.
@@ -66,6 +68,13 @@ package size is the published AbstractFramework repository total.
 | Qwen Image Edit 2509 | I2I edit/reference and multi-reference | 53.8 GiB | `qwen-image-edit-2509-4bit`<br>`qwen-image-edit-2509-8bit` | 17.0 GiB<br>28.3 GiB | q4 uses MLX-Gen's mixed q4/q8 Qwen edit policy; q8 uses the standard q8 path. The 2026-06-05 source and q8 validation passed the B/C/D/E spaceship edit sequence. The q4 package passed single-image B/C/D rows, but its multi-reference composition only partially applied the color reference. |
 | Qwen Image Edit 2511 | I2I edit/reference and multi-reference | 53.8 GiB | `qwen-image-edit-2511-4bit`<br>`qwen-image-edit-2511-8bit` | 17.0 GiB<br>28.3 GiB | q4 uses MLX-Gen's mixed q4/q8 Qwen edit policy; q8 uses the standard q8 path. Source, q8, and q4 passed the 2026-06-06 pencil sketch, hard-landing edit, and multi-reference composition profile. |
 
+### Image Upscaling
+
+| Source model | Public task / mode | Source size | Published packages | Package sizes | Quantization status |
+| --- | --- | ---: | --- | ---: | --- |
+| SeedVR2 3B | Image super-resolution/restoration | 13.57 GiB generation files | `seedvr2-3b-4bit`<br>`seedvr2-3b-8bit` | 2.54 GiB<br>4.39 GiB | Published q4/q8 packages generated from the official `ByteDance-Seed/SeedVR2-3B` checkpoint. Use through `mlxgen upscale`, not `mlxgen generate`. |
+| SeedVR2 7B | Image super-resolution/restoration | 31.63 GiB generation files | `seedvr2-7b-4bit`<br>`seedvr2-7b-8bit` | 4.79 GiB<br>8.62 GiB | q4/q8 packages generated from the official regular `ByteDance-Seed/SeedVR2-7B` checkpoint. Use through `mlxgen upscale`, not `mlxgen generate`. |
+
 ### Text-To-Video And Image-To-Video
 
 | Source model | Public task / mode | Source size | Published packages | Package sizes | Quantization status |
@@ -74,10 +83,10 @@ package size is the published AbstractFramework repository total.
 | Wan2.2 T2V-A14B | T2V | 117.5 GiB | `wan2.2-t2v-a14b-diffusers-bf16`<br>`wan2.2-t2v-a14b-diffusers-8bit` | 64.1 GiB<br>39.5 GiB | BF16 package plus mixed q8/BF16 package. Runtime measurements are below. |
 | Wan2.2 I2V-A14B | I2V | 117.5 GiB | `wan2.2-i2v-a14b-diffusers-bf16`<br>`wan2.2-i2v-a14b-diffusers-8bit` | 64.1 GiB<br>39.5 GiB | BF16 package plus mixed q8/BF16 package. Runtime measurements are below. |
 
-Runtime memory and timing measurements are currently complete in this document for ERNIE Image
-Turbo, Bonsai Image, Wan TI2V-5B, and Wan A14B benchmark profiles. Other published packages are
-documented here by package size and quantization policy, with representative visual panels where
-local benchmark runs have produced them.
+Runtime memory and timing measurements are currently complete in this document for SeedVR2 3B/7B,
+ERNIE Image Turbo, Bonsai Image, Wan TI2V-5B, and Wan A14B benchmark profiles. Other published
+packages are documented here by package size and quantization policy, with representative visual
+panels where local benchmark runs have produced them.
 
 ## Qwen q4
 
@@ -123,6 +132,68 @@ shows more drift on fine text.
 | `AbstractFramework/fibo-4bit` | 10.2 GiB | 15.24 s | 11.39 GB | 17.56 |
 
 ![FIBO BF16, q8, and q4 comparison](assets/quantization/fibo-q4-q8-comparison.png)
+
+## SeedVR2 q8 And q4
+
+SeedVR2 3B image super-resolution can run from the official source model or from reusable
+published MLX-Gen q8/q4 packages:
+
+```sh
+mlxgen download --model AbstractFramework/seedvr2-3b-8bit
+
+mlxgen upscale \
+  --model AbstractFramework/seedvr2-3b-8bit \
+  --image-path input.png \
+  --resolution 2x \
+  --seed 42 \
+  --metadata \
+  --output input_seedvr2_q8_2x.png
+```
+
+The q8 and q4 packages quantize SeedVR2 transformer linears and VAE attention linears where MLX
+supports it. Convolutions, normalization layers, and other non-quantizable parameters remain BF16.
+
+The table below was measured on an Apple M5 Max with 128 GB unified memory. Each row used the same
+`133x113` source image, `--resolution 5x`, seed 42, and metadata output. The final image size was
+`658x560`.
+
+| Package | Storage | Generation time | Wall time | Max RSS | Output |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `ByteDance-Seed/SeedVR2-3B` source generation files | 13.57 GiB | 2.27 s | 5.89 s | 25.49 GiB | [PNG](assets/upscaling/seedvr2-3b-official-base-5x.png) |
+| `AbstractFramework/seedvr2-3b-8bit` | 4.39 GiB | 2.13 s | 3.22 s | 4.73 GiB | [PNG](assets/upscaling/seedvr2-3b-q8-5x.png) |
+| `AbstractFramework/seedvr2-3b-4bit` | 2.54 GiB | 2.16 s | 3.18 s | 2.89 GiB | [PNG](assets/upscaling/seedvr2-3b-q4-5x.png) |
+
+`Generation time` is the model-reported generation duration. `Wall time` and `Max RSS` come from
+`/usr/bin/time -l` around the complete command. The source row includes loading the official
+PyTorch checkpoint files. The q8/q4 package rows load MLX-Gen saved weights directly.
+
+SeedVR2 7B uses the official `ByteDance-Seed/SeedVR2-7B` source model and has q8/q4 MLX-Gen
+packages:
+
+```sh
+mlxgen download --model AbstractFramework/seedvr2-7b-8bit
+
+mlxgen upscale \
+  --model AbstractFramework/seedvr2-7b-8bit \
+  --image-path input.png \
+  --resolution 2x \
+  --seed 42 \
+  --metadata \
+  --output input_seedvr2_7b_q8_2x.png
+```
+
+The official 7B repository also contains a `seedvr2_ema_7b_sharp.pth` checkpoint. The MLX-Gen
+`seedvr2-7b` route documented here uses the regular `seedvr2_ema_7b.pth` checkpoint.
+
+| Package | Storage | Generation time | Wall time | Max RSS | Output |
+| --- | ---: | ---: | ---: | ---: | --- |
+| `ByteDance-Seed/SeedVR2-7B` source generation files | 31.63 GiB | 2.64 s | 8.69 s | 61.62 GiB | [PNG](assets/upscaling/seedvr2-7b-official-base-5x.png) |
+| `AbstractFramework/seedvr2-7b-8bit` | 8.62 GiB | 2.29 s | 3.36 s | 8.90 GiB | [PNG](assets/upscaling/seedvr2-7b-q8-5x.png) |
+| `AbstractFramework/seedvr2-7b-4bit` | 4.79 GiB | 2.21 s | 3.24 s | 5.10 GiB | [PNG](assets/upscaling/seedvr2-7b-q4-5x.png) |
+
+The combined sheet below stacks the 3B and 7B results from the same source image and `5x` profile:
+
+![SeedVR2 3B and 7B source, q8, and q4 5x comparison](assets/upscaling/seedvr2-3b-7b-5x-contact-sheet.jpg)
 
 ## q8
 

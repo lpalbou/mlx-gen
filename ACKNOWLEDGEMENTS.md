@@ -22,8 +22,7 @@ The project routes or prepares model families from these upstream communities an
 - Bria for FIBO and related FIBO image-generation checkpoints. FIBO Edit is not exposed as a
   supported unified edit route in the current release.
 - Prism ML for Bonsai Image ternary/binary MLX checkpoints.
-- ByteDance/SeedVR2 and the ComfyUI SeedVR2 implementation lineage for SeedVR2 image
-  super-resolution.
+- ByteDance/SeedVR2 for the official SeedVR2 image super-resolution model family.
 - InstantX, JasperAI, CatVTON, and Apple Depth Pro for optional control, upscaling, fill, virtual
   try-on, and depth-related model components used by inherited mflux routes.
 

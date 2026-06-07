@@ -156,6 +156,54 @@ def test_routes_generate_subcommand_form():
     ]
 
 
+def test_upscale_subcommand_routes_to_seedvr2_command(monkeypatch):
+    from mflux.models.seedvr2.cli import seedvr2_upscale
+
+    observed = {}
+
+    def fake_upscale_main():
+        observed["argv"] = list(sys.argv)
+
+    monkeypatch.setattr(seedvr2_upscale, "main", fake_upscale_main)
+
+    mlx_gen._run_model_command(
+        [
+            "upscale",
+            "--model",
+            "AbstractFramework/seedvr2-7b-8bit",
+            "--image-path",
+            "input.png",
+            "--resolution",
+            "2x",
+        ]
+    )
+
+    assert observed["argv"] == [
+        "mlxgen upscale",
+        "--model",
+        "AbstractFramework/seedvr2-7b-8bit",
+        "--image-path",
+        "input.png",
+        "--resolution",
+        "2x",
+    ]
+
+
+def test_upscale_subcommand_does_not_enable_downloads(monkeypatch):
+    from mflux.models.seedvr2.cli import seedvr2_upscale
+
+    observed = {}
+
+    def fake_upscale_main():
+        observed["downloads_enabled"] = downloads_enabled()
+
+    monkeypatch.setattr(seedvr2_upscale, "main", fake_upscale_main)
+
+    mlx_gen._run_model_command(["upscale", "--image-path", "input.png"])
+
+    assert observed["downloads_enabled"] is False
+
+
 def test_capabilities_command_reports_model_modes(capsys):
     mlx_gen._show_capabilities(["--model", "flux2-klein-4b"])
 
@@ -2050,6 +2098,7 @@ def test_main_without_args_prints_top_level_help(monkeypatch, capsys):
     output = capsys.readouterr().out
     assert "usage: mlxgen" in output
     assert "mlxgen generate" in output
+    assert "mlxgen upscale" in output
     assert "mlxgen capabilities" in output
     assert "mlxgen download" in output
     assert "mlxgen prepare" in output

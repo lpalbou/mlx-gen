@@ -3,6 +3,7 @@ from pathlib import Path
 from mflux.callbacks.callback_manager import CallbackManager
 from mflux.cli.parser.parsers import CommandLineParser
 from mflux.models.common.config.model_config import ModelConfig
+from mflux.models.common.download_policy import DownloadRequiredError, is_huggingface_repo_id
 from mflux.models.common.vae.tiling_config import TilingConfig
 from mflux.models.seedvr2.latent_creator.seedvr2_latent_creator import SeedVR2LatentCreator
 from mflux.models.seedvr2.variants.upscale.seedvr2 import SeedVR2
@@ -31,23 +32,53 @@ def _resolve_seedvr2_model(model_arg: str | None, model_path: str | None) -> tup
     normalized = model_arg.lower()
     if normalized in {"seedvr2", "seedvr2-3b"}:
         return ModelConfig.seedvr2_3b(), None
-    if normalized in {"seedvr2-7b"}:
+    if normalized == "seedvr2-7b":
         return ModelConfig.seedvr2_7b(), None
+    if normalized in {"bytedance-seed/seedvr2-3b", "bytedance-seed/seedvr2_3b"}:
+        return ModelConfig.seedvr2_3b(), model_arg
+    if normalized in {"bytedance-seed/seedvr2-7b", "bytedance-seed/seedvr2_7b"}:
+        return ModelConfig.seedvr2_7b(), model_arg
+    if normalized == "numz/seedvr2_comfyui":
+        return ModelConfig.seedvr2_3b(), model_arg
+    if normalized.startswith("abstractframework/seedvr2-3b-"):
+        return ModelConfig.seedvr2_3b(), model_arg
+    if normalized.startswith("abstractframework/seedvr2-7b-"):
+        return ModelConfig.seedvr2_7b(), model_arg
 
-    if model_path is not None:
-        path = Path(model_path).expanduser()
+    requested_model_path = model_path
+    if requested_model_path is None and Path(model_arg).expanduser().exists():
+        requested_model_path = model_arg
+
+    if requested_model_path is not None:
+        path = Path(requested_model_path).expanduser()
         if path.is_dir():
             has_3b = (path / "seedvr2_ema_3b_fp16.safetensors").exists()
+            has_official_3b = (path / "seedvr2_ema_3b.pth").exists()
             has_7b = (path / "seedvr2_ema_7b_fp16.safetensors").exists()
-            if has_7b and not has_3b:
-                return ModelConfig.seedvr2_7b(), model_path
-            if has_3b and not has_7b:
-                return ModelConfig.seedvr2_3b(), model_path
+            has_official_7b = (path / "seedvr2_ema_7b.pth").exists()
+            if (has_7b or has_official_7b) and not (has_3b or has_official_3b):
+                return ModelConfig.seedvr2_7b(), requested_model_path
+            if (has_3b or has_official_3b) and not (has_7b or has_official_7b):
+                return ModelConfig.seedvr2_3b(), requested_model_path
+            if (path / "transformer" / "model.safetensors.index.json").exists():
+                if "seedvr2-7b" in normalized or "7b" in path.name.lower():
+                    return ModelConfig.seedvr2_7b(), requested_model_path
+                return ModelConfig.seedvr2_3b(), requested_model_path
 
-    source = (model_path or model_arg).lower()
+    if is_huggingface_repo_id(model_arg):
+        raise ValueError(
+            "Unsupported SeedVR2 model handle "
+            f"{model_arg!r}. Use seedvr2, seedvr2-3b, seedvr2-7b, "
+            "ByteDance-Seed/SeedVR2-3B, ByteDance-Seed/SeedVR2-7B, "
+            "AbstractFramework/seedvr2-3b-8bit, AbstractFramework/seedvr2-3b-4bit, "
+            "AbstractFramework/seedvr2-7b-8bit, AbstractFramework/seedvr2-7b-4bit, "
+            "or an explicit local SeedVR2 path."
+        )
+
+    source = (requested_model_path or model_arg).lower()
     if "seedvr2_ema_7b" in source or "seedvr2-7b" in source:
-        return ModelConfig.seedvr2_7b(), model_path
-    return ModelConfig.seedvr2_3b(), model_path
+        return ModelConfig.seedvr2_7b(), requested_model_path
+    return ModelConfig.seedvr2_3b(), requested_model_path
 
 
 def _expand_image_paths(image_paths: list[Path]) -> list[Path]:
@@ -80,14 +111,20 @@ def main():
         print("No images to upscale.")
         return
 
-    model_config, resolved_model_path = _resolve_seedvr2_model(args.model, args.model_path)
+    try:
+        model_config, resolved_model_path = _resolve_seedvr2_model(args.model, args.model_path)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     # 3. Load the SeedVR2 model
-    model = SeedVR2(
-        quantize=args.quantize,
-        model_path=resolved_model_path,
-        model_config=model_config,
-    )
+    try:
+        model = SeedVR2(
+            quantize=args.quantize,
+            model_path=resolved_model_path,
+            model_config=model_config,
+        )
+    except DownloadRequiredError as exc:
+        parser.error(str(exc))
     if args.vae_tiling:
         model.tiling_config = TilingConfig()
 

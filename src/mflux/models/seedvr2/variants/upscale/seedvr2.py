@@ -6,12 +6,14 @@ from mlx import nn
 from mflux.models.common.config.config import Config
 from mflux.models.common.config.model_config import ModelConfig
 from mflux.models.common.vae.vae_util import VAEUtil
+from mflux.models.common.weights.saving.model_saver import ModelSaver
 from mflux.models.seedvr2.latent_creator.seedvr2_latent_creator import SeedVR2LatentCreator
 from mflux.models.seedvr2.model.seedvr2_text_encoder.text_embeddings import SeedVR2TextEmbeddings
 from mflux.models.seedvr2.model.seedvr2_transformer.transformer import SeedVR2Transformer
 from mflux.models.seedvr2.model.seedvr2_vae.vae import SeedVR2VAE
 from mflux.models.seedvr2.seedvr2_initializer import SeedVR2Initializer
 from mflux.models.seedvr2.variants.upscale.seedvr2_util import SeedVR2Util
+from mflux.models.seedvr2.weights.seedvr2_weight_definition import SeedVR2WeightDefinition
 from mflux.utils.generated_image import GeneratedImage
 from mflux.utils.image_util import ImageUtil
 from mflux.utils.metadata_reader import MetadataReader
@@ -68,7 +70,12 @@ class SeedVR2(nn.Module):
         latents = SeedVR2LatentCreator.create_noise_latents(seed=seed, height=initial_latent.shape[-2], width=initial_latent.shape[-1])  # fmt: off
 
         # 3. Get the pre-computed text embeddings
-        txt_pos = SeedVR2TextEmbeddings.load_positive()
+        text_embedding = getattr(self, "text_embedding", None)
+        txt_pos = (
+            SeedVR2TextEmbeddings.prepare_positive(text_embedding)
+            if text_embedding is not None
+            else SeedVR2TextEmbeddings.load_positive()
+        )
 
         # 4. Create callback context and call before_loop
         ctx = self.callbacks.start(seed=seed, prompt="", config=config)
@@ -113,4 +120,12 @@ class SeedVR2(nn.Module):
             generation_time=config.time_steps.format_dict["elapsed"],
             image_path=image_path,
             init_metadata=init_metadata,
+        )
+
+    def save_model(self, path: str) -> None:
+        ModelSaver.save_model(
+            model=self,
+            bits=self.bits,
+            base_path=path,
+            weight_definition=SeedVR2WeightDefinition.for_saving(self.model_config),
         )

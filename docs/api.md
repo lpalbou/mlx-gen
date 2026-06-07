@@ -15,15 +15,14 @@ The public workflows are:
 | Command | Purpose |
 | --- | --- |
 | `mlxgen generate` | Generate images or supported videos from a downloaded source model or MLX-Gen model package. Image input selects image-to-image or image-to-video when the model supports it. |
+| `mlxgen upscale` | Upscale and restore images with SeedVR2. |
 | `mlxgen capabilities` | Inspect the public tasks, internal modes, and option support for a model without loading weights. |
 | `mlxgen validation` | Inspect generated-output and benchmark records for exact model/package rows. |
 | `mlxgen download` | Explicitly download model or LoRA files into the local cache. |
 | `mlxgen prepare` | Create a reusable local MLX-Gen model package, optionally quantized, and write a Hugging Face model card. |
 
-The package also installs dedicated entry points from the mflux codebase for workflows that are not
-yet routed through unified `mlxgen generate`, including `mflux-upscale-seedvr2` for SeedVR2 image
-super-resolution. New generation and model-management integrations should prefer the `mlxgen`
-commands above when the workflow is available there.
+The package also installs compatibility entry points from the mflux codebase. New workflows should
+prefer the `mlxgen` commands above when a matching command exists.
 
 For a full copy/pasteable workflow that exercises T2I, I2I edit, multi-reference I2I, T2V A14B,
 and I2V A14B, see [Spaceship Snow Workflow](examples/spaceship-snow.md).
@@ -372,14 +371,14 @@ recommended full-resolution, frame-count, and step-count settings for your targe
 
 ## SeedVR2 Upscale Command
 
-SeedVR2 image super-resolution uses the dedicated `mflux-upscale-seedvr2` command. See
-[Image Upscaling](upscaling.md) for a reproducible 5x source/output comparison.
+SeedVR2 image super-resolution uses `mlxgen upscale`. See [Image Upscaling](upscaling.md) for a
+reproducible 5x source/output comparison.
 
 ```sh
-mflux-upscale-seedvr2 \
+mlxgen upscale \
+  --model AbstractFramework/seedvr2-3b-8bit \
   --image-path input.png \
   --resolution 1024 \
-  --quantize 8 \
   --metadata \
   --output input_short_edge_1024.png
 ```
@@ -404,9 +403,9 @@ Useful options:
 | --- | --- |
 | `--image-path` | One or more image files or directories. Directories are expanded to supported image files. |
 | `--resolution` | Integer shorter-edge target or scale factor such as `2x` or `3x`. Default: `384`. |
-| `--model` | Optional SeedVR2 model selector. Defaults to `seedvr2-3b`; pass `seedvr2-7b` for the larger model. |
-| `--quantize` | Optional runtime quantization. Supported values are `4` and `8`. |
-| `--softness` | Optional input pre-downsampling control from `0.0` to `1.0`; use about `0.25` to `0.5` when noisy source texture should be smoothed before reconstruction. |
+| `--model` | Optional SeedVR2 model selector. Defaults to `seedvr2-3b`, the official `ByteDance-Seed/SeedVR2-3B` source model. Use `seedvr2-7b` for the official 7B source model, `AbstractFramework/seedvr2-3b-8bit`, `AbstractFramework/seedvr2-3b-4bit`, `AbstractFramework/seedvr2-7b-8bit`, `AbstractFramework/seedvr2-7b-4bit`, or a local path such as `./models/seedvr2-7b-8bit`. |
+| `--quantize` | Optional runtime quantization for source-model runs. Published q8/q4 packages do not need this flag. |
+| `--softness` | Optional input smoothing from `0.0` to `1.0`. `0.0` preserves the preprocessed source most directly. Higher values pre-downsample the conditioning image before reconstruction, which can suppress source grain/JPEG texture but can also soften fine details. Try `0.25` to `0.5` for noisy or compressed sources. |
 | `--vae-tiling` | Enable tiled VAE encode/decode for very large memory-bound upscales. The default is off for best quality. |
 | `--metadata` | Write a `.metadata.json` sidecar with final output dimensions, source dimensions, seed, and model details. |
 

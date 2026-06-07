@@ -33,7 +33,8 @@ text-to-image, image-to-image/edit, text-to-video, and image-to-video work.
   substrings only. ERNIE Image Turbo and Wan2.2 TI2V are now known families; GLM and CogVideoX
   remain real backend ports rather than alias problems.
 - Supported model config families include FLUX.1, FLUX.2 Klein, Qwen Image/Edit, FIBO, Z-Image,
-  ERNIE Image Turbo, Wan2.2 TI2V, and SeedVR2. `mlxgen prepare` does not yet route SeedVR2.
+  ERNIE Image Turbo, Wan2.2 TI2V, and SeedVR2. SeedVR2 3B and 7B use `mlxgen upscale`,
+  official source loading, and q8/q4 `mlxgen prepare` support.
 - Local prepared folders already exist for Qwen Image, Qwen Image 2512, Qwen Image Edit variants,
   FLUX.2 Klein 4B/9B, and Z-Image-Turbo q4.
 - As of 2026-05-25, the source snapshot sizes reported by Hugging Face are approximately:
@@ -116,7 +117,7 @@ than a renamed fork.
 | P1 | T2I | `prism-ml/bonsai-image-ternary-4B-mlx-2bit` | Implemented. FLUX.2 Klein-shaped architecture with `transformer-packed-mflux/`, a 4-bit Qwen3 text encoder, and BF16 Flux2 VAE. Local validation shows coherent output, lower RSS than FLUX.2 Klein 4B q8, and direct `mlxgen generate` support. | Done for ternary, medium-high for future low-bit kernels | Maintain the narrow Bonsai/FLUX.2 packed-loader path using standard MLX 2-bit affine execution, not a full Prism demo dependency. Track binary 1-bit separately because stock MLX through 0.31.2 still fails the required 1-bit probe. |
 | P2 | T2V, I2V | `Wan-AI/Wan2.2-TI2V-5B-Diffusers` | Apache 2.0, ~32 GiB, supports both text-to-video and image-to-video at 720p/24fps, and is much smaller than A14B. Initial MLX-Gen T2V and first-frame I2V support now produces MP4 output. | Very high | Continue from the first video milestone: improve quality/performance defaults, add cancellation events, memory caps, q4/q8 validation, and a longer Diffusers parity suite. |
 | P2 | T2I, I2I/edit | `HiDream-ai/HiDream-O1-Image` and `HiDream-ai/HiDream-O1-Image-Dev` | MIT, current search shows image-text-to-image tags, Qwen3-VL stack, and an existing `mlx-community/HiDream-O1-Image-Dev-mlx-bf16` checkpoint. | High | Worth researching after ERNIE because an MLX BF16 artifact exists, but it likely wants an MLX-VLM/provider boundary rather than a quick mflux-style port. |
-| P2 | Video-to-video/upscale | `numz/SeedVR2_comfyUI`, `ByteDance-Seed/SeedVR2-3B/7B` | SeedVR2 code exists and source is cached, but `mlxgen prepare` does not route it. | Medium-high | Make existing upscaler usable from unified CLI and prepare/card flow before larger video generation ports. It is not T2V/I2V, but it is the lowest-risk video capability already in tree. |
+| P2 | Video-to-video/upscale | `ByteDance-Seed/SeedVR2-3B`, `ByteDance-Seed/SeedVR2-7B` | SeedVR2 3B and regular 7B use `mlxgen upscale`, official source loading, q8/q4 prepare/card support, and documented package validation. | Done for 3B and regular 7B package paths; medium-high for future 7B-sharp scope | Keep `mlxgen upscale` stable, maintain q8/q4 package evidence, and only expand to official 7B-sharp after a separate source-layout and quality pass. |
 | P2 | I2V, T2V, V2V, A/V | `Lightricks/LTX-2.3-fp8` | Very high online usage, ~55 GiB fp8, image-to-video/text-to-video/video-to-video/audio-video tags, custom community license. Card says full and distilled checkpoints exist and training is recommended on BF16. | Very high | Important to research, but licensing and model breadth make it riskier than Wan2.2 TI2V 5B. Needs a video/audio-capable backend decision before implementation. |
 | P3 | T2V | `zai-org/CogVideoX-2b` | Apache 2.0, cached locally, ~13 GiB, older but small. | High | Good proof-of-concept video port if Wan/LTX are too large. Lower strategic priority because current ecosystem momentum is stronger around Wan/LTX. |
 | P3 | T2I | `zai-org/GLM-Image` | MIT, cached locally, ~33 GiB, custom GLM image/VLM architecture. | Very high | Useful text-rendering/glyph candidate, but lower priority than ERNIE because downloads are lower and the custom VLM/VQ stack is significant. |
@@ -253,7 +254,7 @@ Related focused items:
 - [x] Add Bonsai ternary 2-bit support through a FLUX.2-compatible packed-loader path.
 - [ ] Reassess Bonsai binary 1-bit only after runtime support is available or accepted by ADR.
 - [ ] Add stronger ERNIE Diffusers comparison tests and non-turbo scope.
-- [ ] Decide whether SeedVR2 should be unified under `mlxgen prepare` before larger video ports.
+- [x] Add SeedVR2 3B/7B `mlxgen prepare` support and package-card documentation.
 - [ ] Draft video backend/API ADR before expanding Wan or implementing CogVideoX.
 - [ ] Keep docs and generated model cards synchronized with every integrated family.
 

@@ -69,6 +69,25 @@ mlxgen generate \
 
 If the local package path does not clearly identify the model family, add `--family` during generation. The supported router families are `qwen`, `flux2`, `bonsai`, `fibo`, `z-image`, `ernie-image`, and `wan`.
 
+SeedVR2 packages use `mlxgen upscale` instead of `mlxgen generate`:
+
+```sh
+mlxgen prepare \
+  --model ByteDance-Seed/SeedVR2-3B \
+  --path ./models/seedvr2-3b-8bit \
+  --quantize 8
+
+mlxgen upscale \
+  --model ./models/seedvr2-3b-8bit \
+  --image-path input.png \
+  --resolution 2x \
+  --metadata \
+  --output input_2x.png
+```
+
+Use `ByteDance-Seed/SeedVR2-7B`, `AbstractFramework/seedvr2-7b-8bit`, or a path such as
+`./models/seedvr2-7b-8bit` for 7B packages.
+
 When a local MLX-Gen package name matches a Hugging Face repository basename, MLX-Gen can also resolve
 the repository handle to that complete local package. For example, if
 `./models/wan2.2-i2v-a14b-diffusers-8bit` exists and contains all required indexes and shard files,

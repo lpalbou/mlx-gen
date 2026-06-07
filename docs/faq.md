@@ -278,7 +278,7 @@ for preserving original pixels in place.
 
 ## How Does SeedVR2 Upscale Sizing Work?
 
-SeedVR2 uses `mflux-upscale-seedvr2`. Its `--resolution` option supports two sizing styles:
+SeedVR2 uses `mlxgen upscale`. Its `--resolution` option supports two sizing styles:
 
 | Form | Meaning | Example from `320x192` |
 | --- | --- | --- |
@@ -296,12 +296,64 @@ low-resolution artifacts and choose a target that materially increases pixel dim
 `2x`, `3x`, or a much larger shorter-edge target.
 
 For noisy low-resolution sources, use `--softness 0.25` to `0.5` to smooth source grain before the
-diffusion reconstruction. SeedVR2 defaults to untiled VAE encode/decode for image quality; use
-`--vae-tiling` only for very large upscales where lowering peak memory matters more than avoiding
-tile-boundary risk.
+diffusion reconstruction. `--softness 0.0` keeps the source conditioning most direct. Higher values
+temporarily downsample and re-enlarge the conditioning image, which can reduce grain or JPEG
+texture but can also soften fine details. SeedVR2 defaults to untiled VAE encode/decode for image
+quality; use `--vae-tiling` only for very large upscales where lowering peak memory matters more
+than avoiding tile-boundary risk.
 
 See [Image Upscaling](upscaling.md) for a checked-in 5x SeedVR2 comparison where the original
 source is enlarged to the generated output resolution for side-by-side assessment.
+
+## Can SeedVR2 Use The Official ByteDance Checkpoint?
+
+Yes. The `seedvr2` and `seedvr2-3b` aliases resolve to the official
+`ByteDance-Seed/SeedVR2-3B` checkpoint, and `seedvr2-7b` resolves to
+`ByteDance-Seed/SeedVR2-7B`. To run the 3B source model directly, download it and pass the full
+Hugging Face handle:
+
+```sh
+mlxgen download --model ByteDance-Seed/SeedVR2-3B
+
+mlxgen upscale \
+  --model ByteDance-Seed/SeedVR2-3B \
+  --image-path input.png \
+  --resolution 2x \
+  --seed 42 \
+  --metadata \
+  --output input_seedvr2_official_3b_2x.png
+```
+
+For day-to-day use, prefer the published MLX-Gen packages:
+
+```sh
+mlxgen download --model AbstractFramework/seedvr2-3b-8bit
+
+mlxgen upscale \
+  --model AbstractFramework/seedvr2-3b-8bit \
+  --image-path input.png \
+  --resolution 2x \
+  --seed 42 \
+  --metadata \
+  --output input_seedvr2_q8_2x.png
+```
+
+`AbstractFramework/seedvr2-3b-8bit` and `AbstractFramework/seedvr2-3b-4bit` are reusable
+MLX-Gen packages generated from the official 3B source model. See [Quantization](quantization.md)
+for package sizes and the measured 5x validation profile.
+
+For 7B, download the official source and run `--model seedvr2-7b`, use
+`AbstractFramework/seedvr2-7b-8bit` or `AbstractFramework/seedvr2-7b-4bit`, or prepare a local
+q8/q4 package:
+
+```sh
+mlxgen prepare \
+  --model ByteDance-Seed/SeedVR2-7B \
+  --path ./models/seedvr2-7b-8bit \
+  --quantize 8
+```
+
+The 7B source, q8, and q4 local packages are documented in [Image Upscaling](upscaling.md).
 
 ## Why Does Image-To-Image Run Fewer Steps Than `--steps`?
 

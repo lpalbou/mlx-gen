@@ -4,6 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from mflux.cli.parser.parsers import CommandLineParser
+from mflux.models.common.download_policy import DownloadRequiredError
 from mflux.models.seedvr2.cli import seedvr2_upscale
 from mflux.models.seedvr2.cli.seedvr2_upscale import _expand_image_paths, _resolve_seedvr2_model
 from mflux.utils.scale_factor import ScaleFactor
@@ -210,6 +211,62 @@ def test_seedvr2_main_enables_vae_tiling_when_requested(monkeypatch, tmp_path):
 
 
 @pytest.mark.fast
+def test_seedvr2_main_rejects_unknown_hf_handle_before_loading(monkeypatch, tmp_path, capsys):
+    image_path = tmp_path / "source.png"
+    image_path.touch()
+
+    def fail_if_loaded(*args, **kwargs):
+        raise AssertionError("SeedVR2 should not be constructed for an unsupported model handle")
+
+    monkeypatch.setattr(seedvr2_upscale, "SeedVR2", fail_if_loaded)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "mflux-upscale-seedvr2",
+            "--model",
+            "AbstractFramework/not-seedvr2",
+            "--image-path",
+            str(image_path),
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        seedvr2_upscale.main()
+
+    assert "Unsupported SeedVR2 model handle" in capsys.readouterr().err
+
+
+@pytest.mark.fast
+def test_seedvr2_main_reports_missing_package_without_traceback(monkeypatch, tmp_path, capsys):
+    image_path = tmp_path / "source.png"
+    image_path.touch()
+
+    class MissingPackageSeedVR2:
+        def __init__(self, *, quantize, model_path, model_config):
+            raise DownloadRequiredError("AbstractFramework/seedvr2-7b-8bit")
+
+    monkeypatch.setattr(seedvr2_upscale, "SeedVR2", MissingPackageSeedVR2)
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "mflux-upscale-seedvr2",
+            "--model",
+            "AbstractFramework/seedvr2-7b-8bit",
+            "--image-path",
+            str(image_path),
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        seedvr2_upscale.main()
+
+    error_output = capsys.readouterr().err
+    assert "MLX-Gen will not download model files during generation" in error_output
+    assert "mlxgen download --model AbstractFramework/seedvr2-7b-8bit" in error_output
+    assert "Traceback" not in error_output
+
+
+@pytest.mark.fast
 def test_seedvr2_expands_directory_image_paths(tmp_path):
     image_a = tmp_path / "a.png"
     image_b = tmp_path / "b.JPG"
@@ -242,6 +299,7 @@ def test_seedvr2_expands_directories_and_files_in_order(tmp_path):
 def test_seedvr2_model_resolution_defaults_to_3b():
     model_config, model_path = _resolve_seedvr2_model(model_arg=None, model_path=None)
     assert "seedvr2-3b" in model_config.aliases
+    assert model_config.model_name == "ByteDance-Seed/SeedVR2-3B"
     assert model_path is None
 
 
@@ -249,6 +307,7 @@ def test_seedvr2_model_resolution_defaults_to_3b():
 def test_seedvr2_model_resolution_supports_7b_alias():
     model_config, model_path = _resolve_seedvr2_model(model_arg="seedvr2-7b", model_path="seedvr2-7b")
     assert "seedvr2-7b" in model_config.aliases
+    assert model_config.model_name == "ByteDance-Seed/SeedVR2-7B"
     assert model_path is None
 
 
@@ -276,6 +335,21 @@ def test_seedvr2_model_resolution_detects_7b_directory(tmp_path):
 
 
 @pytest.mark.fast
+def test_seedvr2_model_resolution_detects_official_7b_directory(tmp_path):
+    model_dir = tmp_path / "seedvr2-official-7b"
+    model_dir.mkdir()
+    (model_dir / "seedvr2_ema_7b.pth").touch()
+
+    model_config, model_path = _resolve_seedvr2_model(
+        model_arg=str(model_dir),
+        model_path=str(model_dir),
+    )
+
+    assert "seedvr2-7b" in model_config.aliases
+    assert model_path == str(model_dir)
+
+
+@pytest.mark.fast
 def test_seedvr2_model_resolution_prefers_local_3b_when_directory_contains_only_3b(tmp_path):
     parent = tmp_path / "contains-7b-in-parent-name"
     parent.mkdir()
@@ -287,5 +361,81 @@ def test_seedvr2_model_resolution_prefers_local_3b_when_directory_contains_only_
         model_arg=str(model_dir),
         model_path=str(model_dir),
     )
+    assert "seedvr2-3b" in model_config.aliases
+    assert model_path == str(model_dir)
+
+
+@pytest.mark.fast
+def test_seedvr2_model_resolution_preserves_official_bytedance_handle():
+    model_config, model_path = _resolve_seedvr2_model(
+        model_arg="ByteDance-Seed/SeedVR2-3B",
+        model_path=None,
+    )
+
+    assert "seedvr2-3b" in model_config.aliases
+    assert model_path == "ByteDance-Seed/SeedVR2-3B"
+
+
+@pytest.mark.fast
+def test_seedvr2_model_resolution_preserves_official_bytedance_7b_handle():
+    model_config, model_path = _resolve_seedvr2_model(
+        model_arg="ByteDance-Seed/SeedVR2-7B",
+        model_path=None,
+    )
+
+    assert "seedvr2-7b" in model_config.aliases
+    assert model_path == "ByteDance-Seed/SeedVR2-7B"
+
+
+@pytest.mark.fast
+def test_seedvr2_model_resolution_preserves_abstractframework_3b_package_handle():
+    model_config, model_path = _resolve_seedvr2_model(
+        model_arg="AbstractFramework/seedvr2-3b-8bit",
+        model_path=None,
+    )
+
+    assert "seedvr2-3b" in model_config.aliases
+    assert model_path == "AbstractFramework/seedvr2-3b-8bit"
+
+
+@pytest.mark.fast
+def test_seedvr2_model_resolution_preserves_abstractframework_7b_package_handle():
+    model_config, model_path = _resolve_seedvr2_model(
+        model_arg="AbstractFramework/seedvr2-7b-8bit",
+        model_path=None,
+    )
+
+    assert "seedvr2-7b" in model_config.aliases
+    assert model_path == "AbstractFramework/seedvr2-7b-8bit"
+
+
+@pytest.mark.fast
+def test_seedvr2_model_resolution_keeps_legacy_numz_handle_explicit():
+    model_config, model_path = _resolve_seedvr2_model(
+        model_arg="numz/SeedVR2_comfyUI",
+        model_path=None,
+    )
+
+    assert "seedvr2-3b" in model_config.aliases
+    assert model_path == "numz/SeedVR2_comfyUI"
+
+
+@pytest.mark.fast
+def test_seedvr2_model_resolution_rejects_unknown_hf_handle():
+    with pytest.raises(ValueError, match="Unsupported SeedVR2 model handle"):
+        _resolve_seedvr2_model(model_arg="AbstractFramework/not-seedvr2", model_path=None)
+
+
+@pytest.mark.fast
+def test_seedvr2_model_resolution_detects_official_3b_directory(tmp_path):
+    model_dir = tmp_path / "seedvr2-official"
+    model_dir.mkdir()
+    (model_dir / "seedvr2_ema_3b.pth").touch()
+
+    model_config, model_path = _resolve_seedvr2_model(
+        model_arg=str(model_dir),
+        model_path=str(model_dir),
+    )
+
     assert "seedvr2-3b" in model_config.aliases
     assert model_path == str(model_dir)
