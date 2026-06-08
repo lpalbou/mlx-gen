@@ -186,7 +186,7 @@ Useful options:
 | --- | --- |
 | `--quantize 8` | Runtime q8 quantization for the SeedVR2 model. |
 | `--softness 0.25` to `0.5` | Smooth noisy low-resolution conditioning before reconstruction. |
-| `--vae-tiling` | Opt into tiled VAE encode/decode for very large memory-bound upscales. The default is untiled for image quality. |
+| `--vae-tiling` | Force tiled VAE encode/decode. By default, SeedVR2 keeps small outputs untiled and automatically uses tiled VAE decode for large outputs to avoid invalid full-frame decodes. |
 | `--metadata` | Save a `.metadata.json` sidecar with source/output dimensions and generation settings. |
 
 `--softness` controls how strongly MLX-Gen smooths the source image before SeedVR2 conditions on
@@ -197,4 +197,5 @@ otherwise reconstruct as detail. Use `0.0` for clean sources and fine detail pre
 `0.25` to `0.5` for noisy or compressed sources, and reserve higher values for sources where a
 smoother, less faithful reconstruction is acceptable.
 
-Use `--vae-tiling` only when the untiled path is too memory-heavy for the requested output size.
+Use `--vae-tiling` when you also want tiled VAE encoding, or when you want the same tiled path even
+for smaller outputs. Large outputs automatically use tiled VAE decode even without this flag.

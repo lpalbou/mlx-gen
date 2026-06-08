@@ -63,7 +63,7 @@ def test_seedvr2_upscale_metadata_records_final_output_dimensions(monkeypatch, t
 
 
 @pytest.mark.fast
-def test_seedvr2_initializer_defaults_to_untiled_vae_for_quality():
+def test_seedvr2_initializer_defaults_to_untiled_small_outputs_with_large_output_auto_decode():
     class DummyModel:
         pass
 
@@ -72,3 +72,53 @@ def test_seedvr2_initializer_defaults_to_untiled_vae_for_quality():
 
     assert model.tiling_config.vae_encode_tiled is False
     assert model.tiling_config.vae_decode_tiles_per_dim == 0
+    assert model.tiling_config.vae_decode_auto_tile_min_pixels == 1024 * 1024
+
+
+@pytest.mark.fast
+def test_seedvr2_large_outputs_auto_enable_tiled_decode(monkeypatch, tmp_path):
+    source = tmp_path / "source.png"
+    Image.new("RGB", (1024, 1024), (120, 90, 60)).save(source)
+    seen: dict[str, object] = {}
+
+    def fake_init(model, model_config, quantize=None, model_path=None):
+        model.model_config = model_config
+        model.callbacks = CallbackRegistry()
+        model.tiling_config = TilingConfig(vae_encode_tiled=False, vae_decode_tiles_per_dim=0)
+        model.bits = quantize
+        model.vae = object()
+        model.transformer = lambda txt, vid, timestep: mx.zeros_like(vid[:, :16])
+
+    def fake_decode(vae, latent, tiling_config):
+        seen["decode_tiling_config"] = tiling_config
+        return mx.zeros((1, 3, 4, 4), dtype=mx.float32)
+
+    monkeypatch.setattr(seedvr2_module.SeedVR2Initializer, "init", fake_init)
+    monkeypatch.setattr(
+        seedvr2_module.SeedVR2Util,
+        "preprocess_image",
+        staticmethod(lambda image_path, resolution, softness: (mx.zeros((1, 3, 4, 4), dtype=mx.float32), 2048, 2048)),
+    )
+    monkeypatch.setattr(
+        seedvr2_module.VAEUtil,
+        "encode",
+        staticmethod(lambda vae, image, tiling_config: mx.zeros((1, 16, 4, 4), dtype=mx.float32)),
+    )
+    monkeypatch.setattr(seedvr2_module.VAEUtil, "decode", staticmethod(fake_decode))
+    monkeypatch.setattr(
+        seedvr2_module.SeedVR2TextEmbeddings,
+        "load_positive",
+        staticmethod(lambda: mx.zeros((1, 1, 5120), dtype=mx.float32)),
+    )
+    monkeypatch.setattr(
+        seedvr2_module.SeedVR2Util,
+        "apply_color_correction",
+        staticmethod(lambda content, style: content),
+    )
+
+    model = SeedVR2(quantize=8, model_config=ModelConfig.seedvr2_3b())
+    model.generate_image(seed=42, image_path=source, resolution="2x")
+
+    tiling_config = seen["decode_tiling_config"]
+    assert tiling_config.vae_encode_tiled is False
+    assert tiling_config.vae_decode_tiles_per_dim == 8

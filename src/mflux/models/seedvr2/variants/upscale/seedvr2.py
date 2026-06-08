@@ -1,3 +1,4 @@
+from dataclasses import replace
 from pathlib import Path
 
 import mlx.core as mx
@@ -5,6 +6,7 @@ from mlx import nn
 
 from mflux.models.common.config.config import Config
 from mflux.models.common.config.model_config import ModelConfig
+from mflux.models.common.vae.tiling_config import TilingConfig
 from mflux.models.common.vae.vae_util import VAEUtil
 from mflux.models.common.weights.saving.model_saver import ModelSaver
 from mflux.models.seedvr2.latent_creator.seedvr2_latent_creator import SeedVR2LatentCreator
@@ -51,6 +53,7 @@ class SeedVR2(nn.Module):
             resolution=resolution,
             softness=softness,
         )
+        tiling_config = self._effective_tiling_config(true_height=true_height, true_width=true_width)
 
         # 1. Create a new config based on the model type and input parameters
         config = Config(
@@ -65,7 +68,7 @@ class SeedVR2(nn.Module):
         )
 
         # 2. Create the initial latents and conditioning
-        initial_latent = VAEUtil.encode(vae=self.vae, image=processed_image, tiling_config=self.tiling_config)
+        initial_latent = VAEUtil.encode(vae=self.vae, image=processed_image, tiling_config=tiling_config)
         static_condition = SeedVR2LatentCreator.create_condition(encoded_latent=initial_latent)
         latents = SeedVR2LatentCreator.create_noise_latents(seed=seed, height=initial_latent.shape[-2], width=initial_latent.shape[-1])  # fmt: off
 
@@ -103,7 +106,7 @@ class SeedVR2(nn.Module):
         ctx.after_loop(latents)
 
         # 9. Decode the latents and return the image
-        decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=self.tiling_config)
+        decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=tiling_config)
         decoded = decoded[:, :, :true_height, :true_width]
         style = processed_image[:, :, :true_height, :true_width]
         decoded = SeedVR2Util.apply_color_correction(decoded, style)
@@ -121,6 +124,25 @@ class SeedVR2(nn.Module):
             image_path=image_path,
             init_metadata=init_metadata,
         )
+
+    def _effective_tiling_config(self, *, true_height: int, true_width: int) -> TilingConfig | None:
+        tiling_config = self.tiling_config
+        if tiling_config is None:
+            return None
+
+        tiles_per_dim = getattr(tiling_config, "vae_decode_tiles_per_dim", None)
+        if tiles_per_dim and tiles_per_dim > 1:
+            return tiling_config
+
+        min_pixels = getattr(tiling_config, "vae_decode_auto_tile_min_pixels", None)
+        if min_pixels is None or min_pixels <= 0:
+            return tiling_config
+
+        output_pixels = int(true_height) * int(true_width)
+        if output_pixels <= int(min_pixels):
+            return tiling_config
+
+        return replace(tiling_config, vae_decode_tiles_per_dim=8)
 
     def save_model(self, path: str) -> None:
         ModelSaver.save_model(

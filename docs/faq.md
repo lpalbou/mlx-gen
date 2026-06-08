@@ -298,9 +298,9 @@ low-resolution artifacts and choose a target that materially increases pixel dim
 For noisy low-resolution sources, use `--softness 0.25` to `0.5` to smooth source grain before the
 diffusion reconstruction. `--softness 0.0` keeps the source conditioning most direct. Higher values
 temporarily downsample and re-enlarge the conditioning image, which can reduce grain or JPEG
-texture but can also soften fine details. SeedVR2 defaults to untiled VAE encode/decode for image
-quality; use `--vae-tiling` only for very large upscales where lowering peak memory matters more
-than avoiding tile-boundary risk.
+texture but can also soften fine details. SeedVR2 keeps small outputs untiled for image quality and
+automatically uses tiled VAE decode for large outputs. Use `--vae-tiling` when you also want tiled
+VAE encoding or the same tiled path for smaller outputs.
 
 See [Image Upscaling](upscaling.md) for a checked-in 5x SeedVR2 comparison where the original
 source is enlarged to the generated output resolution for side-by-side assessment.

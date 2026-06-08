@@ -207,11 +207,12 @@ For example, a `320x192` source becomes `640x384` with `--resolution 2x` and `96
 `--resolution 3x`. For visual quality checks, choose a target that changes the dimensions
 materially; a near-same-size target is mainly useful for restoration/denoising checks.
 
-SeedVR2 defaults to untiled VAE encode/decode for image quality. `--softness` controls input
-smoothing before reconstruction: `0.0` keeps the source conditioning most direct, while higher
-values suppress grain or JPEG texture at the cost of softer fine detail. If the source has visible
-grain in smooth regions, try `--softness 0.25` to `0.5`. Add `--vae-tiling` only when a very large
-upscale needs lower peak memory.
+SeedVR2 keeps small outputs on the untiled VAE path for image quality and automatically uses tiled
+VAE decode for large outputs. `--softness` controls input smoothing before reconstruction: `0.0`
+keeps the source conditioning most direct, while higher values suppress grain or JPEG texture at
+the cost of softer fine detail. If the source has visible grain in smooth regions, try
+`--softness 0.25` to `0.5`. Add `--vae-tiling` when you also want tiled VAE encoding or the same
+tiled path for smaller outputs.
 
 The `seedvr2` and `seedvr2-3b` aliases resolve to the official upstream 3B checkpoint. To run that
 source model directly, download it and pass its full handle:

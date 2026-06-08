@@ -161,8 +161,8 @@ target sizes mainly validate restoration behavior rather than visible super-reso
 
 Use `--softness 0.25` to `0.5` when noisy source texture should be smoothed before reconstruction.
 `--softness 0.0` keeps source conditioning most direct; higher values can suppress grain or JPEG
-texture but can soften fine detail. SeedVR2 defaults to untiled VAE encode/decode for image
-quality; `--vae-tiling` opts into tiled VAE processing for very large memory-bound upscales.
+texture but can soften fine detail. SeedVR2 keeps small outputs untiled, automatically uses tiled
+VAE decode for large outputs, and uses tiled encode/decode when `--vae-tiling` is set.
 
 `docs/upscaling.md` includes published `AbstractFramework/seedvr2-3b-8bit`,
 `AbstractFramework/seedvr2-3b-4bit`, `AbstractFramework/seedvr2-7b-8bit`, and

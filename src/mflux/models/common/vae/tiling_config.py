@@ -10,3 +10,4 @@ class TilingConfig:
     vae_encode_tiled: bool = True
     vae_encode_tile_size: int = 512
     vae_encode_tile_overlap: int = 64
+    vae_decode_auto_tile_min_pixels: int | None = 1024 * 1024

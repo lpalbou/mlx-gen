@@ -452,7 +452,7 @@ Useful options:
 | `--model` | Optional SeedVR2 model selector. Defaults to `seedvr2-3b`, the official `ByteDance-Seed/SeedVR2-3B` source model. Use `seedvr2-7b` for the official 7B source model, `AbstractFramework/seedvr2-3b-8bit`, `AbstractFramework/seedvr2-3b-4bit`, `AbstractFramework/seedvr2-7b-8bit`, `AbstractFramework/seedvr2-7b-4bit`, or a local path such as `./models/seedvr2-7b-8bit`. |
 | `--quantize` | Optional runtime quantization for source-model runs. Published q8/q4 packages do not need this flag. |
 | `--softness` | Optional input smoothing from `0.0` to `1.0`. `0.0` preserves the preprocessed source most directly. Higher values pre-downsample the conditioning image before reconstruction, which can suppress source grain/JPEG texture but can also soften fine details. Try `0.25` to `0.5` for noisy or compressed sources. |
-| `--vae-tiling` | Enable tiled VAE encode/decode for very large memory-bound upscales. The default is off for best quality. |
+| `--vae-tiling` | Force tiled VAE encode/decode. By default, small outputs stay untiled and large outputs automatically use tiled VAE decode. |
 | `--metadata` | Write a `.metadata.json` sidecar with final output dimensions, source dimensions, seed, and model details. |
 
 ## Model Management Commands

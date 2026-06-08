@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.14] - 2026-06-08
+
 ### Added
 
 - **Generative reframe and canvas-guided outpaint**: add `--reframe-padding` and
@@ -23,6 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **I2I documentation**: clarify the difference between latent I2I, edit-reference I2I,
   multi-reference I2I, generative reframe, canvas-guided outpaint, and future native fill/inpaint
   outpaint.
+
+### Fixed
+
+- **SeedVR2 large-output decode**: keep small upscales on the untiled VAE path while automatically
+  using tiled VAE decode for large outputs, preventing invalid full-frame decodes without requiring
+  users to opt into tiled VAE encoding.
 
 ## [0.18.13] - 2026-06-07
 

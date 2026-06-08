@@ -42,7 +42,7 @@ The error includes actionable command fields such as `download_command` and, whe
 
 ## Quantization Policy
 
-Quantization is model-specific. Qwen and ERNIE q4 paths use mixed q4/q8 policies because fully q4 checkpoints can lose coherent generative behavior for those model families. SeedVR2 3B uses standard q4/q8 MLX-Gen packages for the transformer linears and VAE attention linears that support MLX quantization. Bonsai Image uses Prism's pre-packed ternary 2-bit transformer path instead of MLX-Gen's q4/q8 `prepare` flow; it follows the same quality principle of keeping sensitive paths at higher precision, but ships as a pre-packed artifact. Other model families keep their existing quantization predicates unless their model behavior requires a dedicated policy.
+Quantization is model-specific. Qwen and ERNIE q4 paths use mixed q4/q8 policies because fully q4 checkpoints can lose coherent generative behavior for those model families. SeedVR2 3B and 7B use q4/q8 MLX-Gen packages for the transformer linears and VAE attention linears that support MLX quantization. Bonsai Image uses Prism's pre-packed ternary 2-bit transformer path instead of MLX-Gen's q4/q8 `prepare` flow; it follows the same quality principle of keeping sensitive paths at higher precision, but ships as a pre-packed artifact. Other model families keep their existing quantization predicates unless their model behavior requires a dedicated policy.
 
 See [Quantization](quantization.md) for the current rules.
 

@@ -117,8 +117,8 @@ mlxgen upscale \
 
 For SeedVR2, an integer `--resolution` is the target shorter edge while values such as `2x` and
 `3x` are scale factors. Both modes preserve the source aspect ratio. Use `--softness 0.25` to
-`0.5` when the source has visible grain in smooth areas; keep the default no-tiling path for best
-quality, and add `--vae-tiling` only for very large memory-bound upscales. See
+`0.5` when the source has visible grain in smooth areas. Small outputs use the untiled VAE path;
+large outputs automatically use tiled VAE decode, and `--vae-tiling` also forces tiled encode. See
 [docs/upscaling.md](docs/upscaling.md) for a reproducible 5x SeedVR2 comparison.
 
 Inspect model capabilities before a run:
@@ -216,8 +216,8 @@ SeedVR2 upscaling:
 - `AbstractFramework/seedvr2-7b-4bit`
 - `AbstractFramework/seedvr2-7b-8bit`
 
-SeedVR2 7B can also run from the official `ByteDance-Seed/SeedVR2-7B` source model and can be
-prepared locally as q8/q4 packages with `mlxgen prepare`. See
+SeedVR2 7B can also run from the official `ByteDance-Seed/SeedVR2-7B` source model or from the
+published q8/q4 package handles above. See
 [docs/upscaling.md](docs/upscaling.md) and [docs/quantization.md](docs/quantization.md) for the
 validated 7B source/q8/q4 profile.
 
