@@ -31,6 +31,9 @@ video families such as LTX are tracked separately in proposed items 0009 and 001
   an adapter applies to one transformer, both transformers, or a model-specific subset.
 - `GenerationCapability` does not yet expose task-specific LoRA support for T2V/I2V.
 - Existing LoRA mappings are image-family mappings for FLUX, FLUX.2, Qwen, and Z-Image.
+- Item 0007 is expected to add strict LoRA capability metadata, loader reports, and fail-closed
+  unsupported-family handling. Video LoRA should reuse that contract rather than introducing a
+  parallel set of CLI flags or metadata fields.
 
 ## Problem or opportunity
 
@@ -49,6 +52,11 @@ Keep video LoRA proposed until image LoRA strictness lands, then investigate Wan
    - `lora_validation_status`;
    - optional `lora_target_roles` for multi-transformer models.
 
+   For video, `lora_target_roles` must be explicit. Candidate role names are:
+   - `transformer` for single-video-transformer families such as TI2V-5B;
+   - `high_noise_transformer` and `low_noise_transformer` for Wan A14B;
+   - `both_transformers` only when the adapter is intentionally applied to both A14B denoisers.
+
 2. Audit upstream and community Wan LoRA conventions:
    - key naming for Wan T2V and I2V adapters;
    - whether adapters target the video transformer, text encoder, condition embedder, or multiple
@@ -58,13 +66,19 @@ Keep video LoRA proposed until image LoRA strictness lands, then investigate Wan
 3. Implement a Wan LoRA mapping only when a known adapter can be loaded and visually changes a
    small video output.
 
-4. Validate by task direction:
+4. Implement in stages:
+   - TI2V-5B first, because it has one transformer role and can validate both T2V and first-frame
+     I2V behavior with less routing ambiguity.
+   - A14B T2V next, only after the high-noise/low-noise adapter role is explicit.
+   - A14B I2V last, because it combines dual denoisers with source-image identity preservation.
+
+5. Validate by task direction:
    - T2V: prompt-only video with and without adapter, same seed/settings, visible style or motion
      difference, stable health metadata.
    - I2V: source image plus adapter, same seed/settings, source identity preserved enough for the
      adapter use case.
 
-5. Keep unsupported video families fail-closed. Do not accept `--lora-paths` for Wan, SeedVR2, or
+6. Keep unsupported video families fail-closed. Do not accept `--lora-paths` for Wan, SeedVR2, or
    future video models until a mapping and proof exist.
 
 ## Difficulty estimate
@@ -92,6 +106,8 @@ Promote to `planned/` when:
 - item 0015 or later Wan parity work confirms the base T2V/I2V route is healthy enough for adapter
   comparisons;
 - a small MP4 validation profile is selected, such as `480x240`, 41 frames, 10 to 15 steps.
+- the selected adapter's target role is known and can be recorded in capability metadata and video
+  metadata before generation starts.
 
 ## Validation ideas
 
@@ -100,7 +116,8 @@ Promote to `planned/` when:
 - Model-backed A/B MP4 proof with same prompt, seed, dimensions, frames, steps, guidance, and
   negative prompt.
 - Contact sheet and direct MP4 links for with-LoRA versus without-LoRA outputs.
-- Metadata proving applied adapter paths, scales, target roles, and package identity.
+- Metadata proving requested and resolved adapter paths, scales, target roles, applied target
+  counts, unmatched key counts, model package identity, and video health.
 
 ## Non-goals
 
@@ -109,6 +126,9 @@ Promote to `planned/` when:
 - Do not claim support from key-pattern matching alone. A video output proof is required.
 - Do not silently apply an adapter to only one A14B transformer unless the capability metadata and
   documentation say exactly which role was targeted.
+- Do not make video LoRA a fallback for unsupported image/edit LoRA or vice versa.
+- Do not implement LTX, HunyuanVideo, or another second video family inside this item; proposed
+  items 0009 and 0010 remain the place to select or spike a second video backend.
 
 ## Guidance for future agents
 

@@ -19,17 +19,19 @@ outside chat history.
 
 ## Next recommended work
 
-1. Implement
-   [first-class I2I modes and outpaint/reframe UX](planned/0019_first_class_i2i_modes_and_outpaint_reframe.md):
-   FLUX.2 Klein 4B/9B plus Qwen Image Edit original, 2509, and 2511 now have source/q8/q4
-   model-backed proof for `--reframe-padding` and canvas-guided `--outpaint-padding`. Keep native
-   fill/inpaint outpaint separate until a fill/mask backend is deliberately revalidated. Evaluate
-   Z-Image and ERNIE only if their latent I2I behavior can preserve source identity on a dedicated
-   profile.
-2. Implement the
+1. Implement the
    [LoRA capability matrix and strict application](planned/0007_lora_capability_matrix_and_strict_application.md)
    item so user-requested adapters cannot be silently ignored and callers can know which task
-   directions support LoRA before launching a generation.
+   directions support LoRA before launching a generation. This is now the highest-value platform
+   task because runtime LoRA, edit LoRA, and `mlxgen prepare --lora-paths` still need one
+   fail-closed capability contract.
+2. Finish the residual
+   [first-class I2I modes and outpaint/reframe UX](planned/0019_first_class_i2i_modes_and_outpaint_reframe.md)
+   work only where it adds new capability beyond the shipped FLUX.2/Qwen path. FLUX.2 Klein 4B/9B
+   plus Qwen Image Edit original, 2509, and 2511 now have source/q8/q4 model-backed proof for
+   `--reframe-padding` and canvas-guided `--outpaint-padding`. Keep native fill/inpaint outpaint
+   separate until a fill/mask backend is deliberately revalidated. Evaluate Z-Image and ERNIE only
+   if their latent I2I behavior can preserve source identity on a dedicated profile.
 3. Run [Wan prompt adherence parity validation](planned/0015_wan_prompt_adherence_parity_validation.md)
    before treating T2V/I2V prompt or motion behavior as quality-proven; explicitly match official
    Wan negative prompts and A14B guidance pairs in Diffusers-vs-MLX runs.
@@ -59,7 +61,8 @@ outside chat history.
    future work. Current SeedVR2 support is image upscale/restoration; video support requires
    temporal inference, MP4 handling, and a video-backed smoke.
 9. Preserve proposed [video LoRA support](proposed/0033_video_lora_for_t2v_i2v.md) until image
-   LoRA strictness lands and at least one Wan-compatible adapter is available for MP4 validation.
+   LoRA strictness lands, at least one Wan-compatible adapter is available, target roles are known,
+   and a small MP4 A/B profile can prove the adapter effect without damaging video health.
 10. Keep Bonsai binary 1-bit deferred in
    [proposed item 0004](proposed/0004_bonsai_binary_1bit_runtime_support.md) until stock MLX can
    execute the required 1-bit packed affine matmul or an ADR accepts a custom kernel path.
@@ -326,3 +329,8 @@ No deprecated backlog items yet.
   validation starts with generative reframe and canvas outpaint for FLUX.2, then Qwen Image Edit
   2511, while Z-Image/ERNIE remain lower-confidence candidates and native fill/inpaint outpaint
   waits for a proven fill/mask backend.
+- Ran 2026-06-08 LoRA backlog refinement after the 0.18.14 release. Item 0007 now treats LoRA as
+  a task/mode capability, requires fail-closed runtime loading, requires strict scale counts,
+  blocks unsupported-family LoRA before model load, and separately gates `mlxgen prepare
+  --lora-paths` for q4/q8 packages. Proposed item 0033 remains video-only future work and now
+  requires explicit Wan target roles plus MP4 A/B proof before promotion.

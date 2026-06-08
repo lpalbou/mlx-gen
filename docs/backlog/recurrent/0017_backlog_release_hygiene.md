@@ -58,3 +58,8 @@ The backlog is useful only when planned work names what remains rather than what
   Qwen Image Edit 2511;
   Z-Image and ERNIE remain validation-gated candidates; FIBO Edit stays linked to deferred items
   0024/0027; native fill/inpaint outpaint remains separate until a fill/mask backend is proven.
+- 2026-06-08: Refined LoRA backlog state after the 0.18.14 release. Item 0007 is now the next
+  recommended platform task and explicitly covers task/mode capability metadata, strict runtime
+  application, strict scale counts, unsupported-family rejection, metadata provenance, and
+  `mlxgen prepare --lora-paths` q4/q8 bake/export risk. Proposed item 0033 remains unpromoted and
+  now requires Wan target-role metadata plus MP4 A/B validation before implementation.
