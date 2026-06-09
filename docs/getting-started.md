@@ -113,6 +113,10 @@ Use `mlxgen capabilities --model <model>` to check whether a model supports late
 edit/reference image-to-image, or multi-reference image-to-image. `--image-strength` is for latent
 img2img variation only; edit/reference models do not use it.
 
+LoRA support is experimental. Use the same capabilities command before LoRA runs. LoRA adapters
+must match the selected model family, and a visible source/no-LoRA/with-LoRA comparison is required
+before treating an adapter as validated. See [LoRA](lora.md) for the current contract.
+
 Use `qwen-image-edit` for the original single-reference edit checkpoint; use
 `qwen-image-edit-2509` or `qwen-image-edit-2511` when you need multi-reference editing.
 Current contact sheets and commands for Qwen Image Edit, Qwen Image Edit 2509/2511, and FLUX.2
@@ -125,7 +129,8 @@ Ordinary image-to-image preserves the first source image's aspect ratio by defau
 `--height` act as a size target under `--canvas-policy source-aspect`; pass
 `--canvas-policy exact-resize` only when you intentionally want the exact requested canvas.
 
-Use `--reframe-padding` when you want an edit model to generate a wider view from one source image.
+Reframe and outpaint are experimental generative edit workflows. Use `--reframe-padding` when you
+want an edit model to generate a wider view from one source image.
 This is a generative edit:
 
 ```sh
@@ -139,8 +144,8 @@ mlxgen generate \
   --output reframed.png
 ```
 
-Use `--outpaint-padding` when you want MLX-Gen to expand the canvas and guide a supported edit
-model to fill the larger view:
+Use experimental `--outpaint-padding` when you want MLX-Gen to expand the canvas and guide a
+supported edit model to fill the larger view:
 
 ```sh
 mlxgen generate \
@@ -155,13 +160,13 @@ mlxgen generate \
   --output outpaint.png
 ```
 
-For validated FLUX.2 Klein 4B/9B and Qwen Image Edit variants, this route uses an edge-extended
+For current FLUX.2 Klein 4B/9B and Qwen Image Edit variants, this route uses an edge-extended
 conditioning canvas and an adaptive source blend. If the generated source window still matches the
 original source, MLX-Gen blends source detail back in; if the model has reconstructed the scene, it
 skips the blend to avoid ghosted fragments. This is not a native fill/inpaint pipeline with an
 explicit diffusion mask, and it is not an exact pixel-lock guarantee.
 
-Current reframe and outpaint proof assets are published in
+Current experimental reframe and outpaint proof assets are published in
 [Image Edit Capabilities](edit-capabilities.md) and [Reframe and Outpaint](reframe-outpaint.md).
 
 For a complete image workflow with included outputs, see the
@@ -343,6 +348,12 @@ output size.
 Use `448x256` or larger for visual Wan checks. Very small square canvases such as `128x128` are not
 representative of Wan video quality or prompt adherence.
 
+For practical 5-second local clips on an M5 Max, Wan A14B at `480x240` or `240x480`, `101` frames,
+`20` fps, and `20` to `25` steps is a useful starting point and takes about 30 minutes in the
+documented starship profile. TI2V-5B at `832x480`, `25` steps, `101` frames, and `20` fps takes
+about 12 minutes, while TI2V-5B at `1280x704` with the same frames and steps takes about 35
+minutes. See [Wan Video](wan-video.md) for MP4 examples and frame strips.
+
 Wan uses the official model negative prompt by default. For simple abstract tests, pass
 `--negative-prompt ""` to run without it.
 
@@ -357,5 +368,6 @@ Spatial-scale sanity outputs at 1280x704, 17 frames, and 20 steps:
 - See [Model Management](model-management.md) for the full download, prepare, and runtime failure contract.
 - See [API And CLI](api.md) for the supported command surface and Python integration notes.
 - See [Spaceship Snow Workflow](examples/spaceship-snow.md) for a reproducible image and Wan A14B video example with included assets.
+- See [Wan Video](wan-video.md) for practical Wan2.2 sizing and 5-second comparison assets.
 - See [Quantization](quantization.md) for q4/q8 behavior, Bonsai low-bit packed support, Qwen/ERNIE mixed q4/q8 policies, and Wan mixed q8/BF16 packages.
 - See [Troubleshooting](troubleshooting.md) when a required artifact is missing or a local path cannot be classified.

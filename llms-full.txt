@@ -10,16 +10,18 @@
 - `README.md`: project overview, install commands, mflux credit, main workflows, published model links, Wan TI2V/A14B notes, and ecosystem links.
 - `docs/README.md`: documentation tree index.
 - `docs/getting-started.md`: install, first download, model preparation, image generation, image editing, SeedVR2 upscaling, and Wan video examples.
-- `docs/api.md`: public CLI, router behavior, task/mode resolution, I2I mode selection and canvas policy, generative reframe, canvas-guided outpaint with adaptive source blending, SeedVR2 official-source and q8/q4 package usage for 3B/7B, shortest-edge/scale-factor upscaling plus softness and tiling controls, negative prompts, Qwen edit-version routing, Wan video sizes, `mlxgen capabilities`, and Python routing helpers.
+- `docs/api.md`: public CLI, router behavior, task/mode resolution, I2I mode selection and canvas policy, experimental generative reframe, experimental canvas-guided outpaint with adaptive source blending, SeedVR2 official-source and q8/q4 package usage for 3B/7B, shortest-edge/scale-factor upscaling plus softness and tiling controls, negative prompts, Qwen edit-version routing, Wan video sizes, `mlxgen capabilities`, and Python routing helpers.
 - `docs/upscaling.md`: SeedVR2 image upscaling guide with official 3B/7B source usage, published 3B/7B q8/q4 package handles, shortest-edge and scale-factor sizing, quality controls, and real 5x source/output comparisons.
 - `docs/edit-capabilities.md`: image-edit contact sheets, model/package status summaries, and exact command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate` in the current release.
-- `docs/reframe-outpaint.md`: supported reframe/outpaint workflows, exact commands, source/q8/q4 proof sheets, and the `reframe_outpaint_2026_06_08` validation profile.
+- `docs/reframe-outpaint.md`: experimental reframe/outpaint workflows, exact commands, source/q8/q4 proof sheets, and the `reframe_outpaint_2026_06_08` validation profile.
+- `docs/lora.md`: experimental LoRA capability fields, explicit adapter download, strict scale matching, exact adapter/base-model compatibility, source/no-LoRA/with-LoRA validation, and the Qwen Image Edit 2511 q8 multi-angle LoRA A/B sheet.
+- `docs/wan-video.md`: practical Wan2.2 T2V/I2V guidance with `101`-frame, 20 fps M5 Max comparison clips for A14B and TI2V-5B.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
 - `docs/model-management.md`: explicit `download` and `prepare`, generation from local model files, local MLX-Gen packages, matching Hugging Face handle resolution, and `DownloadRequiredError`.
 - `docs/quantization.md`: complete published package matrix, q8/q4/BF16 policies, model-family compatibility, Wan TI2V/A14B package status, and A14B q8 generated-output records.
 - `docs/huggingface-publishing.md`: generated model cards and AbstractFramework Hugging Face upload guidance.
 - `docs/python-integration.md`: embedding MLX-Gen, capability checks, negative prompts, progress callbacks, AbstractVision/AbstractCore integration, and threading behavior.
-- `docs/faq.md`: common conceptual questions, I2I mode selection and output sizing, SeedVR2 sizing and quality controls, Qwen edit variants, negative prompts, generative reframe, canvas outpaint, Wan resolutions, prompting guidance, and usage limits.
+- `docs/faq.md`: common conceptual questions, I2I mode selection and output sizing, SeedVR2 sizing and quality controls, Qwen edit variants, negative prompts, experimental generative reframe, experimental canvas outpaint, Wan resolutions, prompting guidance, and usage limits.
 - `docs/troubleshooting.md`: user-facing failure symptoms, diagnostics, and fixes.
 - `docs/release.md`: release and publishing process.
 - `ACKNOWLEDGEMENTS.md`: upstream mflux credit and model/community acknowledgements.
@@ -113,18 +115,35 @@ image size, and final output size.
 
 `--image-strength` belongs only to latent img2img. Edit/reference and multi-reference I2I use
 source images as conditioning or references, so MLX-Gen rejects `--image-strength` for those modes
-before loading weights. Generative reframe is available through `--reframe-padding` for models that
-advertise `supports_reframe=true`; it asks the edit model to generate a larger view and may redraw
-source content. Canvas-guided outpaint is available through `--outpaint-padding` for capabilities
-that advertise `supports_outpaint=true`. The current validated routes are Qwen Image Edit, Qwen
-Image Edit 2509/2511, and FLUX.2 Klein 4B/9B source/q8/q4 rows. MLX-Gen builds an expanded canvas,
-runs the edit backend, and applies adaptive source blending only when it will not create ghosted
-fragments. Unsupported model families reject `--outpaint-padding` before loading weights.
+before loading weights. Experimental generative reframe is available through `--reframe-padding`
+for models that advertise `supports_reframe=true`; it asks the edit model to generate a larger view
+and may redraw source content. Experimental canvas-guided outpaint is available through
+`--outpaint-padding` for capabilities that advertise `supports_outpaint=true`. The current proof
+routes are Qwen Image Edit, Qwen Image Edit 2509/2511, and FLUX.2 Klein 4B/9B source/q8/q4 rows.
+MLX-Gen builds an expanded canvas, runs the edit backend, and applies adaptive source blending only
+when it will not create ghosted fragments. Unsupported model families reject `--outpaint-padding`
+before loading weights.
 
 The unified CLI accepts both `--negative-prompt` and `--negative`. Python callers pass the same
 value as `negative_prompt=...` on the model-specific generation method. For Qwen image edit,
 guidance above `1` uses true classifier-free guidance when a negative prompt is present; MLX-Gen
 uses the official blank negative-prompt behavior for Qwen edit models when the option is omitted.
+
+LoRA support is experimental and route-specific. LoRA adapters are required inputs, not optional
+hints. Generation does not download LoRAs. Use
+`mlxgen download --model <adapter-repo> --all-files`, then pass a local `.safetensors` path or
+`owner/repo:filename.safetensors`. `mlxgen capabilities` reports `supports_lora`, `lora_status`,
+`lora_target_roles`, and `lora_validation_profile` per route. `mapped-unvalidated` means a mapping
+exists but the exact model/package has not yet passed a visible public-adapter A/B validation.
+`--lora-scales` must have exactly one value per adapter. MLX-Gen rejects known incompatible
+adapter/base-model pairs when cached model-card metadata is available and also checks LoRA matrix
+shapes during application. For example, `lovis93/Flux-2-Multi-Angles-LoRA-v2` targets
+`black-forest-labs/FLUX.2-dev`, while current FLUX.2 support is Klein 4B/9B, so that adapter is not
+accepted for Klein routes. Validate LoRA effects with the same source, prompt, dimensions, seed,
+steps, and guidance with and without the adapter. The first checked public adapter row is
+`fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA` on
+`AbstractFramework/qwen-image-edit-2511-8bit`; its contact sheet is
+`docs/assets/validation/lora-2026-06-08/qwen2511-q8-multi-angle-lora-ab-contact-sheet.png`.
 
 The Qwen edit checkpoints are distinct. `Qwen/Qwen-Image-Edit` is single-reference edit only
 (`max_images=1`). `Qwen/Qwen-Image-Edit-2509` and `Qwen/Qwen-Image-Edit-2511` expose
@@ -133,12 +152,13 @@ route.
 
 `docs/edit-capabilities.md` is the current visual evidence page for image editing. It publishes the
 regular Qwen Image Edit base/q8/q4 contact sheet, the Qwen Image Edit 2511 source/q8/q4 parity
-sheet, the 5x4 FLUX.2/Qwen Image Edit 2509 matrices, the 2026-06-08 reframe/outpaint source/q8/q4
+sheet, the 5x4 FLUX.2/Qwen Image Edit 2509 matrices, the 2026-06-08 experimental reframe/outpaint source/q8/q4
 matrices, and links the exact command logs used for the validation profiles. In the documented
 spaceship profiles, FLUX.2 Klein 4B/9B q4/q8 pass latent, edit-reference, multi-reference,
-reframe, and canvas outpaint rows; Qwen Image Edit 2509 source/q8 pass the edit-reference and
-multi-reference rows while q4 is partial on composition; Qwen Image Edit, 2509, and 2511 source/q8/q4
-pass the 2026-06-08 reframe/outpaint profile. Qwen Image Edit 2511 source/q8/q4 pass the
+experimental reframe, and experimental canvas outpaint rows; Qwen Image Edit 2509 source/q8 pass
+the edit-reference and multi-reference rows while q4 is partial on composition; Qwen Image Edit,
+2509, and 2511 source/q8/q4 pass the 2026-06-08 experimental reframe/outpaint profile. Qwen Image
+Edit 2511 source/q8/q4 pass the
 2026-06-06 pencil sketch, hard-landing edit, and multi-reference composition profile. FIBO Edit is
 unsupported through unified `mlxgen generate` in the current release.
 
@@ -206,8 +226,12 @@ normalized up to the selected model's VAE/patch multiple:
   `1280x720` and `720x1280`; practical lower-cost sizes include `832x480`, `480x832`, `448x256`,
   `256x448`, and `432x240`.
 
-Lower-cost sizes are useful for routing checks and prompt iteration. Use the recommended/native
-size, frame count, and step count when judging visual quality.
+Lower-cost sizes are useful for routing checks and prompt iteration. For practical five-second
+clips on an M5 Max, A14B at `480x240` or `240x480`, `101` frames, 20 fps, and `20-25` steps has
+produced good local results in about 30 minutes for the documented starship profile. TI2V-5B at
+`832x480`, `101` frames, 20 fps, and 25 steps took about 12 minutes but was weaker visually;
+TI2V-5B at `1280x704` took about 35 minutes and improved without matching the A14B result. Use
+recommended/native size, frame count, and step count when judging upstream-scale model quality.
 
 For Wan image-to-video, `width` and `height` are size targets. MLX-Gen resolves the final output
 canvas from the source image aspect ratio and the selected model's spatial multiple before

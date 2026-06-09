@@ -28,6 +28,7 @@ def test_generated_video_saves_mp4_and_metadata(tmp_path):
         steps=2,
         guidance=5.0,
         guidance_2=3.0,
+        flow_shift=5.0,
         precision=mx.bfloat16,
         quantization=0,
         generation_time=1.23,
@@ -45,6 +46,7 @@ def test_generated_video_saves_mp4_and_metadata(tmp_path):
     assert metadata["fps"] == 12
     assert metadata["duration_seconds"] == 0.25
     assert metadata["guidance_2"] == 3.0
+    assert metadata["flow_shift"] == 5.0
     assert metadata["video_health"]["frames"]["frame_count"] == 3
     assert metadata["video_health"]["file"]["frame_count"] == 3
     assert metadata["video_health"]["file"]["width"] == 32

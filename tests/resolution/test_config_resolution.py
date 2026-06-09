@@ -197,6 +197,11 @@ class TestConfigResolutionError:
         assert "Cannot infer" in str(exc_info.value)
 
     @pytest.mark.fast
+    def test_flux2_dev_is_not_inferred_from_flux1_dev_alias(self):
+        with pytest.raises(ModelConfigError, match="FLUX.2-dev is not supported"):
+            ConfigResolution.resolve(model_name="black-forest-labs/FLUX.2-dev")
+
+    @pytest.mark.fast
     def test_unknown_wan_repo_does_not_infer_ti2v_from_generic_wan(self):
         with pytest.raises(ModelConfigError):
             ConfigResolution.resolve(model_name="Wan-AI/Wan2.2-Unknown-14B-Diffusers")

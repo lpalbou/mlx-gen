@@ -28,6 +28,7 @@ PUBLIC_TASKS = {*PUBLIC_IMAGE_TASKS, *PUBLIC_VIDEO_TASKS}
 IMAGE_TASKS = {*PUBLIC_IMAGE_TASKS, EDIT}
 VIDEO_TASKS = PUBLIC_VIDEO_TASKS
 VALID_TASKS = {TASK_AUTO, EDIT, *PUBLIC_TASKS}
+CAPABILITIES_SCHEMA_VERSION = 2
 
 I2I_MODE_AUTO = "auto"
 MODE_TEXT_ONLY = "text-only"
@@ -69,6 +70,10 @@ class GenerationCapability:
     supports_mask: bool = False
     supports_outpaint: bool = False
     supports_reframe: bool = False
+    supports_lora: bool = False
+    lora_status: str = "unsupported"
+    lora_target_roles: tuple[str, ...] = ()
+    lora_validation_profile: str | None = None
     supports_frames: bool = False
     supports_fps: bool = False
     default_for_task: bool = False
@@ -95,6 +100,10 @@ class GenerationCapability:
             "supports_mask": self.supports_mask,
             "supports_outpaint": self.supports_outpaint,
             "supports_reframe": self.supports_reframe,
+            "supports_lora": self.supports_lora,
+            "lora_status": self.lora_status,
+            "lora_target_roles": list(self.lora_target_roles),
+            "lora_validation_profile": self.lora_validation_profile,
             "supports_frames": self.supports_frames,
             "supports_fps": self.supports_fps,
             "default_for_task": self.default_for_task,
@@ -138,6 +147,10 @@ class GenerationPlan:
     default_canvas_policy: str | None = None
     primary_image_index: int | None = None
     dimension_multiple: int | None = None
+    supports_lora: bool = False
+    lora_status: str = "unsupported"
+    lora_target_roles: tuple[str, ...] = ()
+    lora_validation_profile: str | None = None
 
     @property
     def task(self) -> str:
@@ -158,6 +171,10 @@ class GenerationPlan:
             "default_canvas_policy": self.default_canvas_policy,
             "primary_image_index": self.primary_image_index,
             "dimension_multiple": self.dimension_multiple,
+            "supports_lora": self.supports_lora,
+            "lora_status": self.lora_status,
+            "lora_target_roles": list(self.lora_target_roles),
+            "lora_validation_profile": self.lora_validation_profile,
         }
 
 
@@ -220,6 +237,7 @@ def resolve_generation_plan(
     has_mask: bool = False,
     has_outpaint: bool = False,
     has_reframe: bool = False,
+    has_lora: bool = False,
 ) -> GenerationPlan:
     if image_count < 0:
         raise TaskInferenceError("image_count must be greater than or equal to zero.")
@@ -231,6 +249,13 @@ def resolve_generation_plan(
         raise TaskInferenceError("--outpaint-padding requires --image or --image-path.")
     if has_reframe and image_count == 0:
         raise TaskInferenceError("--reframe-padding requires --image or --image-path.")
+
+    if model_config is None and model is not None and _is_unsupported_flux2_dev_model(model):
+        raise TaskInferenceError(
+            "black-forest-labs/FLUX.2-dev is not supported by the current MLX-Gen FLUX.2 runtime. "
+            "Use a supported FLUX.2 Klein model, or add a first-class FLUX.2-dev model config and "
+            "weight mapping before using FLUX.2-dev LoRAs."
+        )
 
     normalized_task = normalize_task(task)
     normalized_i2i_mode = normalize_i2i_mode(i2i_mode)
@@ -283,6 +308,13 @@ def resolve_generation_plan(
                 "--reframe-padding is only supported for image-to-image edit models "
                 "with generative reframe support."
             )
+    if has_lora:
+        candidates = [capability for capability in candidates if capability.supports_lora]
+        if not candidates:
+            raise TaskInferenceError(
+                "--lora-paths/--lora-scales are only supported for model families and task modes "
+                "with an MLX-Gen LoRA mapping."
+            )
 
     capability = _select_capability(
         model_capabilities=model_capabilities,
@@ -312,6 +344,10 @@ def resolve_generation_plan(
         default_canvas_policy=capability.default_canvas_policy,
         primary_image_index=capability.primary_image_index,
         dimension_multiple=capability.dimension_multiple,
+        supports_lora=capability.supports_lora,
+        lora_status=capability.lora_status,
+        lora_target_roles=capability.lora_target_roles,
+        lora_validation_profile=capability.lora_validation_profile,
     )
 
 
@@ -327,6 +363,7 @@ def resolve_task(
     has_mask: bool = False,
     has_outpaint: bool = False,
     has_reframe: bool = False,
+    has_lora: bool = False,
 ) -> ResolvedTask:
     plan = resolve_generation_plan(
         model=model,
@@ -339,6 +376,7 @@ def resolve_task(
         has_mask=has_mask,
         has_outpaint=has_outpaint,
         has_reframe=has_reframe,
+        has_lora=has_lora,
     )
     return ResolvedTask(
         task=plan.public_task,
@@ -363,6 +401,7 @@ def infer_task(
     has_mask: bool = False,
     has_outpaint: bool = False,
     has_reframe: bool = False,
+    has_lora: bool = False,
 ) -> str:
     return resolve_task(
         model=model,
@@ -375,6 +414,7 @@ def infer_task(
         has_mask=has_mask,
         has_outpaint=has_outpaint,
         has_reframe=has_reframe,
+        has_lora=has_lora,
     ).task
 
 
@@ -384,6 +424,12 @@ def _resolve_model_identity(
     model_config: ModelConfig | None,
     family: str | None,
 ) -> _ModelIdentity:
+    if model_config is None and model is not None and _is_unsupported_flux2_dev_model(model):
+        raise TaskInferenceError(
+            "black-forest-labs/FLUX.2-dev is not supported by the current MLX-Gen FLUX.2 runtime. "
+            "Use a supported FLUX.2 Klein model, or add a first-class FLUX.2-dev model config and "
+            "weight mapping before using FLUX.2-dev LoRAs."
+        )
     if model_config is None and model is not None:
         try:
             model_config = ModelConfig.from_name(model)
@@ -408,11 +454,16 @@ def _resolve_model_identity(
     )
 
 
+def _is_unsupported_flux2_dev_model(model: str) -> bool:
+    normalized = model.lower().replace("\\", "/").replace("--", "/")
+    return "flux.2-dev" in normalized or "flux.2/dev" in normalized
+
+
 def _capabilities_for(identity: _ModelIdentity) -> ModelCapabilities:
     family = identity.family
     if family == "bonsai":
         return ModelCapabilities(
-            schema_version=1,
+            schema_version=CAPABILITIES_SCHEMA_VERSION,
             family=family,
             label="Bonsai Image",
             model_name=identity.model_name,
@@ -442,6 +493,7 @@ def _capabilities_for(identity: _ModelIdentity) -> ModelCapabilities:
             model_name=identity.model_name,
             handler_id=handler_id,
             supports_guidance=True,
+            supports_lora=True,
         )
     if family == "qwen":
         return _qwen_capabilities(identity)
@@ -470,10 +522,11 @@ def _image_latent_capabilities(
     model_name: str | None,
     handler_id: str,
     supports_guidance: bool,
+    supports_lora: bool = False,
 ) -> ModelCapabilities:
     i2i_canvas = _ordinary_i2i_canvas_contract()
     return ModelCapabilities(
-        schema_version=1,
+        schema_version=CAPABILITIES_SCHEMA_VERSION,
         family=family,
         label=label,
         model_name=model_name,
@@ -484,6 +537,9 @@ def _image_latent_capabilities(
                 mode=MODE_TEXT_ONLY,
                 handler_id=handler_id,
                 default_for_task=True,
+                supports_lora=supports_lora,
+                lora_status="mapped-unvalidated" if supports_lora else "unsupported",
+                lora_target_roles=("transformer",) if supports_lora else (),
             ),
             GenerationCapability(
                 id=f"{family}.latent",
@@ -494,6 +550,9 @@ def _image_latent_capabilities(
                 max_images=1,
                 supports_image_strength=True,
                 default_for_task=True,
+                supports_lora=supports_lora,
+                lora_status="mapped-unvalidated" if supports_lora else "unsupported",
+                lora_target_roles=("transformer",) if supports_lora else (),
                 **i2i_canvas,
             ),
         ),
@@ -516,6 +575,9 @@ def _qwen_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 supports_outpaint=True,
                 supports_reframe=True,
                 default_for_task=True,
+                supports_lora=True,
+                lora_status="mapped-unvalidated",
+                lora_target_roles=("transformer",),
                 **i2i_canvas,
             ),
         )
@@ -529,6 +591,9 @@ def _qwen_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                     min_images=2,
                     max_images=None,
                     default_for_task=True,
+                    supports_lora=True,
+                    lora_status="mapped-unvalidated",
+                    lora_target_roles=("transformer",),
                     **i2i_canvas,
                 ),
             )
@@ -540,6 +605,9 @@ def _qwen_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 mode=MODE_TEXT_ONLY,
                 handler_id="qwen.generate",
                 default_for_task=True,
+                supports_lora=True,
+                lora_status="mapped-unvalidated",
+                lora_target_roles=("transformer",),
             ),
             GenerationCapability(
                 id="qwen.latent",
@@ -549,11 +617,14 @@ def _qwen_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 min_images=1,
                 max_images=1,
                 supports_image_strength=True,
+                supports_lora=True,
+                lora_status="mapped-unvalidated",
+                lora_target_roles=("transformer",),
                 **i2i_canvas,
             ),
         )
     return ModelCapabilities(
-        schema_version=1,
+        schema_version=CAPABILITIES_SCHEMA_VERSION,
         family=identity.family,
         label=_qwen_label(identity),
         model_name=identity.model_name,
@@ -565,7 +636,7 @@ def _flux2_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
     i2i_canvas = _ordinary_i2i_canvas_contract()
     supports_canvas_expansion = not _is_flux2_klein_base(identity.aliases, identity.model_key)
     return ModelCapabilities(
-        schema_version=1,
+        schema_version=CAPABILITIES_SCHEMA_VERSION,
         family=identity.family,
         label="FLUX.2",
         model_name=identity.model_name,
@@ -576,6 +647,9 @@ def _flux2_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 mode=MODE_TEXT_ONLY,
                 handler_id="flux2.generate",
                 default_for_task=True,
+                supports_lora=True,
+                lora_status="mapped-unvalidated",
+                lora_target_roles=("transformer",),
             ),
             GenerationCapability(
                 id="flux2.latent",
@@ -585,6 +659,9 @@ def _flux2_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 min_images=1,
                 max_images=1,
                 supports_image_strength=True,
+                supports_lora=True,
+                lora_status="mapped-unvalidated",
+                lora_target_roles=("transformer",),
                 **i2i_canvas,
             ),
             GenerationCapability(
@@ -597,6 +674,9 @@ def _flux2_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 supports_outpaint=supports_canvas_expansion,
                 supports_reframe=supports_canvas_expansion,
                 default_for_task=True,
+                supports_lora=True,
+                lora_status="mapped-unvalidated",
+                lora_target_roles=("transformer",),
                 **i2i_canvas,
             ),
             GenerationCapability(
@@ -607,6 +687,9 @@ def _flux2_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 min_images=2,
                 max_images=None,
                 default_for_task=True,
+                supports_lora=True,
+                lora_status="mapped-unvalidated",
+                lora_target_roles=("transformer",),
                 **i2i_canvas,
             ),
         ),
@@ -628,7 +711,7 @@ def _fibo_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
             ),
         )
     return ModelCapabilities(
-        schema_version=1,
+        schema_version=CAPABILITIES_SCHEMA_VERSION,
         family=identity.family,
         label="FIBO",
         model_name=identity.model_name,
@@ -674,7 +757,7 @@ def _wan_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
     if not capabilities:
         raise TaskInferenceError(f"Unsupported Wan2.2 model task contract: {declared_task!r}.")
     return ModelCapabilities(
-        schema_version=1,
+        schema_version=CAPABILITIES_SCHEMA_VERSION,
         family=identity.family,
         label="Wan2.2",
         model_name=identity.model_name,

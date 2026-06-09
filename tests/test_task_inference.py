@@ -222,7 +222,7 @@ def test_reframe_option_is_limited_to_validated_edit_capabilities():
 def test_model_capabilities_are_publicly_inspectable():
     capabilities = mlxgen.get_model_capabilities(model="flux2-klein-4b")
 
-    assert capabilities.schema_version == 1
+    assert capabilities.schema_version == 2
     assert capabilities.family == "flux2"
     assert {capability.mode for capability in capabilities.capabilities} >= {
         MODE_TEXT_ONLY,
@@ -238,6 +238,33 @@ def test_model_capabilities_are_publicly_inspectable():
     edit = next(capability for capability in capabilities.capabilities if capability.mode == MODE_EDIT_REFERENCE)
     assert edit.supports_reframe is True
     assert edit.supports_outpaint is True
+    assert edit.supports_lora is True
+    assert edit.lora_status == "mapped-unvalidated"
+    assert edit.lora_target_roles == ("transformer",)
+
+
+def test_lora_requests_are_checked_against_route_capabilities():
+    flux2 = mlxgen.resolve_generation_plan(model="flux2-klein-4b", image_count=1, has_lora=True)
+    qwen = mlxgen.resolve_generation_plan(model="qwen-image-edit-2511", image_count=1, has_lora=True)
+    z_image = mlxgen.resolve_generation_plan(model="z-image-turbo", has_lora=True)
+
+    assert flux2.capability_id == "flux2.edit"
+    assert flux2.supports_lora is True
+    assert qwen.capability_id == "qwen.edit"
+    assert qwen.supports_lora is True
+    assert z_image.capability_id == "z-image.text"
+    assert z_image.supports_lora is True
+
+    with pytest.raises(TaskInferenceError, match="LoRA mapping"):
+        mlxgen.resolve_generation_plan(model="ernie-image-turbo", has_lora=True)
+
+    with pytest.raises(TaskInferenceError, match="LoRA mapping"):
+        mlxgen.resolve_generation_plan(model="bonsai-image-ternary", has_lora=True)
+
+
+def test_flux2_dev_handle_is_not_inferred_as_flux1_dev():
+    with pytest.raises(TaskInferenceError, match="FLUX.2-dev is not supported"):
+        mlxgen.resolve_generation_plan(model="black-forest-labs/FLUX.2-dev", has_lora=True)
 
 
 def test_fibo_edit_exposes_no_public_generation_capabilities():

@@ -34,6 +34,10 @@ A14B T2V and I2V packages. The included video assets use `448x256`, 41 frames, 2
 fps. Wan A14B accepts width and height multiples of 16, so smaller sizes such as `432x240` are also
 valid if you want a lower-cost local check.
 
+For longer five-second Wan comparison clips at `101` frames and 20 fps, see
+[Wan Video](../wan-video.md). That page includes the same starship-takeoff prompt rendered with
+Wan2.2 A14B at `480x240` and TI2V-5B at `832x480` and `1280x704`.
+
 ## 1. Text To Image
 
 Generate the source spaceship in snow:

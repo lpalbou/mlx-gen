@@ -11,7 +11,7 @@ outside chat history.
 
 | State | Count |
 | --- | ---: |
-| Planned | 9 |
+| Planned | 11 |
 | Proposed | 8 |
 | Completed | 15 |
 | Deprecated | 0 |
@@ -25,56 +25,67 @@ outside chat history.
    directions support LoRA before launching a generation. This is now the highest-value platform
    task because runtime LoRA, edit LoRA, and `mlxgen prepare --lora-paths` still need one
    fail-closed capability contract.
-2. Finish the residual
+2. Resolve the
+   [FLUX.2-dev multi-angle LoRA support](planned/0034_flux2_dev_multi_angle_lora_support.md)
+   item if the lovis multi-angle adapter remains the first FLUX.2 LoRA target. That adapter targets
+   `black-forest-labs/FLUX.2-dev`, not FLUX.2 Klein, so it requires a first-class FLUX.2-dev route
+   or a different Klein-compatible adapter before any visual LoRA proof can be claimed.
+3. Finish the residual
    [first-class I2I modes and outpaint/reframe UX](planned/0019_first_class_i2i_modes_and_outpaint_reframe.md)
    work only where it adds new capability beyond the shipped FLUX.2/Qwen path. FLUX.2 Klein 4B/9B
    plus Qwen Image Edit original, 2509, and 2511 now have source/q8/q4 model-backed proof for
-   `--reframe-padding` and canvas-guided `--outpaint-padding`. Keep native fill/inpaint outpaint
-   separate until a fill/mask backend is deliberately revalidated. Evaluate Z-Image and ERNIE only
-   if their latent I2I behavior can preserve source identity on a dedicated profile.
-3. Run [Wan prompt adherence parity validation](planned/0015_wan_prompt_adherence_parity_validation.md)
+   experimental `--reframe-padding` and canvas-guided `--outpaint-padding`. Keep native fill/inpaint
+   outpaint separate until a fill/mask backend is deliberately revalidated. Evaluate Z-Image and
+   ERNIE only if their latent I2I behavior can preserve source identity on a dedicated profile.
+4. Finish
+   [Wan2.2 TI2V-5B math and behavior parity](planned/0035_wan_ti2v5b_math_and_behavior_parity.md)
+   with short same-settings visual comparisons. The official Wan source and local Diffusers parity
+   audit found no tensor mismatch in the existing TI2V-5B fixtures, but it did expose a missing
+   public flow-shift override. New 480p-class TI2V-5B checks should pass `--flow-shift 3` before
+   drawing model-quality conclusions from the `832x480` starship profile.
+5. Run [Wan prompt adherence parity validation](planned/0015_wan_prompt_adherence_parity_validation.md)
    before treating T2V/I2V prompt or motion behavior as quality-proven; explicitly match official
    Wan negative prompts and A14B guidance pairs in Diffusers-vs-MLX runs.
-4. Validate and finish
+6. Validate and finish
    [Wan A14B boundary memory recovery and full-size validation](planned/0013_wan_a14b_boundary_memory_recovery.md)
    after the full-size I2V retry captures memory, exit-code, metadata, and output evidence across
    the high-noise to low-noise denoiser boundary.
-5. Finish the [Wan quantization and motion parity](planned/0002_wan_quantization_motion_parity.md)
+7. Finish the [Wan quantization and motion parity](planned/0002_wan_quantization_motion_parity.md)
    residuals: TI2V-5B now has clean source/BF16/q8 evidence at 1280x704, 17 frames, 20 steps, but
    the TI2V-5B memory result is storage/MLX-footprint focused rather than a full-process physical
    peak reduction; full-duration validation, I2V-A14B mixed q8 quality, q4 policy, and exact-setting
    card claims still need to stay tied to passed settings.
-6. Use the completed
+8. Use the completed
    [edit model prepared-package capability contact sheets](completed/0026_edit_model_prepared_capability_contact_sheets.md)
    as the current release gate for image-edit quality claims: FLUX.2 Klein source/q8 and Qwen Edit
    2509 source/q8 passed the standardized sequence. Qwen Edit 2511 has newer source/q8/q4 proof in
    [item 0029](completed/0029_qwen_image_edit_2511_base_parity.md). FIBO Edit remains unsupported
    through unified `mlxgen generate`. Use the [release validation registry](completed/0028_release_validation_registry.md)
    for machine-readable package status.
-7. Keep [FIBO Edit Diffusers parity](planned/0027_fibo_edit_diffusers_parity_release_quality.md)
+9. Keep [FIBO Edit Diffusers parity](planned/0027_fibo_edit_diffusers_parity_release_quality.md)
    and [FIBO Edit unified validation](planned/0024_fibo_edit_unified_i2i_validation.md) deferred.
    FIBO Edit remains unsupported through unified `mlxgen generate`; do not schedule more work here
    ahead of outpaint/reframe, LoRA strictness, or video quality work unless a specific product need
    changes the priority.
-8. Preserve proposed
+10. Preserve proposed
    [SeedVR2 video restoration/upscaling](proposed/0032_seedvr2_video_restoration_upscaling.md) as
    future work. Current SeedVR2 support is image upscale/restoration; video support requires
    temporal inference, MP4 handling, and a video-backed smoke.
-9. Preserve proposed [video LoRA support](proposed/0033_video_lora_for_t2v_i2v.md) until image
+11. Preserve proposed [video LoRA support](proposed/0033_video_lora_for_t2v_i2v.md) until image
    LoRA strictness lands, at least one Wan-compatible adapter is available, target roles are known,
    and a small MP4 A/B profile can prove the adapter effect without damaging video health.
-10. Keep Bonsai binary 1-bit deferred in
+12. Keep Bonsai binary 1-bit deferred in
    [proposed item 0004](proposed/0004_bonsai_binary_1bit_runtime_support.md) until stock MLX can
    execute the required 1-bit packed affine matmul or an ADR accepts a custom kernel path.
-11. Investigate [Wan q8 performance](planned/0005_wan_q8_performance_investigation.md) only after
+13. Investigate [Wan q8 performance](planned/0005_wan_q8_performance_investigation.md) only after
    integrity-gated outputs are healthy enough for timing claims; current public docs describe mixed
    q8/BF16 as model-size and measured-profile footprint focused, not speed-improving.
-12. Continue the [model integration roadmap](planned/0001_model_integration_roadmap.md) in priority
+14. Continue the [model integration roadmap](planned/0001_model_integration_roadmap.md) in priority
    order, starting with automated publication audits, supported q4/q8 validation, and
    gated-derivative hygiene.
-13. Continue ERNIE-Image/Turbo after the Turbo text-to-image, Prompt Enhancer, and q4/q8
+15. Continue ERNIE-Image/Turbo after the Turbo text-to-image, Prompt Enhancer, and q4/q8
    validation work: add stronger Diffusers parity tests and non-turbo validation.
-14. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
+16. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
    stronger quality/performance checks, and remaining cancel APIs. SeedVR2 has a validated
    `mlxgen upscale` command, official 3B/7B source loading, and q8/q4 `mlxgen prepare` package
    support.
@@ -92,6 +103,8 @@ outside chat history.
 | 0019 | [First-class I2I modes and outpaint/reframe UX](planned/0019_first_class_i2i_modes_and_outpaint_reframe.md) | Image routing, generative reframe, outpaint capability | P0 | Planned |
 | 0024 | [FIBO Edit unified I2I validation](planned/0024_fibo_edit_unified_i2i_validation.md) | Image routing, FIBO Edit, validation | P3 deferred | Planned |
 | 0027 | [FIBO Edit Diffusers parity and release-quality validation](planned/0027_fibo_edit_diffusers_parity_release_quality.md) | Image edit, FIBO Edit, Diffusers parity | P3 deferred | Planned |
+| 0034 | [FLUX.2-dev multi-angle LoRA support](planned/0034_flux2_dev_multi_angle_lora_support.md) | LoRA, FLUX.2-dev, validation | P0 | Planned |
+| 0035 | [Wan2.2 TI2V-5B math and behavior parity](planned/0035_wan_ti2v5b_math_and_behavior_parity.md) | Video, Wan TI2V-5B, official/Diffusers parity | P0 | Planned |
 
 ## Proposed ledger
 
@@ -196,6 +209,10 @@ No deprecated backlog items yet.
   table as model-size evidence. A14B metric JSONs are now tracked under
   `docs/assets/quantization/wan-a14b-lowram/`. Runtime cleanup was tightened with explicit CFG
   prediction materialization, VAE temporal-slice cache clearing, and indexed prepared-shard loading.
+- Added 2026-06-09 Wan TI2V-5B parity follow-up: M5 Max practical clips now favor A14B at
+  `480x240`, 25 steps, 101 frames, and 20 fps over TI2V-5B at `832x480` and `1280x704` for the
+  starship-takeoff prompt. Planned item 0035 tracks a source-model math and behavior comparison
+  against official Wan plus local Diffusers/Transformers before drawing model-quality conclusions.
 - Completed 2026-05-27 Bonsai ternary 2-bit support: `mlxgen generate` can run
   `prism-ml/bonsai-image-ternary-4B-mlx-2bit` directly, binary 1-bit now fails with an explicit
   unsupported-runtime message, and a local validation panel compares Bonsai ternary with FLUX.2
@@ -334,3 +351,7 @@ No deprecated backlog items yet.
   blocks unsupported-family LoRA before model load, and separately gates `mlxgen prepare
   --lora-paths` for q4/q8 packages. Proposed item 0033 remains video-only future work and now
   requires explicit Wan target roles plus MP4 A/B proof before promotion.
+- Added 2026-06-08 FLUX.2-dev multi-angle LoRA item 0034 after checking the downloaded
+  `lovis93/Flux-2-Multi-Angles-LoRA-v2` model card and local matrix shapes. The adapter targets
+  `black-forest-labs/FLUX.2-dev`, so it is not valid FLUX.2 Klein proof. Current code rejects the
+  adapter for Klein and keeps first-class FLUX.2-dev support as a separate planned item.

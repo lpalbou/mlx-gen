@@ -41,8 +41,9 @@ class TestLoraResolutionHuggingFace:
     def test_huggingface_repo_downloads_when_explicitly_enabled(self, mock_download, tmp_path):
         lora_file = tmp_path / "lora.safetensors"
         lora_file.touch()
-        # First call (cache check) raises, second call (download) succeeds
+        # Two local cache checks raise, then explicit download succeeds.
         mock_download.side_effect = [
+            LocalEntryNotFoundError("Not cached"),
             LocalEntryNotFoundError("Not cached"),
             str(tmp_path),
         ]
@@ -50,7 +51,7 @@ class TestLoraResolutionHuggingFace:
         with allow_downloads():
             result = LoraResolution.resolve(path="org/lora-repo")
 
-        assert mock_download.call_count == 2
+        assert mock_download.call_count == 3
         # First call should have local_files_only=True
         first_call = mock_download.call_args_list[0]
         assert first_call[1].get("local_files_only") is True
@@ -67,8 +68,9 @@ class TestLoraResolutionHuggingFace:
         error = str(exc_info.value)
         assert "MLX-Gen will not download LoRA files during generation" in error
         assert "mlxgen download --model org/lora-repo" in error
-        assert mock_download.call_count == 1
+        assert mock_download.call_count == 2
         assert mock_download.call_args_list[0].kwargs["local_files_only"] is True
+        assert mock_download.call_args_list[1].kwargs["local_files_only"] is True
 
     @pytest.mark.fast
     @patch("mflux.models.common.resolution.lora_resolution.snapshot_download")
@@ -100,8 +102,9 @@ class TestLoraResolutionHuggingFace:
         (tmp_path / "lora_v1.safetensors").touch()
         (tmp_path / "lora_v2.safetensors").touch()
 
-        # First call (cache check) raises, second call (download) succeeds
+        # Two local cache checks raise, then explicit download succeeds.
         mock_download.side_effect = [
+            LocalEntryNotFoundError("Not cached"),
             LocalEntryNotFoundError("Not cached"),
             str(tmp_path),
         ]
@@ -137,6 +140,7 @@ class TestLoraResolutionHuggingFace:
         lora_file.touch()
 
         mock_download.side_effect = [
+            LocalEntryNotFoundError("Not cached"),
             LocalEntryNotFoundError("Not cached"),
             str(tmp_path),
         ]
@@ -185,22 +189,14 @@ class TestLoraResolutionScales:
         assert result == [0.5, 0.8]
 
     @pytest.mark.fast
-    def test_resolve_scales_too_few_pads_with_default(self, capsys):
-        # 2 scales provided but 3 paths - should pad with 1.0
-        result = LoraResolution.resolve_scales(scales=[0.5, 0.8], num_paths=3)
-
-        assert result == [0.5, 0.8, 1.0]
-        captured = capsys.readouterr()
-        assert "doesn't match" in captured.out
+    def test_resolve_scales_too_few_raises(self):
+        with pytest.raises(ValueError, match="must match"):
+            LoraResolution.resolve_scales(scales=[0.5, 0.8], num_paths=3)
 
     @pytest.mark.fast
-    def test_resolve_scales_too_many_truncates(self, capsys):
-        # 3 scales provided but only 2 paths - should truncate
-        result = LoraResolution.resolve_scales(scales=[0.5, 0.8, 0.9], num_paths=2)
-
-        assert result == [0.5, 0.8]
-        captured = capsys.readouterr()
-        assert "doesn't match" in captured.out
+    def test_resolve_scales_too_many_raises(self):
+        with pytest.raises(ValueError, match="must match"):
+            LoraResolution.resolve_scales(scales=[0.5, 0.8, 0.9], num_paths=2)
 
     @pytest.mark.fast
     def test_resolve_scales_matching_no_warning(self, capsys):

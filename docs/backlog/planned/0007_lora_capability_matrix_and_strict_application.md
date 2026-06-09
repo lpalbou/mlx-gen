@@ -27,19 +27,24 @@ LoRA capabilities and community LoRA effects as part of the 2511 upgrade.
 ## Current code reality
 
 - `src/mflux/cli/parser/parsers.py` adds `--lora-style`, `--lora-paths`, and `--lora-scales`.
-- Unified `mlxgen generate` advertises `--lora-paths` and `--lora-scales` in help text, but
-  `resolve_generation_plan(...)` has no `has_lora` input and `GenerationCapability` has no LoRA
-  fields. The router therefore cannot centrally reject unsupported LoRA requests today.
-- `src/mflux/models/common/resolution/lora_resolution.py` now fails unresolved LoRA paths before
-  model load, and `docs/troubleshooting.md` tells users that requested LoRAs are required.
-- `src/mflux/models/common/lora/mapping/lora_loader.py` still has loader-level silent-degradation
-  paths: missing or unreadable files print an error and return from `_apply_single_lora()`, and
-  zero-match adapters can finish with warnings rather than a failed generation.
-- `LoraResolution.resolve_scales(...)` pads or truncates mismatched scale counts with a warning.
-  That is not strict enough for user-requested adapters because scale mistakes can silently change
-  the generated result.
-- `src/mflux/task_inference.py` exposes generation capabilities for tasks, modes, masks,
-  outpaint, and image strength, but it does not yet expose task-specific LoRA support.
+- `src/mflux/task_inference.py` now exposes route-level LoRA fields in schema version 2:
+  `supports_lora`, `lora_status`, `lora_target_roles`, and `lora_validation_profile`.
+- Unified `mlxgen generate` derives `has_lora` from CLI flags or metadata and rejects unsupported
+  LoRA routes before model dispatch.
+- `src/mflux/models/common/resolution/lora_resolution.py` fails unresolved LoRA paths before model
+  load and resolves cached LoRA repositories from both the MLX-Gen LoRA cache and the default
+  Hugging Face cache.
+- `LoraResolution.resolve_scales(...)` is strict: the number of scales must match the number of
+  adapter paths exactly.
+- `src/mflux/models/common/lora/mapping/lora_loader.py` raises `LoRAApplicationError` for missing
+  files, unreadable files, corrupt files, zero matched keys, zero applied layers, missing A/B
+  matrices, missing target paths, non-linear targets, and matrix shape mismatches.
+- `src/mflux/models/common/lora/lora_compatibility.py` adds a cached model-card preflight for known
+  adapter base-model mismatches. This currently rejects
+  `lovis93/Flux-2-Multi-Angles-LoRA-v2` for FLUX.2 Klein because the adapter model card declares
+  `black-forest-labs/FLUX.2-dev`.
+- FLUX.2 and Qwen initializers call the compatibility preflight before loading model weights, and
+  the unified router calls it before dispatch when a model config is resolved.
 - LoRA mappings exist for FLUX.1, FLUX.2, Qwen, and Z-Image:
   - `src/mflux/models/flux/weights/flux_lora_mapping.py`
   - `src/mflux/models/flux2/weights/flux2_lora_mapping.py`
@@ -59,9 +64,17 @@ LoRA capabilities and community LoRA effects as part of the 2511 upgrade.
   save. `src/mflux/models/common/lora/mapping/lora_saver.py` skips the bake when the LoRA delta
   shape does not match the base weight. That is especially risky for q4/q8 packed linears, where a
   prepared model can look valid while the requested LoRA was not baked into the saved weights.
-- User-facing docs are mixed: `docs/api.md` documents generation modes but does not yet explain a
-  reliable LoRA capability contract, while inherited/model-local READMEs still include broad LoRA
-  examples that may not match the unified router's support boundaries.
+- `docs/lora.md`, `docs/api.md`, and `docs/troubleshooting.md` document strict runtime LoRA
+  behavior and the source/no-LoRA/with-LoRA validation method.
+- `fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA` now applies to
+  `AbstractFramework/qwen-image-edit-2511-8bit` through the public `mlxgen generate` route. The
+  Qwen LoRA mapping accepts the Diffusers `transformer.transformer_blocks.*` key family and Qwen
+  modulation-layer adapter keys. The first contact sheet is
+  `docs/assets/validation/lora-2026-06-08/qwen2511-q8-multi-angle-lora-ab-contact-sheet.png`.
+- Remaining gaps are structured application reports in generated metadata, strict
+  `mlxgen prepare --lora-paths` bake/export policy, first real A/B contact sheets for compatible
+  public adapters, and first-class FLUX.2-dev support if the lovis multi-angle adapter is selected
+  as the first FLUX.2 LoRA proof.
 
 ## Problem
 
@@ -213,8 +226,9 @@ semantically wrong.
 - `mlxgen capabilities --model ...` tests proving LoRA fields are visible per mode.
 - Python API tests proving `resolve_generation_plan(... has_lora=True)` rejects unsupported modes
   before model instantiation.
-- Real-image contact sheet with Qwen-Image-Edit-2511 and at least one public 2511 LoRA. Include
-  single-image edit and multi-reference edit rows if both are claimed.
+- Real-image contact sheet with Qwen-Image-Edit-2511 and at least one public 2511 LoRA. The first
+  single-image edit proof uses `fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA` on
+  `AbstractFramework/qwen-image-edit-2511-8bit`. Multi-reference LoRA is not claimed yet.
 - Real-image proof for each task direction marked supported:
   - T2I: one model-backed row per supported image family;
   - latent I2I: one source-preserving variation row where claimed;
@@ -242,22 +256,25 @@ Recommended first visual proof set:
 ## Progress checklist
 
 - [x] Confirm unresolved LoRA paths now fail in `LoraResolution`.
-- [x] Confirm loader-level missing/unreadable and zero-match cases can still avoid hard failure.
-- [ ] Add explicit family-level LoRA capability metadata.
-- [ ] Add task-direction LoRA metadata so UI/API callers know which modes can accept adapters.
-- [ ] Add `has_lora` planning input and route-level rejection before model load.
-- [ ] Make `--lora-scales` fail when the count differs from `--lora-paths`, and fail when scales
+- [x] Confirm loader-level missing/unreadable and zero-match cases previously avoided hard failure.
+- [x] Add explicit family-level LoRA capability metadata.
+- [x] Add task-direction LoRA metadata so UI/API callers know which modes can accept adapters.
+- [x] Add `has_lora` planning input and route-level rejection before model load.
+- [x] Make `--lora-scales` fail when the count differs from `--lora-paths`, and fail when scales
       are provided without paths.
-- [ ] Reject LoRA flags for unsupported families before generation starts.
+- [x] Reject LoRA flags for unsupported families before generation starts.
+- [x] Add cached model-card base-model preflight for known incompatible adapters.
 - [ ] Reject or prove `mlxgen prepare --lora-paths` for unsupported families and q4/q8 packed
       packages; no skipped-bake prepared package may be saved as if LoRA was applied.
-- [ ] Make loader-level missing, unreadable, corrupt, zero-match, and shape-invalid cases fail
+- [x] Make loader-level missing, unreadable, corrupt, zero-match, and shape-invalid cases fail
       closed.
 - [ ] Return and persist a structured LoRA application report.
-- [ ] Add focused tests for strict LoRA application.
-- [ ] Add first model-backed A/B contact sheets for Z-Image Turbo, FLUX.2 Klein, and Qwen Image
-      Edit 2511 before marking those exact modes validated.
-- [ ] Update docs and generated capability metadata.
+- [x] Add focused tests for strict LoRA application.
+- [x] Add first model-backed A/B contact sheet for Qwen Image Edit 2511 q8.
+- [ ] Add first model-backed A/B contact sheets for Z-Image Turbo and FLUX.2 Klein before marking
+      those exact modes validated. The downloaded lovis93 multi-angle adapter targets FLUX.2-dev,
+      so it remains tracked separately from FLUX.2 Klein.
+- [x] Update docs and capability metadata for the current mapped-unvalidated contract.
 
 ## Guidance for future agents
 

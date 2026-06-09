@@ -1,6 +1,6 @@
 # Reframe And Outpaint
 
-MLX-Gen supports two single-image canvas expansion workflows through `mlxgen generate`:
+MLX-Gen exposes two experimental single-image canvas expansion workflows through `mlxgen generate`:
 
 - `--reframe-padding` asks an edit model to generate a wider view from the source image. The model
   can redraw the source while changing the crop, viewpoint, or visible subject boundary.
@@ -13,21 +13,22 @@ the source image size. For example, `5%,80%,5%,60%` adds a small top/bottom bord
 the right, and a large extension to the left.
 
 These routes are generative edit workflows. They are not native masked fill/inpaint pipelines and
-do not guarantee exact pixel locking. Use them when a plausible wider view is acceptable. A future
-native fill/inpaint route should be used when only the new border area may change.
+do not guarantee exact pixel locking. Use them when a plausible wider view is acceptable and review
+the output visually. A future native fill/inpaint route should be used when only the new border
+area may change.
 
 ## Supported Models
 
-The current validated profile is `reframe_outpaint_2026_06_08`. It uses one cropped starship
-source image and checks source, q8, and q4 packages for each supported family:
+The current experimental validation profile is `reframe_outpaint_2026_06_08`. It uses one cropped
+starship source image and checks source, q8, and q4 packages for each supported family:
 
 | Family | Source model | q8 package | q4 package | Status |
 | --- | --- | --- | --- | --- |
-| Qwen Image Edit | `Qwen/Qwen-Image-Edit` | `AbstractFramework/qwen-image-edit-8bit` | `AbstractFramework/qwen-image-edit-4bit` | reframe and outpaint pass |
-| Qwen Image Edit 2509 | `Qwen/Qwen-Image-Edit-2509` | `AbstractFramework/qwen-image-edit-2509-8bit` | `AbstractFramework/qwen-image-edit-2509-4bit` | reframe and outpaint pass |
-| Qwen Image Edit 2511 | `Qwen/Qwen-Image-Edit-2511` | `AbstractFramework/qwen-image-edit-2511-8bit` | `AbstractFramework/qwen-image-edit-2511-4bit` | reframe and outpaint pass |
-| FLUX.2 Klein 4B | `black-forest-labs/FLUX.2-klein-4B` | `AbstractFramework/flux.2-klein-4b-8bit` | `AbstractFramework/flux.2-klein-4b-4bit` | reframe and outpaint pass |
-| FLUX.2 Klein 9B | `black-forest-labs/FLUX.2-klein-9B` | `AbstractFramework/flux.2-klein-9b-8bit` | `AbstractFramework/flux.2-klein-9b-4bit` | reframe and outpaint pass |
+| Qwen Image Edit | `Qwen/Qwen-Image-Edit` | `AbstractFramework/qwen-image-edit-8bit` | `AbstractFramework/qwen-image-edit-4bit` | experimental reframe and outpaint pass |
+| Qwen Image Edit 2509 | `Qwen/Qwen-Image-Edit-2509` | `AbstractFramework/qwen-image-edit-2509-8bit` | `AbstractFramework/qwen-image-edit-2509-4bit` | experimental reframe and outpaint pass |
+| Qwen Image Edit 2511 | `Qwen/Qwen-Image-Edit-2511` | `AbstractFramework/qwen-image-edit-2511-8bit` | `AbstractFramework/qwen-image-edit-2511-4bit` | experimental reframe and outpaint pass |
+| FLUX.2 Klein 4B | `black-forest-labs/FLUX.2-klein-4B` | `AbstractFramework/flux.2-klein-4b-8bit` | `AbstractFramework/flux.2-klein-4b-4bit` | experimental reframe and outpaint pass |
+| FLUX.2 Klein 9B | `black-forest-labs/FLUX.2-klein-9B` | `AbstractFramework/flux.2-klein-9b-8bit` | `AbstractFramework/flux.2-klein-9b-4bit` | experimental reframe and outpaint pass |
 
 These options are intentionally not exposed for base Qwen Image, Qwen Image 2512, FLUX.2 Klein
 Base, ERNIE Image Turbo, Z-Image, FIBO, Bonsai, Wan, or SeedVR2. Those families are text

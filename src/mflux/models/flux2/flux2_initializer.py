@@ -1,5 +1,6 @@
 from mflux.callbacks.callback_registry import CallbackRegistry
 from mflux.models.common.config import ModelConfig
+from mflux.models.common.lora.lora_compatibility import LoRACompatibility
 from mflux.models.common.lora.mapping.lora_loader import LoRALoader
 from mflux.models.common.tokenizer import TokenizerLoader
 from mflux.models.common.weights.loading.loaded_weights import LoadedWeights
@@ -23,6 +24,11 @@ class Flux2Initializer:
         lora_scales: list[float] | None = None,
     ) -> None:
         path = model_path if model_path else model_config.model_name
+        LoRACompatibility.validate_for_model_config(
+            model_config=model_config,
+            selected_model=path,
+            lora_paths=lora_paths,
+        )
         Flux2Initializer._init_config(model, model_config)
         weights = Flux2Initializer._load_weights(path)
         Flux2Initializer._init_tokenizers(model, path)

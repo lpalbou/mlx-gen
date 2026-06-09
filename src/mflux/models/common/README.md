@@ -81,33 +81,9 @@ model.save_model("/Users/me/models/z-image-turbo_8bit")
 ```
 </details>
 
-You can optionally include LoRAs when saving:
-
-```sh
-mlxgen prepare \
-  --path "/Users/me/models/z-image-turbo_8bit" \
-  --model z-image-turbo \
-  --quantize 8 \
-  --lora-paths "/path/to/lora.safetensors" \
-  --lora-scales 0.7
-```
-
-<details>
-<summary>Python API</summary>
-
-```python
-from mflux.models.common.config import ModelConfig
-from mflux.models.z_image import ZImageTurbo
-
-model = ZImageTurbo(
-    quantize=8,
-    model_config=ModelConfig.z_image_turbo(),
-    lora_paths=["/path/to/lora.safetensors"],
-    lora_scales=[0.7],
-)
-model.save_model("/Users/me/models/z-image-turbo_8bit")
-```
-</details>
+Use LoRA at runtime only for model families and routes that report `supports_lora=true` through
+`mlxgen capabilities`. Prepared-package LoRA baking is validation-gated until save/reload behavior
+is proven for the selected family and quantization mode.
 
 > [!WARNING]
 > Quantized models saved with mflux < v0.6.0 are incompatible with newer versions. Re-save using `mlxgen prepare`.
@@ -282,6 +258,8 @@ image.save("portrait_hf_lora.png")
 </details>
 
 For multi-LoRA, pass multiple paths and scales. For library usage, set `LORA_LIBRARY_PATH` and pass basenames.
+The number of scales must match the number of adapters exactly. For unified `mlxgen` usage and
+current compatibility rules, see [`docs/lora.md`](../../../docs/lora.md).
 
 ---
 

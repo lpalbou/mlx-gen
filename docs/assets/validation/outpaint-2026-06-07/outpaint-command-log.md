@@ -2,6 +2,8 @@
 
 These commands produced the 2026-06-07 outpaint validation assets. `--outpaint-padding` creates an
 expanded canvas from one source image and uses the selected edit model to generate the larger view.
+Padding values use CSS-style `top,right,bottom,left` order; for example `0,25%,0,25%` extends the
+right and left sides only.
 After generation, MLX-Gen applies an adaptive source blend only when the generated source window is
 still close to the original source; otherwise it keeps the generated canvas to avoid ghosted
 fragments.

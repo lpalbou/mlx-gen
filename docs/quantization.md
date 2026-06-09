@@ -312,6 +312,9 @@ The contact sheets below are extracted from the MP4 outputs linked in the table.
 
 ![Wan A14B q8 I2V release-validation contact sheet](assets/quantization/wan-a14b-q8-release/i2v_a14b_q8_480x240_41f_15steps_seed4243_contact_sheet.jpg)
 
+For longer `101`-frame, 20 fps Wan examples comparing A14B at `480x240` with TI2V-5B at
+`832x480` and `1280x704`, see [Wan Video](wan-video.md).
+
 Full-size Wan video memory and runtime vary with resolution, frame count, step count, task, cache
 settings, and prompt/image conditioning. Measure the profile you plan to use before starting long
 production jobs.

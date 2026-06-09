@@ -8,10 +8,12 @@ model/package status for MLX-Gen. It separates these related concepts:
 - `edit-reference`: the source image remains active as an edit/reference condition and the prompt
   describes an instruction such as style change, object state, or scene change.
 - `multi-reference`: two or more images are supplied as references for a composition.
-- `generative reframe`: one source image is edited into a larger view with `--reframe-padding`.
+- `generative reframe`: experimental route where one source image is edited into a larger view with
+  `--reframe-padding`.
   This can extend background or infer missing object boundaries, but it is not pixel-preserving
   canvas outpaint.
-- `canvas outpaint`: one source image is placed on a larger canvas with `--outpaint-padding`.
+- `canvas outpaint`: experimental route where one source image is placed on a larger canvas with
+  `--outpaint-padding`.
   MLX-Gen generates the expanded view, then applies an adaptive source blend only when it will not
   create visible ghosting.
 
@@ -66,10 +68,10 @@ The 5x4 edit validation profile tests the same spaceship source across:
 
 ## Reframe And Outpaint
 
-`--reframe-padding` and `--outpaint-padding` are validated single-image edit-reference routes for
-the Qwen Image Edit family and FLUX.2 Klein 4B/9B. Reframe asks the model to generate a wider view.
-Outpaint first builds an expanded conditioning canvas and then applies adaptive source blending
-when the generated source window still matches the original image.
+`--reframe-padding` and `--outpaint-padding` are experimental single-image edit-reference routes
+for the Qwen Image Edit family and FLUX.2 Klein 4B/9B. Reframe asks the model to generate a wider
+view. Outpaint first builds an expanded conditioning canvas and then applies adaptive source
+blending when the generated source window still matches the original image.
 
 ![Reframe and outpaint source/q8/q4 summary](assets/validation/reframe-outpaint-2026-06-08/reframe-outpaint-base-q8-q4-summary.jpg)
 
@@ -86,8 +88,8 @@ canvas/mask assets, the validation manifest, and exact commands. The validation 
 `reframe_outpaint_2026_06_08`.
 
 These workflows are generative image expansion routes, not native masked fill/inpaint pipelines.
-Use them when a plausible wider view is acceptable. Use a future native fill/inpaint route when
-exact pixel-locked source preservation is required.
+Use them when a plausible wider view is acceptable and review the output visually. Use a future
+native fill/inpaint route when exact pixel-locked source preservation is required.
 
 ### FLUX.2 Klein 4B
 

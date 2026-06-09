@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **LoRA capability reporting**: `mlxgen capabilities` now reports route-level LoRA support,
+  validation status, target roles, and validation-profile ids for applications that need to decide
+  whether to expose adapter controls.
+- **LoRA documentation**: add a dedicated LoRA guide covering explicit adapter download, strict
+  scale matching, adapter/base-model compatibility, and source/no-LoRA/with-LoRA validation.
+- **Qwen Image Edit 2511 LoRA proof**: add a Qwen 2511 q8 multiple-angle LoRA A/B contact sheet
+  and command log using `fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA`.
+- **Wan practical video examples**: add a dedicated Wan video guide with `101`-frame, 20 fps M5 Max
+  comparison clips for TI2V-5B at `832x480` and `1280x704` plus A14B T2V at `480x240`.
+- **Wan TI2V-5B parity backlog**: add a planned item for source-model TI2V-5B math and behavior
+  comparison against official Wan plus local Diffusers/Transformers references.
+- **Wan flow-shift control**: add `--flow-shift` and Python `flow_shift=` support for Wan video
+  generation, with metadata recording and tests for explicit overrides, so lower-resolution
+  TI2V-5B runs can use the `3.0` schedule shift recommended by Wan references for 480p-class
+  profiles while native TI2V-5B keeps its model default.
+
+### Changed
+
+- **Experimental feature wording**: mark LoRA and reframe/outpaint documentation as experimental
+  while preserving the existing fail-closed adapter and capability contracts.
+- **Wan guidance**: document that A14B at `480x240` or `240x480`, `101` frames, 20 fps, and
+  `20-25` steps is the preferred practical M5 Max profile for the recorded starship prompt, and
+  document `--flow-shift 3` for new 480p-class TI2V-5B checks.
+
+### Fixed
+
+- **LoRA fail-closed behavior**: requested LoRA adapters now fail on missing files, unreadable
+  files, zero matched keys, zero applied layers, incompatible matrix shapes, and incompatible
+  cached model-card base metadata instead of continuing without the requested adapter.
+- **Qwen Image Edit 2511 LoRA mapping**: accept the Diffusers `transformer.transformer_blocks.*`
+  `lora_A`/`lora_B` adapter key format, including Qwen modulation layers, so compatible Qwen 2511
+  LoRAs apply instead of being rejected as zero-match adapters.
+- **FLUX.2-dev LoRA routing**: `black-forest-labs/FLUX.2-dev` is not inferred as a supported
+  FLUX.2 Klein route, and FLUX.2-dev adapters such as
+  `lovis93/Flux-2-Multi-Angles-LoRA-v2` are rejected for FLUX.2 Klein models.
+
 ## [0.18.14] - 2026-06-08
 
 ### Added

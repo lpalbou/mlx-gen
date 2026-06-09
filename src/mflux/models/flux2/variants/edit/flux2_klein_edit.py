@@ -144,6 +144,8 @@ class Flux2KleinEdit(nn.Module):
             prompt=prompt,
             negative_prompt=None,
             quantization=self.bits,
+            lora_paths=self.lora_paths,
+            lora_scales=self.lora_scales,
             image_paths=image_paths,
             image_path=config.image_path,
             generation_time=config.time_steps.format_dict["elapsed"],

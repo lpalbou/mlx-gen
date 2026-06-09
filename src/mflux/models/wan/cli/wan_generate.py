@@ -64,6 +64,7 @@ def main() -> None:
                     fps=args.fps,
                     guidance=args.guidance,
                     guidance_2=args.guidance_2,
+                    flow_shift=args.flow_shift,
                     num_inference_steps=args.steps,
                     negative_prompt=args.negative_prompt,
                     image_path=args.image_path,
@@ -156,6 +157,15 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--steps", type=int, default=50, help="Denoising steps.")
     parser.add_argument("--guidance", type=float, default=5.0, help="Classifier-free guidance scale.")
     parser.add_argument(
+        "--flow-shift",
+        type=positive_float,
+        default=None,
+        help=(
+            "Wan flow-matching schedule shift. Defaults to the selected model config. "
+            "Wan references recommend 5.0 for 720p-class TI2V-5B and 3.0 for 480p-class runs."
+        ),
+    )
+    parser.add_argument(
         "--guidance-2",
         type=float,
         default=None,
@@ -247,7 +257,7 @@ def _apply_metadata_defaults(args: argparse.Namespace) -> set[str]:
     if args.image_path is None and metadata.get("image_path") is not None:
         args.image_path = metadata.get("image_path")
         provided_options.add("--image-path")
-    for name in ("width", "height", "frames", "fps", "steps", "guidance", "guidance_2"):
+    for name in ("width", "height", "frames", "fps", "steps", "guidance", "guidance_2", "flow_shift"):
         value = metadata.get(name)
         if value is not None and getattr(args, name) == _parser().get_default(name):
             setattr(args, name, value)
@@ -314,6 +324,7 @@ def _apply_model_defaults(args: argparse.Namespace, model_config: ModelConfig, p
         "fps": ("default_fps", "--fps"),
         "steps": ("default_steps", "--steps"),
         "guidance": ("default_guidance", "--guidance"),
+        "flow_shift": ("flow_shift", "--flow-shift"),
     }
     for attr, (config_key, option_name) in option_map.items():
         if option_name in provided_options:
@@ -418,6 +429,7 @@ def _write_failure_manifest(
             "steps": args.steps,
             "guidance": args.guidance,
             "guidance_2": args.guidance_2,
+            "flow_shift": args.flow_shift,
             "fps": args.fps,
             "output": output_path,
             "low_ram": bool(args.low_ram),

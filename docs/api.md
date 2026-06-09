@@ -25,7 +25,8 @@ The package also installs compatibility entry points from the mflux codebase. Ne
 prefer the `mlxgen` commands above when a matching command exists.
 
 For a full copy/pasteable workflow that exercises T2I, I2I edit, multi-reference I2I, T2V A14B,
-and I2V A14B, see [Spaceship Snow Workflow](examples/spaceship-snow.md).
+and I2V A14B, see [Spaceship Snow Workflow](examples/spaceship-snow.md). For practical Wan size
+and runtime examples, see [Wan Video](wan-video.md).
 
 ## Generation Router
 
@@ -54,6 +55,31 @@ Python through `get_model_capabilities(...)` and `resolve_generation_plan(...)`.
 repositories or local paths whose name does not identify the architecture, construct the
 `ModelConfig` with the same base-model hint that you would pass to the CLI.
 
+LoRA support is experimental and route-specific. Capability rows include `supports_lora`, `lora_status`,
+`lora_target_roles`, and `lora_validation_profile`. `mapped-unvalidated` means the route has a
+mapping and strict loader path, but the exact model/package has not yet passed a visible A/B
+validation with a public adapter.
+
+Generation does not download LoRA files. Download LoRA repositories explicitly, then pass a local
+`.safetensors` file or a cached Hugging Face adapter id:
+
+```sh
+mlxgen download --model lovis93/Flux-2-Multi-Angles-LoRA-v2 --all-files
+
+mlxgen generate \
+  --model <compatible-model> \
+  --prompt "<prompt from the LoRA model card>" \
+  --lora-paths owner/repo:adapter.safetensors \
+  --lora-scales 0.9 \
+  --output with_lora.png
+```
+
+The adapter must match the selected model architecture. For example,
+`lovis93/Flux-2-Multi-Angles-LoRA-v2` targets `black-forest-labs/FLUX.2-dev`; MLX-Gen currently
+supports FLUX.2 Klein 4B/9B, so that adapter is rejected for Klein routes. The number of
+`--lora-scales` values must match the number of `--lora-paths` values exactly. See
+[LoRA](lora.md) for the source/no-LoRA/with-LoRA validation method.
+
 Most image and video backends accept a negative prompt. In the unified CLI,
 `--negative-prompt` and `--negative` are aliases. Python callers pass the same value as
 `negative_prompt=...` on the model-specific generation method.
@@ -81,8 +107,8 @@ specific path.
 | Whole-image variation or restyle from a source image | `latent-img2img` | exactly one image | pass `--image-strength` or `--i2i-mode latent` on a model that supports latent I2I | Yes |
 | Instruction edit, object/layout change, or composition-preserving style edit | `edit-reference` | one image | default for FLUX.2 and dedicated edit checkpoints when one image is supplied without `--image-strength`; or pass `--i2i-mode edit` | No |
 | Reference composition from several images | `multi-reference` | two or more images | repeat `--image` on a model that supports multi-reference I2I; or pass `--i2i-mode multi-reference` | No |
-| Generative reframe / zoom-out | `edit-reference` with reframe support | one image | pass `--reframe-padding` on a model whose capability has `supports_reframe=true` | No |
-| Canvas-guided outpaint with adaptive source blend | `edit-reference` with outpaint support | one image | pass `--outpaint-padding` on a model whose capability has `supports_outpaint=true` | No |
+| Experimental generative reframe / zoom-out | `edit-reference` with reframe support | one image | pass `--reframe-padding` on a model whose capability has `supports_reframe=true` | No |
+| Experimental canvas-guided outpaint with adaptive source blend | `edit-reference` with outpaint support | one image | pass `--outpaint-padding` on a model whose capability has `supports_outpaint=true` | No |
 
 Use latent img2img when you want a whole-image variation driven by source-image noise injection:
 restyle the whole scene, change the mood, or make a loose variation. Higher `--image-strength`
@@ -102,7 +128,7 @@ pencil sketch, object-state changes, style changes, and layout-preserving instru
 Image Edit 2509 and 2511 expose multi-reference edit routes through unified
 `mlxgen generate` when a package supports that route. The validation command records which exact
 source model or MLX-Gen optimized package rows passed visual review. The reframe/outpaint
-validation profile covers Qwen Image Edit, Qwen Image Edit 2509/2511, and validated FLUX.2 Klein
+validation profile covers Qwen Image Edit, Qwen Image Edit 2509/2511, and FLUX.2 Klein
 4B/9B source/q8/q4 rows.
 
 Latent-only image models such as ERNIE Image Turbo, Z-Image, and base Qwen Image require explicit
@@ -155,7 +181,7 @@ mlxgen generate \
 `--task image-to-image --i2i-mode edit`, but new commands and integrations should prefer
 `--i2i-mode`.
 
-Generative reframe is available through `--reframe-padding` for edit models that advertise
+Generative reframe is experimental and available through `--reframe-padding` for edit models that advertise
 `supports_reframe=true` in `mlxgen capabilities`. It asks the edit model to generate a larger view
 from one source image. Padding accepts CSS-style values in `top,right,bottom,left` order. MLX-Gen
 builds a larger conditioning canvas with the source pasted at that offset, then asks the edit model
@@ -176,8 +202,8 @@ This is a generative edit workflow. It may redraw source content, and the prompt
 where the model places or reconstructs the subject. Use it for zoom-out, background extension, or
 revealing plausible missing object boundaries.
 
-Use `--outpaint-padding` when you want MLX-Gen to build an expanded canvas and guide an edit model
-to fill the larger view:
+Canvas-guided outpaint is experimental. Use `--outpaint-padding` when you want MLX-Gen to build an
+expanded canvas and guide an edit model to fill the larger view:
 
 ```sh
 mlxgen generate \
@@ -192,12 +218,12 @@ mlxgen generate \
   --output outpaint.png
 ```
 
-For validated FLUX.2 Klein 4B/9B and Qwen Image Edit variants, this route creates a larger temporary canvas,
-initializes the new area with edge-extended source context, and runs the edit model on the expanded
-canvas. After generation, MLX-Gen compares the generated source window with the original source. If
-they are close, it applies a content-aware source blend; if the model has reconstructed or moved
-the scene, it skips the blend to avoid ghosted fragments. Source, q8, and q4 rows for FLUX.2 Klein
-4B/9B plus Qwen Image Edit, 2509, and 2511 are documented in
+For current FLUX.2 Klein 4B/9B and Qwen Image Edit variants, this route creates a larger temporary
+canvas, initializes the new area with edge-extended source context, and runs the edit model on the
+expanded canvas. After generation, MLX-Gen compares the generated source window with the original
+source. If they are close, it applies a content-aware source blend; if the model has reconstructed
+or moved the scene, it skips the blend to avoid ghosted fragments. Source, q8, and q4 rows for
+FLUX.2 Klein 4B/9B plus Qwen Image Edit, 2509, and 2511 are documented in
 [Image Edit Capabilities](edit-capabilities.md#reframe-and-outpaint) and
 [Reframe and Outpaint](reframe-outpaint.md).
 
@@ -388,6 +414,7 @@ At the default 24 fps, `--frames 121` produces about 5.04 seconds of video, `--f
 | `--steps` | Denoising steps. TI2V-5B default/recommended quality value: `50`; A14B default/recommended value: `40`. Lower values run faster but reduce quality. |
 | `--guidance` | Classifier-free guidance scale. TI2V-5B default: `5`; A14B default: `4`. |
 | `--guidance-2` | Optional low-noise guidance scale for Wan A14B `transformer_2`. If both guidance flags are omitted, model-specific two-stage defaults are used. If `--guidance` is set and `--guidance-2` is omitted, the low-noise stage follows `--guidance`. It is rejected for single-transformer Wan models. |
+| `--flow-shift` | Flow-matching scheduler shift. Defaults to the selected Wan model config. TI2V-5B defaults to `5.0` for native 720p-class runs. A14B defaults to `3.0`. For new 480p-class TI2V-5B checks such as `832x480`, pass `--flow-shift 3`. Python callers use `flow_shift=...`. |
 | `--negative-prompt`, `--negative` | If omitted, Wan uses the model's official default negative prompt. Pass `--negative ""` to intentionally run without a negative prompt; this can be better for simple abstract scenes where the default negative prompt adds unwanted texture. |
 | `--seed` | Deterministic seed. Repeat with multiple values to create multiple videos. |
 | `--progress`, `--no-progress` | Show or disable the CLI video progress bar. The bar advances by denoising step and keeps the requested frame count as context. Default: `--progress true`. |
@@ -401,7 +428,19 @@ Common Wan video sizes:
 | T2V-A14B | 16 px | `1280x720` or `720x1280` | `832x480`, `480x832`, `448x256`, `256x448`, `432x240` | Text-to-video only; image input is rejected. |
 | I2V-A14B | 16 px | Source-ratio canvas near `1280x720` or `720x1280` | Source-ratio canvas near `832x480`, `448x256`, or `432x240` | Requires one input image; output preserves the source image ratio at a nearby supported canvas. |
 
-The upstream TI2V-5B guidance is 1280x704 or 704x1280, 121 frames, 50 steps, and 24 fps. The upstream A14B guidance is 1280x720 or 720x1280, 81 frames, 40 steps, `--guidance 4`, optional `--guidance-2 3`, and 16 fps. Lower resolutions, frame counts, or step counts are useful for routing and prompt checks, but they should not be treated as final quality settings.
+The upstream TI2V-5B guidance is 1280x704 or 704x1280, 121 frames, 50 steps, 24 fps, and flow shift
+`5.0`. The upstream A14B guidance is 1280x720 or 720x1280, 81 frames, 40 steps, `--guidance 4`,
+optional `--guidance-2 3`, flow shift `3.0`, and 16 fps. Lower resolutions, frame counts, or step
+counts are useful for routing and prompt checks; for 480p-class TI2V-5B checks, use
+`--flow-shift 3`.
+
+For a practical 5-second local profile, A14B T2V at `480x240` or `240x480`, `101` frames,
+`20` fps, and `20` to `25` steps is a useful quality/speed point on an M5 Max. The documented
+starship profile takes about 30 minutes at `480x240`. TI2V-5B at `832x480`, `25` steps, `101`
+frames, and `20` fps takes about 12 minutes on the same class of machine; new 480p-class TI2V-5B
+checks should include `--flow-shift 3`. TI2V-5B at `1280x704` with the same frames and steps takes
+about 35 minutes and should use the default flow shift. See [Wan Video](wan-video.md) for the MP4
+assets and frame strips.
 
 For visual checks, use `448x256` or larger for Wan examples. Tiny square canvases such as `128x128`
 are not representative of Wan video quality or prompt adherence.

@@ -42,8 +42,8 @@ The main capabilities are:
 
 - text-to-image generation with Qwen Image, FLUX.2 Klein, Z-Image, ERNIE Image Turbo, Bonsai Image,
   FIBO, and their optimized quantized variants where available;
-- image-to-image modes, including latent img2img, instruction/reference edits, and multi-reference
-  edits where the selected model supports them;
+- image-to-image modes, including latent img2img, instruction/reference edits, multi-reference
+  edits, and experimental reframe/outpaint workflows where the selected model supports them;
 - Wan2.2 text-to-video and image-to-video, including TI2V-5B BF16/q8 packages plus A14B
   T2V/I2V BF16 and mixed q8/BF16 packages; Wan I2V resolves output size from the source
   image aspect ratio so inputs are not stretched into a mismatched canvas;
@@ -52,6 +52,8 @@ The main capabilities are:
   and `3x`;
 - explicit `download` and `prepare` workflows for local MLX-Gen model packages;
 - JSON model capability inspection before starting a heavy run;
+- experimental LoRA routing and strict adapter application checks, with model-card compatibility
+  preflight when cached adapter metadata is available;
 - shared progress events for applications embedding MLX-Gen.
 
 Use `mlxgen capabilities --model ...` before long image-edit runs. Capability output describes the
@@ -133,6 +135,12 @@ selected model can dispatch. For release QA evidence on exact packages, use:
 ```sh
 mlxgen validation --model AbstractFramework/qwen-image-edit-2509-8bit
 ```
+
+LoRA support is experimental. For LoRA work, inspect `supports_lora` and `lora_status` in
+`mlxgen capabilities`, download the adapter explicitly with `mlxgen download`, and use an adapter
+trained for the selected model family.
+For example, a FLUX.2-dev LoRA is not accepted for FLUX.2 Klein. See [docs/lora.md](docs/lora.md)
+for the A/B validation method.
 
 Create a local MLX-Gen model package, for example an 8-bit Qwen Image package:
 
@@ -283,15 +291,16 @@ progress callbacks make long runs observable.
 ## Documentation
 
 - [Getting started](docs/getting-started.md): installation, first runs, SeedVR2 upscaling, and Wan video.
-- [API and CLI](docs/api.md): command surface, router behavior, image-to-image modes, generative reframe, canvas outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.
+- [API and CLI](docs/api.md): command surface, router behavior, image-to-image modes, experimental generative reframe, experimental canvas outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.
+- [Wan video](docs/wan-video.md): practical Wan2.2 T2V/I2V sizing and 5-second M5 Max comparison clips.
 - [Example workflow](docs/examples/spaceship-snow.md): reproducible image and video commands.
 - [Image upscaling](docs/upscaling.md): SeedVR2 sizing, published 3B/7B q8/q4 package usage, quality controls, and 5x source/output comparisons.
 - [Image edit capabilities](docs/edit-capabilities.md): image-edit contact sheets, exact model/package status, and command logs.
-- [Reframe and outpaint](docs/reframe-outpaint.md): supported `--reframe-padding` and `--outpaint-padding` routes with source/q8/q4 proof sheets.
+- [Reframe and outpaint](docs/reframe-outpaint.md): experimental `--reframe-padding` and `--outpaint-padding` routes with source/q8/q4 proof sheets.
 - [Model management](docs/model-management.md): download, prepare, and run from local model files.
 - [Quantization](docs/quantization.md): q8/q4/BF16 policies and measurements.
 - [Python integration](docs/python-integration.md): embedding, progress callbacks, and AbstractVision/AbstractCore notes.
-- [FAQ](docs/faq.md): recurring questions, image-to-image mode selection, SeedVR2 sizing, Qwen edit variants, negative prompts, generative reframe, canvas outpaint, Wan resolutions, and usage limits.
+- [FAQ](docs/faq.md): recurring questions, image-to-image mode selection, SeedVR2 sizing, Qwen edit variants, negative prompts, experimental generative reframe, experimental canvas outpaint, Wan resolutions, and usage limits.
 - [Troubleshooting](docs/troubleshooting.md): common setup and runtime failures.
 - [Acknowledgements](ACKNOWLEDGEMENTS.md): upstream mflux and model-community credits.
 

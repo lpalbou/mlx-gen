@@ -12,6 +12,10 @@ from mflux.models.common.lora.mapping.lora_mapping import LoRATarget
 from mflux.models.common.resolution.lora_resolution import LoraResolution
 
 
+class LoRAApplicationError(ValueError):
+    pass
+
+
 @dataclass
 class PatternMatch:
     source_pattern: str
@@ -32,6 +36,8 @@ class LoRALoader:
     ) -> tuple[list[str], list[float]]:
         resolved_paths = LoraResolution.resolve_paths(lora_paths)
         if not resolved_paths:
+            if lora_scales:
+                raise LoRAApplicationError("--lora-scales requires --lora-paths.")
             return resolved_paths, []
 
         resolved_scales = LoraResolution.resolve_scales(lora_scales, len(resolved_paths))
@@ -58,30 +64,31 @@ class LoRALoader:
         *,
         role: str | None,
     ) -> None:
-        # Load the LoRA weights
         if not Path(lora_file).exists():
-            print(f"❌ LoRA file not found: {lora_file}")
-            return
+            raise LoRAApplicationError(f"LoRA file not found: {lora_file}")
 
         print(f"🔧 Applying LoRA: {Path(lora_file).name} (scale={scale})")
 
         try:
             weights = dict(mx.load(lora_file, return_metadata=True)[0].items())
         except (FileNotFoundError, ValueError, RuntimeError) as e:
-            print(f"❌ Failed to load LoRA file: {e}")
-            return
+            raise LoRAApplicationError(f"Failed to load LoRA file {lora_file}: {e}") from e
 
-        # Build pattern mappings from LoRATargets
         pattern_mappings = LoRALoader._build_pattern_mappings(lora_mapping)
 
-        # Apply LoRA using the mappings (allows multiple targets per source)
         applied_count, matched_keys = LoRALoader._apply_lora_with_mapping(
             transformer, weights, scale, pattern_mappings, role=role
         )
 
-        # Report results
         total_keys = len(weights)
         unmatched_keys = set(weights.keys()) - matched_keys
+
+        if not matched_keys:
+            raise LoRAApplicationError(f"LoRA file {lora_file} did not match any known adapter keys.")
+        if applied_count <= 0:
+            raise LoRAApplicationError(
+                f"LoRA file {lora_file} matched {len(matched_keys)} keys but did not apply to any model layer."
+            )
 
         print(f"   ✅ Applied to {applied_count} layers ({len(matched_keys)}/{total_keys} keys matched)")
 
@@ -219,36 +226,29 @@ class LoRALoader:
                 else:
                     current_module = getattr(current_module, part)
         except (AttributeError, IndexError, KeyError):
-            print(f"❌ Could not find target path: {target_path}")
-            return False
+            raise LoRAApplicationError(f"Could not find LoRA target path: {target_path}")
 
-        # Check if we have the required matrices
         if "lora_A" not in lora_data or "lora_B" not in lora_data:
-            print(f"❌ Missing required LoRA matrices for {target_path}")
-            return False
+            raise LoRAApplicationError(f"Missing required LoRA matrices for target path: {target_path}")
 
         # Values are already transformed and transposed
         lora_A = lora_data["lora_A"]
         lora_B = lora_data["lora_B"]
 
-        # Handle alpha scaling
         alpha_scale = 1.0
         if "alpha" in lora_data:
             alpha_value = lora_data["alpha"]
             rank = lora_A.shape[1]
             alpha_scale = float(alpha_value) / rank
 
-        # Calculate final scale - only use user scale, matching Diffusers approach
         effective_scale = scale
 
-        # Create new LoRA layer
-        # Check if it's a linear layer (either nn.Linear, LoRALinear, or FusedLoRALinear)
         is_linear = hasattr(current_module, "weight")
         is_lora_linear = isinstance(current_module, LoRALinear)
         is_fused_linear = isinstance(current_module, FusedLoRALinear)
 
         if is_linear or is_lora_linear or is_fused_linear:
-            # Handle fusion: if the current module is already a LoRA layer, fuse them
+            LoRALoader._validate_lora_matrix_shapes(current_module, lora_A, lora_B, target_path)
             if is_lora_linear:
                 print(f"   🔀 Fusing with existing LoRA at {target_path}")
                 lora_layer = LoRALinear.from_linear(current_module.linear, r=lora_A.shape[1], scale=effective_scale)
@@ -302,6 +302,36 @@ class LoRALoader:
                 setattr(parent_module, final_attr, replacement_layer)
 
             return True
-        else:
-            print(f"❌ Target layer {target_path} is not a linear layer")
-            return False
+
+        raise LoRAApplicationError(f"LoRA target path {target_path} is not a linear layer.")
+
+    @staticmethod
+    def _validate_lora_matrix_shapes(current_module, lora_A: mx.array, lora_B: mx.array, target_path: str) -> None:
+        base_linear = current_module
+        if isinstance(current_module, LoRALinear):
+            base_linear = current_module.linear
+        elif isinstance(current_module, FusedLoRALinear):
+            base_linear = current_module.base_linear
+
+        if not hasattr(base_linear, "weight"):
+            raise LoRAApplicationError(f"LoRA target path {target_path} is not a linear layer.")
+
+        output_dims, input_dims = base_linear.weight.shape
+        if isinstance(base_linear, nn.QuantizedLinear):
+            input_dims *= 32 // base_linear.bits
+
+        rank = lora_A.shape[1] if len(lora_A.shape) == 2 else None
+        expected_a0 = input_dims
+        expected_b1 = output_dims
+        if (
+            len(lora_A.shape) != 2
+            or len(lora_B.shape) != 2
+            or lora_A.shape[0] != expected_a0
+            or lora_B.shape[1] != expected_b1
+            or rank != lora_B.shape[0]
+        ):
+            raise LoRAApplicationError(
+                f"LoRA matrices for {target_path} are incompatible with the selected model: "
+                f"expected lora_A ({expected_a0}, rank) and lora_B (rank, {expected_b1}), "
+                f"got lora_A {tuple(lora_A.shape)} and lora_B {tuple(lora_B.shape)}."
+            )

@@ -379,9 +379,9 @@ steps to run from pure noise.
 
 ## Can MLX-Gen Outpaint Or Reframe An Image?
 
-MLX-Gen supports generative reframe for edit models that advertise `supports_reframe=true` in
-`mlxgen capabilities`. Use `--reframe-padding` with one input image to ask the edit model for a
-larger view:
+MLX-Gen supports experimental generative reframe for edit models that advertise
+`supports_reframe=true` in `mlxgen capabilities`. Use `--reframe-padding` with one input image to
+ask the edit model for a larger view:
 
 ```sh
 mlxgen generate \
@@ -399,8 +399,8 @@ reconstruction of missing object boundaries, but the model may redraw source con
 remains important, especially when the source object is cropped and the missing parts must be
 inferred.
 
-Use `--outpaint-padding` when you want MLX-Gen to create a larger canvas and guide a supported edit
-model to fill the expanded view:
+Use experimental `--outpaint-padding` when you want MLX-Gen to create a larger canvas and guide a
+supported edit model to fill the expanded view:
 
 ```sh
 mlxgen generate \
@@ -415,11 +415,11 @@ mlxgen generate \
   --output outpaint.png
 ```
 
-For validated FLUX.2 Klein 4B/9B and Qwen Image Edit variants, MLX-Gen builds an expanded canvas
-and runs the edit model on that canvas. After generation, it compares the generated source window
-with the original source. If they are close, it applies a content-aware source blend; if the model
-reconstructed or moved the scene, it keeps the generated canvas to avoid ghosting. The current
-validated proof is in [Image Edit Capabilities](edit-capabilities.md#reframe-and-outpaint) and
+For current FLUX.2 Klein 4B/9B and Qwen Image Edit variants, MLX-Gen builds an expanded canvas and
+runs the edit model on that canvas. After generation, it compares the generated source window with
+the original source. If they are close, it applies a content-aware source blend; if the model
+reconstructed or moved the scene, it keeps the generated canvas to avoid ghosting. The current proof
+is in [Image Edit Capabilities](edit-capabilities.md#reframe-and-outpaint) and
 [Reframe and Outpaint](reframe-outpaint.md).
 
 This is not a native fill/inpaint backend with an explicit diffusion mask, and it is not an exact
@@ -451,6 +451,19 @@ For TI2V-5B text-to-video, `1280x720` adjusts to `1280x736`, and `432x240` adjus
 For A14B text-to-video, `1280x720`, `832x480`, `448x256`, and `432x240` are already valid multiples
 of 16. Lower-cost sizes are useful for routing checks and prompt iteration; use the
 recommended/native size, frame count, and step count when judging visual quality.
+
+TI2V-5B also has a flow-matching schedule shift. MLX-Gen uses the model default `5.0` for native
+`1280x704` or `704x1280` runs. For new 480p-class TI2V-5B checks such as `832x480`, pass
+`--flow-shift 3`.
+
+For practical five-second prompt iteration on an M5 Max, the A14B T2V/I2V routes have looked good
+at `480x240` or `240x480` with `101` frames, `20` fps, and `20-25` steps. A `101`-frame, 20 fps
+clip is about five seconds and takes roughly 30 minutes at `480x240` with A14B in the recorded
+starship-takeoff profile. In that same prompt family, TI2V-5B at `832x480`, `25` steps, `101`
+frames, and 20 fps took about 12 minutes but was weaker visually; rerun this 480p-class profile
+with `--flow-shift 3` for current testing. TI2V-5B at its `1280x704` native size took about 35
+minutes and improved but still did not match the A14B result at lower resolution. See
+[Wan Video](wan-video.md) for the comparison clips and commands.
 
 For image-to-video, the source ratio controls the final canvas. These are typical resolved outputs:
 

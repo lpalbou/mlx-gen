@@ -69,6 +69,7 @@ class Wan2_2_TI2V(nn.Module):
         fps: int = RECOMMENDED_FPS,
         guidance: float | None = None,
         guidance_2: float | None | object = _GUIDANCE_2_UNSET,
+        flow_shift: float | None = None,
         negative_prompt: str | None = None,
         image_path: Path | str | None = None,
         max_sequence_length: int = 512,
@@ -100,6 +101,7 @@ class Wan2_2_TI2V(nn.Module):
         num_frames = self._validated_frame_count(num_frames)
         guidance, guidance_2 = self._resolve_guidance_pair(guidance=guidance, guidance_2=guidance_2)
         self._validate_guidance_values(guidance=guidance, guidance_2=guidance_2)
+        flow_shift = self._resolve_flow_shift(flow_shift)
         negative_prompt = self._resolve_negative_prompt(negative_prompt)
         self._validate_runtime_contract(is_image_to_video=is_image_to_video)
         progress_registry = getattr(self, "callbacks", None)
@@ -129,7 +131,7 @@ class Wan2_2_TI2V(nn.Module):
                 name="negative_prompt_embeds",
             )
 
-        scheduler = WanUniPCMultistepScheduler(flow_shift=float(self._wan_config("flow_shift", 5.0)))
+        scheduler = WanUniPCMultistepScheduler(flow_shift=flow_shift)
         scheduler.set_timesteps(num_inference_steps)
         boundary_timestep = self._boundary_timestep(scheduler)
         latents = self.prepare_latents(
@@ -366,6 +368,7 @@ class Wan2_2_TI2V(nn.Module):
             steps=num_inference_steps,
             guidance=guidance,
             guidance_2=guidance_2,
+            flow_shift=flow_shift,
             quantization=self.bits,
             generation_time=time.time() - start_time,
             task=task,
@@ -886,6 +889,15 @@ class Wan2_2_TI2V(nn.Module):
     def _default_guidance_2(self) -> float | None:
         value = self._wan_config("default_guidance_2", None)
         return None if value is None else float(value)
+
+    def _default_flow_shift(self) -> float:
+        return float(self._wan_config("flow_shift", 5.0))
+
+    def _resolve_flow_shift(self, flow_shift: float | None) -> float:
+        resolved = self._default_flow_shift() if flow_shift is None else float(flow_shift)
+        if not np.isfinite(resolved) or resolved <= 0:
+            raise ValueError(f"Wan flow_shift must be a finite positive value, got {flow_shift!r}.")
+        return resolved
 
     def _resolve_guidance_pair(
         self, guidance: float | None, guidance_2: float | None | object

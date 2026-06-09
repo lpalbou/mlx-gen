@@ -10,6 +10,8 @@ from huggingface_hub import snapshot_download
 
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.download_policy import allow_downloads, is_huggingface_repo_id
+from mflux.models.common.lora.lora_compatibility import LoRACompatibility
+from mflux.models.common.lora.mapping.lora_loader import LoRAApplicationError
 from mflux.release.validation_registry import get_model_validation, get_validation_profile, list_validation_profiles
 from mflux.task_inference import TaskInferenceError, get_model_capabilities, normalize_task, resolve_generation_plan
 from mflux.utils.box_values import BoxValueError, BoxValues
@@ -48,7 +50,7 @@ def main() -> None:
         sys.argv = invocation.argv
         try:
             invocation.target_main()
-        except FileNotFoundError as exc:
+        except (FileNotFoundError, LoRAApplicationError) as exc:
             print(exc)
             raise SystemExit(1) from None
     finally:
@@ -124,6 +126,10 @@ def _parse_router_args(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
     args.has_mask = _has_mask_option(argv, metadata)
     args.has_outpaint = args.outpaint_padding is not None or _has_outpaint_option(argv, metadata)
     args.has_reframe = args.reframe_padding is not None
+    args.has_lora = _has_lora_option(argv, metadata)
+    args.lora_paths = _lora_paths_from_options(argv, metadata)
+    if args.has_lora and _has_lora_scales_without_paths(argv, metadata):
+        parser.error("--lora-scales requires --lora-paths.")
     if args.has_reframe and args.has_outpaint:
         parser.error("--reframe-padding and --outpaint-padding are different workflows and cannot be used together.")
     if args.model is None:
@@ -235,6 +241,51 @@ def _has_outpaint_option(argv: list[str], metadata: dict) -> bool:
     )
 
 
+def _has_lora_option(argv: list[str], metadata: dict) -> bool:
+    return (
+        _option_was_provided(argv, "--lora-paths")
+        or _option_was_provided(argv, "--lora-scales")
+        or _option_was_provided(argv, "--lora-style")
+        or bool(metadata.get("lora_paths"))
+        or bool(metadata.get("lora_scales"))
+    )
+
+
+def _has_lora_scales_without_paths(argv: list[str], metadata: dict) -> bool:
+    has_scales = _option_was_provided(argv, "--lora-scales") or bool(metadata.get("lora_scales"))
+    has_paths = _option_was_provided(argv, "--lora-paths") or bool(metadata.get("lora_paths"))
+    return has_scales and not has_paths
+
+
+def _lora_paths_from_options(argv: list[str], metadata: dict) -> list[str]:
+    paths = _option_values(argv, "--lora-paths")
+    metadata_paths = metadata.get("lora_paths")
+    if isinstance(metadata_paths, str):
+        paths.append(metadata_paths)
+    elif isinstance(metadata_paths, list):
+        paths.extend(str(path) for path in metadata_paths)
+    return paths
+
+
+def _option_values(argv: list[str], option_name: str) -> list[str]:
+    values: list[str] = []
+    index = 0
+    while index < len(argv):
+        token = argv[index]
+        if token.startswith(f"{option_name}="):
+            values.append(token.split("=", 1)[1])
+            index += 1
+            continue
+        if token == option_name:
+            index += 1
+            while index < len(argv) and not argv[index].startswith("--"):
+                values.append(argv[index])
+                index += 1
+            continue
+        index += 1
+    return values
+
+
 def _read_metadata_config(parser: argparse.ArgumentParser, argv: list[str]) -> dict:
     metadata_path = _metadata_path(argv)
     if metadata_path is None:
@@ -284,7 +335,7 @@ def _parser() -> argparse.ArgumentParser:
             "Common generation options are forwarded to the selected backend, including --prompt, "
             "--prompt-file, --width, --height, --steps, --guidance, --seed, --auto-seeds, "
             "--negative-prompt/--negative, --canvas-policy, --quantize, --lora-paths, --lora-scales, --metadata, "
-            "--config-from-metadata/-C, --output, --replace, --frames, --fps, --guidance-2, "
+            "--config-from-metadata/-C, --output, --replace, --frames, --fps, --guidance-2, --flow-shift, "
             "--reframe-padding, --outpaint-padding, --low-ram, --tensor-health-check-interval, "
             "--failure-diagnostics, and --progress/--no-progress."
         ),
@@ -683,8 +734,22 @@ def _resolve_route(args: argparse.Namespace, image_count: int) -> _Route:
     has_images = image_count > 0
     model_config = _model_config(args.model, base_model=args.base_model)
     plan = _resolve_generation_plan(args, image_count=image_count, model_config=model_config)
+    _validate_lora_compatibility(args=args, model_config=model_config)
     _validate_family_override(args, model_config=model_config, plan=plan)
     return _route_for_plan(plan.handler_id, has_image=has_images, model_override=plan.model_override)
+
+
+def _validate_lora_compatibility(args: argparse.Namespace, model_config: ModelConfig | None) -> None:
+    if not args.has_lora or model_config is None:
+        return
+    try:
+        LoRACompatibility.validate_for_model_config(
+            model_config=model_config,
+            selected_model=args.model,
+            lora_paths=args.lora_paths,
+        )
+    except LoRAApplicationError as exc:
+        _parser().error(str(exc))
 
 
 def _resolve_generation_plan(
@@ -705,6 +770,7 @@ def _resolve_generation_plan(
             has_mask=args.has_mask,
             has_outpaint=args.has_outpaint,
             has_reframe=args.has_reframe,
+            has_lora=args.has_lora,
         )
     except TaskInferenceError as exc:
         _parser().error(str(exc))

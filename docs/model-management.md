@@ -37,6 +37,10 @@ For LoRA repositories, download the repository explicitly before passing it to g
 mlxgen download --model RiverZ/normal-lora --all-files
 ```
 
+If a LoRA repository contains more than one `.safetensors` file, pass the file name as
+`owner/repo:filename.safetensors`. The adapter must be trained for the selected model family; see
+[LoRA](lora.md) for compatibility checks and the source/no-LoRA/with-LoRA validation method.
+
 `mlxgen download` is already an explicit network operation. `HF_HUB_ENABLE_HF_TRANSFER=1` is optional and only enables Hugging Face's accelerated transfer backend when that backend is available.
 
 Use `download` when you want to run from the source model name or alias and do not need a separate
@@ -172,7 +176,13 @@ transformer and VAE as FP32 on disk, but MLX-Gen loads and prepares those compon
 runtime precision; the BF16 TI2V-5B package is primarily a smaller source-equivalent
 package. There is no published TI2V-5B q4 or mixed q4/q8 package yet.
 
-For visual quality checks, use the upstream model scale. TI2V-5B uses 1280x704 or 704x1280, 121 frames, 50 steps, and 24 fps. A14B uses 1280x720 or 720x1280, 81 frames, 40 steps, `--guidance 4`, optional `--guidance-2 3`, and 16 fps. Lower settings are useful for quick command checks, not quality assessment.
+For upstream-scale visual quality checks, use the model's intended profile. TI2V-5B uses 1280x704
+or 704x1280, 121 frames, 50 steps, 24 fps, and flow shift `5.0`. A14B uses 1280x720 or 720x1280,
+81 frames, 40 steps, `--guidance 4`, optional `--guidance-2 3`, flow shift `3.0`, and 16 fps. For
+practical five-second prompt iteration, A14B at `480x240` or `240x480`, 101 frames, 20 fps, and
+`20-25` steps has produced good results on an M5 Max in about 30 minutes. For 480p-class TI2V-5B
+checks such as `832x480`, pass `--flow-shift 3`. See [Wan Video](wan-video.md) for the comparison
+clips.
 
 ## Depth Pro
 

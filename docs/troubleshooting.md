@@ -111,7 +111,7 @@ accept that the model may reshape or recompose the source.
 
 Wan2.2 supports TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, and I2V-A14B image-to-video. Very small or very short runs are useful for quick command checks, but they are not quality settings.
 
-Use the upstream TI2V-5B settings when validating visual quality:
+Use the upstream TI2V-5B settings when validating that route at its intended native scale:
 
 ```sh
 mlxgen generate \
@@ -125,6 +125,14 @@ mlxgen generate \
   --fps 24 \
   --output video.mp4
 ```
+
+For practical five-second prompt iteration on an M5 Max, A14B has produced stronger results than
+TI2V-5B in the recorded starship-takeoff profile at much smaller dimensions: `480x240` or
+`240x480`, `101` frames, 20 fps, and `20-25` steps. That profile takes about 30 minutes at
+`480x240` on the recorded machine. TI2V-5B at `832x480`, `101` frames, 20 fps, and 25 steps took
+about 12 minutes but was visually weaker; TI2V-5B at `1280x704` took about 35 minutes and improved
+without matching the A14B result. See [Wan Video](wan-video.md) for the comparison clips and exact
+prompt.
 
 Use lower dimensions, frame counts, or step counts only to validate routing and MP4 writing. For
 image-to-video, pass exactly one input image; MLX-Gen infers I2V from the image input and selected
@@ -161,11 +169,38 @@ To choose the generated image or video path, use `--output` with `mlxgen generat
 
 ## LoRA Is Missing
 
-User-requested LoRAs are required. MLX-Gen no longer ignores a missing LoRA and continues without it. Download the LoRA repository or use a local `.safetensors` file path.
+LoRA support is experimental and route-specific. User-requested LoRAs are required: MLX-Gen no
+longer ignores a missing LoRA and continues without it. Download the LoRA repository or use a local
+`.safetensors` file path.
 
 ```sh
 mlxgen download --model RiverZ/normal-lora --all-files
 ```
+
+If a repository contains several `.safetensors` files, specify the file:
+
+```sh
+mlxgen generate \
+  --model <compatible-model> \
+  --prompt "<prompt>" \
+  --lora-paths owner/repo:adapter.safetensors \
+  --lora-scales 0.9 \
+  --output image.png
+```
+
+`--lora-scales` must have exactly one value per adapter, and it cannot be used without
+`--lora-paths`.
+
+## LoRA Is Not Compatible With The Model
+
+LoRA adapters are trained for a specific base model. If MLX-Gen can read cached model-card
+metadata, it rejects known incompatible combinations before loading model weights. It also checks
+LoRA matrix shapes while applying the adapter.
+
+For example, `lovis93/Flux-2-Multi-Angles-LoRA-v2` targets `black-forest-labs/FLUX.2-dev`.
+Current FLUX.2 support in MLX-Gen is FLUX.2 Klein 4B/9B, so that adapter is not accepted for
+`flux2-klein-*` or `AbstractFramework/flux.2-klein-*` models. Use an adapter trained for the exact
+model family, or wait for first-class FLUX.2-dev support.
 
 ## hf_transfer Error
 

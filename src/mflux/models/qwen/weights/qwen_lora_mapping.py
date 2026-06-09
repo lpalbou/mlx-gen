@@ -12,6 +12,7 @@ class QwenLoRAMapping(LoRAMapping):
                 possible_up_patterns=[
                     "transformer_blocks.{block}.attn.to_q.lora_up.weight",
                     "transformer.transformer_blocks.{block}.attn.to_q.lora.up.weight",
+                    "transformer.transformer_blocks.{block}.attn.to_q.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.to_q.lora_B.weight",
                     "transformer_blocks.{block}.attn.to_q.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_to_q.lora_up.weight",
@@ -19,6 +20,7 @@ class QwenLoRAMapping(LoRAMapping):
                 possible_down_patterns=[
                     "transformer_blocks.{block}.attn.to_q.lora_down.weight",
                     "transformer.transformer_blocks.{block}.attn.to_q.lora.down.weight",
+                    "transformer.transformer_blocks.{block}.attn.to_q.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.to_q.lora_A.weight",
                     "transformer_blocks.{block}.attn.to_q.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_to_q.lora_down.weight",
@@ -33,6 +35,7 @@ class QwenLoRAMapping(LoRAMapping):
                 possible_up_patterns=[
                     "transformer_blocks.{block}.attn.to_k.lora_up.weight",
                     "transformer.transformer_blocks.{block}.attn.to_k.lora.up.weight",
+                    "transformer.transformer_blocks.{block}.attn.to_k.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.to_k.lora_B.weight",
                     "transformer_blocks.{block}.attn.to_k.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_to_k.lora_up.weight",
@@ -40,6 +43,7 @@ class QwenLoRAMapping(LoRAMapping):
                 possible_down_patterns=[
                     "transformer_blocks.{block}.attn.to_k.lora_down.weight",
                     "transformer.transformer_blocks.{block}.attn.to_k.lora.down.weight",
+                    "transformer.transformer_blocks.{block}.attn.to_k.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.to_k.lora_A.weight",
                     "transformer_blocks.{block}.attn.to_k.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_to_k.lora_down.weight",
@@ -54,6 +58,7 @@ class QwenLoRAMapping(LoRAMapping):
                 possible_up_patterns=[
                     "transformer_blocks.{block}.attn.to_v.lora_up.weight",
                     "transformer.transformer_blocks.{block}.attn.to_v.lora.up.weight",
+                    "transformer.transformer_blocks.{block}.attn.to_v.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.to_v.lora_B.weight",
                     "transformer_blocks.{block}.attn.to_v.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_to_v.lora_up.weight",
@@ -61,6 +66,7 @@ class QwenLoRAMapping(LoRAMapping):
                 possible_down_patterns=[
                     "transformer_blocks.{block}.attn.to_v.lora_down.weight",
                     "transformer.transformer_blocks.{block}.attn.to_v.lora.down.weight",
+                    "transformer.transformer_blocks.{block}.attn.to_v.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.to_v.lora_A.weight",
                     "transformer_blocks.{block}.attn.to_v.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_to_v.lora_down.weight",
@@ -75,6 +81,7 @@ class QwenLoRAMapping(LoRAMapping):
                 possible_up_patterns=[
                     "transformer_blocks.{block}.attn.to_out.0.lora_up.weight",
                     "transformer.transformer_blocks.{block}.attn.to_out.0.lora.up.weight",
+                    "transformer.transformer_blocks.{block}.attn.to_out.0.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.to_out.0.lora_B.weight",
                     "transformer_blocks.{block}.attn.to_out.0.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_to_out_0.lora_up.weight",
@@ -82,6 +89,7 @@ class QwenLoRAMapping(LoRAMapping):
                 possible_down_patterns=[
                     "transformer_blocks.{block}.attn.to_out.0.lora_down.weight",
                     "transformer.transformer_blocks.{block}.attn.to_out.0.lora.down.weight",
+                    "transformer.transformer_blocks.{block}.attn.to_out.0.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.to_out.0.lora_A.weight",
                     "transformer_blocks.{block}.attn.to_out.0.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_to_out_0.lora_down.weight",
@@ -95,12 +103,14 @@ class QwenLoRAMapping(LoRAMapping):
                 model_path="transformer_blocks.{block}.attn.add_q_proj",
                 possible_up_patterns=[
                     "transformer_blocks.{block}.attn.add_q_proj.lora_up.weight",
+                    "transformer.transformer_blocks.{block}.attn.add_q_proj.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.add_q_proj.lora_B.weight",
                     "transformer_blocks.{block}.attn.add_q_proj.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_add_q_proj.lora_up.weight",
                 ],
                 possible_down_patterns=[
                     "transformer_blocks.{block}.attn.add_q_proj.lora_down.weight",
+                    "transformer.transformer_blocks.{block}.attn.add_q_proj.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.add_q_proj.lora_A.weight",
                     "transformer_blocks.{block}.attn.add_q_proj.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_add_q_proj.lora_down.weight",
@@ -114,12 +124,14 @@ class QwenLoRAMapping(LoRAMapping):
                 model_path="transformer_blocks.{block}.attn.add_k_proj",
                 possible_up_patterns=[
                     "transformer_blocks.{block}.attn.add_k_proj.lora_up.weight",
+                    "transformer.transformer_blocks.{block}.attn.add_k_proj.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.add_k_proj.lora_B.weight",
                     "transformer_blocks.{block}.attn.add_k_proj.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_add_k_proj.lora_up.weight",
                 ],
                 possible_down_patterns=[
                     "transformer_blocks.{block}.attn.add_k_proj.lora_down.weight",
+                    "transformer.transformer_blocks.{block}.attn.add_k_proj.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.add_k_proj.lora_A.weight",
                     "transformer_blocks.{block}.attn.add_k_proj.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_add_k_proj.lora_down.weight",
@@ -133,12 +145,14 @@ class QwenLoRAMapping(LoRAMapping):
                 model_path="transformer_blocks.{block}.attn.add_v_proj",
                 possible_up_patterns=[
                     "transformer_blocks.{block}.attn.add_v_proj.lora_up.weight",
+                    "transformer.transformer_blocks.{block}.attn.add_v_proj.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.add_v_proj.lora_B.weight",
                     "transformer_blocks.{block}.attn.add_v_proj.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_add_v_proj.lora_up.weight",
                 ],
                 possible_down_patterns=[
                     "transformer_blocks.{block}.attn.add_v_proj.lora_down.weight",
+                    "transformer.transformer_blocks.{block}.attn.add_v_proj.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.add_v_proj.lora_A.weight",
                     "transformer_blocks.{block}.attn.add_v_proj.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_add_v_proj.lora_down.weight",
@@ -152,12 +166,14 @@ class QwenLoRAMapping(LoRAMapping):
                 model_path="transformer_blocks.{block}.attn.to_add_out",
                 possible_up_patterns=[
                     "transformer_blocks.{block}.attn.to_add_out.lora_up.weight",
+                    "transformer.transformer_blocks.{block}.attn.to_add_out.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.to_add_out.lora_B.weight",
                     "transformer_blocks.{block}.attn.to_add_out.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_to_add_out.lora_up.weight",
                 ],
                 possible_down_patterns=[
                     "transformer_blocks.{block}.attn.to_add_out.lora_down.weight",
+                    "transformer.transformer_blocks.{block}.attn.to_add_out.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.attn.to_add_out.lora_A.weight",
                     "transformer_blocks.{block}.attn.to_add_out.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_attn_to_add_out.lora_down.weight",
@@ -171,12 +187,14 @@ class QwenLoRAMapping(LoRAMapping):
                 model_path="transformer_blocks.{block}.img_ff.mlp_in",
                 possible_up_patterns=[
                     "transformer_blocks.{block}.img_mlp.net.0.proj.lora_up.weight",
+                    "transformer.transformer_blocks.{block}.img_mlp.net.0.proj.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.img_mlp.net.0.proj.lora_B.weight",
                     "transformer_blocks.{block}.img_mlp.net.0.proj.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_img_mlp_net_0_proj.lora_up.weight",
                 ],
                 possible_down_patterns=[
                     "transformer_blocks.{block}.img_mlp.net.0.proj.lora_down.weight",
+                    "transformer.transformer_blocks.{block}.img_mlp.net.0.proj.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.img_mlp.net.0.proj.lora_A.weight",
                     "transformer_blocks.{block}.img_mlp.net.0.proj.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_img_mlp_net_0_proj.lora_down.weight",
@@ -190,12 +208,14 @@ class QwenLoRAMapping(LoRAMapping):
                 model_path="transformer_blocks.{block}.img_ff.mlp_out",
                 possible_up_patterns=[
                     "transformer_blocks.{block}.img_mlp.net.2.lora_up.weight",
+                    "transformer.transformer_blocks.{block}.img_mlp.net.2.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.img_mlp.net.2.lora_B.weight",
                     "transformer_blocks.{block}.img_mlp.net.2.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_img_mlp_net_2.lora_up.weight",
                 ],
                 possible_down_patterns=[
                     "transformer_blocks.{block}.img_mlp.net.2.lora_down.weight",
+                    "transformer.transformer_blocks.{block}.img_mlp.net.2.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.img_mlp.net.2.lora_A.weight",
                     "transformer_blocks.{block}.img_mlp.net.2.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_img_mlp_net_2.lora_down.weight",
@@ -209,12 +229,14 @@ class QwenLoRAMapping(LoRAMapping):
                 model_path="transformer_blocks.{block}.txt_ff.mlp_in",
                 possible_up_patterns=[
                     "transformer_blocks.{block}.txt_mlp.net.0.proj.lora_up.weight",
+                    "transformer.transformer_blocks.{block}.txt_mlp.net.0.proj.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.txt_mlp.net.0.proj.lora_B.weight",
                     "transformer_blocks.{block}.txt_mlp.net.0.proj.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_txt_mlp_net_0_proj.lora_up.weight",
                 ],
                 possible_down_patterns=[
                     "transformer_blocks.{block}.txt_mlp.net.0.proj.lora_down.weight",
+                    "transformer.transformer_blocks.{block}.txt_mlp.net.0.proj.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.txt_mlp.net.0.proj.lora_A.weight",
                     "transformer_blocks.{block}.txt_mlp.net.0.proj.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_txt_mlp_net_0_proj.lora_down.weight",
@@ -228,12 +250,14 @@ class QwenLoRAMapping(LoRAMapping):
                 model_path="transformer_blocks.{block}.txt_ff.mlp_out",
                 possible_up_patterns=[
                     "transformer_blocks.{block}.txt_mlp.net.2.lora_up.weight",
+                    "transformer.transformer_blocks.{block}.txt_mlp.net.2.lora_B.weight",
                     "diffusion_model.transformer_blocks.{block}.txt_mlp.net.2.lora_B.weight",
                     "transformer_blocks.{block}.txt_mlp.net.2.lora_B.default.weight",
                     "lora_unet_transformer_blocks_{block}_txt_mlp_net_2.lora_up.weight",
                 ],
                 possible_down_patterns=[
                     "transformer_blocks.{block}.txt_mlp.net.2.lora_down.weight",
+                    "transformer.transformer_blocks.{block}.txt_mlp.net.2.lora_A.weight",
                     "diffusion_model.transformer_blocks.{block}.txt_mlp.net.2.lora_A.weight",
                     "transformer_blocks.{block}.txt_mlp.net.2.lora_A.default.weight",
                     "lora_unet_transformer_blocks_{block}_txt_mlp_net_2.lora_down.weight",
@@ -241,6 +265,24 @@ class QwenLoRAMapping(LoRAMapping):
                 possible_alpha_patterns=[
                     "transformer_blocks.{block}.txt_mlp.net.2.alpha",
                     "lora_unet_transformer_blocks_{block}_txt_mlp_net_2.alpha",
+                ],
+            ),
+            LoRATarget(
+                model_path="transformer_blocks.{block}.img_mod_linear",
+                possible_up_patterns=[
+                    "transformer.transformer_blocks.{block}.img_mod.1.lora_B.weight",
+                ],
+                possible_down_patterns=[
+                    "transformer.transformer_blocks.{block}.img_mod.1.lora_A.weight",
+                ],
+            ),
+            LoRATarget(
+                model_path="transformer_blocks.{block}.txt_mod_linear",
+                possible_up_patterns=[
+                    "transformer.transformer_blocks.{block}.txt_mod.1.lora_B.weight",
+                ],
+                possible_down_patterns=[
+                    "transformer.transformer_blocks.{block}.txt_mod.1.lora_A.weight",
                 ],
             ),
         ]

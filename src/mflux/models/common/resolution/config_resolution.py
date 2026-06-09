@@ -24,6 +24,13 @@ class ConfigResolution:
         from mflux.models.common.config.model_config import AVAILABLE_MODELS, ModelConfig
         from mflux.utils.exceptions import InvalidBaseModel, ModelConfigError
 
+        if ConfigResolution._is_unsupported_flux2_dev(model_name):
+            raise ModelConfigError(
+                "black-forest-labs/FLUX.2-dev is not supported by the current MLX-Gen FLUX.2 runtime. "
+                "Use a supported FLUX.2 Klein model, or add a first-class FLUX.2-dev model config and "
+                "weight mapping before using FLUX.2-dev adapters."
+            )
+
         base_models = sorted(
             [m for m in AVAILABLE_MODELS.values() if m.base_model is None],
             key=lambda x: x.priority,
@@ -136,3 +143,8 @@ class ConfigResolution:
             sigma_max_seq_len=base.sigma_max_seq_len,
             sigma_shift_terminal=base.sigma_shift_terminal,
         )
+
+    @staticmethod
+    def _is_unsupported_flux2_dev(model_name: str) -> bool:
+        normalized = model_name.lower().replace("\\", "/").replace("--", "/")
+        return "flux.2-dev" in normalized or "flux.2/dev" in normalized

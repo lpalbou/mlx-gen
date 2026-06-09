@@ -31,6 +31,7 @@ class GeneratedVideo:
         image_path: str | Path | None = None,
         negative_prompt: str | None = None,
         guidance_2: float | None = None,
+        flow_shift: float | None = None,
         source_width: int | None = None,
         source_height: int | None = None,
         requested_width: int | None = None,
@@ -46,6 +47,7 @@ class GeneratedVideo:
         self.steps = steps
         self.guidance = guidance
         self.guidance_2 = guidance_2
+        self.flow_shift = flow_shift
         self.precision = precision
         self.quantization = quantization
         self.generation_time = generation_time
@@ -99,6 +101,7 @@ class GeneratedVideo:
             "steps": self.steps,
             "guidance": self.guidance if self.model_config.supports_guidance else None,
             "guidance_2": self.guidance_2 if self.model_config.supports_guidance else None,
+            "flow_shift": self.flow_shift,
             "height": self.height,
             "width": self.width,
             "requested_height": self.requested_height,

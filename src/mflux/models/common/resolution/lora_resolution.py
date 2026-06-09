@@ -48,14 +48,9 @@ class LoraResolution:
         if not scales:
             return [1.0] * num_paths
         if len(scales) != num_paths:
-            print(
-                f"⚠️  Number of LoRA scales ({len(scales)}) doesn't match number of LoRA paths ({num_paths}). "
-                f"Using provided scales and defaulting remaining to 1.0."
+            raise ValueError(
+                f"Number of LoRA scales ({len(scales)}) must match number of LoRA paths ({num_paths})."
             )
-            # Pad with 1.0 if too few scales, truncate if too many
-            if len(scales) < num_paths:
-                return list(scales) + [1.0] * (num_paths - len(scales))
-            return list(scales[:num_paths])
         return scales
 
     @staticmethod
@@ -115,35 +110,21 @@ class LoraResolution:
     @staticmethod
     def _is_collection_in_cache(repo_id: str, filename: str) -> bool:
         cache_path = MFLUX_LORA_CACHE_DIR
-        # Check mflux cache
         cached_file_path = cache_path / filename
         if cached_file_path.exists() and cached_file_path.is_file():
             return True
-        # Check HF cache
-        try:
-            snapshot_download(
-                repo_id=repo_id,
-                allow_patterns=[f"*{filename}*"],
-                cache_dir=str(cache_path),
-                local_files_only=True,
-            )
-            return True
-        except LocalEntryNotFoundError:
-            return False
+        return LoraResolution._cached_snapshot_exists(repo_id, [f"*{filename}*"], cache_path)
 
     @staticmethod
     def _is_repo_in_cache(repo_id: str) -> bool:
-        cache_path = MFLUX_LORA_CACHE_DIR
-        try:
-            snapshot_download(
-                repo_id=repo_id,
-                allow_patterns=["*.safetensors"],
-                cache_dir=str(cache_path),
-                local_files_only=True,
-            )
-            return True
-        except LocalEntryNotFoundError:
-            return False
+        return LoraResolution._cached_snapshot_exists(repo_id, ["*.safetensors"], MFLUX_LORA_CACHE_DIR)
+
+    @staticmethod
+    def _cached_snapshot_exists(repo_id: str, allow_patterns: list[str], cache_path: Path) -> bool:
+        for kwargs in LoraResolution._cache_kwargs(cache_path):
+            if LoraResolution._try_load_cached_snapshot(repo_id, allow_patterns, kwargs) is not None:
+                return True
+        return False
 
     @staticmethod
     def _execute(action: LoraAction, path: str) -> str:
@@ -177,14 +158,7 @@ class LoraResolution:
         cache_path = MFLUX_LORA_CACHE_DIR
         cache_path.mkdir(parents=True, exist_ok=True)
 
-        download_path = Path(
-            snapshot_download(
-                repo_id=repo_id,
-                allow_patterns=["*.safetensors"],
-                cache_dir=str(cache_path),
-                local_files_only=True,
-            )
-        )
+        download_path = LoraResolution._load_cached_snapshot(repo_id, ["*.safetensors"], cache_path)
 
         safetensor_files = list(download_path.glob("*.safetensors"))
         if not safetensor_files:
@@ -242,15 +216,7 @@ class LoraResolution:
                 # File corrupted, fall through to HF cache
                 pass
 
-        # Load from HF cache
-        download_path = Path(
-            snapshot_download(
-                repo_id=repo_id,
-                allow_patterns=[f"*{filename}*"],
-                cache_dir=str(cache_path),
-                local_files_only=True,
-            )
-        )
+        download_path = LoraResolution._load_cached_snapshot(repo_id, [f"*{filename}*"], cache_path)
 
         return LoraResolution._find_and_link_file(download_path, filename, cache_path)
 
@@ -290,6 +256,32 @@ class LoraResolution:
                 return str(target_path)
 
         raise FileNotFoundError(f"Could not find LoRA file '{filename}' in downloaded files")
+
+    @staticmethod
+    def _load_cached_snapshot(repo_id: str, allow_patterns: list[str], cache_path: Path) -> Path:
+        for kwargs in LoraResolution._cache_kwargs(cache_path):
+            snapshot = LoraResolution._try_load_cached_snapshot(repo_id, allow_patterns, kwargs)
+            if snapshot is not None:
+                return snapshot
+        raise LocalEntryNotFoundError(f"No cached LoRA snapshot found for {repo_id}.")
+
+    @staticmethod
+    def _cache_kwargs(cache_path: Path) -> tuple[dict, dict]:
+        return ({"cache_dir": str(cache_path)}, {})
+
+    @staticmethod
+    def _try_load_cached_snapshot(repo_id: str, allow_patterns: list[str], kwargs: dict) -> Path | None:
+        try:
+            return Path(
+                snapshot_download(
+                    repo_id=repo_id,
+                    allow_patterns=allow_patterns,
+                    local_files_only=True,
+                    **kwargs,
+                )
+            )
+        except LocalEntryNotFoundError:
+            return None
 
     @staticmethod
     def get_registry() -> dict[str, Path]:

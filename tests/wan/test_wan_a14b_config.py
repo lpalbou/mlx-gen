@@ -385,7 +385,7 @@ def test_wan_generate_fails_on_non_finite_noise_prediction(monkeypatch):
     assert "timestep=900" in message
     assert "denoiser=high" in message
     assert [event.phase for event in events] == ["start"]
-    assert calls == {"scheduler_steps": 0, "to_video": 0}
+    assert calls == {"scheduler_steps": 0, "to_video": 0, "scheduler_flow_shift": 3.0}
 
 
 def test_wan_generate_fails_on_non_finite_scheduler_latents(monkeypatch):
@@ -418,7 +418,7 @@ def test_wan_generate_fails_on_non_finite_scheduler_latents(monkeypatch):
     assert "timestep=900" in message
     assert "denoiser=high" in message
     assert [event.phase for event in events] == ["start"]
-    assert calls == {"scheduler_steps": 1, "to_video": 0}
+    assert calls == {"scheduler_steps": 1, "to_video": 0, "scheduler_flow_shift": 3.0}
 
 
 def test_wan_generate_fails_on_non_finite_vae_decode(monkeypatch):
@@ -446,7 +446,7 @@ def test_wan_generate_fails_on_non_finite_vae_decode(monkeypatch):
     assert "wan-vae-decode" in message
     assert "tensor=decoded" in message
     assert [event.phase for event in events] == ["start", "denoise", "denoise", "decode"]
-    assert calls == {"scheduler_steps": 2, "to_video": 0}
+    assert calls == {"scheduler_steps": 2, "to_video": 0, "scheduler_flow_shift": 3.0}
 
 
 def test_wan_generate_fails_on_non_finite_i2v_condition(monkeypatch):
@@ -480,7 +480,7 @@ def test_wan_generate_fails_on_non_finite_i2v_condition(monkeypatch):
     assert "wan-image-conditioning" in message
     assert "tensor=condition" in message
     assert [event.phase for event in events] == ["start"]
-    assert calls == {"scheduler_steps": 0, "to_video": 0}
+    assert calls == {"scheduler_steps": 0, "to_video": 0, "scheduler_flow_shift": 3.0}
 
 
 def test_wan_generate_rejects_reuse_after_denoiser_release():
@@ -763,6 +763,7 @@ def _patch_fake_wan_generation(monkeypatch, model, scheduler_output=None, patch_
         num_train_timesteps = 1000
 
         def __init__(self, flow_shift):
+            calls["scheduler_flow_shift"] = flow_shift
             self.flow_shift = flow_shift
             self.timesteps = mx.array([], dtype=mx.int64)
 
@@ -1112,6 +1113,57 @@ def test_wan_explicit_empty_negative_prompt_disables_default():
     assert "低质量" in model._resolve_negative_prompt(None)
     assert model._resolve_negative_prompt("") == ""
     assert model._resolve_negative_prompt("no blur") == "no blur"
+
+
+def test_wan_generate_passes_explicit_flow_shift_to_scheduler_and_metadata(monkeypatch):
+    model = _fake_t2v_a14b_model()
+    calls = _patch_fake_wan_generation(monkeypatch, model)
+    observed = {}
+
+    def to_video(**kwargs):
+        observed["to_video"] = kwargs
+        return SimpleNamespace()
+
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", to_video)
+
+    model.generate_video(
+        seed=1,
+        prompt="a slow misty lake",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        flow_shift=2.5,
+    )
+
+    assert calls["scheduler_flow_shift"] == 2.5
+    assert observed["to_video"]["flow_shift"] == 2.5
+
+
+def test_wan_generate_uses_model_default_flow_shift(monkeypatch):
+    model = _fake_t2v_a14b_model()
+    calls = _patch_fake_wan_generation(monkeypatch, model)
+
+    model.generate_video(
+        seed=1,
+        prompt="a slow misty lake",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+    )
+
+    assert calls["scheduler_flow_shift"] == 3.0
+
+
+def test_wan_generate_rejects_invalid_flow_shift():
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    model.model_config = ModelConfig.wan2_2_ti2v_5b()
+
+    with pytest.raises(ValueError, match="flow_shift"):
+        model._resolve_flow_shift(0)
 
 
 def test_wan_a14b_i2v_condition_uses_20_condition_channels(tmp_path):

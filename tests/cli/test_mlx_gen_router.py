@@ -424,6 +424,9 @@ def test_capabilities_command_reports_model_modes(capsys):
     assert payload["family"] == "flux2"
     modes = {capability["mode"] for capability in payload["capabilities"]}
     assert {"text-only", "latent-img2img", "edit-reference", "multi-reference"}.issubset(modes)
+    edit = next(capability for capability in payload["capabilities"] if capability["mode"] == "edit-reference")
+    assert edit["supports_lora"] is True
+    assert edit["lora_status"] == "mapped-unvalidated"
 
 
 def test_capabilities_command_accepts_base_model_for_local_paths(capsys):
@@ -432,6 +435,64 @@ def test_capabilities_command_accepts_base_model_for_local_paths(capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["family"] == "flux2"
     assert payload["model_name"] == "../models/local-flux2-folder"
+
+
+def test_unified_router_rejects_lora_scales_without_paths(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "flux2-klein-4b",
+                "--prompt",
+                "test",
+                "--lora-scales",
+                "0.9",
+            ]
+        )
+
+    assert "--lora-scales requires --lora-paths" in capsys.readouterr().err
+
+
+def test_unified_router_rejects_lora_for_unsupported_family(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "ernie-image-turbo",
+                "--prompt",
+                "test",
+                "--lora-paths",
+                "adapter.safetensors",
+            ]
+        )
+
+    assert "LoRA mapping" in capsys.readouterr().err
+
+
+def test_unified_router_rejects_flux2_dev_lora_for_flux2_klein(monkeypatch, capsys):
+    from mflux.models.common.lora.lora_compatibility import LoRACompatibility
+
+    monkeypatch.setattr(
+        LoRACompatibility,
+        "_cached_base_models",
+        staticmethod(lambda repo_id: ("black-forest-labs/FLUX.2-dev",)),
+    )
+
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "flux2-klein-4b",
+                "--prompt",
+                "<sks> back view eye-level shot medium shot",
+                "--lora-paths",
+                "lovis93/Flux-2-Multi-Angles-LoRA-v2:flux-multi-angles-v2-72poses-comfy.safetensors",
+            ]
+        )
+
+    error = capsys.readouterr().err
+    assert "targets black-forest-labs/FLUX.2-dev" in error
+    assert "FLUX.2 Klein" in error
 
 
 def test_validation_command_reports_model_specific_status(capsys):
@@ -2035,6 +2096,8 @@ def test_routes_wan_text_to_video_generation():
             "5",
             "--fps",
             "8",
+            "--flow-shift",
+            "3",
         ]
     )
 
@@ -2049,6 +2112,8 @@ def test_routes_wan_text_to_video_generation():
         "5",
         "--fps",
         "8",
+        "--flow-shift",
+        "3",
     ]
 
 
@@ -2173,6 +2238,8 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
             "2",
             "--guidance-2",
             "1.5",
+            "--flow-shift",
+            "3",
             "--seed",
             "123",
             "--image-path",
@@ -2195,6 +2262,7 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
     assert observed["generate"]["fps"] == 8
     assert observed["generate"]["num_inference_steps"] == 2
     assert observed["generate"]["guidance_2"] == 1.5
+    assert observed["generate"]["flow_shift"] == 3.0
     assert observed["generate"]["seed"] == 123
     assert observed["generate"]["image_path"] == str(image_path)
     assert callable(observed["generate"]["progress_callback"])

@@ -69,6 +69,22 @@ class TestFlux2LoRAMapping:
 
         assert self._matched_keys(keys) == set(keys)
 
+    def test_matches_flux2_dev_diffusion_model_global_aliases(self):
+        keys = [
+            "diffusion_model.img_in.lora_A.weight",
+            "diffusion_model.img_in.lora_B.weight",
+            "diffusion_model.txt_in.lora_A.weight",
+            "diffusion_model.txt_in.lora_B.weight",
+            "diffusion_model.time_in.in_layer.lora_A.weight",
+            "diffusion_model.time_in.in_layer.lora_B.weight",
+            "diffusion_model.time_in.out_layer.lora_A.weight",
+            "diffusion_model.time_in.out_layer.lora_B.weight",
+            "diffusion_model.final_layer.linear.lora_A.weight",
+            "diffusion_model.final_layer.linear.lora_B.weight",
+        ]
+
+        assert self._matched_keys(keys) == set(keys)
+
     def _matched_keys(self, keys: list[str]) -> set[str]:
         matched_keys: set[str] = set()
 
