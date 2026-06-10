@@ -441,15 +441,16 @@ size target, and the runtime resolves the closest supported canvas from the inpu
 conditioning the model. The video is generated directly at the resolved canvas; MLX-Gen does not
 generate a stretched canvas and then crop or resize it back afterward.
 
-| Model | Required multiple | Recommended/native size | Practical lower-cost sizes |
+| Model | Required multiple | Recommended/native size | Lower-cost diagnostic sizes |
 | --- | ---: | --- | --- |
-| TI2V-5B T2V/I2V | 32 px | `1280x704` or `704x1280` | `832x480`, `480x832`, `448x256`, `256x448` |
+| TI2V-5B T2V/I2V | 32 px | `1280x704` or `704x1280` | `832x480`, `480x832`; smaller sizes such as `448x256` are smoke checks only |
 | T2V-A14B | 16 px | `1280x720` or `720x1280` | `832x480`, `480x832`, `448x256`, `256x448`, `432x240` |
 | I2V-A14B | 16 px | `1280x720` or `720x1280` | `832x480`, `480x832`, `448x256`, `256x448`, `432x240` |
 
 For TI2V-5B text-to-video, `1280x720` adjusts to `1280x736`, and `432x240` adjusts to `448x256`.
 For A14B text-to-video, `1280x720`, `832x480`, `448x256`, and `432x240` are already valid multiples
-of 16. Lower-cost sizes are useful for routing checks and prompt iteration; use the
+of 16. For TI2V-5B, use at least `832x480` for visual prompt checks; smaller canvases are useful for
+route checks only. Use the
 recommended/native size, frame count, and step count when judging visual quality.
 
 TI2V-5B also has a flow-matching schedule shift. MLX-Gen uses the model default `5.0` for native

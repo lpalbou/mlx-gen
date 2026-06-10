@@ -334,9 +334,9 @@ MLX-Gen also preserves the source image aspect ratio: the requested `--width` an
 a size target, and the actual output canvas is resolved from the input image ratio and model
 multiples before generation.
 
-| Model | Required multiple | Recommended/native size | Practical lower-cost sizes |
+| Model | Required multiple | Recommended/native size | Lower-cost diagnostic sizes |
 | --- | ---: | --- | --- |
-| TI2V-5B T2V/I2V | 32 px | `1280x704` or `704x1280` | `832x480`, `480x832`, `448x256`, `256x448` |
+| TI2V-5B T2V/I2V | 32 px | `1280x704` or `704x1280` | `832x480`, `480x832`; smaller sizes such as `448x256` are smoke checks only |
 | T2V-A14B | 16 px | `1280x720` or `720x1280` | `832x480`, `480x832`, `448x256`, `256x448`, `432x240` |
 | I2V-A14B | 16 px | `1280x720` or `720x1280` | `832x480`, `480x832`, `448x256`, `256x448`, `432x240` |
 
@@ -345,8 +345,9 @@ For A14B text-to-video, `1280x720`, `832x480`, `448x256`, and `432x240` are vali
 For image-to-video, saved metadata records the requested size, source image size, and resolved
 output size.
 
-Use `448x256` or larger for visual Wan checks. Very small square canvases such as `128x128` are not
-representative of Wan video quality or prompt adherence.
+For TI2V-5B, use at least `832x480` for visual prompt checks; smaller canvases are useful for route
+checks only. Very small square canvases such as `128x128` are not representative of Wan video
+quality or prompt adherence.
 
 For practical 5-second local clips on an M5 Max, Wan A14B at `480x240` or `240x480`, `101` frames,
 `20` fps, and `20` to `25` steps is a useful starting point and takes about 30 minutes in the

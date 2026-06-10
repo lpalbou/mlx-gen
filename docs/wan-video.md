@@ -16,6 +16,8 @@ TI2V-5B remains useful as the smaller 5B route and supports both text-to-video a
 image-to-video. It uses 32-pixel spatial multiples and is designed around `1280x704` or
 `704x1280`; `832x480` is a practical lower-cost size. A `1280x704`, `25` step, `101` frame local
 run takes about the same time as the A14B `480x240` profile in this page.
+For TI2V-5B, treat smaller canvases below `832x480` as command and prompt-routing checks rather
+than visual-quality settings.
 
 Wan uses a flow-matching schedule shift. MLX-Gen uses the selected model's default unless you pass
 `--flow-shift`: TI2V-5B defaults to `5.0` for native 720p-class runs, while A14B defaults to `3.0`.

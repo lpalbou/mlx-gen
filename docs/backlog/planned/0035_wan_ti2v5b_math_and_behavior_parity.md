@@ -183,6 +183,33 @@ mismatch, users will waste long video runs and may draw the wrong conclusion abo
   A14B for the starship prompt after the same prompt/negative/seed/settings review, that points more
   toward model/prompt behavior than an MLX math mismatch.
 
+## 2026-06-10 Findings
+
+- User-provided TI2V-5B clips under `/Users/albou/Desktop/vidgen/wan*` show a consistent practical
+  pattern: very small outputs such as `448x256` and `480x256` are not useful for quality assessment,
+  while `832x480` and `1280x704` can produce coherent scenes but weak main-subject translation for
+  the starship-takeoff prompt.
+- Official Wan2.2 documentation only lists `1280x704` and `704x1280` as supported TI2V-5B sizes.
+  `832x480` remains a practical lower-cost diagnostic size, not an official TI2V-5B quality target.
+- The exact starship prompt used in the local clips is not truncated by the Wan UMT5 tokenizer: it
+  encodes to 139 tokens with `max_sequence_length=512`. The default Wan negative prompt encodes to
+  126 tokens. The action terms are therefore reaching prompt conditioning.
+- Current MLX-Gen Wan parity tests passed on 2026-06-10:
+  `MFLUX_RUN_LOCAL_WAN_PARITY=1 uv run pytest tests/wan/test_wan_local_parity.py
+  tests/wan/test_wan_scheduler_and_timesteps.py -q` produced 12 passing tests. Covered surfaces
+  include prompt embeddings, negative prompt embeddings, transformer forward, VAE encode/decode,
+  scheduler replay, expanded timesteps, and a tiny CFG denoise loop against Diffusers fixtures.
+- A bounded source-model visual check completed with an explicit motion-schedule prompt:
+  `Wan-AI/Wan2.2-TI2V-5B-Diffusers`, `832x480`, 41 frames, 15 steps, 20 fps, `--flow-shift 5`,
+  guidance 5, seed 6101. Artifacts are under
+  `validation_outputs/wan/ti2v5b_motion_investigation_2026_06_10/`. The output keeps the ship
+  coherent and increases thrust/plume motion, but still does not produce a strong takeoff. This
+  supports the current read that the observed weakness is prompt/model behavior unless a larger
+  same-settings reference-generation mismatch is found.
+- No MLX code patch was made from this pass. The remaining evidence gap is not a known local math
+  mismatch; it is a full-generation comparison against Diffusers or official Wan at a practical
+  shape using the same prompt/negative/settings and, where feasible, shared initial latents.
+
 ## Validation
 
 - Tensor parity reports with shapes, dtypes, tolerances, and artifact paths.

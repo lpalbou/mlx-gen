@@ -422,16 +422,17 @@ At the default 24 fps, `--frames 121` produces about 5.04 seconds of video, `--f
 
 Common Wan video sizes:
 
-| Model | Required width/height multiple | Recommended/native quality size | Useful lower-cost sizes | Notes |
+| Model | Required width/height multiple | Recommended/native quality size | Lower-cost diagnostic sizes | Notes |
 | --- | ---: | --- | --- | --- |
-| TI2V-5B T2V/I2V | 32 px | `1280x704` or `704x1280` | `832x480`, `480x832`, `448x256`, `256x448` | Text-to-video `1280x720` adjusts to `1280x736`; image-to-video preserves the source image ratio at a nearby supported canvas. |
+| TI2V-5B T2V/I2V | 32 px | `1280x704` or `704x1280` | `832x480`, `480x832`; smaller sizes such as `448x256` are smoke checks only | Text-to-video `1280x720` adjusts to `1280x736`; image-to-video preserves the source image ratio at a nearby supported canvas. |
 | T2V-A14B | 16 px | `1280x720` or `720x1280` | `832x480`, `480x832`, `448x256`, `256x448`, `432x240` | Text-to-video only; image input is rejected. |
 | I2V-A14B | 16 px | Source-ratio canvas near `1280x720` or `720x1280` | Source-ratio canvas near `832x480`, `448x256`, or `432x240` | Requires one input image; output preserves the source image ratio at a nearby supported canvas. |
 
 The upstream TI2V-5B guidance is 1280x704 or 704x1280, 121 frames, 50 steps, 24 fps, and flow shift
 `5.0`. The upstream A14B guidance is 1280x720 or 720x1280, 81 frames, 40 steps, `--guidance 4`,
 optional `--guidance-2 3`, flow shift `3.0`, and 16 fps. Lower resolutions, frame counts, or step
-counts are useful for routing and prompt checks; for 480p-class TI2V-5B checks, use
+counts are useful for routing and prompt checks; for visual TI2V-5B prompt checks, use at least
+`832x480` and pass
 `--flow-shift 3`.
 
 For a practical 5-second local profile, A14B T2V at `480x240` or `240x480`, `101` frames,
