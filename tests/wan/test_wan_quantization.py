@@ -15,10 +15,11 @@ def test_wan_q8_keeps_conditioning_and_output_projection_bf16():
     assert not WanWeightDefinition.quantization_predicate("condition_embedder.time_proj", module, 8)
     assert not WanWeightDefinition.quantization_predicate("condition_embedder.text_embedder.linear_1", module, 8)
     assert not WanWeightDefinition.quantization_predicate("proj_out", module, 8)
-    assert WanWeightDefinition.quantization_predicate("blocks.0.attn2.to_q", module, 8)
-    assert WanWeightDefinition.quantization_predicate("blocks.0.attn2.to_out.0", module, 8)
-    assert WanWeightDefinition.quantization_predicate("blocks.0.attn1.to_q", module, 8)
-    assert WanWeightDefinition.quantization_predicate("blocks.0.ffn.net.0", module, 8)
+    assert not WanWeightDefinition.quantization_predicate("blocks.0.attn2.to_q", module, 8)
+    assert not WanWeightDefinition.quantization_predicate("blocks.0.attn2.to_out.0", module, 8)
+    assert not WanWeightDefinition.quantization_predicate("blocks.0.attn1.to_q", module, 8)
+    assert not WanWeightDefinition.quantization_predicate("blocks.0.ffn.net.0", module, 8)
+    assert not WanWeightDefinition.quantization_predicate("blocks.0.ffn.net.1", module, 8)
 
 
 def test_wan_q4_uses_existing_full_quantizable_module_policy():
@@ -69,8 +70,13 @@ def test_wan_initializer_accepts_current_q8_sensitive_bf16_layout():
                 "attn1": {
                     "to_q": {
                         "weight": object(),
-                        "scales": object(),
-                        "biases": object(),
+                    }
+                },
+                "ffn": {
+                    "net": {
+                        "0": {
+                            "weight": object(),
+                        }
                     }
                 }
             }
@@ -78,3 +84,24 @@ def test_wan_initializer_accepts_current_q8_sensitive_bf16_layout():
     }
 
     WanInitializer._validate_component_quantization_layout("transformer", weights, 8)
+
+
+def test_wan_initializer_rejects_old_q8_ffn_layout():
+    weights = {
+        "blocks": {
+            "0": {
+                "ffn": {
+                    "net": {
+                        "0": {
+                            "weight": object(),
+                            "scales": object(),
+                            "biases": object(),
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    with pytest.raises(ValueError, match="incompatible older quantization layout"):
+        WanInitializer._validate_component_quantization_layout("transformer", weights, 8)

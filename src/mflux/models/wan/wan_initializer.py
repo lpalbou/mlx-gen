@@ -122,6 +122,11 @@ class WanInitializer:
                 root_path=root_path,
                 component=component,
             )
+            WanInitializer._normalize_runtime_sensitive_q8_paths(
+                component_name=component.name,
+                component_weights=component_weights,
+                q_level=q_level,
+            )
             WanInitializer._validate_component_quantization_layout(component.name, component_weights, q_level)
             loaded_weights = LoadedWeights(
                 components={component.name: component_weights},
@@ -396,6 +401,111 @@ class WanInitializer:
             f"{component_name} stores q8 tensors for BF16-only paths ({examples}). "
             "Regenerate or re-download the checkpoint with the current Wan q8 policy; "
             "conditioning and output projection layers must remain BF16."
+        )
+
+    @staticmethod
+    def _normalize_runtime_sensitive_q8_paths(
+        component_name: str,
+        component_weights: dict,
+        q_level: int | None,
+    ) -> None:
+        if q_level != 8 or component_name not in ("transformer", "transformer_2"):
+            return
+
+        normalized_paths: list[str] = []
+        WanInitializer._normalize_runtime_sensitive_q8_paths_recursive(
+            node=component_weights,
+            path="",
+            normalized_paths=normalized_paths,
+        )
+        if normalized_paths:
+            preview = ", ".join(normalized_paths[:3])
+            if len(normalized_paths) > 3:
+                preview += ", ..."
+            print(
+                "⚠️  Normalizing Wan q8 runtime-sensitive paths to BF16 at load: "
+                f"{preview}"
+            )
+
+    @staticmethod
+    def _normalize_runtime_sensitive_q8_paths_recursive(
+        node,
+        *,
+        path: str,
+        normalized_paths: list[str],
+    ) -> None:
+        if isinstance(node, list):
+            for index, value in enumerate(node):
+                next_path = f"{path}.{index}" if path else str(index)
+                WanInitializer._normalize_runtime_sensitive_q8_paths_recursive(
+                    value,
+                    path=next_path,
+                    normalized_paths=normalized_paths,
+                )
+            return
+
+        if not isinstance(node, dict):
+            return
+
+        if WanInitializer._is_quantized_linear_state(node) and WanInitializer._is_runtime_sensitive_q8_path(path):
+            node["weight"] = WanInitializer._dequantized_linear_weight(node)
+            node.pop("scales", None)
+            node.pop("biases", None)
+            normalized_paths.append(path)
+            return
+
+        for key, value in node.items():
+            next_path = f"{path}.{key}" if path else str(key)
+            WanInitializer._normalize_runtime_sensitive_q8_paths_recursive(
+                value,
+                path=next_path,
+                normalized_paths=normalized_paths,
+            )
+
+    @staticmethod
+    def _is_quantized_linear_state(node: dict) -> bool:
+        return {
+            "weight",
+            "scales",
+            "biases",
+        }.issubset(node.keys())
+
+    @staticmethod
+    def _dequantized_linear_weight(node: dict) -> mx.array:
+        bits = 8
+        input_dims = int(node["weight"].shape[1]) * (32 // bits)
+        scale_columns = int(node["scales"].shape[1])
+        if scale_columns <= 0 or input_dims % scale_columns != 0:
+            raise ValueError(
+                "Cannot infer Wan q8 group size for runtime normalization: "
+                f"weight={tuple(node['weight'].shape)}, scales={tuple(node['scales'].shape)}."
+            )
+        group_size = input_dims // scale_columns
+        return mx.dequantize(
+            node["weight"],
+            node["scales"],
+            node["biases"],
+            group_size=group_size,
+            bits=bits,
+        ).astype(ModelConfig.precision)
+
+    @staticmethod
+    def _is_runtime_sensitive_q8_path(path: str) -> bool:
+        return path.endswith(
+            (
+                ".attn1.to_q",
+                ".attn1.to_k",
+                ".attn1.to_v",
+                ".attn1.to_out.0",
+                ".attn2.to_q",
+                ".attn2.to_k",
+                ".attn2.to_v",
+                ".attn2.to_out.0",
+                ".attn2.add_k_proj",
+                ".attn2.add_v_proj",
+                ".ffn.net.0",
+                ".ffn.net.1",
+            )
         )
 
     @staticmethod

@@ -390,8 +390,8 @@ Current Wan q8 public rows now have exact route proofs:
 
 ![Wan TI2V-5B q8 HSToric LoRA A/B](assets/validation/wan-lora-2026-06-11/ti2v_t2v_hstoric_ab_contact_sheet.jpg)
 ![Wan TI2V-5B q8 Crush-It I2V LoRA A/B](assets/validation/wan-lora-2026-06-11/ti2v_i2v_crushit_ab_contact_sheet.jpg)
-![Wan T2V-A14B q8 FollowCam LoRA A/B](assets/validation/wan-lora-2026-06-11/a14b_t2v_followcam_ab_contact_sheet.jpg)
-![Wan I2V-A14B q8 Orbit LoRA A/B](assets/validation/wan-lora-2026-06-11/a14b_i2v_orbit_spaceship_ab_contact_sheet.jpg)
+![Wan T2V-A14B q8 LightX2V 4-Step A/B](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_4step_ab_contact_sheet.jpg)
+![Wan I2V-A14B q8 LightX2V 4-Step A/B](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_i2v_lightx2v_4step_ab_contact_sheet.jpg)
 
 Representative commands:
 
@@ -444,52 +444,146 @@ mlxgen generate \
   --lora-paths /Users/albou/.cache/huggingface/hub/models--ostris--wan22_5b_i2v_crush_it_lora/snapshots/e4b85be20d75c2ca2ee1b901ba2cf49d9416e233/wan22_5b_i2v_crush_it_lora.safetensors \
   --lora-target-roles transformer \
   --lora-scales 1
+```
 
+For Wan A14B, the current recommended fast path is the official `lightx2v/Wan2.2-Lightning`
+paired 4-step recipe. The accepted proof is same-seed `4`-step no-LoRA versus same-seed `4`-step
+with the paired Lightning files, using:
+
+- `steps=4`
+- `flow_shift=5.0`
+- `guidance=1.0`
+- `guidance_2=1.0`
+- explicit `high_noise_transformer` and `low_noise_transformer` roles
+
+That accepted A/B proof is a **LoRA-effect proof**, not a fair quality comparison against the
+normal longer Wan profile. The point of the same-step `4`-step no-LoRA row is only to show that
+the paired LightX2V files materially change the result on the current Wan runtime.
+
+```sh
 mlxgen generate \
   --model AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit \
-  --prompt "FollowCam. A continuous wide-angle shot as we follow a rider on horseback galloping through a foggy meadow at dawn. The horse stays centered ahead while mist swirls around its legs, wet grass kicks up behind the hooves, and trees emerge and disappear in the fog." \
+  --prompt "A cinematic wide-angle movie shot of a massive futuristic starship taking off from a frozen tundra. The ship features sleek dark metallic armor. Two massive warp nacelles pulse with bright blue plasma. Violent snow squalls whip around the hull. The camera slowly tilts up as the thrusters ignite and massive clouds of snow blast away from the launch pad. Photorealistic, highly detailed, dramatic lighting." \
+  --negative "oversaturated colors, overexposed, static shot, blurry details, subtitles, text, watermark, painting, illustration, ugly, deformed, broken anatomy, extra limbs, cluttered background, frozen frame, low quality, jpeg artifacts" \
   --width 480 \
   --height 240 \
   --frames 41 \
-  --steps 20 \
-  --guidance 4 \
-  --guidance-2 3 \
+  --steps 4 \
+  --guidance 1 \
+  --guidance-2 1 \
+  --flow-shift 5 \
   --fps 20 \
-  --seed 6601 \
+  --seed 7401 \
   --metadata \
   --replace \
-  --output validation_outputs/wan_lora_2026_06_11/a14b_t2v_followcam_q8_with_lora.mp4 \
-  --lora-paths '/Users/albou/.cache/huggingface/hub/models--artificialguybr--FollowCam-Redmond-WAN2-T2V-14B/snapshots/20415b092632128b1dd1b52bf46cc9cbac89a72b/[WAN2.2]Followcam_Redmond_high_noise.safetensors' '/Users/albou/.cache/huggingface/hub/models--artificialguybr--FollowCam-Redmond-WAN2-T2V-14B/snapshots/20415b092632128b1dd1b52bf46cc9cbac89a72b/[WAN2.2]Followcam_Redmond_low_noise.safetensors' \
+  --output validation_outputs/lightx2v_wan_4step_2026_06_12/a14b_t2v_4step_lightning_q8.mp4 \
+  --lora-paths /Users/albou/.cache/huggingface/hub/models--lightx2v--Wan2.2-Lightning/snapshots/18bccf8884ec0a078eed79785eb4ef13ea16ce1e/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors /Users/albou/.cache/huggingface/hub/models--lightx2v--Wan2.2-Lightning/snapshots/18bccf8884ec0a078eed79785eb4ef13ea16ce1e/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors \
   --lora-target-roles high_noise_transformer low_noise_transformer \
   --lora-scales 1 1
 
 mlxgen generate \
   --model AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit \
   --image docs/assets/examples/spaceship-snow/01_t2i_spaceship_snow.png \
-  --prompt "orbit 360 around the landed silver spaceship in the snowy canyon. The camera circles smoothly around the full ship while keeping it centered in frame. Snow cliffs and the icy ground slide in parallax behind it." \
+  --prompt "Starting from the input image, the silver spaceship powers up and lifts off from the frozen ground. Blue engines brighten, snow blasts outward, vapor rolls under the hull, and the camera holds the same wide icy canyon framing while the ship rises smoothly." \
+  --negative "oversaturated colors, overexposed, static shot, blurry details, subtitles, text, watermark, painting, illustration, ugly, deformed, broken anatomy, extra limbs, cluttered background, frozen frame, low quality, jpeg artifacts" \
   --width 480 \
   --height 240 \
   --frames 41 \
-  --steps 20 \
-  --guidance 4 \
-  --guidance-2 3 \
+  --steps 4 \
+  --guidance 1 \
+  --guidance-2 1 \
+  --flow-shift 5 \
   --fps 20 \
-  --seed 6604 \
+  --seed 7402 \
   --metadata \
   --replace \
-  --output validation_outputs/wan_lora_2026_06_11/a14b_i2v_orbit_spaceship_q8_with_lora.mp4 \
-  --lora-paths /Users/albou/.cache/huggingface/hub/models--ostris--wan22_i2v_14b_orbit_shot_lora/snapshots/7b637fe0079bbf4ac0f977ff2c58971b8835b9c7/wan22_14b_i2v_orbit_high_noise.safetensors /Users/albou/.cache/huggingface/hub/models--ostris--wan22_i2v_14b_orbit_shot_lora/snapshots/7b637fe0079bbf4ac0f977ff2c58971b8835b9c7/wan22_14b_i2v_orbit_low_noise.safetensors \
+  --output validation_outputs/lightx2v_wan_4step_2026_06_12/a14b_i2v_4step_lightning_q8.mp4 \
+  --lora-paths /Users/albou/.cache/huggingface/hub/models--lightx2v--Wan2.2-Lightning/snapshots/18bccf8884ec0a078eed79785eb4ef13ea16ce1e/Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/high_noise_model.safetensors /Users/albou/.cache/huggingface/hub/models--lightx2v--Wan2.2-Lightning/snapshots/18bccf8884ec0a078eed79785eb4ef13ea16ce1e/Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/low_noise_model.safetensors \
   --lora-target-roles high_noise_transformer low_noise_transformer \
   --lora-scales 1 1
 ```
+
+MLX-Gen also now carries a longer-run speed comparison against the current practical original A14B
+profiles at `81` frames and `20` fps:
+
+![Wan T2V-A14B q8 LightX2V 81-frame speed comparison](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_81f_speed_comparison.jpg)
+![Wan I2V-A14B q8 LightX2V 81-frame speed comparison](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_i2v_lightx2v_81f_speed_comparison.jpg)
+
+These comparisons use the same prompt or source image, the same seed, the same requested
+`480x240`, and the same `81`-frame / `20` fps output target. The comparison baseline is the
+current practical original profile, not the full `40`-step config default:
+
+| Route | Original practical profile | LightX2V Lightning profile | Measured wall time | Speedup |
+| --- | --- | --- | ---: | ---: |
+| `wan2.2-t2v-a14b` q8 | `20` steps, `g=4`, `g2=3`, `flow_shift=3` | `4` steps, `g=1`, `g2=1`, `flow_shift=5` | `1356.45s` -> `163.94s` | `8.27x` |
+| `wan2.2-i2v-a14b` q8 | `20` steps, `g=3.5`, `g2=3.5`, `flow_shift=3` | `4` steps, `g=1`, `g2=1`, `flow_shift=5` | `887.40s` -> `144.70s` | `6.13x` |
+
+The I2V row resolved to `448x256` because MLX-Gen preserved the source-image aspect ratio from the
+requested `480x240`. The T2V row stayed at `480x240`.
+
+Treat Lightning as an explicit fast recipe, not as a universal quality replacement for the
+original Wan profile. The measured result is that it produces coherent local videos much faster.
+Depending on the prompt and route, the original longer profile can still yield a stronger or simply
+different interpretation.
+
+The LightX2V README itself also matters here:
+
+- it advertises A14B T2V and I2V at `480P` and `720P`, not `240p`
+- it recommends prompt extension to improve detail
+- it explicitly says the T2V model can still show artifacts on scenes with very large motion
+
+MLX-Gen now includes an additional T2V step sweep on an Apple `M5 Max` to check whether the
+low-detail quick-profile result was just a `4`-step problem:
+
+![Wan T2V-A14B q8 LightX2V step sweep on M5 Max](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_81f_step_sweep_m5max.jpg)
+
+For the same `81`-frame `480x240` quick profile and same seed:
+
+| T2V quick profile | Measured wall time | Speedup vs original |
+| --- | ---: | ---: |
+| original practical profile, `20` steps | `1356.45s` | baseline |
+| LightX2V Lightning, `4` steps | `163.94s` | `8.27x` |
+| LightX2V Lightning, `6` steps | `197.63s` | `6.86x` |
+| LightX2V Lightning, `8` steps | `279.40s` | `4.85x` |
+
+The result is useful: `6` to `8` steps recover some detail and readability, but they do not close
+the gap to the original `20`-step run at `240p`. That points more to an aggressive low-resolution
+fast path than to a loader or scheduler bug.
+
+MLX-Gen also includes a `480P` T2V probe on the same Apple `M5 Max`:
+
+![Wan T2V-A14B q8 LightX2V 480P probe on M5 Max](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_480p_probe_m5max.jpg)
+
+That probe uses the same LightX2V `4`-step recipe at `832x480` for `41` frames and finishes in
+`334.75s`. It is not directly time-comparable to the `81`-frame quick row, but it is visibly
+stronger than the `240p` quick profile, which supports the LightX2V README's `480P` / `720P`
+quality envelope claim.
+
+One real q8 runtime issue did show up during the higher-resolution follow-up: the first frames of
+the A14B T2V `720p` q8 Lightning run started as noise while the BF16 reference was already clean.
+That was not a model warm-up effect. The fix was to keep the Wan FFN LoRA target family
+(`ffn.net.0` and `ffn.net.1`) at BF16 runtime precision alongside the already protected
+attention-family paths. After that repair, the q8 `1280x720`, `41`-frame, `4`-step LightX2V run
+starts clean from frame `0` and visually tracks the BF16 reference across the sample:
+
+![Wan T2V-A14B q8 vs BF16 keyframe comparison after FFN runtime repair](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_q8_vs_bf16_frame_compare.png)
+
+Practical reading:
+
+- for fast local previsualization, the `240p` `4`-step recipe is useful
+- for presentation quality, stay closer to `480P` / `720P` or use the longer original Wan profile
+- for this family, I2V currently tolerates the quick `240p` path better than T2V because the
+  source frame preserves composition and detail
 
 The validated Wan runs used exact base-model adapters, explicit role assignment, and same-seed A/B
 comparisons. The matched adapter counts were:
 
 - TI2V-5B text-to-video: `600/600` matched, `300` layers applied
 - TI2V-5B first-frame image-to-video: `600/600` matched, `300` layers applied
-- T2V-A14B text-to-video: `800/800` matched on both high-noise and low-noise files, `400` layers applied per file
-- I2V-A14B first-frame image-to-video: `800/800` matched on both high-noise and low-noise files, `400` layers applied per file
+- T2V-A14B text-to-video effect adapters: `800/800` matched on both high-noise and low-noise files, `400` layers applied per file
+- I2V-A14B first-frame effect adapters: `800/800` matched on both high-noise and low-noise files, `400` layers applied per file
+- T2V-A14B LightX2V Lightning 4-step: `1200/1200` matched on both high-noise and low-noise files, `400` layers applied per file
+- I2V-A14B LightX2V Lightning 4-step: `1200/1200` matched on both high-noise and low-noise files, `400` layers applied per file
 
 Combined route matrix: [summary sheet](assets/validation/wan-lora-2026-06-11/wan_video_lora_route_matrix.jpg)
 

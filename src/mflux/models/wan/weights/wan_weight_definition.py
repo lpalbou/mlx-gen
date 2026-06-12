@@ -114,4 +114,23 @@ class WanWeightDefinition:
 
     @staticmethod
     def _is_q8_sensitive_transformer_path(path: str) -> bool:
-        return path == "proj_out" or path.startswith("condition_embedder.")
+        return (
+            path == "proj_out"
+            or path.startswith("condition_embedder.")
+            or path.endswith(
+                (
+                    ".attn1.to_q",
+                    ".attn1.to_k",
+                    ".attn1.to_v",
+                    ".attn1.to_out.0",
+                    ".attn2.to_q",
+                    ".attn2.to_k",
+                    ".attn2.to_v",
+                    ".attn2.to_out.0",
+                    ".attn2.add_k_proj",
+                    ".attn2.add_v_proj",
+                    ".ffn.net.0",
+                    ".ffn.net.1",
+                )
+            )
+        )
