@@ -3,8 +3,8 @@
 ## Metadata
 
 - Created: 2026-06-12
-- Status: Planned
-- Completed: N/A
+- Status: Completed
+- Completed: 2026-06-12
 
 ## ADR status
 
@@ -118,3 +118,62 @@ automation become flaky or fail under the next runner default.
 
 Treat this as urgent maintenance because the published GitHub deadline is close. Keep the patch
 small, verify the actual workflows, and avoid folding unrelated CI opinions into the same change.
+
+## Completion report
+
+### 2026-06-12
+
+#### Summary
+
+Migrated the repository workflows off the Node 20 action runtime with a narrow version-only patch.
+The implemented strategy was:
+
+- `actions/checkout@v4` -> `actions/checkout@v5`
+- `actions/setup-python@v5` -> `actions/setup-python@v6`
+- `actions/upload-artifact@v4` -> `actions/upload-artifact@v6`
+- `actions/download-artifact@v4` -> `actions/download-artifact@v7`
+
+The workflow graph, runner selection, release semantics, and trusted publishing behavior were left
+unchanged.
+
+#### Files changed
+
+- `.github/workflows/tests.yml`
+- `.github/workflows/release.yml`
+- `docs/backlog/overview.md`
+- `docs/backlog/recurrent/0017_backlog_release_hygiene.md`
+
+#### Validation
+
+- PR branch: `ci/node24-migration`
+- PR: `#4`
+- PR CI run: `27443720109`
+- Release workflow rehearsal: `27443742691`
+
+Observed result:
+
+- The release rehearsal succeeded end to end on the branch.
+- The upgraded actions no longer emitted the Node 20 deprecation warnings seen in release run
+  `27440684820`.
+- The PR CI run exercised the upgraded actions successfully, but the overall workflow stayed red
+  because `ruff` found pre-existing repository lint issues outside the scope of this migration:
+  - `src/mflux/models/ernie_image/cli/ernie_image_generate.py`
+  - `src/mflux/models/ernie_image/weights/ernie_image_lora_mapping.py`
+  - `src/mflux/models/wan/wan_initializer.py`
+  - `src/mflux/models/wan/weights/wan_lora_mapping.py`
+
+#### Outcome
+
+This item is complete. The Node 24 migration itself is implemented and validated on the release
+path that originally emitted the warning. The remaining red PR CI signal is tracked as unrelated
+repository lint drift, not a workflow-runtime compatibility problem.
+
+#### Reusable strategy
+
+For similar repositories, use the same bounded sequence:
+
+1. identify the specific JavaScript actions named by the deprecation warning;
+2. upgrade only those actions to the first Node 24-compatible major lines;
+3. avoid redesigning the workflow graph during the migration;
+4. validate both the ordinary CI path and a bounded release/publish rehearsal;
+5. record unrelated baseline failures separately instead of burying them inside the migration.
