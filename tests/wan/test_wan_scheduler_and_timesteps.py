@@ -2,7 +2,7 @@ import mlx.core as mx
 import numpy as np
 
 from mflux.models.wan.latent_creator import WanTimestepPolicy
-from mflux.models.wan.scheduler import WanUniPCMultistepScheduler
+from mflux.models.wan.scheduler import WanEulerScheduler, WanUniPCMultistepScheduler
 
 
 def test_wan_t2v_expanded_timesteps_match_diffusers_mask_policy():
@@ -94,6 +94,54 @@ def test_wan_unipc_order2_flow_prediction_steps_match_diffusers_reference():
         [-0.03015177696943283, 0.06984823197126389, 0.1698482185602188],
         [-0.10697832703590393, -0.006978313438594341, 0.09302167594432831],
         [-0.35735276341438293, -0.257352739572525, -0.1573527604341507],
+    ]
+
+    for index, timestep in enumerate(np.array(scheduler.timesteps).tolist()):
+        model_output = mx.full(sample.shape, 0.1 * (index + 1), dtype=mx.float32)
+        sample = scheduler.step(model_output, timestep, sample, return_dict=False)[0]
+        np.testing.assert_allclose(float(mx.sum(sample).item()), expected_sums[index], rtol=1e-5, atol=1e-5)
+        np.testing.assert_allclose(
+            np.array(sample.reshape(-1)[:3]),
+            np.array(expected_first_values[index], dtype=np.float32),
+            rtol=1e-5,
+            atol=1e-5,
+        )
+
+
+def test_wan_euler_flow_shift_5_timesteps_match_lightx2v_reference():
+    scheduler = WanEulerScheduler()
+    scheduler.set_timesteps(4)
+
+    np.testing.assert_allclose(
+        np.array(scheduler.timesteps),
+        np.array([1000.0, 937.5, 833.3333, 625.0], dtype=np.float32),
+        rtol=1e-6,
+        atol=1e-5,
+    )
+    np.testing.assert_allclose(
+        np.array(scheduler.sigmas),
+        np.array([1.0, 0.9375, 0.8333333, 0.625, 0.0], dtype=np.float32),
+        rtol=1e-6,
+        atol=1e-6,
+    )
+
+
+def test_wan_euler_steps_match_lightx2v_reference():
+    scheduler = WanEulerScheduler()
+    scheduler.set_timesteps(4)
+    sample = mx.arange(24, dtype=mx.float32).reshape(1, 2, 3, 2, 2) / 10
+
+    expected_sums = [
+        27.44999885559082,
+        26.950000762939453,
+        25.450000762939453,
+        19.450000762939453,
+    ]
+    expected_first_values = [
+        [-0.00625, 0.09375, 0.19375001],
+        [-0.02708334, 0.07291666, 0.17291667],
+        [-0.08958334, 0.01041667, 0.11041667],
+        [-0.33958334, -0.23958333, -0.13958333],
     ]
 
     for index, timestep in enumerate(np.array(scheduler.timesteps).tolist()):

@@ -305,7 +305,7 @@ same preservation guarantee as canvas outpaint.
   routing context.
 - [Completed item 0020](../completed/0020_generation_capability_contract.md) for the public
   task/internal mode/capability planning baseline.
-- [Proposed item 0008](../proposed/0008_qwen_edit_parity_expansion.md) for future Qwen
+- [Planned item 0008](0008_qwen_edit_parity_expansion.md) for future Qwen
   inpainting/outpainting parity.
 - [Planned item 0024](0024_fibo_edit_unified_i2i_validation.md) and
   [planned item 0027](0027_fibo_edit_diffusers_parity_release_quality.md) for deferred FIBO Edit

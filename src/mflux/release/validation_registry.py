@@ -10,6 +10,8 @@ from mflux.lora_validation_registry import (
     QWEN2512_Q8_PIXEL_ART_PROFILE_ID,
     QWEN_EDIT_Q8_GHIBLI_PROFILE_ID,
     WAN_A14B_Q8_FOLLOWCAM_T2V_PROFILE_ID,
+    WAN_A14B_Q8_LIGHTX2V_4STEP_I2V_PROFILE_ID,
+    WAN_A14B_Q8_LIGHTX2V_4STEP_T2V_PROFILE_ID,
     WAN_A14B_Q8_ORBIT_I2V_PROFILE_ID,
     WAN_TI2V5B_Q8_CRUSHIT_I2V_PROFILE_ID,
     WAN_TI2V5B_Q8_HSTORIC_T2V_PROFILE_ID,
@@ -45,6 +47,7 @@ FLUX2_KLEIN_BASE_STARSHIP_DIR = "docs/assets/validation/flux2-klein-base-starshi
 FLUX2_KLEIN_BASE_STARSHIP_SOURCE = REFRAME_OUTPAINT_SOURCE
 LORA_VALIDATION_DIR = "docs/assets/validation/lora-2026-06-11"
 WAN_LORA_VALIDATION_DIR = "docs/assets/validation/wan-lora-2026-06-11"
+LIGHTX2V_WAN_4STEP_VALIDATION_DIR = "docs/assets/validation/lightx2v-wan-4step-2026-06-12"
 
 
 @dataclass(frozen=True)
@@ -432,6 +435,34 @@ def _lora_profiles() -> tuple[ValidationProfile, ...]:
         ),
         _single_record_profile(
             _lora_record(
+                profile_id=WAN_A14B_Q8_LIGHTX2V_4STEP_T2V_PROFILE_ID,
+                model="AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit",
+                family="Wan2.2 T2V-A14B",
+                package_variant="q8 prepared",
+                public_task="text-to-video",
+                mode="text-only",
+                artifact_path=f"{LIGHTX2V_WAN_4STEP_VALIDATION_DIR}/a14b_t2v_lightx2v_4step_ab_contact_sheet.jpg",
+                source_images=(),
+                prompt=(
+                    "A cinematic wide-angle movie shot of a massive futuristic starship taking off from a "
+                    "frozen tundra. The ship features sleek dark metallic armor. Two massive warp nacelles "
+                    "pulse with bright blue plasma. Violent snow squalls whip around the hull. The camera "
+                    "slowly tilts up as the thrusters ignite and massive clouds of snow blast away from the "
+                    "launch pad. Photorealistic, highly detailed, dramatic lighting."
+                ),
+                reviewer_notes=(
+                    "PASS on the q8 LightX2V Lightning 4-step A/B proof. The 4-step no-LoRA baseline is a "
+                    "muddy silhouette while the paired high-noise/low-noise Lightning files produce a stable "
+                    "starship takeoff shot."
+                ),
+                evidence_date="2026-06-12",
+            ),
+            title="Wan2.2 T2V-A14B q8 LightX2V 4-Step Validation",
+            canonical_source=f"{LIGHTX2V_WAN_4STEP_VALIDATION_DIR}/a14b_t2v_lightx2v_4step_ab_contact_sheet.jpg",
+            description="Exact 4-step LightX2V Lightning text-to-video proof for Wan2.2 T2V-A14B q8.",
+        ),
+        _single_record_profile(
+            _lora_record(
                 profile_id=WAN_A14B_Q8_ORBIT_I2V_PROFILE_ID,
                 model="AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit",
                 family="Wan2.2 I2V-A14B",
@@ -446,6 +477,32 @@ def _lora_profiles() -> tuple[ValidationProfile, ...]:
             title="Wan2.2 I2V-A14B q8 First-Frame Image-to-Video LoRA Validation",
             canonical_source=CANONICAL_SOURCE,
             description="Exact first-frame image-to-video LoRA proof for Wan2.2 I2V-A14B q8.",
+        ),
+        _single_record_profile(
+            _lora_record(
+                profile_id=WAN_A14B_Q8_LIGHTX2V_4STEP_I2V_PROFILE_ID,
+                model="AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit",
+                family="Wan2.2 I2V-A14B",
+                package_variant="q8 prepared",
+                public_task="image-to-video",
+                mode="first-frame-i2v",
+                artifact_path=f"{LIGHTX2V_WAN_4STEP_VALIDATION_DIR}/a14b_i2v_lightx2v_4step_ab_contact_sheet.jpg",
+                source_images=(CANONICAL_SOURCE,),
+                prompt=(
+                    "Starting from the input image, the silver spaceship powers up and lifts off from the "
+                    "frozen ground. Blue engines brighten, snow blasts outward, vapor rolls under the hull, "
+                    "and the camera holds the same wide icy canyon framing while the ship rises smoothly."
+                ),
+                reviewer_notes=(
+                    "PASS on the q8 LightX2V Lightning 4-step A/B proof. The 4-step no-LoRA baseline stays "
+                    "mostly static and foggy, while the paired Lightning files preserve the source layout and "
+                    "produce a clear lift-off."
+                ),
+                evidence_date="2026-06-12",
+            ),
+            title="Wan2.2 I2V-A14B q8 LightX2V 4-Step Validation",
+            canonical_source=CANONICAL_SOURCE,
+            description="Exact 4-step LightX2V Lightning first-frame image-to-video proof for Wan2.2 I2V-A14B q8.",
         ),
     )
 
@@ -478,6 +535,7 @@ def _lora_record(
     source_images: tuple[str, ...],
     prompt: str,
     reviewer_notes: str,
+    evidence_date: str = "2026-06-11",
 ) -> ValidationRecord:
     return ValidationRecord(
         profile_id=profile_id,
@@ -493,7 +551,7 @@ def _lora_record(
         source_images=source_images,
         prompt=prompt,
         reviewer_notes=reviewer_notes,
-        evidence_date="2026-06-11",
+        evidence_date=evidence_date,
     )
 
 

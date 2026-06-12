@@ -16,6 +16,7 @@ AGENTS.md
 *.jpg
 !docs/assets/
 !docs/assets/**
+**/.DS_Store
 *.pyc
 *.safetensors
 *.json

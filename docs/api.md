@@ -61,7 +61,8 @@ mapping and strict loader path, but the exact model/package has not yet passed a
 validation with an accepted adapter.
 
 Generation does not download LoRA files. Download LoRA repositories explicitly, then pass a local
-`.safetensors` file or a cached Hugging Face adapter id:
+`.safetensors` file or a cached Hugging Face adapter id. The file part can include a subdirectory
+inside the adapter repository:
 
 ```sh
 mlxgen download --model lovis93/Flux-2-Multi-Angles-LoRA-v2 --all-files
@@ -84,7 +85,9 @@ Wan video LoRA is now route-specific instead of globally unsupported. Exact vali
 for TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, and
 I2V-A14B first-frame image-to-video. A14B requests still require explicit
 `high_noise_transformer` / `low_noise_transformer` role assignment when you pass separate adapter
-files. Bonsai remains a separate fail-closed case because its packed ternary runtime does not
+files. For the current A14B fast path, download `lightx2v/Wan2.2-Lightning` with
+`mlxgen download --model lightx2v/Wan2.2-Lightning --all-files`, then use the paired T2V or I2V
+files shown in [LoRA](lora.md). Bonsai remains a separate fail-closed case because its packed ternary runtime does not
 expose standard replaceable linear-module targets.
 
 Most image and video backends accept a negative prompt. In the unified CLI,

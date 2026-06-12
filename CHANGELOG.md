@@ -7,29 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.17] - 2026-06-12
+
 ### Added
 
 - **LightX2V Wan Lightning 4-step proof**: add exact q8 A14B text-to-video and first-frame
-  image-to-video A/B contact sheets using the official `lightx2v/Wan2.2-Lightning` paired
-  high-noise and low-noise LoRAs at `4` steps, `flow_shift=5.0`, `guidance=1.0`, and
+  image-to-video same-seed A/B contact sheets using the official `lightx2v/Wan2.2-Lightning`
+  paired high-noise and low-noise LoRAs at `4` steps, `flow_shift=5.0`, `guidance=1.0`, and
   `guidance_2=1.0`.
 - **LightX2V Wan longer-run timing evidence**: add `81`-frame, `20` fps speed comparisons against
   the current practical original A14B profiles, showing `8.27x` faster text-to-video and `6.13x`
   faster first-frame image-to-video runs with the explicit LightX2V 4-step recipe.
+- **LightX2V Wan compact proof matrix**: add `41`-frame `M5 Max` progress contact sheets for
+  prepared BF16/q8 T2V plus q8 I2V, along with wall-time and max-RSS measurements for the current
+  LightX2V `4`-step recipe and the current practical original q8 profiles.
 - **LightX2V T2V quality-envelope follow-up**: add an `M5 Max` T2V step sweep (`4`, `6`, `8`
   steps) plus a `832x480` probe, and document that the weaker `240p` T2V look is mainly a fast
   low-resolution tradeoff rather than a LoRA loader or scheduler bug.
+- **LightX2V Wan public proof refresh**: add a readable `720p` q8-versus-BF16 keyframe sheet and
+  a working-only `240p`-versus-`480p` T2V sweep for the current public docs.
 
 ### Changed
 
 - **Wan A14B route-level LoRA proof ids**: the public A14B capability rows now surface the accepted
   LightX2V 4-step validation profiles instead of the earlier effect-specific A/B examples.
-- **Wan q8 LightX2V runtime repair**: fix the `720p` A14B q8 Lightning first-frame corruption by
-  keeping the LoRA-touched Wan FFN family (`ffn.net.0` / `ffn.net.1`) at BF16 runtime precision
-  alongside the already protected attention-family paths; the repaired q8 `1280x720`, `41`-frame,
-  `4`-step run now starts clean from frame `0` and tracks the BF16 reference.
-- **Backlog status**: close the LightX2V Wan 4-step acceleration item as completed and narrow the
-  remaining LightX2V follow-up to native distilled-model loader support.
+- **Wan q8 LightX2V 720p stability**: improve the documented `720p` A14B q8 Lightning profile and
+  add a same-seed q8-versus-BF16 comparison sheet for the `1280x720`, `41`-frame, `4`-step route.
 
 ## [0.18.16] - 2026-06-11
 

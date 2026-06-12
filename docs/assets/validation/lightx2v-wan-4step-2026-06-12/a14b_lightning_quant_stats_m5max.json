@@ -1,0 +1,71 @@
+{
+  "hardware": "Apple M5 Max",
+  "profile": {
+    "frames": 41,
+    "fps": 20,
+    "t2v_requested_size": [
+      480,
+      240
+    ],
+    "i2v_requested_size": [
+      480,
+      240
+    ],
+    "i2v_resolved_size": [
+      448,
+      256
+    ],
+    "lightning": {
+      "steps": 4,
+      "guidance": 1.0,
+      "guidance_2": 1.0,
+      "flow_shift": 5.0,
+      "solver": "euler"
+    },
+    "original_t2v": {
+      "steps": 20,
+      "guidance": 4.0,
+      "guidance_2": 3.0,
+      "flow_shift": 3.0,
+      "solver": "unipc"
+    },
+    "original_i2v": {
+      "steps": 20,
+      "guidance": 3.5,
+      "guidance_2": 3.5,
+      "flow_shift": 3.0,
+      "solver": "unipc"
+    }
+  },
+  "runs": {
+    "t2v_bf16_lightning": {
+      "wall_seconds": 87.99,
+      "max_rss_bytes": 35190358016,
+      "max_rss_gib": 32.77357482910156
+    },
+    "t2v_q8_lightning": {
+      "wall_seconds": 92.98,
+      "max_rss_bytes": 14446919680,
+      "max_rss_gib": 13.454742431640625
+    },
+    "t2v_q8_original": {
+      "wall_seconds": 516.45,
+      "max_rss_bytes": 14847344640,
+      "max_rss_gib": 13.827667236328125
+    },
+    "i2v_q8_lightning": {
+      "wall_seconds": 87.88,
+      "max_rss_bytes": 14438449152,
+      "max_rss_gib": 13.446853637695312
+    },
+    "i2v_q8_original": {
+      "wall_seconds": 446.17,
+      "max_rss_bytes": 14740733952,
+      "max_rss_gib": 13.728378295898438
+    }
+  },
+  "derived": {
+    "t2v_q8_speedup_vs_original": 5.554420305442031,
+    "i2v_q8_speedup_vs_original": 5.077036868456987
+  }
+}

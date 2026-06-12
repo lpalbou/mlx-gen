@@ -20,7 +20,7 @@ from mflux.models.common.weights.saving.model_saver import ModelSaver
 from mflux.models.wan.latent_creator import WanTimestepPolicy
 from mflux.models.wan.model.wan_transformer import WanBlockHealthContext, WanTransformer
 from mflux.models.wan.model.wan_vae import Wan2_2_VAE
-from mflux.models.wan.scheduler import WanUniPCMultistepScheduler
+from mflux.models.wan.scheduler import WanEulerScheduler, WanUniPCMultistepScheduler
 from mflux.models.wan.wan_initializer import WanInitializer
 from mflux.models.wan.weights import WanWeightDefinition
 from mflux.utils.exceptions import ModelConfigError
@@ -30,6 +30,8 @@ from mflux.utils.tensor_health import TensorHealth
 from mflux.utils.video_util import VideoUtil
 
 _GUIDANCE_2_UNSET = object()
+_WAN_DEFAULT_SOLVER = "unipc"
+_WAN_SOLVERS = ("unipc", "euler")
 
 
 class Wan2_2_TI2V(nn.Module):
@@ -77,6 +79,7 @@ class Wan2_2_TI2V(nn.Module):
         guidance: float | None = None,
         guidance_2: float | None | object = _GUIDANCE_2_UNSET,
         flow_shift: float | None = None,
+        solver: str | None = None,
         negative_prompt: str | None = None,
         image_path: Path | str | None = None,
         max_sequence_length: int = 512,
@@ -109,6 +112,7 @@ class Wan2_2_TI2V(nn.Module):
         guidance, guidance_2 = self._resolve_guidance_pair(guidance=guidance, guidance_2=guidance_2)
         self._validate_guidance_values(guidance=guidance, guidance_2=guidance_2)
         flow_shift = self._resolve_flow_shift(flow_shift)
+        solver = self._resolve_solver(solver)
         negative_prompt = self._resolve_negative_prompt(negative_prompt)
         self._validate_runtime_contract(is_image_to_video=is_image_to_video)
         progress_registry = getattr(self, "callbacks", None)
@@ -138,7 +142,7 @@ class Wan2_2_TI2V(nn.Module):
                 name="negative_prompt_embeds",
             )
 
-        scheduler = WanUniPCMultistepScheduler(flow_shift=flow_shift)
+        scheduler = self._create_scheduler(flow_shift=flow_shift, solver=solver)
         scheduler.set_timesteps(num_inference_steps)
         boundary_timestep = self._boundary_timestep(scheduler)
         latents = self.prepare_latents(
@@ -376,6 +380,7 @@ class Wan2_2_TI2V(nn.Module):
             guidance=guidance,
             guidance_2=guidance_2,
             flow_shift=flow_shift,
+            solver=solver,
             quantization=self.bits,
             generation_time=time.time() - start_time,
             task=task,
@@ -906,11 +911,27 @@ class Wan2_2_TI2V(nn.Module):
     def _default_flow_shift(self) -> float:
         return float(self._wan_config("flow_shift", 5.0))
 
+    def _default_solver(self) -> str:
+        return str(self._wan_config("default_solver", _WAN_DEFAULT_SOLVER))
+
     def _resolve_flow_shift(self, flow_shift: float | None) -> float:
         resolved = self._default_flow_shift() if flow_shift is None else float(flow_shift)
         if not np.isfinite(resolved) or resolved <= 0:
             raise ValueError(f"Wan flow_shift must be a finite positive value, got {flow_shift!r}.")
         return resolved
+
+    def _resolve_solver(self, solver: str | None) -> str:
+        resolved = self._default_solver() if solver is None else str(solver).strip().lower()
+        if resolved not in _WAN_SOLVERS:
+            raise ValueError(f"Wan solver must be one of {_WAN_SOLVERS}, got {solver!r}.")
+        return resolved
+
+    def _create_scheduler(self, *, flow_shift: float, solver: str):
+        if solver == "unipc":
+            return WanUniPCMultistepScheduler(flow_shift=flow_shift)
+        if solver == "euler":
+            return WanEulerScheduler(flow_shift=flow_shift)
+        raise ValueError(f"Wan solver must be one of {_WAN_SOLVERS}, got {solver!r}.")
 
     def _resolve_guidance_pair(
         self, guidance: float | None, guidance_2: float | None | object

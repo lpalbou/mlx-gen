@@ -411,11 +411,11 @@ def test_wan_a14b_q8_rows_are_exactly_validated():
 
     assert text_video.supports_lora is True
     assert text_video.lora_status == "validated"
-    assert text_video.lora_validation_profile == "lora_wan_a14b_q8_followcam_t2v_2026_06_11"
+    assert text_video.lora_validation_profile == "lora_wan_a14b_q8_lightx2v_4step_t2v_2026_06_12"
     assert text_video.lora_target_roles == ("high_noise_transformer", "low_noise_transformer")
     assert first_frame.supports_lora is True
     assert first_frame.lora_status == "validated"
-    assert first_frame.lora_validation_profile == "lora_wan_a14b_q8_orbit_i2v_2026_06_11"
+    assert first_frame.lora_validation_profile == "lora_wan_a14b_q8_lightx2v_4step_i2v_2026_06_12"
     assert first_frame.lora_target_roles == ("high_noise_transformer", "low_noise_transformer")
 
 
@@ -510,8 +510,13 @@ def test_lora_validation_profiles_are_resolvable():
         ),
         (
             "AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit",
-            "lora_wan_a14b_q8_orbit_i2v_2026_06_11",
+            "lora_wan_a14b_q8_lightx2v_4step_i2v_2026_06_12",
             MODE_FIRST_FRAME_I2V,
+        ),
+        (
+            "AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit",
+            "lora_wan_a14b_q8_lightx2v_4step_t2v_2026_06_12",
+            MODE_TEXT_ONLY,
         ),
     ]
 

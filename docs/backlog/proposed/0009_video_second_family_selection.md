@@ -22,7 +22,8 @@ I2V prompt-motion concern.
 The next decision should not be "port everything." It should be a selection pass that compares the
 next video family after Wan against MLX-Gen's constraints: Apple Silicon memory, local cache-only
 generation, reuse of the shared progress callback API, clear cancellation behavior, quantization
-quality, licensing, and AbstractVision reuse.
+quality, licensing, and AbstractVision reuse. Wan-family extensions such as VACE should be tracked
+separately from this item.
 
 ## Current code reality
 
@@ -55,8 +56,6 @@ Create a short selection report before starting a second large video port. Compa
 | HunyuanVideo 1.5 | 8.3B, T2V/I2V, Diffusers-supported, current video ecosystem interest, LoRA accelerator ecosystem. | Custom Tencent license and another major architecture. |
 | CogVideoX-2B | Apache 2.0, smaller and older, local Diffusers stack available. | Lower current strategic value than Wan/LTX/Hunyuan. |
 | Mochi 1 Preview | Apache 2.0, strong open T2V history, Diffusers pipeline exists. | Older T2V-only target with less AbstractVision differentiation. |
-| Wan VACE / Wan Animate | Same family as current port; may reuse Wan infrastructure after A14B. | Much larger models or additional modes; should wait for Wan 5B/A14B parity. |
-
 Selection criteria:
 
 - permissive or clearly manageable license;
@@ -91,6 +90,7 @@ into audio/video abstractions or memory behavior that the current Wan work has n
 
 - This proposal does not authorize starting LTX-2.3 or HunyuanVideo before Wan is stable.
 - This proposal does not duplicate Wan motion-parity work in items 0002 and 0006.
+- This proposal does not own Wan VACE or Wan-family video editing/control; track that separately.
 - Wan2.2 A14B T2V/I2V moved out of this proposal into planned item 0012 on 2026-05-30.
 - This proposal does not include closed/API-only models except as AbstractVision provider ideas.
 

@@ -762,6 +762,7 @@ AVAILABLE_MODELS = {
             "default_fps": 24,
             "default_guidance": 5.0,
             "default_negative_prompt": WAN_DEFAULT_NEGATIVE_PROMPT,
+            "default_solver": "unipc",
         },
         text_encoder_overrides={
             "model_type": "umt5",
@@ -822,6 +823,7 @@ AVAILABLE_MODELS = {
             "default_guidance": 4.0,
             "default_guidance_2": 3.0,
             "default_negative_prompt": WAN_DEFAULT_NEGATIVE_PROMPT,
+            "default_solver": "unipc",
         },
         text_encoder_overrides={
             "model_type": "umt5",
@@ -882,6 +884,7 @@ AVAILABLE_MODELS = {
             "default_guidance": 3.5,
             "default_guidance_2": 3.5,
             "default_negative_prompt": WAN_DEFAULT_NEGATIVE_PROMPT,
+            "default_solver": "unipc",
         },
         text_encoder_overrides={
             "model_type": "umt5",

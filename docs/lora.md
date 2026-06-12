@@ -60,7 +60,8 @@ mlxgen download --model lovis93/Flux-2-Multi-Angles-LoRA-v2 --all-files
 ```
 
 Use a local `.safetensors` path or a Hugging Face repository id. If the repository contains several
-adapter files, specify the file after a colon:
+adapter files, specify the file after a colon. The file part can include a subdirectory inside the
+repository:
 
 ```sh
 mlxgen generate \
@@ -90,12 +91,10 @@ uses one role, `transformer`. Wan A14B uses two explicit roles, `high_noise_tran
 `low_noise_transformer`. MLX-Gen does not guess or silently duplicate roles for dual-transformer
 A14B requests: callers must pass the intended role assignment explicitly with `--lora-target-roles`.
 
-The Wan loader now accepts Diffusers-style Wan adapters, non-Diffusers Wan adapter keys, and
-Musubi/Kohya-style Wan keys. For I2V-capable Wan transformers, MLX-Gen also mirrors Diffusers'
-T2V-to-I2V expansion behavior by synthesizing zero LoRA tensors for missing image-projection
-families when a T2V adapter is loaded on an I2V route. The remaining validation problem is not
-basic loading; it is whether a given adapter produces a strong enough MP4 A/B to promote
-that exact route from `mapped-unvalidated` to `validated`.
+MLX-Gen accepts the main public Wan LoRA naming conventions, including Diffusers-style Wan
+adapters and the common alternative Wan adapter layouts used in the community. The practical
+question is not basic file loading anymore; it is whether a given adapter produces a strong enough
+visible MP4 A/B on the exact route you want to use.
 
 The downloaded `fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA` adapter targets
 `Qwen/Qwen-Image-Edit-2511` and uses `<sks>` multi-angle prompt wording. MLX-Gen validates the
@@ -143,7 +142,7 @@ mlxgen generate \
 
 The second pair used the same settings with `--prompt "<sks> front view high-angle shot close-up"`,
 `--seed 9702`, and matching `no_lora_front_high_close.png` / `with_lora_front_high_close.png`
-outputs. The LoRA loader matched and applied all `1,680` adapter tensors for both LoRA runs.
+outputs.
 
 `AbstractFramework/qwen-image-edit-2509-8bit` now has an exact single-image edit proof with the
 stacked `lightx2v/Qwen-Image-Lightning` plus `dx8152/Qwen-Edit-2509-Multiple-angles` path. This
@@ -182,17 +181,14 @@ mlxgen generate \
   --replace \
   --output validation_outputs/lora_strict_2026_06_11/qwen2509_q8_with_lora_angle_g1.png \
   --i2i-mode edit \
-  --lora-paths /Users/albou/.cache/huggingface/hub/models--lightx2v--Qwen-Image-Lightning/snapshots/e74da8d4e71a54b341de86aa9f8d2509165aa513/Qwen-Image-Edit-2509/Qwen-Image-Edit-2509-Lightning-8steps-V1.0-bf16.safetensors dx8152/Qwen-Edit-2509-Multiple-angles:镜头转换.safetensors \
+  --lora-paths lightx2v/Qwen-Image-Lightning:Qwen-Image-Edit-2509/Qwen-Image-Edit-2509-Lightning-8steps-V1.0-bf16.safetensors dx8152/Qwen-Edit-2509-Multiple-angles:镜头转换.safetensors \
   --lora-scales 1.0 0.9
 ```
 
-The corrected MLX-Gen mapping now matches all `1,440` tensors in `镜头转换.safetensors` and all
-`2,160` tensors in the stacked Lightning adapter on this route.
-
 `AbstractFramework/qwen-image-edit-8bit` now has an exact single-image edit proof with a
-Ghibli-style Qwen adapter. This row is validated for `qwen.edit` only. The current accepted proof
-uses `ghibli_style_qwen_v3.safetensors` on same-seed edit trials and produces a visible style
-shift while keeping the edit route stable.
+Ghibli-style Qwen adapter. This row is validated for `qwen.edit` only. The current proof uses
+`ghibli_style_qwen_v3.safetensors` on same-seed edit trials and produces a visible style shift
+while keeping the edit route stable.
 
 ![Qwen Image Edit q8 Ghibli-style LoRA A/B](assets/validation/lora-2026-06-11/qwen_edit_q8_ghibli_trials_contact_sheet.png)
 
@@ -215,9 +211,6 @@ mlxgen generate \
   --lora-paths /path/to/ghibli_style_qwen_v3.safetensors \
   --lora-scales 1.0
 ```
-
-The accepted proof matched all `1,680` adapter tensors and applied `840` target layers on the
-route.
 
 `AbstractFramework/qwen-image-2512-8bit` now has an exact text-to-image proof with
 `prithivMLmods/Qwen-Image-2512-Pixel-Art-LoRA`. This row is validated for `qwen.text` only; the
@@ -257,9 +250,6 @@ mlxgen generate \
   --lora-scales 1.0
 ```
 
-The corrected MLX-Gen Qwen mapping now matches all `1,680` adapter tensors on this route and
-applies `840` target layers with no unmatched keys.
-
 `AbstractFramework/z-image-turbo-8bit` now has an exact text-to-image proof with
 `renderartist/Technically-Color-Z-Image-Turbo`. This row is validated for `z-image.text` only; the
 latent img2img row remains `mapped-unvalidated`.
@@ -295,8 +285,6 @@ mlxgen generate \
   --lora-paths renderartist/Technically-Color-Z-Image-Turbo:Technically_Color_Z_Image_Turbo_v1_renderartist_2000.safetensors \
   --lora-scales 0.5
 ```
-
-The LoRA loader matched all `480` adapter tensors and applied `240` target layers.
 
 `AbstractFramework/flux.2-klein-9b-8bit` now has an exact single-image edit proof with
 `dx8152/Flux2-Klein-9B-Consistency`. This row is validated for `flux2.edit` only; multi-reference
@@ -336,9 +324,8 @@ mlxgen generate \
   --lora-scales 0.8
 ```
 
-The LoRA loader matched all `224` adapter tensors and applied `144` target layers. On this exact
-spaceship edit run, the with-LoRA output stayed materially closer to the source ship layout than the
-no-LoRA output while still honoring the crash prompt.
+On this exact spaceship edit run, the with-LoRA output stayed materially closer to the source ship
+layout than the no-LoRA output while still honoring the crash prompt.
 
 `AbstractFramework/ernie-image-turbo-8bit` now has an exact text-to-image proof with
 `reverentelusarca/ernie-image-elusarca-anime-style-lora`. This row is validated for
@@ -378,8 +365,8 @@ mlxgen generate \
   --lora-scales 0.9
 ```
 
-The adapter matched all `504` tensors, applied `252` targets, and produced a visibly stronger anime
-render while keeping the same prompt, seed, and subject setup.
+This adapter produces a visibly stronger anime render while keeping the same prompt, seed, and
+subject setup.
 
 Current Wan q8 public rows now have exact route proofs:
 
@@ -396,18 +383,7 @@ Current Wan q8 public rows now have exact route proofs:
 Representative commands:
 
 ```sh
-mlxgen generate \
-  --model AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit \
-  --prompt "HST style HD film, early 1900s, autochrome, analog cinema. A horse-drawn carriage crossing a snowy town square at dusk, pedestrians in wool coats, historical street lamps glowing, gentle cinematic motion." \
-  --width 832 \
-  --height 480 \
-  --frames 17 \
-  --steps 20 \
-  --guidance 4 \
-  --fps 16 \
-  --seed 6301 \
-  --metadata \
-  --output validation_outputs/wan_lora_2026_06_11/ti2v_t2v_hstoric_no_lora_q8.mp4
+mlxgen download --model AlekseyCalvin/HSToric_Color_Wan2.2_5B_LoRA_BySilverAgePoets --all-files
 
 mlxgen generate \
   --model AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit \
@@ -421,12 +397,14 @@ mlxgen generate \
   --seed 6301 \
   --metadata \
   --output validation_outputs/wan_lora_2026_06_11/ti2v_t2v_hstoric_with_lora_q8.mp4 \
-  --lora-paths /Users/albou/.cache/huggingface/hub/models--AlekseyCalvin--HSToric_Color_Wan2.2_5B_LoRA_BySilverAgePoets/snapshots/fb47fbdfb7fa391ed6d29f1d1b06f78bc815d7c0/HSToric_color_Wan22_5b_LoRA.safetensors \
+  --lora-paths AlekseyCalvin/HSToric_Color_Wan2.2_5B_LoRA_BySilverAgePoets:HSToric_color_Wan22_5b_LoRA.safetensors \
   --lora-target-roles transformer \
   --lora-scales 0.8
 ```
 
 ```sh
+mlxgen download --model ostris/wan22_5b_i2v_crush_it_lora --all-files
+
 mlxgen generate \
   --model AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit \
   --image validation_outputs/wan_lora_2026_06_11/ti2v_i2v_can_source_qwen2512_q8.png \
@@ -441,7 +419,7 @@ mlxgen generate \
   --metadata \
   --replace \
   --output validation_outputs/wan_lora_2026_06_11/ti2v_i2v_crushit_q8_with_lora.mp4 \
-  --lora-paths /Users/albou/.cache/huggingface/hub/models--ostris--wan22_5b_i2v_crush_it_lora/snapshots/e4b85be20d75c2ca2ee1b901ba2cf49d9416e233/wan22_5b_i2v_crush_it_lora.safetensors \
+  --lora-paths ostris/wan22_5b_i2v_crush_it_lora:wan22_5b_i2v_crush_it_lora.safetensors \
   --lora-target-roles transformer \
   --lora-scales 1
 ```
@@ -460,6 +438,12 @@ That accepted A/B proof is a **LoRA-effect proof**, not a fair quality compariso
 normal longer Wan profile. The point of the same-step `4`-step no-LoRA row is only to show that
 the paired LightX2V files materially change the result on the current Wan runtime.
 
+Download the paired LightX2V Lightning files once:
+
+```sh
+mlxgen download --model lightx2v/Wan2.2-Lightning --all-files
+```
+
 ```sh
 mlxgen generate \
   --model AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit \
@@ -473,11 +457,11 @@ mlxgen generate \
   --guidance-2 1 \
   --flow-shift 5 \
   --fps 20 \
-  --seed 7401 \
+  --seed 8401 \
   --metadata \
   --replace \
   --output validation_outputs/lightx2v_wan_4step_2026_06_12/a14b_t2v_4step_lightning_q8.mp4 \
-  --lora-paths /Users/albou/.cache/huggingface/hub/models--lightx2v--Wan2.2-Lightning/snapshots/18bccf8884ec0a078eed79785eb4ef13ea16ce1e/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors /Users/albou/.cache/huggingface/hub/models--lightx2v--Wan2.2-Lightning/snapshots/18bccf8884ec0a078eed79785eb4ef13ea16ce1e/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors \
+  --lora-paths lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors \
   --lora-target-roles high_noise_transformer low_noise_transformer \
   --lora-scales 1 1
 
@@ -494,32 +478,14 @@ mlxgen generate \
   --guidance-2 1 \
   --flow-shift 5 \
   --fps 20 \
-  --seed 7402 \
+  --seed 8402 \
   --metadata \
   --replace \
   --output validation_outputs/lightx2v_wan_4step_2026_06_12/a14b_i2v_4step_lightning_q8.mp4 \
-  --lora-paths /Users/albou/.cache/huggingface/hub/models--lightx2v--Wan2.2-Lightning/snapshots/18bccf8884ec0a078eed79785eb4ef13ea16ce1e/Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/high_noise_model.safetensors /Users/albou/.cache/huggingface/hub/models--lightx2v--Wan2.2-Lightning/snapshots/18bccf8884ec0a078eed79785eb4ef13ea16ce1e/Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/low_noise_model.safetensors \
+  --lora-paths lightx2v/Wan2.2-Lightning:Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/high_noise_model.safetensors lightx2v/Wan2.2-Lightning:Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/low_noise_model.safetensors \
   --lora-target-roles high_noise_transformer low_noise_transformer \
   --lora-scales 1 1
 ```
-
-MLX-Gen also now carries a longer-run speed comparison against the current practical original A14B
-profiles at `81` frames and `20` fps:
-
-![Wan T2V-A14B q8 LightX2V 81-frame speed comparison](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_81f_speed_comparison.jpg)
-![Wan I2V-A14B q8 LightX2V 81-frame speed comparison](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_i2v_lightx2v_81f_speed_comparison.jpg)
-
-These comparisons use the same prompt or source image, the same seed, the same requested
-`480x240`, and the same `81`-frame / `20` fps output target. The comparison baseline is the
-current practical original profile, not the full `40`-step config default:
-
-| Route | Original practical profile | LightX2V Lightning profile | Measured wall time | Speedup |
-| --- | --- | --- | ---: | ---: |
-| `wan2.2-t2v-a14b` q8 | `20` steps, `g=4`, `g2=3`, `flow_shift=3` | `4` steps, `g=1`, `g2=1`, `flow_shift=5` | `1356.45s` -> `163.94s` | `8.27x` |
-| `wan2.2-i2v-a14b` q8 | `20` steps, `g=3.5`, `g2=3.5`, `flow_shift=3` | `4` steps, `g=1`, `g2=1`, `flow_shift=5` | `887.40s` -> `144.70s` | `6.13x` |
-
-The I2V row resolved to `448x256` because MLX-Gen preserved the source-image aspect ratio from the
-requested `480x240`. The T2V row stayed at `480x240`.
 
 Treat Lightning as an explicit fast recipe, not as a universal quality replacement for the
 original Wan profile. The measured result is that it produces coherent local videos much faster.
@@ -532,41 +498,53 @@ The LightX2V README itself also matters here:
 - it recommends prompt extension to improve detail
 - it explicitly says the T2V model can still show artifacts on scenes with very large motion
 
-MLX-Gen now includes an additional T2V step sweep on an Apple `M5 Max` to check whether the
-low-detail quick-profile result was just a `4`-step problem:
+MLX-Gen also includes a simple `240p` versus `480p` T2V sweep on the same Apple `M5 Max`:
 
-![Wan T2V-A14B q8 LightX2V step sweep on M5 Max](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_81f_step_sweep_m5max.jpg)
+![Wan T2V-A14B q8 LightX2V resolution sweep on M5 Max](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_resolution_sweep_m5max.jpg)
 
-For the same `81`-frame `480x240` quick profile and same seed:
+The sweep uses the same LightX2V `4`-step recipe at `480x240` and `832x480` for `41` frames. On
+the same machine, the `240p` row finishes in `92.98s` and the `480p` row finishes in `334.75s`.
+The `480p` row is visibly stronger, which supports the LightX2V README's `480P` / `720P` quality
+envelope claim.
 
-| T2V quick profile | Measured wall time | Speedup vs original |
-| --- | ---: | ---: |
-| original practical profile, `20` steps | `1356.45s` | baseline |
-| LightX2V Lightning, `4` steps | `163.94s` | `8.27x` |
-| LightX2V Lightning, `6` steps | `197.63s` | `6.86x` |
-| LightX2V Lightning, `8` steps | `279.40s` | `4.85x` |
+For the documented `720p` T2V profile, the guide also includes a same-seed q8-versus-BF16
+keyframe comparison using the same LightX2V recipe:
 
-The result is useful: `6` to `8` steps recover some detail and readability, but they do not close
-the gap to the original `20`-step run at `240p`. That points more to an aggressive low-resolution
-fast path than to a loader or scheduler bug.
+![Wan T2V-A14B q8 vs BF16 keyframe comparison](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_q8_vs_bf16_frame_compare.png)
 
-MLX-Gen also includes a `480P` T2V probe on the same Apple `M5 Max`:
+MLX-Gen also now includes a compact `41`-frame, `20` fps progress matrix on an Apple `M5 Max`:
 
-![Wan T2V-A14B q8 LightX2V 480P probe on M5 Max](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_480p_probe_m5max.jpg)
+![Wan T2V-A14B LightX2V progress matrix on M5 Max](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightning_quant_progress_m5max.jpg)
+![Wan I2V-A14B LightX2V progress matrix on M5 Max](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_i2v_lightning_quant_progress_m5max.jpg)
 
-That probe uses the same LightX2V `4`-step recipe at `832x480` for `41` frames and finishes in
-`334.75s`. It is not directly time-comparable to the `81`-frame quick row, but it is visibly
-stronger than the `240p` quick profile, which supports the LightX2V README's `480P` / `720P`
-quality envelope claim.
+The T2V matrix covers the prepared variants used for the current T2V LightX2V proof:
 
-One real q8 runtime issue did show up during the higher-resolution follow-up: the first frames of
-the A14B T2V `720p` q8 Lightning run started as noise while the BF16 reference was already clean.
-That was not a model warm-up effect. The fix was to keep the Wan FFN LoRA target family
-(`ffn.net.0` and `ffn.net.1`) at BF16 runtime precision alongside the already protected
-attention-family paths. After that repair, the q8 `1280x720`, `41`-frame, `4`-step LightX2V run
-starts clean from frame `0` and visually tracks the BF16 reference across the sample:
+- `AbstractFramework/wan2.2-t2v-a14b-diffusers-bf16` with paired LightX2V LoRAs
+- `AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit` with paired LightX2V LoRAs
+- `AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit` on the current practical original profile
 
-![Wan T2V-A14B q8 vs BF16 keyframe comparison after FFN runtime repair](assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_q8_vs_bf16_frame_compare.png)
+The I2V matrix covers the prepared q8 route used for the current I2V LightX2V proof:
+
+- `AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit` with paired LightX2V LoRAs
+- `AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit` on the current practical original profile
+
+Measured on the same Apple `M5 Max`, same seeds, and the same `41`-frame target:
+
+| Route | Model / profile | Wall time | Max RSS |
+| --- | --- | ---: | ---: |
+| T2V | `wan2.2-t2v-a14b` prepared BF16 + LightX2V `4`-step | `87.99s` | `32.77 GiB` |
+| T2V | `wan2.2-t2v-a14b` prepared q8 + LightX2V `4`-step | `92.98s` | `13.45 GiB` |
+| T2V | `wan2.2-t2v-a14b` prepared q8 original `20`-step | `516.45s` | `13.83 GiB` |
+| I2V | `wan2.2-i2v-a14b` prepared q8 + LightX2V `4`-step | `87.88s` | `13.45 GiB` |
+| I2V | `wan2.2-i2v-a14b` prepared q8 original `20`-step | `446.17s` | `13.73 GiB` |
+
+On this `41`-frame profile, the Lightning recipe produces:
+
+- `5.55x` faster q8 T2V than the current practical q8 original profile
+- `5.08x` faster q8 I2V than the current practical q8 original profile
+
+The machine-readable measurements are in
+`docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_lightning_quant_stats_m5max.json`.
 
 Practical reading:
 
@@ -576,14 +554,7 @@ Practical reading:
   source frame preserves composition and detail
 
 The validated Wan runs used exact base-model adapters, explicit role assignment, and same-seed A/B
-comparisons. The matched adapter counts were:
-
-- TI2V-5B text-to-video: `600/600` matched, `300` layers applied
-- TI2V-5B first-frame image-to-video: `600/600` matched, `300` layers applied
-- T2V-A14B text-to-video effect adapters: `800/800` matched on both high-noise and low-noise files, `400` layers applied per file
-- I2V-A14B first-frame effect adapters: `800/800` matched on both high-noise and low-noise files, `400` layers applied per file
-- T2V-A14B LightX2V Lightning 4-step: `1200/1200` matched on both high-noise and low-noise files, `400` layers applied per file
-- I2V-A14B LightX2V Lightning 4-step: `1200/1200` matched on both high-noise and low-noise files, `400` layers applied per file
+comparisons across TI2V-5B and A14B public rows.
 
 Combined route matrix: [summary sheet](assets/validation/wan-lora-2026-06-11/wan_video_lora_route_matrix.jpg)
 

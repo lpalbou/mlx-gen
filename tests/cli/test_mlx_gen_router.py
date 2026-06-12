@@ -518,7 +518,8 @@ def test_validation_command_lists_profiles(capsys):
         "flux2_klein_base_starship_2026_06_10",
     ]
     assert "lora_qwen_edit_q8_ghibli_edit_2026_06_11" in profile_ids
-    assert "lora_wan_a14b_q8_orbit_i2v_2026_06_11" in profile_ids
+    assert "lora_wan_a14b_q8_lightx2v_4step_i2v_2026_06_12" in profile_ids
+    assert "lora_wan_a14b_q8_lightx2v_4step_t2v_2026_06_12" in profile_ids
 
 
 def test_validation_command_reports_reframe_outpaint_profile(capsys):
@@ -2281,6 +2282,8 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
             "1.5",
             "--flow-shift",
             "3",
+            "--solver",
+            "euler",
             "--seed",
             "123",
             "--image-path",
@@ -2304,6 +2307,7 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
     assert observed["generate"]["num_inference_steps"] == 2
     assert observed["generate"]["guidance_2"] == 1.5
     assert observed["generate"]["flow_shift"] == 3.0
+    assert observed["generate"]["solver"] == "euler"
     assert observed["generate"]["seed"] == 123
     assert observed["generate"]["image_path"] == str(image_path)
     assert callable(observed["generate"]["progress_callback"])

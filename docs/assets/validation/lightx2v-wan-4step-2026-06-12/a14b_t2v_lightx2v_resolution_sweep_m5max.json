@@ -1,0 +1,26 @@
+{
+  "hardware": "Apple M5 Max",
+  "profile": {
+    "frames": 41,
+    "fps": 20,
+    "steps": 4,
+    "guidance": 1.0,
+    "guidance_2": 1.0,
+    "flow_shift": 5.0,
+    "solver": "euler"
+  },
+  "runs": {
+    "t2v_q8_lightning_240p": {
+      "width": 480,
+      "height": 240,
+      "wall_seconds": 92.98,
+      "max_rss_bytes": 14446919680,
+      "max_rss_gib": 13.454742431640625
+    },
+    "t2v_q8_lightning_480p": {
+      "width": 832,
+      "height": 480,
+      "wall_seconds": 334.75
+    }
+  }
+}

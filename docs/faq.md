@@ -175,7 +175,15 @@ Yes, for the current Wan q8 public routes. Exact validated rows now exist for:
 Wan is not blocked the way Bonsai is. The current MLX Wan path still uses normal linear attention
 and FFN layers, so LoRA injection is technically viable. Use `mlxgen capabilities --model <model>`
 and check `lora_status`, `lora_target_roles`, and `lora_validation_profile` before relying on a
-specific Wan LoRA workflow.
+specific Wan LoRA workflow. For the current A14B Lightning example, start with:
+
+```sh
+mlxgen download --model lightx2v/Wan2.2-Lightning --all-files
+```
+
+Then use the paired T2V or I2V files from that repository as
+`lightx2v/Wan2.2-Lightning:<subdir>/<file>.safetensors`; the copy-paste commands are in
+[LoRA](lora.md).
 
 ## How Do I Choose Between Latent I2I And Image Edit?
 

@@ -316,6 +316,10 @@ def test_wan_generate_releases_high_noise_transformer_before_low_noise_call(monk
         FakeScheduler,
     )
     monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.WanEulerScheduler",
+        FakeScheduler,
+    )
+    monkeypatch.setattr(
         "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video",
         lambda **kwargs: SimpleNamespace(),
     )
@@ -542,6 +546,10 @@ def test_wan_generate_rejects_non_finite_latents_during_denoise(monkeypatch):
 
     monkeypatch.setattr(
         "mflux.models.wan.variants.wan2_2_ti2v.WanUniPCMultistepScheduler",
+        FakeScheduler,
+    )
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.WanEulerScheduler",
         FakeScheduler,
     )
     monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", fail_video_conversion)
@@ -780,6 +788,10 @@ def _patch_fake_wan_generation(monkeypatch, model, scheduler_output=None, patch_
 
     monkeypatch.setattr(
         "mflux.models.wan.variants.wan2_2_ti2v.WanUniPCMultistepScheduler",
+        FakeScheduler,
+    )
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.WanEulerScheduler",
         FakeScheduler,
     )
     if patch_to_video:
@@ -1139,6 +1151,7 @@ def test_wan_generate_passes_explicit_flow_shift_to_scheduler_and_metadata(monke
 
     assert calls["scheduler_flow_shift"] == 2.5
     assert observed["to_video"]["flow_shift"] == 2.5
+    assert observed["to_video"]["solver"] == "unipc"
 
 
 def test_wan_generate_uses_model_default_flow_shift(monkeypatch):
@@ -1156,6 +1169,32 @@ def test_wan_generate_uses_model_default_flow_shift(monkeypatch):
     )
 
     assert calls["scheduler_flow_shift"] == 3.0
+
+
+def test_wan_generate_can_select_euler_solver(monkeypatch):
+    model = _fake_t2v_a14b_model()
+    calls = _patch_fake_wan_generation(monkeypatch, model)
+    observed = {}
+
+    def to_video(**kwargs):
+        observed["to_video"] = kwargs
+        return SimpleNamespace()
+
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", to_video)
+
+    model.generate_video(
+        seed=1,
+        prompt="a fast lift-off",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        solver="euler",
+    )
+
+    assert calls["scheduler_flow_shift"] == 3.0
+    assert observed["to_video"]["solver"] == "euler"
 
 
 def test_wan_generate_rejects_invalid_flow_shift():

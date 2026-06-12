@@ -34,15 +34,22 @@ Published proof assets:
 
 - `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_4step_ab_contact_sheet.jpg`
 - `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_i2v_lightx2v_4step_ab_contact_sheet.jpg`
+- `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightning_quant_progress_m5max.jpg`
+- `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_i2v_lightning_quant_progress_m5max.jpg`
+- `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_q8_vs_bf16_frame_compare.png`
+- `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_lightning_quant_stats_m5max.json`
 - `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_81f_speed_comparison.jpg`
 - `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_i2v_lightx2v_81f_speed_comparison.jpg`
 - `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_81f_step_sweep_m5max.jpg`
 - `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_480p_probe_m5max.jpg`
+- `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_resolution_sweep_m5max.jpg`
+- `docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_resolution_sweep_m5max.json`
 - `docs/assets/validation/lightx2v-wan-4step-2026-06-12/long_run_speed_stats.json`
 
 The no-LoRA 4-step baselines were materially worse on both routes, which is the point of this
-profile. No general runtime default was changed. The fast path stays explicit through paired LoRAs,
-exact target roles, and exact settings.
+profile. They are useful as same-seed LoRA-effect proofs, not as the public performance baseline.
+No general runtime default was changed. The fast path stays explicit through paired LoRAs, exact
+target roles, and exact settings.
 
 Longer-run timing evidence also now exists against the current practical original A14B profiles at
 `81` frames and `20` fps:
@@ -62,6 +69,18 @@ These numbers are important because they show what the item actually delivered: 
 explicit recipe on top of the current Wan runtime, not a claim that the 4-step profile is
 universally higher quality than the original longer Wan profile.
 
+Additional compact validation on the same `M5 Max` and the same `41`-frame target now exists for
+the prepared variants and public q8 route used in the external docs:
+
+- T2V prepared BF16 + LightX2V `4`-step: `87.99s`, `32.77 GiB` max RSS
+- T2V prepared q8 + LightX2V `4`-step: `92.98s`, `13.45 GiB` max RSS
+- T2V prepared q8 original `20`-step: `516.45s`, `13.83 GiB` max RSS
+- I2V prepared q8 + LightX2V `4`-step: `87.88s`, `13.45 GiB` max RSS
+- I2V prepared q8 original `20`-step: `446.17s`, `13.73 GiB` max RSS
+
+That yields practical q8 speedups of `5.55x` for T2V and `5.08x` for I2V at the smaller
+`41`-frame proof size while keeping the same prompts, same seeds, and same target resolutions.
+
 Additional T2V-only quality investigation on the same `M5 Max` also showed:
 
 - raising the Lightning quick profile from `4` to `6` or `8` steps at `480x240` recovers some
@@ -77,6 +96,30 @@ Additional T2V-only quality investigation on the same `M5 Max` also showed:
 That pushes the conclusion in one clear direction: the T2V weakness is mainly a quality-envelope
 tradeoff for the ultra-fast `240p` recipe, not evidence of a loader or scheduler bug in the
 current MLX-Gen LightX2V path once the q8 FFN runtime fix is present.
+
+## Completion report
+
+The final higher-resolution T2V check exposed one real q8-only runtime bug on the A14B Lightning
+path. The published q8 package itself did not need to be rebuilt. The failure came from MLX-Gen's
+runtime precision policy while applying the paired LightX2V LoRAs:
+
+- the earlier q8 runtime carve-out already kept several Wan attention-family and conditioning paths
+  at BF16 runtime precision;
+- the LightX2V A14B LoRAs also target the Wan FFN family, specifically `ffn.net.0` and
+  `ffn.net.1`;
+- leaving those FFN targets quantized in memory caused the `1280x720`, `41`-frame, `4`-step q8
+  T2V run to start with corrupted early frames while the BF16 route stayed clean.
+
+The closing repair was narrow:
+
+- extend the Wan q8 runtime-sensitive BF16 carve-out to include `ffn.net.0` and `ffn.net.1`;
+- keep the package on disk unchanged;
+- validate the repair with a same-seed BF16-versus-q8 `720p` comparison using the same LightX2V
+  prompt, LoRAs, frame count, and solver.
+
+The repaired q8 `720p` run then started clean from frame `0` and visually tracked the BF16
+reference. The public docs only describe the supported profile and proof assets; this report keeps
+the implementation detail for future maintenance.
 
 ## Context
 

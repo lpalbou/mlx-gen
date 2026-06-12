@@ -68,6 +68,7 @@ def main() -> None:
                     guidance=args.guidance,
                     guidance_2=args.guidance_2,
                     flow_shift=args.flow_shift,
+                    solver=args.solver,
                     num_inference_steps=args.steps,
                     negative_prompt=args.negative_prompt,
                     image_path=args.image_path,
@@ -158,6 +159,15 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--fps", type=int, default=WAN_DEFAULT_FPS, help="Output video frame rate.")
     parser.add_argument("--steps", type=int, default=50, help="Denoising steps.")
+    parser.add_argument(
+        "--solver",
+        choices=("unipc", "euler"),
+        default=None,
+        help=(
+            "Wan denoiser solver. Defaults to the model profile. LightX2V 4-step Wan LoRAs are designed around "
+            "the euler path."
+        ),
+    )
     parser.add_argument("--guidance", type=float, default=5.0, help="Classifier-free guidance scale.")
     parser.add_argument(
         "--flow-shift",
@@ -292,7 +302,7 @@ def _apply_metadata_defaults(args: argparse.Namespace) -> set[str]:
     if args.lora_target_roles is None and metadata.get("lora_target_roles") is not None:
         args.lora_target_roles = metadata.get("lora_target_roles")
         provided_options.add("--lora-target-roles")
-    for name in ("width", "height", "frames", "fps", "steps", "guidance", "guidance_2", "flow_shift"):
+    for name in ("width", "height", "frames", "fps", "steps", "guidance", "guidance_2", "flow_shift", "solver"):
         value = metadata.get(name)
         if value is not None and getattr(args, name) == _parser().get_default(name):
             setattr(args, name, value)
@@ -379,6 +389,8 @@ def _apply_model_defaults(args: argparse.Namespace, model_config: ModelConfig, p
         and wan_config.get("default_guidance_2") is not None
     ):
         args.guidance_2 = wan_config["default_guidance_2"]
+    if "--solver" not in provided_options and args.solver is None:
+        args.solver = wan_config.get("default_solver", "unipc")
 
 
 def _apply_runtime_memory_options(args: argparse.Namespace) -> None:
@@ -469,6 +481,7 @@ def _write_failure_manifest(
             "guidance": args.guidance,
             "guidance_2": args.guidance_2,
             "flow_shift": args.flow_shift,
+            "solver": args.solver,
             "fps": args.fps,
             "output": output_path,
             "low_ram": bool(args.low_ram),

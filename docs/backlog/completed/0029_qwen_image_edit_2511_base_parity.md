@@ -15,7 +15,7 @@ Completed items [0025](../completed/0025_standardized_i2i_sequence_validation.md
 [0026](../completed/0026_edit_model_prepared_capability_contact_sheets.md) showed that Qwen Image
 Edit 2509 source/q8 can pass the standardized spaceship edit sequence, while Qwen Image Edit 2511
 does not yet pass the complex multi-reference composition row. The broader Qwen parity expansion
-remains in [proposed item 0008](../proposed/0008_qwen_edit_parity_expansion.md), but 2511 base
+remains in [planned item 0008](../planned/0008_qwen_edit_parity_expansion.md), but 2511 base
 parity is now release-blocking work and needs its own planned item.
 
 ## Current code reality
@@ -90,7 +90,7 @@ packing, and first-denoise inputs.
 - [0025 standardized I2I sequence validation](../completed/0025_standardized_i2i_sequence_validation.md)
 - [0026 edit model prepared-package capability contact sheets](../completed/0026_edit_model_prepared_capability_contact_sheets.md)
 - [0028 release validation registry](../completed/0028_release_validation_registry.md)
-- [0008 Qwen edit parity expansion](../proposed/0008_qwen_edit_parity_expansion.md)
+- [0008 Qwen edit parity expansion](../planned/0008_qwen_edit_parity_expansion.md)
 - Local upstream: `/Users/albou/projects/gh/diffusers/`,
   `/Users/albou/projects/gh/transformers/`
 

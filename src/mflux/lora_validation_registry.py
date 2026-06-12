@@ -19,6 +19,8 @@ WAN_TI2V5B_Q8_HSTORIC_T2V_PROFILE_ID = "lora_wan_ti2v5b_q8_hstoric_t2v_2026_06_1
 WAN_TI2V5B_Q8_CRUSHIT_I2V_PROFILE_ID = "lora_wan_ti2v5b_q8_crushit_i2v_2026_06_11"
 WAN_A14B_Q8_FOLLOWCAM_T2V_PROFILE_ID = "lora_wan_a14b_q8_followcam_t2v_2026_06_11"
 WAN_A14B_Q8_ORBIT_I2V_PROFILE_ID = "lora_wan_a14b_q8_orbit_i2v_2026_06_11"
+WAN_A14B_Q8_LIGHTX2V_4STEP_T2V_PROFILE_ID = "lora_wan_a14b_q8_lightx2v_4step_t2v_2026_06_12"
+WAN_A14B_Q8_LIGHTX2V_4STEP_I2V_PROFILE_ID = "lora_wan_a14b_q8_lightx2v_4step_i2v_2026_06_12"
 
 
 @dataclass(frozen=True)
@@ -77,12 +79,12 @@ _RECORDS: tuple[LoRAValidationRecord, ...] = (
     LoRAValidationRecord(
         model="AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit",
         capability_id="wan.text-video",
-        validation_profile=WAN_A14B_Q8_FOLLOWCAM_T2V_PROFILE_ID,
+        validation_profile=WAN_A14B_Q8_LIGHTX2V_4STEP_T2V_PROFILE_ID,
     ),
     LoRAValidationRecord(
         model="AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit",
         capability_id="wan.first-frame",
-        validation_profile=WAN_A14B_Q8_ORBIT_I2V_PROFILE_ID,
+        validation_profile=WAN_A14B_Q8_LIGHTX2V_4STEP_I2V_PROFILE_ID,
     ),
 )
 

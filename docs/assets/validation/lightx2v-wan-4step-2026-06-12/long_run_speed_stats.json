@@ -1,0 +1,30 @@
+{
+  "machine": "M5 Max",
+  "t2v_original_seconds": 1356.45,
+  "t2v_lightning_seconds": 163.94,
+  "t2v_speedup_vs_original": 8.274,
+  "t2v_lightning_6step_seconds": 197.63,
+  "t2v_lightning_6step_speedup_vs_original": 6.864,
+  "t2v_lightning_8step_seconds": 279.4,
+  "t2v_lightning_8step_speedup_vs_original": 4.855,
+  "t2v_lightning_832x480_41f_seconds": 334.75,
+  "i2v_original_seconds": 887.4,
+  "i2v_lightning_seconds": 144.7,
+  "i2v_speedup_vs_original": 6.133,
+  "profile": {
+    "requested_width": 480,
+    "requested_height": 240,
+    "frames": 81,
+    "fps": 20,
+    "t2v_original_steps": 20,
+    "t2v_lightning_steps": 4,
+    "t2v_lightning_6step_steps": 6,
+    "t2v_lightning_8step_steps": 8,
+    "i2v_original_steps": 20,
+    "i2v_lightning_steps": 4,
+    "t2v_480p_probe_width": 832,
+    "t2v_480p_probe_height": 480,
+    "t2v_480p_probe_frames": 41,
+    "t2v_480p_probe_steps": 4
+  }
+}
