@@ -1,10 +1,10 @@
-# Completed: GitHub Actions Node 24 migration
+# Planned: GitHub Actions Node 24 migration
 
 ## Metadata
 
 - Created: 2026-06-12
-- Status: Completed
-- Completed: 2026-06-14
+- Status: Planned
+- Completed: N/A
 
 ## ADR status
 
@@ -28,13 +28,14 @@ as a distant cleanup note.
   - `actions/setup-python@v6`
   - `actions/upload-artifact@v6`
   - `actions/download-artifact@v7`
-  - shell-based `gh release create` / `gh release upload --clobber`
+  - `softprops/action-gh-release@v2`
   - `pypa/gh-action-pypi-publish@release/v1`
 - Release workflow run `27440684820` for `v0.18.17` originally emitted Node 20 deprecation
   annotations for `actions/checkout@v4`, `actions/setup-python@v5`, and `actions/upload-artifact@v4`.
 - PR `#4` migrated those actions and the branch release rehearsal `27443742691` passed.
-- PR `#6` replaces the remaining `softprops/action-gh-release@v2` step with a shell-driven GitHub
-  CLI publish step and restores the backlog state to completed.
+- Release workflow run `27454332191` for `v0.18.18` still emitted one remaining Node 20 warning
+  from `softprops/action-gh-release@v2`.
+- The remaining gap is confined to the GitHub Release publication step.
 
 ## Problem
 
@@ -117,9 +118,9 @@ automation become flaky or fail under the next runner default.
 
 - [x] Audit the current upstream action versions.
 - [x] Update `tests.yml`.
-- [x] Replace `softprops/action-gh-release@v2` in `release.yml`.
-- [x] Run and inspect CI.
-- [x] Close the backlog item with the exact run ids and residual risk.
+- [ ] Replace `softprops/action-gh-release@v2` in `release.yml`.
+- [ ] Run and inspect CI.
+- [ ] Close the backlog item with the exact run ids and residual risk.
 
 ## Guidance for the implementing agent
 
@@ -186,45 +187,3 @@ Node 20 deprecation warning from `softprops/action-gh-release@v2`, so the record
 `planned/` for one final cleanup pass. The remaining work is intentionally narrow: replace the
 GitHub Release publication action with a Node-runtime-independent `gh` CLI step, rerun CI, and
 capture a clean PR that other repositories can copy.
-
-### 2026-06-14 final completion
-
-#### Summary
-
-Removed the last Node 20-based JavaScript action from the release workflow by replacing
-`softprops/action-gh-release@v2` with a shell step that uses the GitHub CLI:
-
-- `gh release create` when the tag does not yet have a GitHub Release
-- `gh release upload --clobber` when the release already exists
-
-This keeps the release graph unchanged while making the publish step independent from future Node
-runtime migrations.
-
-#### Files changed
-
-- `.github/workflows/release.yml`
-- `docs/backlog/overview.md`
-- `docs/backlog/recurrent/0017_backlog_release_hygiene.md`
-
-#### Validation
-
-- PR: `#6`
-- PR URL: `https://github.com/lpalbou/mlx-gen/pull/6`
-- PR checks run: `27464782179`
-- Release workflow rehearsal: `27464789730`
-
-Observed result:
-
-- PR checks passed:
-  - `Fast tests`
-  - `Lint and build package`
-- The branch `release.yml` workflow succeeded with `publish=false`, proving the updated workflow
-  parses, builds, and uploads artifacts cleanly after the `gh` CLI migration.
-- The GitHub Release job was intentionally skipped in that rehearsal because `publish=false`.
-  Residual risk is limited to the next real publish path, but the Node 20 warning source has been
-  removed from the workflow definition itself.
-
-#### Outcome
-
-This item is complete. The workflow file no longer depends on `softprops/action-gh-release@v2`, and
-the PR serves as the reusable example for similar repositories.

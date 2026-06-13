@@ -172,7 +172,7 @@ outside chat history.
 | 0031 | [SeedVR2 official ByteDance checkpoint support](completed/0031_seedvr2_official_bytedance_checkpoint_support.md) | Upscale, SeedVR2, official checkpoints | 2026-06-07 | Added direct official `ByteDance-Seed/SeedVR2-3B` and `ByteDance-Seed/SeedVR2-7B` `.pth` loading, switched SeedVR2 aliases to official sources, added q8/q4 `mlxgen prepare` support, generated reusable package cards, and validated source/q8/q4 5x upscale profiles. |
 | 0033 | [Video LoRA support for T2V and I2V](completed/0033_video_lora_for_t2v_i2v.md) | Video, LoRA, Wan2.2 | 2026-06-11 | Added Wan-specific LoRA mapping and explicit role routing, then validated all current Wan q8 public rows with model-backed A/B artifacts: TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, and I2V-A14B first-frame image-to-video. |
 | 0040 | [LightX2V Wan 4-step acceleration profiles](completed/0040_lightx2v_wan_4step_acceleration_profiles.md) | Video, Wan, LightX2V, fast-path validation | 2026-06-12 | Validated the explicit LightX2V Lightning 4-step A14B fast path on q8 T2V and I2V with same-seed no-LoRA vs paired-LoRA A/B contact sheets, route-level validation profiles, and documented exact commands using `steps=4`, `flow_shift=5.0`, `guidance=1.0`, and `guidance_2=1.0`. |
-| 0042 | [GitHub Actions Node 24 migration](completed/0042_github_actions_node24_migration.md) | CI, release automation, GitHub Actions | 2026-06-12 | Migrated the workflows to `checkout@v5`, `setup-python@v6`, `upload-artifact@v6`, and `download-artifact@v7`, validated the release rehearsal under the new action runtime, and documented the remaining unrelated PR lint failure as residual repo drift rather than a Node 24 blocker. |
+| 0042 | [GitHub Actions Node 24 migration](completed/0042_github_actions_node24_migration.md) | CI, release automation, GitHub Actions | 2026-06-14 | Finished the Node 24 cleanup by replacing `softprops/action-gh-release@v2` with a GitHub CLI release step, validating PR checks and a non-publishing release rehearsal, and preserving the final PR as a reusable migration example. |
 | 0037 | [ERNIE Image Turbo LoRA runtime support](completed/0037_ernie_image_turbo_lora_runtime_support.md) | ERNIE, LoRA, routing, validation | 2026-06-11 | Added ERNIE transformer LoRA mapping, public-route LoRA support, exact q8 text-to-image validation with an anime-style adapter, and kept latent img2img plus Bonsai packed-runtime work explicitly separate. |
 
 ## Deprecated ledger
@@ -263,6 +263,12 @@ No deprecated backlog items yet.
 - Completed 2026-06-12 GitHub Actions Node 24 migration: PR `#4` upgraded the affected actions,
   release rehearsal `27443742691` passed without the earlier Node 20 deprecation warnings, and PR
   CI run `27443720109` exposed only pre-existing repository lint drift unrelated to the migration.
+- Added 2026-06-13 follow-up: release `0.18.18` still emitted one Node 20 warning from
+  `softprops/action-gh-release@v2`, so item 0042 was reopened and narrowed to a final GitHub
+  Release publication cleanup pass using the `gh` CLI as the reusable migration strategy.
+- Completed 2026-06-14 GitHub Actions Node 24 migration follow-up: PR `#6` replaced
+  `softprops/action-gh-release@v2` with a `gh release create` / `gh release upload --clobber`
+  step, PR checks passed, and release rehearsal `27464789730` succeeded on the branch.
 - Completed 2026-05-27 Bonsai ternary 2-bit support: `mlxgen generate` can run
   `prism-ml/bonsai-image-ternary-4B-mlx-2bit` directly, binary 1-bit now fails with an explicit
   unsupported-runtime message, and a local validation panel compares Bonsai ternary with FLUX.2
