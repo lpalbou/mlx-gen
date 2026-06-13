@@ -70,3 +70,6 @@ The backlog is useful only when planned work names what remains rather than what
 - 2026-06-12: Follow-up hygiene for PR `#4` moved item 0042 to completed after the branch release
   rehearsal (`27443742691`) passed under the upgraded action versions and the only remaining PR CI
   failure was a pre-existing `ruff` baseline issue outside the workflow migration scope.
+- 2026-06-13: Release `0.18.18` exposed one remaining Node 20 warning from
+  `softprops/action-gh-release@v2`, so item 0042 was reopened, moved back to `planned/`, and
+  narrowed to a final GitHub Release publication cleanup pass.

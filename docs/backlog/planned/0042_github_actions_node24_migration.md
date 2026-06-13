@@ -3,8 +3,8 @@
 ## Metadata
 
 - Created: 2026-06-12
-- Status: Completed
-- Completed: 2026-06-12
+- Status: Planned
+- Completed: N/A
 
 ## ADR status
 
@@ -21,21 +21,21 @@ as a distant cleanup note.
 ## Current code reality
 
 - `.github/workflows/tests.yml` uses:
-  - `actions/checkout@v4`
-  - `actions/setup-python@v5`
+  - `actions/checkout@v5`
+  - `actions/setup-python@v6`
 - `.github/workflows/release.yml` uses:
-  - `actions/checkout@v4`
-  - `actions/setup-python@v5`
-  - `actions/upload-artifact@v4`
-  - `actions/download-artifact@v4`
+  - `actions/checkout@v5`
+  - `actions/setup-python@v6`
+  - `actions/upload-artifact@v6`
+  - `actions/download-artifact@v7`
   - `softprops/action-gh-release@v2`
   - `pypa/gh-action-pypi-publish@release/v1`
-- Release workflow run `27440684820` for `v0.18.17` succeeded, but GitHub emitted Node 20
-  deprecation annotations for `actions/checkout@v4`, `actions/setup-python@v5`, and
-  `actions/upload-artifact@v4`.
-- The repository does not currently track this warning in backlog, docs, or CI comments.
-- There is no explicit workflow-level opt-in to Node 24 and no recorded compatibility pass after
-  the warning.
+- Release workflow run `27440684820` for `v0.18.17` originally emitted Node 20 deprecation
+  annotations for `actions/checkout@v4`, `actions/setup-python@v5`, and `actions/upload-artifact@v4`.
+- PR `#4` migrated those actions and the branch release rehearsal `27443742691` passed.
+- Release workflow run `27454332191` for `v0.18.18` still emitted one remaining Node 20 warning
+  from `softprops/action-gh-release@v2`.
+- The remaining gap is confined to the GitHub Release publication step.
 
 ## Problem
 
@@ -57,11 +57,12 @@ automation become flaky or fail under the next runner default.
 
 - Audit every JavaScript action used by the current workflows.
 - Upgrade to Node 24-compatible action versions where available.
+- Remove `softprops/action-gh-release@v2` from the release path.
 - Keep release semantics unchanged: tag-driven GitHub release creation, trusted PyPI publishing,
   and macOS fast tests must still behave the same.
 - Avoid speculative workflow redesign. This is a compatibility pass, not a CI rewrite.
-- Record the result in backlog and changelog/release notes only if behavior visible to maintainers
-  changes.
+- Prefer a reusable pattern that other repositories can copy without swapping one aging
+  JavaScript action for another.
 
 ## Suggested implementation
 
@@ -70,16 +71,20 @@ automation become flaky or fail under the next runner default.
    - `actions/setup-python`
    - `actions/upload-artifact`
    - `actions/download-artifact`
+   - any remaining JavaScript action on the release path
 2. Update the workflow files narrowly.
-3. If useful, add a temporary opt-in to Node 24 during validation so the repository proves the
+3. Replace `softprops/action-gh-release@v2` with a shell-driven `gh` CLI step that creates the
+   release when missing and uploads assets idempotently when the release already exists.
+4. If useful, add a temporary opt-in to Node 24 during validation so the repository proves the
    post-switch path before GitHub makes it default.
-4. Run the tests workflow and a bounded release workflow rehearsal after the upgrade.
+5. Run the tests workflow and a bounded release workflow rehearsal after the upgrade.
 
 ## Scope
 
 - `.github/workflows/tests.yml`
 - `.github/workflows/release.yml`
 - Minimal workflow metadata or comments needed to explain the migration
+- Backlog state files that currently mark this migration complete
 
 ## Non-goals
 
@@ -97,6 +102,7 @@ automation become flaky or fail under the next runner default.
 
 - No Node 20 deprecation warnings on the maintained workflow versions, or a clearly documented
   bounded exception if one action cannot be upgraded immediately.
+- No Node 20 deprecation warning from the GitHub Release publish job on the next workflow run.
 - One successful post-change tests workflow run.
 - One successful post-change release rehearsal or documented reason why a rehearsal was skipped.
 
@@ -105,12 +111,14 @@ automation become flaky or fail under the next runner default.
 - GitHub Actions tests workflow succeeds after the version changes.
 - Release workflow metadata/build checks succeed after the version changes.
 - The new runs no longer emit the current Node 20 deprecation warnings for the updated actions.
+- The GitHub Release publication job succeeds with the `gh` CLI replacement and still uploads the
+  built distributions.
 
 ## Progress checklist
 
-- [ ] Audit the current upstream action versions.
-- [ ] Update `tests.yml`.
-- [ ] Update `release.yml`.
+- [x] Audit the current upstream action versions.
+- [x] Update `tests.yml`.
+- [ ] Replace `softprops/action-gh-release@v2` in `release.yml`.
 - [ ] Run and inspect CI.
 - [ ] Close the backlog item with the exact run ids and residual risk.
 
@@ -121,7 +129,7 @@ small, verify the actual workflows, and avoid folding unrelated CI opinions into
 
 ## Completion report
 
-### 2026-06-12
+### 2026-06-12 partial completion
 
 #### Summary
 
@@ -162,12 +170,6 @@ Observed result:
   - `src/mflux/models/wan/wan_initializer.py`
   - `src/mflux/models/wan/weights/wan_lora_mapping.py`
 
-#### Outcome
-
-This item is complete. The Node 24 migration itself is implemented and validated on the release
-path that originally emitted the warning. The remaining red PR CI signal is tracked as unrelated
-repository lint drift, not a workflow-runtime compatibility problem.
-
 #### Reusable strategy
 
 For similar repositories, use the same bounded sequence:
@@ -177,3 +179,11 @@ For similar repositories, use the same bounded sequence:
 3. avoid redesigning the workflow graph during the migration;
 4. validate both the ordinary CI path and a bounded release/publish rehearsal;
 5. record unrelated baseline failures separately instead of burying them inside the migration.
+
+### 2026-06-13 reopen note
+
+Release `0.18.18` showed that this item had been closed too early. The workflow still emitted a
+Node 20 deprecation warning from `softprops/action-gh-release@v2`, so the record was moved back to
+`planned/` for one final cleanup pass. The remaining work is intentionally narrow: replace the
+GitHub Release publication action with a Node-runtime-independent `gh` CLI step, rerun CI, and
+capture a clean PR that other repositories can copy.
