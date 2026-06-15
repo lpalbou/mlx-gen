@@ -177,6 +177,7 @@ jobs:
       - name: Create or update GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
           RELEASE_VERSION: ${{ needs.build.outputs.version }}
           TARGET_COMMITISH: ${{ github.sha }}
         run: |
@@ -185,11 +186,12 @@ jobs:
           tag="v${RELEASE_VERSION}"
           title="mlx-gen ${RELEASE_VERSION}"
 
-          if gh release view "$tag" >/dev/null 2>&1; then
-            gh release upload "$tag" dist/* --clobber
-            gh release edit "$tag" --title "$title"
+          if gh release view "$tag" --repo "$GH_REPO" >/dev/null 2>&1; then
+            gh release upload "$tag" dist/* --repo "$GH_REPO" --clobber
+            gh release edit "$tag" --repo "$GH_REPO" --title "$title"
           else
             gh release create "$tag" dist/* \
+              --repo "$GH_REPO" \
               --title "$title" \
               --target "$TARGET_COMMITISH" \
               --generate-notes
