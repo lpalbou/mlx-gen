@@ -66,6 +66,12 @@ class LoRAApplicationResult:
 
 
 class LoRALoader:
+    _debug_enabled = False
+
+    @staticmethod
+    def set_debug_enabled(debug_enabled: bool) -> None:
+        LoRALoader._debug_enabled = debug_enabled
+
     @staticmethod
     def load_and_apply_lora(
         lora_mapping: list[LoRATarget],
@@ -164,9 +170,7 @@ class LoRALoader:
 
         pattern_mappings = LoRALoader._build_pattern_mappings(lora_mapping)
 
-        applied_count, matched_keys = LoRALoader._apply_lora_with_mapping(
-            transformer, weights, scale, pattern_mappings, role=role
-        )
+        applied_count, matched_keys = LoRALoader._apply_lora_with_mapping(transformer, weights, scale, pattern_mappings, role=role)
 
         total_keys = len(weights)
         unmatched_keys = set(weights.keys()) - matched_keys
@@ -349,7 +353,8 @@ class LoRALoader:
         if is_linear or is_lora_linear or is_fused_linear:
             LoRALoader._validate_lora_matrix_shapes(current_module, lora_A, lora_B, target_path)
             if is_lora_linear:
-                print(f"   🔀 Fusing with existing LoRA at {target_path}")
+                if LoRALoader._debug_enabled:
+                    print(f"   🔀 Fusing with existing LoRA at {target_path}")
                 lora_layer = LoRALinear.from_linear(current_module.linear, r=lora_A.shape[1], scale=effective_scale)
                 lora_layer._mflux_lora_role = role
                 lora_layer.lora_A = lora_A
@@ -359,7 +364,8 @@ class LoRALoader:
                 fused_layer = FusedLoRALinear(base_linear=current_module.linear, loras=[current_module, lora_layer])
                 replacement_layer = fused_layer
             elif is_fused_linear:
-                print(f"   🔀 Adding to existing fusion at {target_path}")
+                if LoRALoader._debug_enabled:
+                    print(f"   🔀 Adding to existing fusion at {target_path}")
                 lora_layer = LoRALinear.from_linear(
                     current_module.base_linear, r=lora_A.shape[1], scale=effective_scale
                 )

@@ -336,7 +336,7 @@ def _parser() -> argparse.ArgumentParser:
             "--prompt-file, --width, --height, --steps, --guidance, --seed, --auto-seeds, "
             "--negative-prompt/--negative, --canvas-policy, --quantize, --lora-paths, --lora-scales, --metadata, "
             "--config-from-metadata/-C, --output, --replace, --frames, --fps, --guidance-2, --flow-shift, "
-            "--reframe-padding, --outpaint-padding, --low-ram, --tensor-health-check-interval, "
+            "--reframe-padding, --outpaint-padding, --low-ram, --debug, --tensor-health-check-interval, "
             "--failure-diagnostics, and --progress/--no-progress."
         ),
     )
@@ -352,6 +352,11 @@ def _parser() -> argparse.ArgumentParser:
         choices=["qwen", "flux2", "fibo", "z-image", "ernie-image", "wan", "bonsai"],
         default=None,
         help="Override model-family detection for local paths or custom repo names.",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug logging for internal generation details such as LoRA fusion targets.",
     )
     parser.add_argument(
         "--task",

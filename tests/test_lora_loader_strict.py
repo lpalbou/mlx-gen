@@ -113,3 +113,68 @@ def test_lora_loader_rejects_scales_without_paths():
             lora_paths=None,
             lora_scales=[1.0],
         )
+
+
+@pytest.mark.fast
+def test_lora_loader_summarizes_stacked_lora_logging_without_per_layer_paths(tmp_path, capsys):
+    first_lora = tmp_path / "first.safetensors"
+    second_lora = tmp_path / "second.safetensors"
+    third_lora = tmp_path / "third.safetensors"
+
+    for path in (first_lora, second_lora, third_lora):
+        _save_lora(
+            path,
+            {
+                "target.lora_A.weight": mx.zeros((2, 4)),
+                "target.lora_B.weight": mx.zeros((3, 2)),
+            },
+        )
+
+    transformer = _TinyTransformer()
+    try:
+        LoRALoader.set_debug_enabled(False)
+        LoRALoader.load_and_apply_lora(
+            lora_mapping=_mapping(),
+            transformer=transformer,
+            lora_paths=[str(first_lora), str(second_lora), str(third_lora)],
+            lora_scales=[1.0, 1.0, 1.0],
+        )
+
+        output = capsys.readouterr().out
+        assert "Fusing with existing LoRA at target" not in output
+        assert "Adding to existing fusion at target" not in output
+        assert "Applied to 1 layers" in output
+    finally:
+        LoRALoader.set_debug_enabled(False)
+
+
+@pytest.mark.fast
+def test_lora_loader_emits_fusion_target_logs_in_debug_mode(tmp_path, capsys):
+    first_lora = tmp_path / "first.safetensors"
+    second_lora = tmp_path / "second.safetensors"
+    third_lora = tmp_path / "third.safetensors"
+
+    for path in (first_lora, second_lora, third_lora):
+        _save_lora(
+            path,
+            {
+                "target.lora_A.weight": mx.zeros((2, 4)),
+                "target.lora_B.weight": mx.zeros((3, 2)),
+            },
+        )
+
+    transformer = _TinyTransformer()
+    try:
+        LoRALoader.set_debug_enabled(True)
+        LoRALoader.load_and_apply_lora(
+            lora_mapping=_mapping(),
+            transformer=transformer,
+            lora_paths=[str(first_lora), str(second_lora), str(third_lora)],
+            lora_scales=[1.0, 1.0, 1.0],
+        )
+
+        output = capsys.readouterr().out
+        assert "Fusing with existing LoRA at target" in output
+        assert "Adding to existing fusion at target" in output
+    finally:
+        LoRALoader.set_debug_enabled(False)

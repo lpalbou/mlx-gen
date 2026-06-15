@@ -250,6 +250,77 @@ mlxgen generate \
   --lora-scales 1.0
 ```
 
+For Qwen Image 2512 and Qwen Image Edit 2511, the dedicated LightX2V Lightning adapters are the
+recommended fast path when you want usable results in `4` denoising steps. In practical terms,
+they let you use a `4`-step workflow instead of the more typical `20`-step Qwen workflow. The
+commands below assume the selected q8 package is already cached locally; the extra download is only
+the LoRA repository.
+
+![Qwen Image 2512 q8 4-step Lightning A/B](assets/validation/qwen-lightning-2026-06-15/qwen2512_q8_lightning_ab_contact_sheet.png)
+
+The documented `AbstractFramework/qwen-image-2512-8bit` proof uses the same prompt and seed for a
+source/no-LoRA/with-LoRA comparison and shows the Lightning route producing the intended image on
+the `4`-step fast path.
+
+Download the adapter repo explicitly:
+
+```sh
+mlxgen download --model lightx2v/Qwen-Image-2512-Lightning --all-files
+```
+
+Command:
+
+```sh
+mlxgen generate \
+  --model AbstractFramework/qwen-image-2512-8bit \
+  --prompt "Cinematic wide-angle photo of a silver retro-futuristic spaceship parked on a frozen runway inside an icy canyon at sunrise, twin blue engines glowing, drifting snow, crisp metallic panel lines, photorealistic, highly detailed." \
+  --negative "blurry, low quality, distorted, deformed, ugly, bad anatomy, bad proportions, extra limbs, duplicate, watermark, signature, text, cartoon, anime, painting, illustration, 3d render, cgi" \
+  --width 768 \
+  --height 341 \
+  --steps 4 \
+  --guidance 1 \
+  --seed 4212 \
+  --metadata \
+  --replace \
+  --output qwen2512_lightning.png \
+  --lora-paths lightx2v/Qwen-Image-2512-Lightning:Qwen-Image-2512-Lightning-4steps-V1.0-bf16.safetensors \
+  --lora-scales 1
+```
+
+`AbstractFramework/qwen-image-edit-2511-8bit` also accepts the dedicated `4`-step Lightning edit
+adapter and is a recommended way to run fast single-image Qwen edits.
+
+![Qwen Image Edit 2511 q8 4-step Lightning A/B](assets/validation/qwen-lightning-2026-06-15/qwen2511edit_q8_lightning_ab_contact_sheet.png)
+
+The documented proof uses the bundled spaceship source image plus a same-seed no-LoRA reference and
+shows the Lightning route producing a usable `4`-step edit result.
+
+Download the adapter repo explicitly:
+
+```sh
+mlxgen download --model lightx2v/Qwen-Image-Edit-2511-Lightning --all-files
+```
+
+Command:
+
+```sh
+mlxgen generate \
+  --model AbstractFramework/qwen-image-edit-2511-8bit \
+  --image docs/assets/examples/spaceship-snow/01_t2i_spaceship_snow.png \
+  --prompt "Keep the same silver spaceship, icy canyon, and sunrise palette. Change the camera to a front three-quarter close shot, brighten the blue engines, add blowing snow around the landing gear, and preserve the same realistic metallic design." \
+  --negative "blurry, low quality, distorted, deformed, ugly, bad anatomy, bad proportions, extra limbs, duplicate, watermark, signature, text, cartoon, anime, painting, illustration, 3d render, cgi" \
+  --width 768 \
+  --height 432 \
+  --steps 4 \
+  --guidance 1 \
+  --seed 5114 \
+  --metadata \
+  --replace \
+  --output qwen2511edit_lightning.png \
+  --lora-paths lightx2v/Qwen-Image-Edit-2511-Lightning:Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors \
+  --lora-scales 1
+```
+
 `AbstractFramework/z-image-turbo-8bit` now has an exact text-to-image proof with
 `renderartist/Technically-Color-Z-Image-Turbo`. This row is validated for `z-image.text` only; the
 latent img2img row remains `mapped-unvalidated`.

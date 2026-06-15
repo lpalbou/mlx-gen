@@ -8,6 +8,7 @@ from pathlib import Path
 
 from mflux.cli.defaults import defaults as ui_defaults
 from mflux.models.common.config import ModelConfig
+from mflux.models.common.lora.mapping.lora_loader import LoRALoader
 from mflux.models.common.resolution.lora_resolution import LoraResolution
 from mflux.models.flux.variants.in_context.utils.in_context_loras import LORA_NAME_MAP
 from mflux.utils import box_values, scale_factor
@@ -121,6 +122,7 @@ class CommandLineParser(argparse.ArgumentParser):
         self.add_argument("--battery-percentage-stop-limit", "-B", type=lambda v: max(min(int(v), 99), 1), default=ui_defaults.BATTERY_PERCENTAGE_STOP_LIMIT, help=f"On Macs powered by battery, stop image generation when battery reaches this percentage. Default: {ui_defaults.BATTERY_PERCENTAGE_STOP_LIMIT}")
         self.add_argument("--low-ram", action="store_true", help="Enable low-RAM mode to reduce memory usage (may impact performance).")
         self.add_argument("--mlx-cache-limit-gb", type=positive_float, default=None, help="Limit MLX cache size in GB without enabling full low-RAM mode (e.g. 8 or 16).")
+        self.add_argument("--debug", action="store_true", help="Enable debug logging for internal generation details such as LoRA fusion targets.")
         self.add_argument("--progress", action="store_true", default=True, help="Show CLI progress when the selected backend supports it. Default is true.")
         self.add_argument("--no-progress", action="store_false", dest="progress", help="Disable CLI progress output.")
 
@@ -302,6 +304,7 @@ class CommandLineParser(argparse.ArgumentParser):
 
     def parse_args(self) -> argparse.Namespace:  # type: ignore
         namespace = super().parse_args()
+        LoRALoader.set_debug_enabled(bool(getattr(namespace, "debug", False)))
 
         # Check if either training arguments are provided
         has_training_args = (hasattr(namespace, "config") and namespace.config is not None) or \

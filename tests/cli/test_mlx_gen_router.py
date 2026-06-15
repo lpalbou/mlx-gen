@@ -22,6 +22,7 @@ def test_generate_help_renders_padding_examples(monkeypatch, capsys):
     assert exc.value.code == 0
     help_output = capsys.readouterr().out
     assert "--reframe-padding" in help_output
+    assert "--debug" in help_output
     assert "0,25%,0,25%" in help_output
 
 

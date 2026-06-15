@@ -147,10 +147,11 @@ LoRA support is experimental. For LoRA work, inspect `supports_lora` and `lora_s
 trained for the selected model family. Current exact proof rows cover original Qwen Image Edit,
 Qwen Image Edit 2509/2511, Qwen Image 2512, Z-Image Turbo, FLUX.2 Klein 9B edit, and ERNIE Image
 Turbo text-to-image, plus the current Wan q8 public video routes. The LoRA guide also includes the
-current LightX2V 4-step A14B timing comparison against the practical original Wan profiles,
-same-seed no-LoRA-versus-Lightning A/B sheets, a `240p`-versus-`480p` T2V sweep, and copy-paste
-download and T2V/I2V commands for `lightx2v/Wan2.2-Lightning`, including the stable
-`repo:subdir/file.safetensors` form and equivalent absolute local-file usage after download.
+current LightX2V `4`-step A14B timing comparison against the practical original Wan profiles,
+same-seed no-LoRA-versus-Lightning A/B sheets, recommended `4`-step Qwen 2512 and Qwen Edit 2511
+Lightning examples, a `240p`-versus-`480p` T2V sweep, and copy-paste download and T2V/I2V
+commands for `lightx2v/Wan2.2-Lightning`, including the stable `repo:subdir/file.safetensors`
+form and equivalent absolute local-file usage after download.
 For example, a FLUX.2-dev LoRA is not accepted for FLUX.2 Klein. See [docs/lora.md](docs/lora.md)
 for the A/B validation method.
 
