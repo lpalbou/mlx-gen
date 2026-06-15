@@ -62,8 +62,10 @@ The main capabilities are:
   comparison, readable `41`-frame M5 Max progress matrices, same-seed no-LoRA-versus-Lightning
   A/B sheets, a `240p`-versus-`480p` T2V sweep, time/RSS tables for T2V and I2V, a Qwen Image
   Edit 2511 q8 masked-edit proof using the dedicated Lightning adapter, and the exact base Qwen
-  q8 structured-control proof using the InstantX union ControlNet sidecar plus Qwen Lightning;
-  base Qwen Image text generation remains experimental, and Bonsai LoRA stays fail-closed;
+  q8 structured-control proof using the InstantX union ControlNet sidecar plus Qwen Lightning.
+  Those Lightning examples are documented against MLX-Gen q8 packages, not arbitrary external FP8
+  checkpoints. Base Qwen Image text generation remains experimental, and Bonsai LoRA stays
+  fail-closed;
 - shared progress events for applications embedding MLX-Gen.
 
 Use `mlxgen capabilities --model ...` before long image-edit runs. Capability output describes the

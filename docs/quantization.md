@@ -25,6 +25,14 @@ The current quantized-model compatibility surface is:
 
 MLX-Gen treats low-bit quality as model-specific, not automatic. Qwen and ERNIE use mixed q4/q8 policies to preserve generation quality. FIBO uses mixed q8/BF16 and q4/BF16 policies that keep precision-sensitive conditioning and output paths at BF16. Bonsai uses Prism's pre-packed ternary 2-bit transformer plus a 4-bit Qwen3 text encoder rather than MLX-Gen's `prepare` flow. q8 remains the closest optimized-package option to BF16 when memory allows.
 
+For image and video generation, the default optimized recommendation in MLX-Gen is still the
+validated q8 package when one exists. That is different from third-party FP8 checkpoint guidance.
+For example, the upstream LightX2V Qwen Lightning README warns that BF16-trained Lightning LoRAs do
+not automatically behave well on every external FP8 Qwen base. That warning does not map 1:1 to
+MLX-Gen's published q8 packages. In MLX-Gen, prefer the documented q8 route plus the exact
+validated Lightning adapter example for that route, and do not treat an arbitrary external FP8
+checkpoint as equivalent to an `AbstractFramework/*-8bit` package.
+
 The difference between Bonsai ternary 2-bit and MLX-Gen's mixed q4/q8 policies is mostly packaging and runtime ownership, not the quality philosophy. Both avoid blind full low-bit conversion:
 
 | Strategy | Used by | Quality-preserving rule | Representative footprint and runtime |

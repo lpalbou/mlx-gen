@@ -187,6 +187,25 @@ Then use the paired T2V or I2V files from that repository as
 downloading them. For Wan A14B, pass each file as its own `--lora-paths` argument rather than one
 quoted combined string.
 
+## Can I Treat MLX-Gen q8 Packages Like Third-Party FP8 Checkpoints For Lightning LoRAs?
+
+No.
+
+The current MLX-Gen recommendation is to use the validated `AbstractFramework/*-8bit` q8 package
+for the route you want and pair it with the exact documented Lightning adapter for that route.
+
+That is not the same thing as taking an arbitrary external FP8 checkpoint and assuming it will
+behave like MLX-Gen q8. The upstream LightX2V Qwen Lightning README explicitly warns that
+BF16-trained Lightning LoRAs do not automatically behave correctly on every FP8 Qwen base:
+
+- <https://github.com/ModelTC/LightX2V-Qwen-Image-Lightning#-using-lightning-loras-with-fp8-models>
+
+For MLX-Gen today, the practical rule is simple:
+
+- prefer the validated q8 MLX-Gen package when one exists;
+- use the exact Lightning adapter example documented for that route;
+- do not generalize those q8 results to unrelated external FP8 checkpoints.
+
 ## How Do I Choose Between Latent I2I And Image Edit?
 
 MLX-Gen keeps one public `image-to-image` task and exposes different internal modes through model
@@ -681,6 +700,11 @@ MLX-Gen is intended to be the Apple Silicon / MLX backend dependency for
 image and video capabilities across local and hosted providers, while MLX-Gen owns MLX model
 loading, quantized local formats, capability reporting, progress callbacks, and Apple Silicon
 runtime behavior.
+
+That split also means higher-level convenience such as curated model-to-adapter pairing, preset
+selection, or UI-facing adapter recommendations should live in AbstractVision. MLX-Gen is the
+runtime authority: it reports which exact routes work, which options are legal, and which
+adapter/base-model combinations fail closed.
 
 [AbstractCore](https://abstractcore.ai/) can expose OpenAI-compatible endpoints backed by
 AbstractVision providers. [AbstractFlow](https://github.com/lpalbou/abstractflow) can use those

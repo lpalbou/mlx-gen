@@ -29,7 +29,8 @@ cross-platform image/video generation abstraction inside the wider
 That split means:
 
 - AbstractVision owns provider-neutral image/video request objects, artifact storage, capability checks, and AbstractCore integration.
-- MLX-Gen owns MLX model loading, model-family behavior, local quantized formats, and runtime compatibility fixes.
+- AbstractVision is the right place for higher-level convenience such as curated model-to-adapter selection and user-facing presets.
+- MLX-Gen owns MLX model loading, exact route behavior, local quantized formats, capability reporting, and runtime compatibility checks.
 - MLX-Gen should fail early when required local artifacts are missing so AbstractVision can surface a clear remediation message instead of starting a network transfer.
 
 The current integration path is still model-specific Python classes. A future higher-level facade may expose explicit model lifecycle states, but current docs only describe the APIs that exist now.

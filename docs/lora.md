@@ -80,6 +80,24 @@ without paths fails before model load.
 Read the adapter model card and match its base model. A LoRA trained for one FLUX.2 variant is not
 automatically compatible with another FLUX.2 variant.
 
+For the LightX2V Qwen Lightning adapters, keep one distinction clear:
+
+- MLX-Gen's validated public routes use the published `AbstractFramework/*-8bit` q8 packages.
+- The upstream LightX2V note about BF16-versus-FP8 Lightning compatibility applies to external
+  FP8 Qwen checkpoints, not to MLX-Gen's q8 packages.
+
+In practice, MLX-Gen's current recommendation is:
+
+1. use the validated q8 MLX-Gen packages for Qwen image and Wan video routes when you want the
+   optimized public path;
+2. use the exact documented Lightning adapter for that route;
+3. do not assume that an arbitrary external FP8 checkpoint behaves the same way as an MLX-Gen q8
+   package.
+
+For the upstream FP8 caveat, see the LightX2V Qwen Lightning README:
+
+- <https://github.com/ModelTC/LightX2V-Qwen-Image-Lightning#-using-lightning-loras-with-fp8-models>
+
 The downloaded `lovis93/Flux-2-Multi-Angles-LoRA-v2` adapter targets
 `black-forest-labs/FLUX.2-dev`, uses prompts that start with `<sks>`, and recommends adapter
 strength around `0.8` to `1.0`. MLX-Gen currently supports FLUX.2 Klein 4B/9B, not
@@ -254,7 +272,8 @@ For Qwen Image 2512 and Qwen Image Edit 2511, the dedicated LightX2V Lightning a
 recommended fast path when you want usable results in `4` denoising steps. In practical terms,
 they let you use a `4`-step workflow instead of the more typical `20`-step Qwen workflow. The
 commands below assume the selected q8 package is already cached locally; the extra download is only
-the LoRA repository.
+the LoRA repository. Those recommendations are for the validated MLX-Gen q8 packages, not for an
+arbitrary external FP8 Qwen checkpoint.
 
 ![Qwen Image 2512 q8 4-step Lightning A/B](assets/validation/qwen-lightning-2026-06-15/qwen2512_q8_lightning_ab_contact_sheet.png)
 

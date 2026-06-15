@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.19] - 2026-06-15
+
 ### Added
 
 - **Qwen masked edit / inpaint proof**: add first-class `--mask-path` support on the Qwen edit
@@ -30,6 +32,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `--image` versus `--controlnet-image-path` workflow boundary explicit, and publish the accepted
   base Qwen q8 structured-control proof in the capability guide, API reference, FAQ, and LoRA
   guide.
+- **Adapter guidance boundary**: clarify that MLX-Gen owns exact route truth, capability
+  reporting, and fail-closed adapter checks, while higher-level model-to-adapter convenience and
+  curation belong in higher-level integrations. The LoRA and quantization docs now also make the
+  boundary between validated MLX-Gen q8 packages and arbitrary third-party FP8 checkpoint guidance
+  explicit.
 
 ## [0.18.18] - 2026-06-13
 

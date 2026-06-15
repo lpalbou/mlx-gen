@@ -107,21 +107,21 @@ outside chat history.
 16. Investigate [Wan q8 performance](planned/0005_wan_q8_performance_investigation.md) only after
    integrity-gated outputs are healthy enough for timing claims; current public docs describe mixed
    q8/BF16 as model-size and measured-profile footprint focused, not speed-improving.
-17. Continue the [model integration roadmap](planned/0001_model_integration_roadmap.md) in priority
+18. Continue the [model integration roadmap](planned/0001_model_integration_roadmap.md) in priority
    order, starting with automated publication audits, supported q4/q8 validation, and
    gated-derivative hygiene.
-18. Continue ERNIE-Image/Turbo after completed
+19. Continue ERNIE-Image/Turbo after completed
    [ERNIE Image Turbo LoRA runtime support](completed/0037_ernie_image_turbo_lora_runtime_support.md):
    add latent img2img proof, stronger Diffusers parity tests, and non-turbo validation.
-19. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
+20. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
    stronger quality/performance checks, and remaining cancel APIs. SeedVR2 has a validated
    `mlxgen upscale` command, official 3B/7B source loading, and q8/q4 `mlxgen prepare` package
    support.
-20. Keep Bonsai LoRA fail-closed and low priority; revisit it only through
+21. Keep Bonsai LoRA fail-closed and low priority; revisit it only through
    [proposed item 0038](proposed/0038_bonsai_packed_lora_runtime_support.md). The current packed
    runtime does not expose replaceable linear targets for standard LoRA injection, and the first
    public “Bonsai LoRA” candidate inspected used unrelated SDXL UNet keys.
-21. Keep proposed
+22. Keep proposed
    [Z-Image native inpaint](proposed/0043_zimage_native_inpaint.md) in view as the clearest
    next image-route opportunity after Qwen control/inpaint. Official Diffusers docs and local
    upstream code already expose a native Z-Image inpaint pipeline, while MLX-Gen currently stops
@@ -159,6 +159,7 @@ outside chat history.
 | 0039 | [Wan VACE video editing and control](proposed/0039_wan_vace_video_editing_and_control.md) | Video editing, Wan, VACE | Promote after current Wan parity work settles and one official Wan VACE or Wan video-to-video route is selected for bounded smoke validation. |
 | 0041 | [LightX2V Wan distilled-model loader support](proposed/0041_lightx2v_wan_distilled_model_loader_support.md) | Video, Wan, LightX2V, native distilled checkpoints | Promote after completed item 0040 and one exact distilled A14B file set is audited deeply enough to size the scheduler-plus-loader delta. |
 | 0043 | [Z-Image native inpaint](proposed/0043_zimage_native_inpaint.md) | Image edit, Z-Image, mask-based inpaint | Promote after one exact Z-Image inpaint route, mask contract, and proof profile are selected from the official upstream surface. |
+| 0044 | [AbstractVision MLX-Gen Qwen mask and structured-control sync](proposed/0044_abstractvision_mlx_gen_qwen_mask_and_control_sync.md) | Cross-repo integration, AbstractVision, Qwen edit/control | Promote when AbstractVision becomes the active repo for exposing MLX-Gen's validated Qwen mask/control routes or when that stale consumer boundary blocks a release. |
 
 ## Completed ledger
 
