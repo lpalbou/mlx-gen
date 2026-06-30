@@ -3,6 +3,7 @@ import logging
 from pathlib import Path
 
 import PIL.Image
+from PIL import PngImagePlugin
 
 log = logging.getLogger(__name__)
 
@@ -30,33 +31,13 @@ class MetadataBuilder:
             return
 
         try:
-            from PIL import PngImagePlugin
-
             # Load the image preserving existing metadata
             image = PIL.Image.open(path)
 
             # Get existing PNG info to preserve it
             existing_info = image.info if hasattr(image, "info") else {}
-
-            # Preserve existing EXIF separately (if it exists)
             existing_exif = existing_info.get("exif")
-
-            # Create new PngInfo preserving existing data
-            pnginfo = PngImagePlugin.PngInfo()
-
-            # Copy existing metadata
-            for key, value in existing_info.items():
-                if key not in ["XML:com.adobe.xmp", "IPTC", "exif"]:  # Handle these separately
-                    pnginfo.add_text(key, str(value))
-
-            # Build XMP and IPTC metadata using builder methods
-            xmp_packet = MetadataBuilder.build_xmp_packet(metadata)
-            iptc_binary = MetadataBuilder.build_iptc_binary(metadata)
-
-            # Add XMP and IPTC to PNG info
-            pnginfo.add_text("XML:com.adobe.xmp", xmp_packet)
-            if iptc_binary:
-                pnginfo.add_text("IPTC", iptc_binary.hex())
+            pnginfo = MetadataBuilder.build_pnginfo(metadata, existing_info=existing_info)
 
             # Save preserving ALL existing metadata + adding XMP/IPTC
             # Pass exif separately to preserve it correctly
@@ -67,6 +48,20 @@ class MetadataBuilder:
 
         except Exception as e:  # noqa: BLE001
             log.error(f"Error embedding XMP/IPTC metadata: {e}")
+
+    @staticmethod
+    def build_pnginfo(metadata: dict, *, existing_info: dict | None = None) -> PngImagePlugin.PngInfo:
+        existing_info = existing_info or {}
+        pnginfo = PngImagePlugin.PngInfo()
+        for key, value in existing_info.items():
+            if key not in ["XML:com.adobe.xmp", "IPTC", "exif"]:
+                pnginfo.add_text(key, str(value))
+
+        pnginfo.add_text("XML:com.adobe.xmp", MetadataBuilder.build_xmp_packet(metadata))
+        iptc_binary = MetadataBuilder.build_iptc_binary(metadata)
+        if iptc_binary:
+            pnginfo.add_text("IPTC", iptc_binary.hex())
+        return pnginfo
 
     @staticmethod
     def build_xmp_packet(metadata: dict) -> str:

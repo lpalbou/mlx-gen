@@ -91,6 +91,7 @@ class QwenImageControlNet(nn.Module):
             canvas_policy=canvas_policy,
             preserve_image_aspect_ratio=image_path is not None and canvas_policy == CANVAS_POLICY_SOURCE_ASPECT,
         )
+        negative_prompt = self._resolve_negative_prompt(guidance=config.guidance, negative_prompt=negative_prompt)
         use_cfg = QwenImageControlNet._use_classifier_free_guidance(
             guidance=config.guidance,
             negative_prompt=negative_prompt,
@@ -121,8 +122,13 @@ class QwenImageControlNet(nn.Module):
             )
             negative_prompt_embeds = None
             negative_prompt_mask = None
-            effective_negative_prompt = None
-        ctx = self.callbacks.start(seed=seed, prompt=prompt, config=config)
+            effective_negative_prompt = negative_prompt
+        ctx = self.callbacks.start(
+            seed=seed,
+            prompt=prompt,
+            config=config,
+            task="image-to-image" if mask_path is not None else "text-to-image",
+        )
         ctx.before_loop(latents)
         for t in config.time_steps:
             try:
@@ -165,26 +171,33 @@ class QwenImageControlNet(nn.Module):
                     f"Stopping image generation at step {t + 1}/{config.num_inference_steps}"
                 )
         ctx.after_loop(latents)
-        latents = QwenLatentCreator.unpack_latents(latents=latents, height=config.height, width=config.width)
-        decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=self.tiling_config)
-        return ImageUtil.to_image(
-            decoded_latents=decoded,
-            config=config,
-            seed=seed,
-            prompt=prompt,
-            quantization=self.bits,
-            lora_paths=self.lora_paths,
-            lora_scales=self.lora_scales,
-            image_path=image_path,
-            controlnet_image_path=controlnet_image_path,
-            masked_image_path=mask_path,
-            generation_time=timer.elapsed_seconds(),
-            negative_prompt=effective_negative_prompt,
-            extra_metadata={
-                **LoRALoader.extra_metadata_for_model(self),
-                "controlnet_model": self.controlnet_model,
-            },
-        )
+        try:
+            extra_metadata = LoRALoader.extra_metadata_for_model(self) or {}
+            latents = QwenLatentCreator.unpack_latents(latents=latents, height=config.height, width=config.width)
+            decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=self.tiling_config)
+            image = ImageUtil.to_image(
+                decoded_latents=decoded,
+                config=config,
+                seed=seed,
+                prompt=prompt,
+                quantization=self.bits,
+                lora_paths=self.lora_paths,
+                lora_scales=self.lora_scales,
+                image_path=image_path,
+                controlnet_image_path=controlnet_image_path,
+                masked_image_path=mask_path,
+                generation_time=timer.elapsed_seconds(),
+                negative_prompt=effective_negative_prompt,
+                extra_metadata={
+                    **extra_metadata,
+                    "controlnet_model": self.controlnet_model,
+                },
+            )
+        except Exception:
+            ctx.failed()
+            raise
+        ctx.complete()
+        return image
 
     def save_model(self, base_path: str) -> None:
         ModelSaver.save_model(
@@ -208,6 +221,12 @@ class QwenImageControlNet(nn.Module):
     @staticmethod
     def _use_classifier_free_guidance(guidance: float, negative_prompt: str | None) -> bool:
         return guidance > 1.0 and negative_prompt is not None
+
+    @staticmethod
+    def _resolve_negative_prompt(guidance: float, negative_prompt: str | None) -> str | None:
+        if guidance > 1.0 and negative_prompt is None:
+            return " "
+        return negative_prompt
 
     def _resolve_controlnet_condition(
         self,

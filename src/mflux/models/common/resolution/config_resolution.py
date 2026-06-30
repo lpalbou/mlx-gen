@@ -1,4 +1,7 @@
 import logging
+from dataclasses import dataclass
+from functools import lru_cache
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from mflux.models.common.resolution.actions import ConfigAction, Rule
@@ -7,6 +10,12 @@ if TYPE_CHECKING:
     from mflux.models.common.config.model_config import ModelConfig
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class ResolvedModelConfig:
+    model_config: "ModelConfig"
+    identity_source: str
 
 
 class ConfigResolution:
@@ -21,6 +30,10 @@ class ConfigResolution:
 
     @staticmethod
     def resolve(model_name: str, base_model: str | None = None) -> "ModelConfig":
+        return ConfigResolution.resolve_with_source(model_name=model_name, base_model=base_model).model_config
+
+    @staticmethod
+    def resolve_with_source(model_name: str, base_model: str | None = None) -> ResolvedModelConfig:
         from mflux.models.common.config.model_config import AVAILABLE_MODELS, ModelConfig
         from mflux.utils.exceptions import InvalidBaseModel, ModelConfigError
 
@@ -74,7 +87,7 @@ class ConfigResolution:
         return False
 
     @staticmethod
-    def _execute(action: ConfigAction, ctx: dict) -> "ModelConfig":
+    def _execute(action: ConfigAction, ctx: dict) -> ResolvedModelConfig:
         model_name = ctx["model_name"]
         base_model = ctx["base_model"]
         base_models = ctx["base_models"]
@@ -84,7 +97,7 @@ class ConfigResolution:
         if action == ConfigAction.EXACT_MATCH:
             for base in base_models:
                 if model_name == base.model_name or model_name in base.aliases:
-                    return base
+                    return ResolvedModelConfig(model_config=base, identity_source="catalog")
             raise ValueError("Exact match check passed but no match found")
 
         if action == ConfigAction.EXPLICIT_BASE:
@@ -98,7 +111,10 @@ class ConfigResolution:
                 (b for b in base_models if base_model == b.model_name or base_model in b.aliases),
                 None,
             )
-            return ConfigResolution._create_config(model_name, default_base)
+            return ResolvedModelConfig(
+                model_config=ConfigResolution._create_config(model_name, default_base),
+                identity_source="explicit_base",
+            )
 
         if action == ConfigAction.INFER_SUBSTRING:
             model_name_lower = model_name.lower()
@@ -112,7 +128,12 @@ class ConfigResolution:
                 raise ModelConfigError(f"Cannot infer base_model from {model_name}")
 
             default_base = sorted(matching_bases, key=lambda x: (-len(x[1]), x[0].priority))[0][0]
-            return ConfigResolution._create_config(model_name, default_base)
+            return ResolvedModelConfig(
+                model_config=ConfigResolution._create_config(model_name, default_base),
+                identity_source=(
+                    "official_prepared" if ConfigResolution._is_official_prepared_repo_id(model_name) else "infer_substring"
+                ),
+            )
 
         if action == ConfigAction.ERROR:
             raise ModelConfigError(f"Cannot infer base_model from {model_name}")
@@ -148,3 +169,33 @@ class ConfigResolution:
     def _is_unsupported_flux2_dev(model_name: str) -> bool:
         normalized = model_name.lower().replace("\\", "/").replace("--", "/")
         return "flux.2-dev" in normalized or "flux.2/dev" in normalized
+
+    @staticmethod
+    def _is_official_prepared_repo_id(model_name: str) -> bool:
+        from mflux.models.common.config.model_config import AVAILABLE_MODELS
+
+        normalized = model_name.replace("\\", "/")
+        if not normalized.startswith("AbstractFramework/"):
+            return False
+        if normalized.count("/") != 1:
+            return False
+        if normalized.startswith(("./", "../", "~/")) or normalized.startswith("/"):
+            return False
+        if Path(normalized).exists():
+            return False
+        repo_slug = normalized.split("/", 1)[1].lower()
+        return repo_slug in ConfigResolution._official_prepared_repo_slugs(
+            tuple(sorted(model.model_name for model in AVAILABLE_MODELS.values() if model.base_model is None))
+        )
+
+    @staticmethod
+    @lru_cache(maxsize=1)
+    def _official_prepared_repo_slugs(base_model_names: tuple[str, ...]) -> frozenset[str]:
+        slugs: set[str] = set()
+        for model_name in base_model_names:
+            repo_slug = Path(model_name).name.lower().replace("_", "-")
+            slugs.add(repo_slug)
+            slugs.add(f"{repo_slug}-4bit")
+            slugs.add(f"{repo_slug}-8bit")
+            slugs.add(f"{repo_slug}-bf16")
+        return frozenset(slugs)

@@ -8,6 +8,8 @@ from pathlib import Path
 
 from huggingface_hub import snapshot_download
 
+from mflux.cli.parser.parsers import CommandLineParser
+from mflux.cli.runtime_events import cli_print, emit_cli_failure_event_for_argv
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.download_policy import allow_downloads, is_huggingface_repo_id
 from mflux.models.common.lora.lora_compatibility import LoRACompatibility
@@ -53,7 +55,13 @@ def main() -> None:
         try:
             invocation.target_main()
         except (FileNotFoundError, LoRAApplicationError) as exc:
-            print(exc)
+            if "--json-events" in invocation.argv:
+                emit_cli_failure_event_for_argv(
+                    prog="mlxgen generate",
+                    argv=invocation.argv[1:],
+                    error=exc,
+                )
+            cli_print(str(exc), json_events="--json-events" in invocation.argv, error=True)
             raise SystemExit(1) from None
     finally:
         sys.argv = previous_argv
@@ -350,7 +358,7 @@ def _metadata_images(metadata: dict) -> list[str]:
 
 
 def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
+    parser = CommandLineParser(
         prog="mlxgen generate",
         description=(
             "Generate images or videos with MLX-Gen. The command routes to the right model backend from --model "
@@ -363,7 +371,8 @@ def _parser() -> argparse.ArgumentParser:
             "--mask-path, --controlnet-image-path, --controlnet-strength, --metadata, "
             "--config-from-metadata/-C, --output, --replace, --frames, --fps, --guidance-2, "
             "--flow-shift, --reframe-padding, --outpaint-padding, --low-ram, --debug, "
-            "--tensor-health-check-interval, --failure-diagnostics, and --progress/--no-progress.\n\n"
+            "--tensor-health-check-interval, --json-events, --embed-metadata, and --progress/--no-progress.\n"
+            "Wan video routes also accept --failure-diagnostics for failure manifests.\n\n"
             "Use --mask-path for localized masked edit or inpaint on models that support masked edit or inpaint.\n"
             "Use --controlnet-image-path for structured control on a text-to-image route; it is not the same as "
             "source-image editing."
@@ -511,7 +520,12 @@ def _show_capabilities(argv: list[str]) -> None:
     args = parser.parse_args(argv)
     try:
         model_config = _model_config(args.model, base_model=args.base_model)
-        capabilities = get_model_capabilities(model=args.model, model_config=model_config, family=args.family)
+        capabilities = get_model_capabilities(
+            model=args.model,
+            model_config=model_config,
+            family=args.family,
+            base_model=args.base_model,
+        )
     except TaskInferenceError as exc:
         parser.error(str(exc))
     print(json.dumps(capabilities.to_dict(), indent=2, sort_keys=True))
@@ -589,7 +603,9 @@ def _download_model(argv: list[str]) -> None:
         path = snapshot_download(repo_id=repo_id, allow_patterns=patterns)
     print(f"Downloaded snapshot: {path}")
     print("You can now run generation without a runtime download, for example:")
-    if model_config is not None and _is_seedvr2(set(model_config.aliases), _model_key(repo_id, model_config.base_model)):
+    if model_config is not None and _is_seedvr2(
+        set(model_config.aliases), _model_key(repo_id, model_config.base_model)
+    ):
         print(
             "  mlxgen upscale --model "
             f"{shlex.quote(repo_id)} --image-path input.png --resolution 2x --output upscaled.png"
@@ -707,8 +723,7 @@ def _reframe_forwarded_argv(args: argparse.Namespace, images: list[str], forward
         _parser().error("--reframe-padding requires exactly one --image or --image-path.")
     if _option_was_provided(forwarded, "--width") or _option_was_provided(forwarded, "--height"):
         _parser().error(
-            "--reframe-padding computes --width and --height from the source image; "
-            "do not pass either option."
+            "--reframe-padding computes --width and --height from the source image; do not pass either option."
         )
     if _option_was_provided(forwarded, "--canvas-policy"):
         _parser().error("--reframe-padding uses --canvas-policy exact-resize; do not pass --canvas-policy.")
@@ -724,8 +739,7 @@ def _outpaint_forwarded_argv(args: argparse.Namespace, images: list[str], forwar
         _parser().error("--outpaint-padding requires exactly one --image or --image-path.")
     if _option_was_provided(forwarded, "--width") or _option_was_provided(forwarded, "--height"):
         _parser().error(
-            "--outpaint-padding computes --width and --height from the source image; "
-            "do not pass either option."
+            "--outpaint-padding computes --width and --height from the source image; do not pass either option."
         )
     if _option_was_provided(forwarded, "--canvas-policy"):
         _parser().error("--outpaint-padding uses --canvas-policy exact-resize; do not pass --canvas-policy.")
@@ -823,6 +837,7 @@ def _resolve_generation_plan(
             model=args.model,
             model_config=model_config,
             family=args.family,
+            base_model=args.base_model,
             image_count=image_count,
             task=args.task,
             i2i_mode=args.i2i_mode,
@@ -923,13 +938,16 @@ def _has_alias(aliases: set[str], *needles: str) -> bool:
 
 
 def _is_qwen(aliases: set[str], model_key: str) -> bool:
-    return _has_alias(
-        aliases,
-        "qwen-image",
-        "qwen-image-edit",
-        "qwen-image-edit-2509",
-        "qwen-image-edit-2511",
-    ) or "qwen" in model_key
+    return (
+        _has_alias(
+            aliases,
+            "qwen-image",
+            "qwen-image-edit",
+            "qwen-image-edit-2509",
+            "qwen-image-edit-2511",
+        )
+        or "qwen" in model_key
+    )
 
 
 def _is_qwen_edit(aliases: set[str], model_key: str) -> bool:

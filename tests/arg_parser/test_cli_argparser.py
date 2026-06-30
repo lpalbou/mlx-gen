@@ -415,12 +415,12 @@ def test_seed_arg(mflux_generate_parser, mflux_generate_minimal_model_argv, base
         assert args.seed == [2424, 4848, 9696]
         assert "_seed_{seed}" in args.output
 
-    with patch('sys.argv', mflux_generate_minimal_model_argv + ['--auto-seeds', '5', '--config-from-metadata', metadata_file.as_posix()]):  # fmt: off
-        args = mflux_generate_parser.parse_args()
-        # auto-seeds defers to value from metadata, and is ignored
-        assert len(args.seed) == 1
-        assert args.seed == [24]
-        assert "_seed_{seed}" not in args.output
+    with patch("mflux.cli.seed_values.random.sample", return_value=[101, 102, 103, 104, 105]):
+        with patch('sys.argv', mflux_generate_minimal_model_argv + ['--auto-seeds', '5', '--config-from-metadata', metadata_file.as_posix()]):  # fmt: off
+            args = mflux_generate_parser.parse_args()
+            # explicit --auto-seeds overrides metadata seed
+            assert args.seed == [101, 102, 103, 104, 105]
+            assert "_seed_{seed}" in args.output
 
 
 @pytest.mark.fast
@@ -440,6 +440,21 @@ def test_auto_seeds_arg(mflux_generate_parser, mflux_generate_minimal_model_argv
             assert "_seed_{seed}" in args.output
             for _ in args.seed:
                 assert isinstance(_, int)
+
+
+@pytest.mark.fast
+def test_auto_seeds_must_be_positive(mflux_generate_parser, mflux_generate_minimal_model_argv):
+    for invalid_value in ("0", "-3"):
+        with patch("sys.argv", mflux_generate_minimal_model_argv + ["--auto-seeds", invalid_value]):
+            with pytest.raises(SystemExit):
+                mflux_generate_parser.parse_args()
+
+
+@pytest.mark.fast
+def test_duplicate_seeds_are_rejected(mflux_generate_parser, mflux_generate_minimal_model_argv):
+    with patch("sys.argv", mflux_generate_minimal_model_argv + ["--seed", "24", "24"]):
+        with pytest.raises(SystemExit):
+            mflux_generate_parser.parse_args()
 
 
 @pytest.mark.fast

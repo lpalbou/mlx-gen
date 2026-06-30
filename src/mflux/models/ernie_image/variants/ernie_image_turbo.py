@@ -148,21 +148,27 @@ class ErnieImageTurbo(nn.Module):
                 )
 
         ctx.after_loop(latents)
-        decoded = self.vae.decode_packed_latents(latents)
-        return ImageUtil.to_image(
-            decoded_latents=decoded,
-            config=config,
-            seed=seed,
-            prompt=prompt,
-            quantization=self.bits,
-            lora_paths=self.lora_paths if lora_paths is None else lora_paths,
-            lora_scales=self.lora_scales if lora_scales is None else lora_scales,
-            image_path=config.image_path,
-            image_strength=config.image_strength,
-            generation_time=timer.elapsed_seconds(),
-            negative_prompt=negative_prompt,
-            extra_metadata=extra_metadata or LoRALoader.extra_metadata_for_model(self),
-        )
+        try:
+            decoded = self.vae.decode_packed_latents(latents)
+            image = ImageUtil.to_image(
+                decoded_latents=decoded,
+                config=config,
+                seed=seed,
+                prompt=prompt,
+                quantization=self.bits,
+                lora_paths=self.lora_paths if lora_paths is None else lora_paths,
+                lora_scales=self.lora_scales if lora_scales is None else lora_scales,
+                image_path=config.image_path,
+                image_strength=config.image_strength,
+                generation_time=timer.elapsed_seconds(),
+                negative_prompt=negative_prompt,
+                extra_metadata=extra_metadata or LoRALoader.extra_metadata_for_model(self),
+            )
+        except Exception:
+            ctx.failed()
+            raise
+        ctx.complete()
+        return image
 
     def save_model(self, base_path: str) -> None:
         ModelSaver.save_model(

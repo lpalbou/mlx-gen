@@ -1,0 +1,248 @@
+{
+  "generated_at": "2026-06-30T14:24:16+0200",
+  "method": {
+    "cases": [
+      "current-default",
+      "current-embed-metadata",
+      "current-sidecar-metadata",
+      "legacy-default-simulated"
+    ],
+    "image": {
+      "height": 4096,
+      "mode": "RGB",
+      "source": "deterministic synthetic noise",
+      "width": 4096
+    },
+    "sampling": {
+      "darwin_physical_source": "proc_pid_rusage helper for child process",
+      "rss_source": "ps rss for child process",
+      "scope": "save-phase only"
+    }
+  },
+  "results": [
+    {
+      "after_save_snapshot": {
+        "darwin_physical_footprint_bytes": 170771032,
+        "errors": {},
+        "mlx_active_memory_bytes": 8,
+        "mlx_cache_memory_bytes": 0,
+        "mlx_peak_memory_bytes": 8,
+        "phase": "after-save",
+        "pid": 70052,
+        "platform": "macOS-26.3-arm64-arm-64bit",
+        "process_peak_rss_bytes": 192020480,
+        "process_rss_bytes": 192020480,
+        "synchronized": false,
+        "timestamp": 1782822252.65846
+      },
+      "before_save_snapshot": {
+        "darwin_physical_footprint_bytes": 170656344,
+        "errors": {},
+        "mlx_active_memory_bytes": 8,
+        "mlx_cache_memory_bytes": 0,
+        "mlx_peak_memory_bytes": 8,
+        "phase": "before-save",
+        "pid": 70052,
+        "platform": "macOS-26.3-arm64-arm-64bit",
+        "process_peak_rss_bytes": 191823872,
+        "process_rss_bytes": 191823872,
+        "synchronized": false,
+        "timestamp": 1782822252.00141
+      },
+      "case": "current-default",
+      "has_exif": false,
+      "has_png_iptc": false,
+      "has_png_xmp": false,
+      "metadata_sidecar_exists": false,
+      "output_path": "/Users/albou/projects/gh/sbx/mlx-gen/docs/assets/validation/image-finalization-2026-06-30/current-default/current-default.png",
+      "pipeline_image_open_calls": 0,
+      "pipeline_image_save_calls": 1,
+      "pipeline_runtime_snapshot_calls": [],
+      "sampler": {
+        "avg_sampled_darwin_physical_footprint_bytes": 170756468,
+        "avg_sampled_rss_bytes": 192005309,
+        "peak_sampled_darwin_physical_footprint_bytes": 170803800,
+        "peak_sampled_rss_bytes": 192036864,
+        "sample_count": 29
+      },
+      "saved_info_keys": [],
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "wall_time_seconds": 0.637
+    },
+    {
+      "after_save_snapshot": {
+        "darwin_physical_footprint_bytes": 170836568,
+        "errors": {},
+        "mlx_active_memory_bytes": 8,
+        "mlx_cache_memory_bytes": 0,
+        "mlx_peak_memory_bytes": 8,
+        "phase": "after-save",
+        "pid": 70117,
+        "platform": "macOS-26.3-arm64-arm-64bit",
+        "process_peak_rss_bytes": 192102400,
+        "process_rss_bytes": 192102400,
+        "synchronized": false,
+        "timestamp": 1782822253.576007
+      },
+      "before_save_snapshot": {
+        "darwin_physical_footprint_bytes": 170705496,
+        "errors": {},
+        "mlx_active_memory_bytes": 8,
+        "mlx_cache_memory_bytes": 0,
+        "mlx_peak_memory_bytes": 8,
+        "phase": "before-save",
+        "pid": 70117,
+        "platform": "macOS-26.3-arm64-arm-64bit",
+        "process_peak_rss_bytes": 191873024,
+        "process_rss_bytes": 191873024,
+        "synchronized": false,
+        "timestamp": 1782822252.909153
+      },
+      "case": "current-embed-metadata",
+      "has_exif": true,
+      "has_png_iptc": true,
+      "has_png_xmp": true,
+      "metadata_sidecar_exists": false,
+      "output_path": "/Users/albou/projects/gh/sbx/mlx-gen/docs/assets/validation/image-finalization-2026-06-30/current-embed-metadata/current-embed-metadata.png",
+      "pipeline_image_open_calls": 0,
+      "pipeline_image_save_calls": 1,
+      "pipeline_runtime_snapshot_calls": [],
+      "sampler": {
+        "avg_sampled_darwin_physical_footprint_bytes": 170837174,
+        "avg_sampled_rss_bytes": 192103570,
+        "peak_sampled_darwin_physical_footprint_bytes": 170852952,
+        "peak_sampled_rss_bytes": 192135168,
+        "sample_count": 29
+      },
+      "saved_info_keys": [
+        "IPTC",
+        "XML:com.adobe.xmp",
+        "exif",
+        "xmp"
+      ],
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "wall_time_seconds": 0.6464
+    },
+    {
+      "after_save_snapshot": {
+        "darwin_physical_footprint_bytes": 170836568,
+        "errors": {},
+        "mlx_active_memory_bytes": 8,
+        "mlx_cache_memory_bytes": 0,
+        "mlx_peak_memory_bytes": 8,
+        "phase": "after-save",
+        "pid": 70183,
+        "platform": "macOS-26.3-arm64-arm-64bit",
+        "process_peak_rss_bytes": 192102400,
+        "process_rss_bytes": 192102400,
+        "synchronized": false,
+        "timestamp": 1782822254.496615
+      },
+      "before_save_snapshot": {
+        "darwin_physical_footprint_bytes": 170705496,
+        "errors": {},
+        "mlx_active_memory_bytes": 8,
+        "mlx_cache_memory_bytes": 0,
+        "mlx_peak_memory_bytes": 8,
+        "phase": "before-save",
+        "pid": 70183,
+        "platform": "macOS-26.3-arm64-arm-64bit",
+        "process_peak_rss_bytes": 191873024,
+        "process_rss_bytes": 191873024,
+        "synchronized": false,
+        "timestamp": 1782822253.820752
+      },
+      "case": "current-sidecar-metadata",
+      "has_exif": false,
+      "has_png_iptc": false,
+      "has_png_xmp": false,
+      "metadata_sidecar_exists": true,
+      "output_path": "/Users/albou/projects/gh/sbx/mlx-gen/docs/assets/validation/image-finalization-2026-06-30/current-sidecar-metadata/current-sidecar-metadata.png",
+      "pipeline_image_open_calls": 0,
+      "pipeline_image_save_calls": 1,
+      "pipeline_runtime_snapshot_calls": [
+        "image-metadata"
+      ],
+      "sampler": {
+        "avg_sampled_darwin_physical_footprint_bytes": 170835397,
+        "avg_sampled_rss_bytes": 192099474,
+        "peak_sampled_darwin_physical_footprint_bytes": 170869336,
+        "peak_sampled_rss_bytes": 192135168,
+        "sample_count": 29
+      },
+      "saved_info_keys": [],
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "wall_time_seconds": 0.6562
+    },
+    {
+      "after_save_snapshot": {
+        "darwin_physical_footprint_bytes": 372523752,
+        "errors": {},
+        "mlx_active_memory_bytes": 8,
+        "mlx_cache_memory_bytes": 0,
+        "mlx_peak_memory_bytes": 8,
+        "phase": "after-save",
+        "pid": 70251,
+        "platform": "macOS-26.3-arm64-arm-64bit",
+        "process_peak_rss_bytes": 393723904,
+        "process_rss_bytes": 393723904,
+        "synchronized": false,
+        "timestamp": 1782822256.899638
+      },
+      "before_save_snapshot": {
+        "darwin_physical_footprint_bytes": 170639960,
+        "errors": {},
+        "mlx_active_memory_bytes": 8,
+        "mlx_cache_memory_bytes": 0,
+        "mlx_peak_memory_bytes": 8,
+        "phase": "before-save",
+        "pid": 70251,
+        "platform": "macOS-26.3-arm64-arm-64bit",
+        "process_peak_rss_bytes": 191807488,
+        "process_rss_bytes": 191807488,
+        "synchronized": false,
+        "timestamp": 1782822254.736855
+      },
+      "case": "legacy-default-simulated",
+      "has_exif": true,
+      "has_png_iptc": true,
+      "has_png_xmp": true,
+      "metadata_sidecar_exists": false,
+      "output_path": "/Users/albou/projects/gh/sbx/mlx-gen/docs/assets/validation/image-finalization-2026-06-30/legacy-default-simulated/legacy-default-simulated.png",
+      "pipeline_image_open_calls": 2,
+      "pipeline_image_save_calls": 3,
+      "pipeline_runtime_snapshot_calls": [
+        "image-metadata"
+      ],
+      "sampler": {
+        "avg_sampled_darwin_physical_footprint_bytes": 276803077,
+        "avg_sampled_rss_bytes": 301301006,
+        "peak_sampled_darwin_physical_footprint_bytes": 372523752,
+        "peak_sampled_rss_bytes": 393773056,
+        "sample_count": 88
+      },
+      "saved_info_keys": [
+        "IPTC",
+        "XML:com.adobe.xmp",
+        "exif",
+        "xmp"
+      ],
+      "stderr_tail": "",
+      "stdout_tail": "",
+      "wall_time_seconds": 2.1427
+    }
+  ],
+  "summary": {
+    "height": 4096,
+    "legacy_to_current_default_peak_physical_delta_percent": -54.1496,
+    "legacy_to_current_default_peak_rss_delta_percent": -51.2316,
+    "legacy_to_current_embed_peak_physical_delta_percent": -54.1364,
+    "legacy_to_current_embed_peak_rss_delta_percent": -51.2066,
+    "legacy_to_current_sidecar_peak_physical_delta_percent": -54.132,
+    "legacy_to_current_sidecar_peak_rss_delta_percent": -51.2066,
+    "width": 4096
+  }
+}

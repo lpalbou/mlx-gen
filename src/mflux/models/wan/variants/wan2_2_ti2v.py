@@ -505,6 +505,15 @@ class Wan2_2_TI2V(nn.Module):
         self._copy_runtime_assets(base_path)
 
     def _get_t5_prompt_embeds(self, prompts: list[str], max_sequence_length: int) -> mx.array:
+        cleaned = [self._prompt_clean(prompt) for prompt in prompts]
+        cache_key = (tuple(cleaned), max_sequence_length)
+        cached = self._cached_tensor(cache_name="prompt_embed_cache", key=cache_key)
+        if cached is not None:
+            return cached
+        embeds = self._load_t5_prompt_embeds(cleaned=cleaned, max_sequence_length=max_sequence_length)
+        return self._store_cached_tensor(cache_name="prompt_embed_cache", key=cache_key, value=embeds)
+
+    def _load_t5_prompt_embeds(self, *, cleaned: list[str], max_sequence_length: int) -> mx.array:
         try:
             import torch
             from transformers import UMT5EncoderModel
@@ -519,7 +528,6 @@ class Wan2_2_TI2V(nn.Module):
                 f"Run `mlxgen download --model {self.model_config.model_name}` first."
             )
 
-        cleaned = [self._prompt_clean(prompt) for prompt in prompts]
         tokenizer = self.tokenizers["wan"].tokenizer
         text_inputs = tokenizer(
             cleaned,
@@ -570,6 +578,14 @@ class Wan2_2_TI2V(nn.Module):
         return embeds
 
     def _encode_first_frame_condition(self, image_path: Path | str | None, height: int, width: int) -> mx.array:
+        cache_key = ("first-frame", self._cache_path_key(image_path), height, width)
+        cached = self._cached_tensor(cache_name="image_condition_cache", key=cache_key)
+        if cached is not None:
+            return cached
+        condition = self._load_first_frame_condition(image_path=image_path, height=height, width=width)
+        return self._store_cached_tensor(cache_name="image_condition_cache", key=cache_key, value=condition)
+
+    def _load_first_frame_condition(self, image_path: Path | str | None, height: int, width: int) -> mx.array:
         if image_path is None:
             raise ValueError("Wan image-to-video requires image_path.")
         image = ImageUtil.scale_to_dimensions(
@@ -585,6 +601,27 @@ class Wan2_2_TI2V(nn.Module):
         return condition.astype(mx.float32)
 
     def _encode_video_condition(
+        self,
+        image_path: Path | str | None,
+        height: int,
+        width: int,
+        num_frames: int,
+        batch_size: int,
+    ) -> mx.array:
+        cache_key = ("video", self._cache_path_key(image_path), height, width, num_frames, batch_size)
+        cached = self._cached_tensor(cache_name="image_condition_cache", key=cache_key)
+        if cached is not None:
+            return cached
+        condition = self._load_video_condition(
+            image_path=image_path,
+            height=height,
+            width=width,
+            num_frames=num_frames,
+            batch_size=batch_size,
+        )
+        return self._store_cached_tensor(cache_name="image_condition_cache", key=cache_key, value=condition)
+
+    def _load_video_condition(
         self,
         image_path: Path | str | None,
         height: int,
@@ -620,6 +657,31 @@ class Wan2_2_TI2V(nn.Module):
         condition = mx.concatenate([mask[:, :, :latent_frames], latent_condition], axis=1)
         mx.eval(condition)
         return condition.astype(mx.float32)
+
+    @staticmethod
+    def _cache_path_key(image_path: Path | str | None) -> str | None:
+        if image_path is None:
+            return None
+        return str(Path(image_path).expanduser().resolve(strict=False))
+
+    def _cached_tensor(self, *, cache_name: str, key: tuple) -> mx.array | None:
+        cache = getattr(self, cache_name, None)
+        if cache is None:
+            return None
+        return cache.get(key)
+
+    def _store_cached_tensor(self, *, cache_name: str, key: tuple, value: mx.array) -> mx.array:
+        cache = getattr(self, cache_name, None)
+        if cache is None:
+            cache = {}
+            setattr(self, cache_name, cache)
+        materialized = RuntimeMemory.materialize_inference_tree(value)
+        cache[key] = materialized
+        if len(cache) > 2:
+            oldest_key = next(iter(cache))
+            if oldest_key != key:
+                del cache[oldest_key]
+        return materialized
 
     def _copy_runtime_assets(self, base_path: str) -> None:
         target = Path(base_path)

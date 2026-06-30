@@ -122,7 +122,8 @@ class GeneratedImage:
         path: str | Path,
         export_json_metadata: bool = False,
         overwrite: bool = True,
-    ) -> None:
+        embed_metadata: bool = False,
+    ) -> Path:
         from mflux.utils.image_util import ImageUtil
 
         final_path = ImageUtil.resolve_output_path(path=path, overwrite=overwrite)
@@ -130,7 +131,15 @@ class GeneratedImage:
         if self._should_save_fibo_prompt_sidecar():
             self._save_prompt_file(final_path, overwrite=True)
 
-        ImageUtil.save_image(self.image, final_path, self._get_metadata(), export_json_metadata, overwrite=True)
+        metadata = self._get_metadata(include_runtime_memory=export_json_metadata) if (export_json_metadata or embed_metadata) else None
+        return ImageUtil.save_image(
+            self.image,
+            final_path,
+            metadata,
+            export_json_metadata,
+            overwrite=True,
+            embed_metadata=embed_metadata,
+        )
 
     def save_with_image(
         self,
@@ -138,7 +147,8 @@ class GeneratedImage:
         pixel_image: PIL.Image.Image,
         export_json_metadata: bool = False,
         overwrite: bool = True,
-    ) -> None:
+        embed_metadata: bool = False,
+    ) -> Path:
         from mflux.utils.image_util import ImageUtil
 
         final_path = ImageUtil.resolve_output_path(path=path, overwrite=overwrite)
@@ -146,28 +156,48 @@ class GeneratedImage:
         if self._should_save_fibo_prompt_sidecar():
             self._save_prompt_file(final_path, overwrite=True)
 
-        ImageUtil.save_image(pixel_image, final_path, self._get_metadata(), export_json_metadata, overwrite=True)
+        metadata = self._get_metadata(include_runtime_memory=export_json_metadata) if (export_json_metadata or embed_metadata) else None
+        return ImageUtil.save_image(
+            pixel_image,
+            final_path,
+            metadata,
+            export_json_metadata,
+            overwrite=True,
+            embed_metadata=embed_metadata,
+        )
 
     def save_with_heatmap(
         self,
         path: str | Path,
         export_json_metadata: bool = False,
         overwrite: bool = True,
+        embed_metadata: bool = False,
     ) -> None:
         # Save the main image
-        self.save(path=path, export_json_metadata=export_json_metadata, overwrite=overwrite)
+        self.save(
+            path=path,
+            export_json_metadata=export_json_metadata,
+            overwrite=overwrite,
+            embed_metadata=embed_metadata,
+        )
 
         # Save the concept heatmap if available
         if self.concept_heatmap:
             file_path = Path(path)
             heatmap_path = file_path.with_stem(file_path.stem + "_heatmap")
-            self.save_concept_heatmap(path=heatmap_path, export_json_metadata=export_json_metadata, overwrite=overwrite)
+            self.save_concept_heatmap(
+                path=heatmap_path,
+                export_json_metadata=export_json_metadata,
+                overwrite=overwrite,
+                embed_metadata=embed_metadata,
+            )
 
     def save_concept_heatmap(
         self,
         path: str | Path,
         export_json_metadata: bool = False,
         overwrite: bool = True,
+        embed_metadata: bool = False,
     ) -> None:
         if self.concept_heatmap:
             from mflux.utils.image_util import ImageUtil
@@ -178,6 +208,7 @@ class GeneratedImage:
                 metadata=self.concept_heatmap.get_metadata(),
                 export_json_metadata=export_json_metadata,
                 overwrite=overwrite,
+                embed_metadata=embed_metadata,
             )
         else:
             raise ValueError("No concept heatmap available to save")
@@ -226,7 +257,7 @@ class GeneratedImage:
         except Exception as e:  # noqa: BLE001
             log.error(f"Error saving prompt file: {e}")
 
-    def _get_metadata(self) -> dict:
+    def _get_metadata(self, *, include_runtime_memory: bool = False) -> dict:
         metadata = {
             "mflux_version": VersionUtil.get_mflux_version(),
             "model": self.model_config.model_name,
@@ -258,7 +289,7 @@ class GeneratedImage:
             "redux_image_strengths": self._format_redux_strengths(),
             "prompt": self.prompt,
             "negative_prompt": self.negative_prompt if self.negative_prompt else None,
-            "runtime_memory": RuntimeMemory.snapshot("image-metadata").to_metadata(),
+            "runtime_memory": RuntimeMemory.snapshot("image-metadata").to_metadata() if include_runtime_memory else None,
         }
         if self.extra_metadata:
             metadata.update(self.extra_metadata)

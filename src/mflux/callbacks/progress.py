@@ -13,6 +13,11 @@ class ProgressEvent:
     total_steps: int = 0
     task: str | None = None
     timestep: int | float | None = None
+    seed: int | None = None
+    item_index: int | None = None
+    item_count: int | None = None
+    output_path: str | None = None
+    input_name: str | None = None
 
     @property
     def progress(self) -> float:

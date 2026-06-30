@@ -256,17 +256,32 @@ class ImageUtil:
         metadata: dict | None = None,
         export_json_metadata: bool = False,
         overwrite: bool = True,
-    ) -> None:
+        embed_metadata: bool = False,
+    ) -> Path:
         file_path = ImageUtil.resolve_output_path(path=path, overwrite=overwrite)
         file_path.parent.mkdir(parents=True, exist_ok=True)
+
+        exif_bytes = None
+        pnginfo = None
+        if metadata is not None and embed_metadata:
+            exif_bytes = ImageUtil._build_exif_bytes(metadata)
+            if file_path.suffix.lower() == ".png":
+                pnginfo = MetadataBuilder.build_pnginfo(metadata)
 
         saved_with_external_encoder = ImageUtil._save_image_with_ffmpeg(image=image, path=file_path)
         if not saved_with_external_encoder:
             image_format = ImageUtil._image_format_for_path(file_path)
+            save_kwargs = {}
+            if image_format is not None:
+                save_kwargs["format"] = image_format
+            if exif_bytes is not None:
+                save_kwargs["exif"] = exif_bytes
+            if pnginfo is not None:
+                save_kwargs["pnginfo"] = pnginfo
             if image_format is None:
-                image.save(file_path)
+                image.save(file_path, **save_kwargs)
             else:
-                image.save(file_path, format=image_format)
+                image.save(file_path, **save_kwargs)
         log.info(f"Image saved successfully at: {file_path}")
 
         # Export metadata to a dedicated sidecar path so it never
@@ -275,15 +290,7 @@ class ImageUtil:
             metadata_path = file_path.with_suffix(".metadata.json")
             with open(metadata_path, "w") as json_file:
                 json.dump(metadata, json_file, indent=4)
-
-        # Embedded metadata is useful but should not hide a successful primary image save.
-        if metadata is not None and not saved_with_external_encoder:
-            try:
-                ImageUtil._embed_metadata(metadata, file_path)
-                MetadataBuilder.embed_metadata(metadata, file_path)
-                log.info(f"Metadata embedded successfully at: {file_path}")
-            except Exception as e:  # noqa: BLE001
-                log.warning(f"Could not embed image metadata at {file_path}: {e}")
+        return file_path
 
     @staticmethod
     def _save_image_with_ffmpeg(*, image: PIL.Image.Image, path: Path) -> bool:
@@ -306,7 +313,7 @@ class ImageUtil:
         return None
 
     @staticmethod
-    def _embed_metadata(metadata: dict, path: str | Path) -> None:
+    def _build_exif_bytes(metadata: dict) -> bytes:
         try:
             # Convert metadata dictionary to a string
             metadata_str = json.dumps(metadata)
@@ -321,20 +328,12 @@ class ImageUtil:
             # Create a piexif-compatible dictionary structure
             exif_piexif_dict = {"Exif": {USER_COMMENT_TAG_ID: user_comment_bytes}}
 
-            # Load the image and embed the EXIF data
-            image = PIL.Image.open(path)
             exif_bytes = piexif.dump(exif_piexif_dict)
-            image.info["exif"] = exif_bytes
-
-            # Save the image with metadata
-            image_format = ImageUtil._image_format_for_path(Path(path))
-            if image_format is None:
-                image.save(path, exif=exif_bytes)
-            else:
-                image.save(path, format=image_format, exif=exif_bytes)
+            return exif_bytes
 
         except Exception as e:  # noqa: BLE001
             log.error(f"Error embedding EXIF metadata: {e}")
+            raise
 
     @staticmethod
     def preprocess_for_model(

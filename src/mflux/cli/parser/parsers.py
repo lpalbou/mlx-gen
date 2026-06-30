@@ -1,12 +1,13 @@
 import argparse
 import json
-import random
 import sys
-import time
 import typing as t
 from pathlib import Path
 
 from mflux.cli.defaults import defaults as ui_defaults
+from mflux.cli.output_paths import normalize_output_template
+from mflux.cli.runtime_events import CliArgumentError, emit_cli_failure_event_for_argv
+from mflux.cli.seed_values import resolve_seed_values, validate_auto_seed_count
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.config.inference_defaults import default_inference_steps
 from mflux.models.common.lora.mapping.lora_loader import LoRALoader
@@ -111,11 +112,23 @@ class CommandLineParser(argparse.ArgumentParser):
         self.supports_lora = False
         self.require_model_arg = True
 
+    def error(self, message) -> t.NoReturn:
+        if "--json-events" in sys.argv[1:]:
+            emit_cli_failure_event_for_argv(
+                prog=self.prog,
+                argv=sys.argv[1:],
+                error=CliArgumentError(message, usage=self.format_usage()),
+            )
+            self.print_usage(sys.stderr)
+            self.exit(2, f"{self.prog}: error: {message}\n")
+        super().error(message)
+
     def add_general_arguments(self) -> None:
         self.add_argument("--battery-percentage-stop-limit", "-B", type=lambda v: max(min(int(v), 99), 1), default=ui_defaults.BATTERY_PERCENTAGE_STOP_LIMIT, help=f"On Macs powered by battery, stop image generation when battery reaches this percentage. Default: {ui_defaults.BATTERY_PERCENTAGE_STOP_LIMIT}")
         self.add_argument("--low-ram", action="store_true", help="Enable low-RAM mode to reduce memory usage (may impact performance).")
         self.add_argument("--mlx-cache-limit-gb", type=positive_float, default=None, help="Limit MLX cache size in GB without enabling full low-RAM mode (e.g. 8 or 16).")
         self.add_argument("--debug", action="store_true", help="Enable debug logging for internal generation details such as LoRA fusion targets.")
+        self.add_argument("--json-events", action="store_true", help="Emit machine-readable JSONL runtime events to stdout and move human CLI text to stderr.")
         self.add_argument("--progress", action="store_true", default=True, help="Show CLI progress when the selected backend supports it. Default is true.")
         self.add_argument("--no-progress", action="store_false", dest="progress", help="Disable CLI progress output.")
 
@@ -137,7 +150,8 @@ class CommandLineParser(argparse.ArgumentParser):
             nargs="+",
             help="Path to the input video(s) or directories to restore/upscale.",
         )
-        seedvr2_group.add_argument("--seed", "-s", type=int, default=[42], nargs="+", help="Random seed(s) for reproducibility.")
+        seedvr2_group.add_argument("--seed", "-s", type=int, default=None, nargs="+", help="Specify 1+ Entropy Seeds (Default is 1 time-based random-seed)")
+        seedvr2_group.add_argument("--auto-seeds", type=int, default=-1, help="Auto generate N entropy seeds (random ints between 0 and 10,000,000).")
         seedvr2_group.add_argument("--resolution", "-r", type=int_or_special_value, default=384, help="Target resolution for the shortest edge (pixels) or scale factor (e.g., '2x'). For video, omitting --resolution defaults to 1x.")
         seedvr2_group.add_argument("--softness", type=float, default=0.0, help="Value between 0.0 (off, factor 1) and 1.0 (max, factor 8). Default: 0.0.")
         seedvr2_group.add_argument(
@@ -207,7 +221,7 @@ class CommandLineParser(argparse.ArgumentParser):
         prompt_group.add_argument("--prompt-file", type=Path, help="Path to a file containing the prompt text. The file will be re-read before each generation, allowing you to edit the prompt between iterations when using multiple seeds without restarting the program.")
         self.add_argument("--negative-prompt", "--negative", dest="negative_prompt", type=str, default="", help="The negative prompt to guide what the model should not generate.")
         self.add_argument("--seed", type=int, default=None, nargs='+', help="Specify 1+ Entropy Seeds (Default is 1 time-based random-seed)")
-        self.add_argument("--auto-seeds", type=int, default=-1, help="Auto generate N Entropy Seeds (random ints between 0 and 1 billion")
+        self.add_argument("--auto-seeds", type=int, default=-1, help="Auto generate N entropy seeds (random ints between 0 and 10,000,000).")
         self.add_argument("--scheduler", type=str, default="linear", help="Choose from implemented schedulers (linear only for now). Or bring your own: 'your_package.some_module.FooScheduler'")
         self._add_image_generator_common_arguments(supports_dimension_scale_factor=supports_dimension_scale_factor)
         if supports_metadata_config:
@@ -269,7 +283,8 @@ class CommandLineParser(argparse.ArgumentParser):
 
     def add_output_arguments(self) -> None:
         self.add_argument("--metadata", action="store_true", help="Export image metadata as a JSON file.")
-        self.add_argument("--output", type=str, default="image.png", help="The filename for the output image. Default is \"image.png\".")
+        self.add_argument("--embed-metadata", action="store_true", help="Embed image metadata into the saved image file. Off by default to keep save/finalization lightweight.")
+        self.add_argument("--output", type=str, default="image.png", help="The filename for the output image or video. Supports {seed} and, when one command processes several source files, {input_name}. Default is \"image.png\".")
         self.add_argument("--replace", type=boolean_flag_value, nargs="?", const=True, default=True, help="Replace the target output file when it already exists. Use --replace false or --no-replace to keep the existing file and save to a suffixed path. Default is true.")
         self.add_argument("--no-replace", action="store_false", dest="replace", help="Do not replace an existing output file; save to the next suffixed filename instead.")
         self.add_argument('--stepwise-image-output-dir', type=str, default=None, help='[EXPERIMENTAL] Output dir to write step-wise images and their final composite image to. This feature may change in future versions.')
@@ -376,12 +391,8 @@ class CommandLineParser(argparse.ArgumentParser):
             if namespace.quantize is None:
                 namespace.quantize = prior_gen_metadata.get("quantize", None)
             seed_from_metadata = prior_gen_metadata.get("seed", None)
-            if namespace.seed is None and seed_from_metadata is not None:
+            if namespace.seed is None and namespace.auto_seeds == -1 and seed_from_metadata is not None:
                 namespace.seed = [seed_from_metadata]
-
-            if namespace.seed is None:
-                # not passed by user, not populated by metadata
-                namespace.seed = [int(time.time())]
 
             if namespace.steps is None:
                 namespace.steps = prior_gen_metadata.get("steps", None)
@@ -434,25 +445,23 @@ class CommandLineParser(argparse.ArgumentParser):
         if hasattr(namespace, "model") and namespace.model is None and not has_training_args and self.require_model_arg:
             self.error("--model / -m must be provided, or 'model' must be specified in the config file.")
 
-        if self.supports_image_generation and namespace.seed is None and namespace.auto_seeds > 0:
-            # choose N unique int seeds in the range of  0 < value < 1 billion
-            # Use random.sample to guarantee uniqueness
-            max_seed_value = int(1e7)
-            if namespace.auto_seeds > max_seed_value + 1:
-                # If requesting more seeds than possible unique values, allow duplicates
-                namespace.seed = [random.randint(0, max_seed_value) for _ in range(namespace.auto_seeds)]
-            else:
-                namespace.seed = random.sample(range(max_seed_value + 1), namespace.auto_seeds)
+        if self.supports_image_generation:
+            try:
+                validate_auto_seed_count(namespace.auto_seeds)
+                namespace.seed = resolve_seed_values(
+                    seed_values=namespace.seed,
+                    auto_seeds=namespace.auto_seeds,
+                )
+            except ValueError as exc:
+                self.error(str(exc))
 
-        if self.supports_image_generation and namespace.seed is None:
-            # final default: did not obtain seed from metadata, --seed, or --auto-seeds
-            namespace.seed = [int(time.time())]
+        if hasattr(namespace, "video_path") and getattr(namespace, "video_path", None):
+            namespace.output = normalize_output_template(namespace.output, is_video=True)
 
         if self.supports_image_generation and len(namespace.seed) > 1:
             # auto append seed-$value to output names for multi image generations
             # e.g. output.png -> output_seed_101.png output_seed_102.png, etc
-            output_path = Path(namespace.output)
-            namespace.output = str(output_path.with_stem(output_path.stem + "_seed_{seed}"))
+            namespace.output = normalize_output_template(namespace.output, include_seed=True)
             if getattr(namespace, "low_ram", False):
                 if getattr(namespace, "prompt_file", None) is not None:
                     self.error(
@@ -478,10 +487,18 @@ class CommandLineParser(argparse.ArgumentParser):
                         "the text encoder is released after the first generation."
                     )
 
-        if hasattr(namespace, "image_path") and isinstance(namespace.image_path, list) and len(namespace.image_path) > 1:
-            # auto append image-$name to output names for multi image generations
-            output_path = Path(namespace.output)
-            namespace.output = str(output_path.with_stem(output_path.stem + "_{image_name}"))
+        has_multiple_named_inputs = (
+            hasattr(namespace, "image_path")
+            and isinstance(namespace.image_path, list)
+            and len(namespace.image_path) > 1
+        ) or (
+            hasattr(namespace, "video_path")
+            and isinstance(namespace.video_path, list)
+            and len(namespace.video_path) > 1
+        )
+        if has_multiple_named_inputs:
+            # auto append the input stem to output names when one invocation processes several files
+            namespace.output = normalize_output_template(namespace.output, include_input_name=True)
 
         if self.supports_image_generation and getattr(namespace, "prompt", None) is None and getattr(namespace, "prompt_file", None) is None:
             # when metadata config is supported but neither prompt nor prompt-file is provided

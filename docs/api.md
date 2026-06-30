@@ -59,10 +59,13 @@ claim that a model/package passed visual release QA. Applications can use the sa
 Python through `get_model_capabilities(...)` and `resolve_generation_plan(...)`. For custom
 repositories or local paths whose name does not identify the architecture, construct the
 `ModelConfig` with the same base-model hint that you would pass to the CLI.
+These route helpers cover the unified `mlxgen generate` families only. SeedVR2 uses `mlxgen
+upscale` on the CLI and direct `SeedVR2.generate_image(...)` / `SeedVR2.restore_video_to_path(...)`
+in Python.
 
 Qwen structured control is exposed through the same contract. When a capability row reports
 `supports_control_image=true`, the route accepts `--controlnet-image-path` as a structured guide.
-The current exact public proof row is `AbstractFramework/qwen-image-8bit` on `qwen.control`. That
+The exact public proof row is `AbstractFramework/qwen-image-8bit` on `qwen.control`. That
 row also reports the exact sidecar through `control_model`, and the unified `mlxgen generate`
 router injects that sidecar automatically.
 
@@ -92,7 +95,7 @@ supports FLUX.2 Klein 4B/9B, so that adapter is rejected for Klein routes. The n
 `--lora-scales` values must match the number of `--lora-paths` values exactly. See
 [LoRA](lora.md) for the source/no-LoRA/with-LoRA validation method.
 
-Wan video LoRA is now route-specific instead of globally unsupported. Exact validated q8 rows exist
+Wan video LoRA is route-specific. Exact validated q8 rows exist
 for TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, and
 I2V-A14B first-frame image-to-video. A14B requests still require explicit
 `high_noise_transformer` / `low_noise_transformer` role assignment when you pass separate adapter
@@ -119,9 +122,9 @@ mlxgen validation --model AbstractFramework/qwen-image-edit-2509-8bit
 
 This returns the current validation profile rows with status, prompt, source image(s), artifact
 path, and reviewer notes. Route support and visual validation are intentionally separate:
-`mlxgen capabilities --model briaai/Fibo-Edit` currently exposes no unified public generation
-capability, while `mlxgen validation --model AbstractFramework/qwen-image-edit-2511-8bit` reports
-the current Qwen 2511 edit proof rows.
+`mlxgen capabilities --model briaai/Fibo-Edit` exposes no unified public generation capability,
+while `mlxgen validation --model AbstractFramework/qwen-image-edit-2511-8bit` reports the
+published Qwen 2511 edit proof rows.
 
 For LoRA routes, pass the exact `lora_validation_profile` value surfaced by `mlxgen capabilities`
 when you want the accepted proof row for that route:
@@ -131,6 +134,101 @@ mlxgen validation \
   --model AbstractFramework/qwen-image-edit-8bit \
   --profile lora_qwen_edit_q8_ghibli_edit_2026_06_11
 ```
+
+### CLI Runtime Events
+
+Use `--json-events` on `mlxgen generate` and `mlxgen upscale` when an application needs a
+machine-readable runtime stream. In that mode, JSONL events are written to `stdout` and human CLI
+text moves to `stderr`.
+
+Each event includes the authoritative routed command/model identity plus step-based progress
+fields. Terminal events also include saved-artifact paths, and failure events include
+`diagnostics_path` when the route writes a failure manifest. When MLX-Gen can provide actionable
+next steps, failed events also include a nested `remediation` object. `DownloadRequiredError`
+emits `kind=download-required` with `download_command` and optional `prepare_command`; CLI usage
+failures under `--json-events` emit `kind=cli-usage` with the relevant usage string.
+
+For image routes, model progress `complete` means the in-memory image object is ready. The CLI
+maps that to `generated`, then emits `save` and reserves terminal `complete` for the point where
+the output file has actually been written. Wan video routes also accept `--failure-diagnostics`;
+non-Wan `mlxgen generate` routes do not advertise or accept that flag.
+
+### Multiple Outputs
+
+The public CLI uses seeds as the shared multi-output contract.
+
+- `mlxgen generate` accepts one or more explicit seeds through `--seed`.
+- `mlxgen generate` also accepts `--auto-seeds N` for image routes and Wan video routes.
+- `mlxgen upscale` accepts one or more explicit seeds through `--seed` and `--auto-seeds N`.
+- Each seed produces one saved image or one saved video.
+- Duplicate explicit seeds are rejected because they would target the same artifact path.
+- `--auto-seeds` must be greater than zero.
+
+When one invocation processes several seeds, MLX-Gen appends `_seed_<seed>` to the output stem
+automatically unless your `--output` pattern already contains `{seed}`.
+
+Examples:
+
+```sh
+mlxgen generate \
+  --model qwen-image \
+  --prompt "A clean studio product photo" \
+  --seed 101 202 303 \
+  --output product.png
+```
+
+This writes `product_seed_101.png`, `product_seed_202.png`, and `product_seed_303.png`.
+
+```sh
+mlxgen generate \
+  --model Wan-AI/Wan2.2-T2V-A14B-Diffusers \
+  --prompt "A cinematic shot of mist rolling across a teal mountain lake" \
+  --seed 101 202 \
+  --output lake.mp4
+```
+
+This writes `lake_seed_101.mp4` and `lake_seed_202.mp4`.
+
+`mlxgen upscale` can also process several source files in one invocation. When that happens, MLX-Gen
+appends the source-file stem automatically so each saved artifact gets its own path:
+
+```sh
+mlxgen upscale \
+  --model seedvr2-3b \
+  --video-path clip_a.mp4 clip_b.mp4 \
+  --seed 11 22 \
+  --output restored.mp4
+```
+
+This writes `restored_seed_11_clip_a.mp4`, `restored_seed_22_clip_a.mp4`,
+`restored_seed_11_clip_b.mp4`, and `restored_seed_22_clip_b.mp4`.
+
+`--output` supports `{seed}` everywhere. SeedVR2 multi-source runs also support `{input_name}`:
+
+```sh
+mlxgen upscale \
+  --model seedvr2-3b \
+  --video-path clip_a.mp4 clip_b.mp4 \
+  --seed 11 22 \
+  --output "restored_{input_name}_{seed}.mp4"
+```
+
+Legacy `{image_name}` is still accepted as a compatibility alias. If two SeedVR2 source files
+share the same basename, keep `--replace false` or rename the inputs; overwrite-prone batches are
+rejected when `--replace true`.
+
+For Python integrations on the unified `mlxgen generate` families, use
+`load_generation_model(...).generate_outputs(...)` for the same serial multi-output reuse
+contract. SeedVR2/upscale remains outside that wrapper and stays on direct `SeedVR2` methods.
+
+### Image Metadata And Finalization
+
+The default image save path is intentionally lightweight: MLX-Gen writes the image once and does
+not embed runtime-memory diagnostics into the image file by default.
+
+Use `--metadata` to write a `.metadata.json` sidecar. That sidecar is the default place where
+runtime-memory metadata is recorded. Use `--embed-metadata` only when you explicitly want image
+metadata embedded into the saved PNG/JPEG/TIFF artifact and accept the extra finalization work.
 
 ### Image-To-Image Modes
 
@@ -689,16 +787,28 @@ flags.
 
 ## Python Integration
 
-The current Python integration path uses model classes inherited from the mflux codebase. New applications can import the `mlxgen` helpers documented in [Python Integration](python-integration.md).
+New applications should start from the public `mlxgen` routing helpers documented in [Python Integration](python-integration.md), especially `resolve_generation_runtime(...)` and `load_generation_model(...)` for warm workers and embedded runtimes. The loaded runtime owns serial multi-output execution through `generate_output(...)` and `generate_outputs(...)`: one loaded model instance, one seed at a time, one artifact per seed. Those helpers cover the unified `mlxgen generate` families only; SeedVR2 continues through `mlxgen upscale` and direct `SeedVR2` methods. Direct model classes inherited from the mflux codebase remain available when a caller explicitly needs backend-specific control.
 
 Python callers should prepare or download required model files before constructing model objects. Runtime constructors and generation calls do not start network downloads.
 
 For progress monitoring, use `mflux.callbacks.ProgressEvent` and subscribe with
-`model.callbacks.subscribe_progress(...)`. Image generation emits `start`, `denoise`, `complete`,
-and interruption events through that subscription path. Wan video generation uses the same event
-type and also accepts a direct `progress_callback` argument on `generate_video()`: model generation
-emits `start`, `denoise`, `decode`, `convert`, and `generated`; the Wan CLI then emits `save` and
-`complete` only after MP4 save and video-health validation succeed.
+`model.callbacks.subscribe_progress(...)`. Image generation emits `start` and `denoise`, followed
+by exactly one terminal phase: `complete`, `failed`, or `interrupted`. In the Python image and
+in-memory video APIs, `complete` means the generated in-memory artifact is ready to return from
+`generate_image()` or `generate_video()`. Persisting that artifact to disk is still the caller's
+responsibility.
+
+Wan video generation uses the same event type and also accepts a direct `progress_callback`
+argument on `generate_video()`: model generation emits `start`, `denoise`, `decode`, `convert`,
+and `generated`; the Wan CLI then emits `save` and `complete` only after MP4 save and video-health
+validation succeed, and emits `failed` instead when save/finalization fails after progress starts.
+SeedVR2 streamed restore uses the same terminal rule on `restore_video_to_path(...)` and the
+`mlxgen upscale --video-path ...` CLI path: `task="video-to-video"` and `complete` means the
+restored MP4, metadata, and optional post-write validation steps all succeeded.
+
+When a CLI consumer needs saved-artifact semantics instead of in-memory model progress, use
+`--json-events`: image routes emit `generated`, then `save`, then `complete` after the file is
+written.
 
 ```python
 from mflux.models.common.download_policy import DownloadRequiredError

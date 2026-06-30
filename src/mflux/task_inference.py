@@ -4,6 +4,7 @@ from dataclasses import dataclass
 
 from mflux.lora_validation_registry import LORA_STATUS_UNSUPPORTED, get_lora_validation_status
 from mflux.models.common.config import ModelConfig
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 from mflux.utils.dimension_resolver import CANVAS_POLICY_EXACT_RESIZE, CANVAS_POLICY_SOURCE_ASPECT
 from mflux.utils.exceptions import ModelConfigError
 
@@ -213,6 +214,7 @@ class _ModelIdentity:
     model_name: str | None
     model_key: str
     family: str
+    identity_source: str
 
 
 def normalize_task(task: str | None) -> str:
@@ -237,8 +239,9 @@ def get_model_capabilities(
     model: str | None = None,
     model_config: ModelConfig | None = None,
     family: str | None = None,
+    base_model: str | None = None,
 ) -> ModelCapabilities:
-    identity = _resolve_model_identity(model=model, model_config=model_config, family=family)
+    identity = _resolve_model_identity(model=model, model_config=model_config, family=family, base_model=base_model)
     return _capabilities_for(identity)
 
 
@@ -247,6 +250,7 @@ def resolve_generation_plan(
     model: str | None = None,
     model_config: ModelConfig | None = None,
     family: str | None = None,
+    base_model: str | None = None,
     image_count: int = 0,
     task: str | None = TASK_AUTO,
     i2i_mode: str | None = I2I_MODE_AUTO,
@@ -286,7 +290,7 @@ def resolve_generation_plan(
 
     normalized_task = normalize_task(task)
     normalized_i2i_mode = normalize_i2i_mode(i2i_mode)
-    identity = _resolve_model_identity(model=model, model_config=model_config, family=family)
+    identity = _resolve_model_identity(model=model, model_config=model_config, family=family, base_model=base_model)
     model_capabilities = _capabilities_for(identity)
     if not model_capabilities.capabilities:
         raise TaskInferenceError(
@@ -389,6 +393,7 @@ def resolve_task(
     model: str | None = None,
     model_config: ModelConfig | None = None,
     family: str | None = None,
+    base_model: str | None = None,
     image_count: int = 0,
     task: str | None = TASK_AUTO,
     i2i_mode: str | None = I2I_MODE_AUTO,
@@ -403,6 +408,7 @@ def resolve_task(
         model=model,
         model_config=model_config,
         family=family,
+        base_model=base_model,
         image_count=image_count,
         task=task,
         i2i_mode=i2i_mode,
@@ -429,6 +435,7 @@ def infer_task(
     model: str | None = None,
     model_config: ModelConfig | None = None,
     family: str | None = None,
+    base_model: str | None = None,
     image_count: int = 0,
     task: str | None = TASK_AUTO,
     i2i_mode: str | None = I2I_MODE_AUTO,
@@ -443,6 +450,7 @@ def infer_task(
         model=model,
         model_config=model_config,
         family=family,
+        base_model=base_model,
         image_count=image_count,
         task=task,
         i2i_mode=i2i_mode,
@@ -460,6 +468,7 @@ def _resolve_model_identity(
     model: str | None,
     model_config: ModelConfig | None,
     family: str | None,
+    base_model: str | None,
 ) -> _ModelIdentity:
     if model_config is None and model is not None and _is_unsupported_flux2_dev_model(model):
         raise TaskInferenceError(
@@ -467,28 +476,76 @@ def _resolve_model_identity(
             "Use a supported FLUX.2 Klein model, or add a first-class FLUX.2-dev model config and "
             "weight mapping before using FLUX.2-dev LoRAs."
         )
+
+    identity_source = "provided"
     if model_config is None and model is not None:
         try:
-            model_config = ModelConfig.from_name(model)
+            resolved = ConfigResolution.resolve_with_source(model_name=model, base_model=base_model)
+            model_config = resolved.model_config
+            identity_source = resolved.identity_source
         except ModelConfigError:
             model_config = None
+            identity_source = "family_override_only" if family is not None else "unresolved"
+    elif model_config is not None:
+        identity_source = _provided_identity_source(model=model, model_config=model_config, base_model=base_model)
+    elif family is not None:
+        identity_source = "family_override_only"
 
-    aliases = set(model_config.aliases) if model_config is not None else set()
-    model_name = model_config.model_name if model_config is not None else model
-    model_key = _model_key(model_name, model_config.base_model if model_config is not None else None, model)
-    resolved_family = family or _infer_family(aliases, model_key)
+    if model_config is None and family is not None:
+        raise TaskInferenceError(
+            f"family={family!r} is not enough to configure model {model!r}. "
+            "Pass --base-model with a supported model alias so MLX-Gen can build a trustworthy model config."
+        )
+
+    family_aliases = set(model_config.aliases) if model_config is not None else set()
+    family_key = _model_key(model_config.base_model if model_config is not None else None, *sorted(family_aliases), model)
+    inferred_family = _infer_family(family_aliases, family_key)
+    if family is not None and inferred_family is not None and family != inferred_family:
+        raise TaskInferenceError(
+            f"family {family!r} conflicts with model {model!r}, which resolves to family {inferred_family!r}."
+        )
+    resolved_family = family or inferred_family
     if resolved_family is None:
         raise TaskInferenceError(
             f"Could not infer a supported backend from model {model!r}. "
             "Pass family='qwen', 'flux2', 'fibo', 'z-image', 'ernie-image', 'wan', or 'bonsai'."
         )
+
+    trusted_identity_sources = {"catalog", "explicit_base", "official_prepared", "provided", "provided_derived"}
+    aliases = family_aliases if identity_source in trusted_identity_sources else set()
+    if model_config is None:
+        model_key = _model_key(model)
+    elif identity_source in trusted_identity_sources:
+        model_key = _model_key(model_config.base_model, *sorted(family_aliases))
+    else:
+        model_key = ""
     return _ModelIdentity(
         model_config=model_config,
         aliases=aliases,
-        model_name=model_name,
+        model_name=model_config.model_name if model_config is not None else model,
         model_key=model_key,
         family=resolved_family,
+        identity_source=identity_source,
     )
+
+
+def _provided_identity_source(
+    *,
+    model: str | None,
+    model_config: ModelConfig,
+    base_model: str | None,
+) -> str:
+    from mflux.models.common.resolution.config_resolution import ConfigResolution
+
+    if model is None:
+        return "provided"
+    if model_config.model_name != model:
+        return "catalog"
+    if base_model is not None:
+        return "explicit_base"
+    if model_config.base_model is not None:
+        return "official_prepared" if ConfigResolution._is_official_prepared_repo_id(model) else "infer_substring"
+    return "provided"
 
 
 def _is_unsupported_flux2_dev_model(model: str) -> bool:
@@ -804,6 +861,34 @@ def _qwen_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
 def _flux2_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
     i2i_canvas = _ordinary_i2i_canvas_contract()
     is_base_model = _is_flux2_klein_base(identity.aliases, identity.model_key)
+    if identity.identity_source == "explicit_base":
+        return ModelCapabilities(
+            schema_version=CAPABILITIES_SCHEMA_VERSION,
+            family=identity.family,
+            label="FLUX.2",
+            model_name=identity.model_name,
+            capabilities=(
+                GenerationCapability(
+                    id="flux2.text",
+                    public_task=TEXT_TO_IMAGE,
+                    mode=MODE_TEXT_ONLY,
+                    handler_id="flux2.generate",
+                    default_for_task=True,
+                    **_lora_capability_kwargs(identity=identity, capability_id="flux2.text", supports_lora=True),
+                ),
+                GenerationCapability(
+                    id="flux2.edit",
+                    public_task=IMAGE_TO_IMAGE,
+                    mode=MODE_EDIT_REFERENCE,
+                    handler_id="flux2.edit",
+                    min_images=1,
+                    max_images=1,
+                    default_for_task=True,
+                    **_lora_capability_kwargs(identity=identity, capability_id="flux2.edit", supports_lora=True),
+                    **i2i_canvas,
+                ),
+            ),
+        )
     return ModelCapabilities(
         schema_version=CAPABILITIES_SCHEMA_VERSION,
         family=identity.family,
@@ -1163,11 +1248,7 @@ def _is_qwen_edit_2511(aliases: set[str], model_key: str) -> bool:
 def _supports_qwen_base_control(identity: _ModelIdentity) -> bool:
     if _is_qwen_edit(identity.aliases, identity.model_key):
         return False
-    return (
-        identity.model_name == "AbstractFramework/qwen-image-8bit"
-        or "qwen-image-8bit" in identity.model_key
-        or "abstractframework/qwen-image-8bit" in identity.model_key
-    )
+    return identity.model_name == "AbstractFramework/qwen-image-8bit"
 
 
 def _qwen_label(identity: _ModelIdentity) -> str:

@@ -29,6 +29,8 @@ class GenerationContext:
         self._config = config
         self._task = task
         self._progress_step = 0
+        self._started = False
+        self._terminal_phase: str | None = None
 
     def before_loop(
         self,
@@ -47,6 +49,8 @@ class GenerationContext:
                 depth_image=depth_image,
             )
         self._progress_step = 0
+        self._started = True
+        self._terminal_phase = None
         self._emit_progress(phase="start", step=0, timestep=None)
 
     def in_loop(self, t: int, latents: mx.array, time_steps: tqdm = None) -> None:
@@ -67,16 +71,21 @@ class GenerationContext:
 
     def after_loop(self, latents: mx.array) -> None:
         self._progress_step = self._total_steps()
-        for subscriber in self._registry.after_loop_callbacks():
-            subscriber.call_after_loop(
-                seed=self._seed,
-                prompt=self._prompt,
-                latents=latents,
-                config=self._config,
-            )
-        self._emit_progress(phase="complete", step=self._progress_step, timestep=None)
+        try:
+            for subscriber in self._registry.after_loop_callbacks():
+                subscriber.call_after_loop(
+                    seed=self._seed,
+                    prompt=self._prompt,
+                    latents=latents,
+                    config=self._config,
+                )
+        except Exception:
+            self.failed()
+            raise
 
     def interruption(self, t: int, latents: mx.array, time_steps: tqdm = None) -> None:
+        if not self._mark_terminal("interrupted"):
+            return
         time_steps = time_steps or self._config.time_steps
         self._emit_progress(phase="interrupted", step=self._progress_step, timestep=t)
         for subscriber in self._registry.interrupt_callbacks():
@@ -88,6 +97,17 @@ class GenerationContext:
                 config=self._config,
                 time_steps=time_steps,
             )
+
+    def complete(self) -> None:
+        if not self._mark_terminal("complete"):
+            return
+        self._progress_step = self._total_steps()
+        self._emit_progress(phase="complete", step=self._progress_step, timestep=None)
+
+    def failed(self) -> None:
+        if not self._mark_terminal("failed"):
+            return
+        self._emit_progress(phase="failed", step=self._progress_step, timestep=None)
 
     def _emit_progress(self, *, phase: str, step: int, timestep: int | float | None) -> None:
         if not self._has_progress_listener():
@@ -115,3 +135,9 @@ class GenerationContext:
 
     def _has_progress_listener(self) -> bool:
         return self._registry.has_progress_subscribers(task=self._resolved_task())
+
+    def _mark_terminal(self, phase: str) -> bool:
+        if not self._started or self._terminal_phase is not None:
+            return False
+        self._terminal_phase = phase
+        return True

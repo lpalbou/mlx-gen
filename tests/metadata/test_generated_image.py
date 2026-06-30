@@ -8,6 +8,7 @@ from PIL import Image
 from mflux.models.common.config import ModelConfig
 from mflux.utils.generated_image import GeneratedImage
 from mflux.utils.image_util import ImageUtil
+from mflux.utils.metadata_reader import MetadataReader
 
 
 def test_fibo_edit_save_also_writes_prompt_json(tmp_path):
@@ -78,6 +79,135 @@ def test_exported_metadata_uses_metadata_sidecar_suffix(tmp_path):
     assert metadata_path.exists()
     assert not output_path.with_suffix(".json").exists()
     assert json.loads(metadata_path.read_text())["seed"] == 42
+
+
+def test_default_image_save_is_single_pass_without_runtime_memory_sampling(monkeypatch, tmp_path):
+    output_path = tmp_path / "generated.png"
+    generated_image = GeneratedImage(
+        image=Image.new("RGB", (16, 16), "white"),
+        model_config=ModelConfig.qwen_image(),
+        seed=42,
+        prompt="test prompt",
+        steps=20,
+        guidance=3.5,
+        precision=mx.bfloat16,
+        quantization=8,
+        generation_time=1.23,
+        height=16,
+        width=16,
+    )
+
+    save_calls = []
+    open_calls = []
+    runtime_calls = []
+    original_save = Image.Image.save
+    original_open = Image.open
+
+    def tracked_save(self, *args, **kwargs):
+        save_calls.append(args[0] if args else None)
+        return original_save(self, *args, **kwargs)
+
+    def tracked_open(*args, **kwargs):
+        open_calls.append(args[0] if args else None)
+        return original_open(*args, **kwargs)
+
+    monkeypatch.setattr(Image.Image, "save", tracked_save)
+    monkeypatch.setattr("PIL.Image.open", tracked_open)
+    monkeypatch.setattr(
+        "mflux.utils.generated_image.RuntimeMemory.snapshot",
+        lambda phase: runtime_calls.append(phase),
+    )
+
+    generated_image.save(path=output_path, overwrite=True)
+
+    assert output_path.exists()
+    assert len(save_calls) == 1
+    assert open_calls == []
+    assert runtime_calls == []
+    assert MetadataReader.read_all_metadata(output_path)["exif"] is None
+
+
+def test_embed_metadata_stays_single_pass_and_excludes_runtime_memory_by_default(monkeypatch, tmp_path):
+    output_path = tmp_path / "embedded.png"
+    generated_image = GeneratedImage(
+        image=Image.new("RGB", (16, 16), "white"),
+        model_config=ModelConfig.qwen_image(),
+        seed=42,
+        prompt="test prompt",
+        steps=20,
+        guidance=3.5,
+        precision=mx.bfloat16,
+        quantization=8,
+        generation_time=1.23,
+        height=16,
+        width=16,
+    )
+
+    save_calls = []
+    open_calls = []
+    runtime_calls = []
+    original_save = Image.Image.save
+    original_open = Image.open
+
+    def tracked_save(self, *args, **kwargs):
+        save_calls.append(args[0] if args else None)
+        return original_save(self, *args, **kwargs)
+
+    def tracked_open(*args, **kwargs):
+        open_calls.append(args[0] if args else None)
+        return original_open(*args, **kwargs)
+
+    monkeypatch.setattr(Image.Image, "save", tracked_save)
+    monkeypatch.setattr("PIL.Image.open", tracked_open)
+    monkeypatch.setattr(
+        "mflux.utils.generated_image.RuntimeMemory.snapshot",
+        lambda phase: runtime_calls.append(phase),
+    )
+
+    generated_image.save(path=output_path, overwrite=True, embed_metadata=True)
+
+    assert output_path.exists()
+    assert len(save_calls) == 1
+    assert open_calls == []
+    assert runtime_calls == []
+    metadata = MetadataReader.read_all_metadata(output_path)
+    assert metadata["exif"]["seed"] == 42
+    assert metadata["exif"].get("runtime_memory") is None
+    with Image.open(output_path) as saved_image:
+        assert "XML:com.adobe.xmp" in saved_image.info
+        assert "IPTC" in saved_image.info
+
+
+def test_metadata_sidecar_carries_runtime_memory_when_requested(monkeypatch, tmp_path):
+    output_path = tmp_path / "sidecar.png"
+    generated_image = GeneratedImage(
+        image=Image.new("RGB", (16, 16), "white"),
+        model_config=ModelConfig.qwen_image(),
+        seed=42,
+        prompt="test prompt",
+        steps=20,
+        guidance=3.5,
+        precision=mx.bfloat16,
+        quantization=8,
+        generation_time=1.23,
+        height=16,
+        width=16,
+    )
+
+    class _Snapshot:
+        def to_metadata(self):
+            return {"phase": "image-metadata", "physical_peak_gb": 1.23}
+
+    monkeypatch.setattr(
+        "mflux.utils.generated_image.RuntimeMemory.snapshot",
+        lambda phase: _Snapshot(),
+    )
+
+    generated_image.save(path=output_path, overwrite=True, export_json_metadata=True)
+
+    sidecar = json.loads(output_path.with_suffix(".metadata.json").read_text())
+    assert sidecar["runtime_memory"] == {"phase": "image-metadata", "physical_peak_gb": 1.23}
+    assert MetadataReader.read_all_metadata(output_path)["exif"] is None
 
 
 def test_generated_image_metadata_records_i2i_canvas_policy():

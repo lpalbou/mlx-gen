@@ -3,7 +3,9 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from mflux.callbacks.callback_manager import CallbackManager
+from mflux.cli.output_paths import resolve_output_path
 from mflux.cli.parser.parsers import CommandLineParser
+from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.models.common.config import ModelConfig
 from mflux.models.flux2.latent_creator.flux2_latent_creator import Flux2LatentCreator
 from mflux.models.flux2.variants import Flux2KleinEdit
@@ -36,9 +38,7 @@ def main():
             "Legacy compatibility command for FLUX.2 Klein image conditioning and edit workflows. "
             "Prefer `mlxgen generate --model <model> --image <path> ...` for new integrations."
         ),
-        epilog=(
-            "Preferred migration target: mlxgen generate --model <flux2-model> --image <path> ..."
-        ),
+        epilog=("Preferred migration target: mlxgen generate --model <flux2-model> --image <path> ..."),
     )
     parser.add_general_arguments()
     parser.add_model_arguments(require_model_arg=False)
@@ -84,7 +84,9 @@ def main():
         args.guidance = 4.0 if args.outpaint_padding is not None and is_base_model else 1.0
     model_name_lower = model_config.model_name.lower()
     base_model_lower = (model_config.base_model or "").lower()
-    is_flux2 = any(identifier in model_name_lower or identifier in base_model_lower for identifier in ("flux.2", "flux2"))
+    is_flux2 = any(
+        identifier in model_name_lower or identifier in base_model_lower for identifier in ("flux.2", "flux2")
+    )
     if args.reframe_padding is not None and is_base_model:
         parser.error("--reframe-padding requires a validated non-base FLUX.2 Klein model.")
     if args.outpaint_padding is not None and not is_base_model:
@@ -139,64 +141,83 @@ def main():
 
             try:
                 for seed in args.seed:
-                    if uses_strict_outpaint:
-                        image = model.generate_image(
-                            seed=seed,
-                            prompt=PromptUtil.read_prompt(args),
-                            canvas=outpaint_canvas,
-                            guidance=args.guidance,
-                            num_inference_steps=args.steps,
-                            scheduler="flow_match_euler_discrete",
-                        )
-                    else:
-                        image = model.generate_image(
-                            seed=seed,
-                            prompt=PromptUtil.read_prompt(args),
-                            width=args.width,
-                            height=args.height,
-                            guidance=args.guidance,
-                            image_paths=image_paths,
-                            num_inference_steps=args.steps,
-                            scheduler="flow_match_euler_discrete",
-                            canvas_policy=args.canvas_policy,
-                        )
-                    if outpaint_canvas is not None:
-                        image.image = OutpaintUtil.composite_source_region(
-                            generated_image=image.image,
-                            canvas=outpaint_canvas,
-                            feather_px=None,
-                            restore_threshold=-1.0 if uses_strict_outpaint else 12.0,
-                        )
-                        image.image_path = source_image_paths[0]
-                        image.image_paths = source_image_paths
-                        OutpaintUtil.attach_metadata(
-                            generated_image=image,
-                            canvas=outpaint_canvas,
-                            padding_value=args.outpaint_padding,
-                            preservation=(
-                                "latent-locked-transition-band-no-postblend"
-                                if uses_strict_outpaint
-                                else "adaptive-content-aware-source-blend"
-                            ),
-                        )
-                    if reframe_canvas is not None:
-                        image.image_path = source_image_paths[0]
-                        image.image_paths = source_image_paths
-                        OutpaintUtil.attach_reframe_metadata(
-                            generated_image=image,
-                            canvas=reframe_canvas,
-                            padding_value=args.reframe_padding,
-                        )
-                    image.save(
-                        path=args.output.format(seed=seed),
-                        export_json_metadata=args.metadata,
-                        overwrite=args.replace,
+                    events = CliRuntimeEventStream(
+                        enabled=bool(args.json_events),
+                        command="mlxgen generate",
+                        model=model_config.model_name,
+                        seed=seed,
                     )
+                    output_path = resolve_output_path(args.output, overwrite=args.replace, seed=seed)
+                    events.set_output_path(output_path)
+                    unsubscribe = events.subscribe_model(model, map_complete_to_generated=True)
+                    try:
+                        if uses_strict_outpaint:
+                            image = model.generate_image(
+                                seed=seed,
+                                prompt=PromptUtil.read_prompt(args),
+                                canvas=outpaint_canvas,
+                                guidance=args.guidance,
+                                num_inference_steps=args.steps,
+                                scheduler="flow_match_euler_discrete",
+                            )
+                        else:
+                            image = model.generate_image(
+                                seed=seed,
+                                prompt=PromptUtil.read_prompt(args),
+                                width=args.width,
+                                height=args.height,
+                                guidance=args.guidance,
+                                image_paths=image_paths,
+                                num_inference_steps=args.steps,
+                                scheduler="flow_match_euler_discrete",
+                                canvas_policy=args.canvas_policy,
+                            )
+                        if outpaint_canvas is not None:
+                            image.image = OutpaintUtil.composite_source_region(
+                                generated_image=image.image,
+                                canvas=outpaint_canvas,
+                                feather_px=None,
+                                restore_threshold=-1.0 if uses_strict_outpaint else 12.0,
+                            )
+                            image.image_path = source_image_paths[0]
+                            image.image_paths = source_image_paths
+                            OutpaintUtil.attach_metadata(
+                                generated_image=image,
+                                canvas=outpaint_canvas,
+                                padding_value=args.outpaint_padding,
+                                preservation=(
+                                    "latent-locked-transition-band-no-postblend"
+                                    if uses_strict_outpaint
+                                    else "adaptive-content-aware-source-blend"
+                                ),
+                            )
+                        if reframe_canvas is not None:
+                            image.image_path = source_image_paths[0]
+                            image.image_paths = source_image_paths
+                            OutpaintUtil.attach_reframe_metadata(
+                                generated_image=image,
+                                canvas=reframe_canvas,
+                                padding_value=args.reframe_padding,
+                            )
+                        events.emit_save()
+                        image.save(
+                            path=output_path,
+                            export_json_metadata=args.metadata,
+                            overwrite=True,
+                            embed_metadata=args.embed_metadata,
+                        )
+                        events.emit_complete()
+                    except Exception as exc:
+                        events.emit_failed(error=exc)
+                        raise
+                    finally:
+                        if unsubscribe is not None:
+                            unsubscribe()
             except (StopImageGenerationException, PromptFileReadError) as exc:
-                print(exc)
+                cli_print(str(exc), json_events=bool(args.json_events))
     finally:
         if memory_saver:
-            print(memory_saver.memory_stats())
+            cli_print(memory_saver.memory_stats(), json_events=bool(args.json_events))
 
 
 def _resolve_image_paths(
@@ -260,10 +281,7 @@ def _validate_canvas_args(*, parser: CommandLineParser, args, source_image_paths
     if len(source_image_paths) != 1:
         parser.error(f"{option_name} requires exactly one --image-paths value.")
     if _any_option_was_provided(sys.argv[1:], ("--width", "--height")):
-        parser.error(
-            f"{option_name} computes --width and --height from the source image; "
-            "do not pass either option."
-        )
+        parser.error(f"{option_name} computes --width and --height from the source image; do not pass either option.")
     if _option_was_provided(sys.argv[1:], "--canvas-policy"):
         parser.error(f"{option_name} uses --canvas-policy exact-resize; do not pass --canvas-policy.")
 

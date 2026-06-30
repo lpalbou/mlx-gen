@@ -235,6 +235,42 @@ quality.
   `max_abs=0`) or a stricter explicitly approved quality gate before any non-identical output is
   accepted.
 
+## Research update
+
+- Date: 2026-06-29
+- External evidence: MLX follows a JAX-style splittable PRNG model, and the upstream MLX source
+  implements `normal(...)` from keyed uniform bits rather than exposing a public counter-offset
+  slice API. See the JAX PRNG design note, MLX random source, and MLX Python random docs:
+  `https://docs.jax.dev/en/latest/jep/263-prng.html`,
+  `https://github.com/ml-explore/mlx/blob/main/mlx/random.cpp`,
+  `https://ml-explore.github.io/mlx/build/html/python/random.html`.
+- Local proof: repeated smaller `mx.random.normal(...)` calls are not an exact reconstruction of
+  one larger call. A local check with `seed=123` compared
+  `mx.random.normal(shape=(1, 16, 5, 2, 3), key=mx.random.key(seed))` against smaller repeated
+  calls and observed non-zero deltas in every candidate path (`max_abs` about `3.8301` to
+  `4.5771`). Stateful seeded calls also failed exact concatenation, so a simple rolling RNG state
+  does not preserve the current global-noise output.
+- Current interpretation: an exact-quality chunk-bounded implementation is not available through
+  current public MLX Python APIs by re-generating smaller slices. Remaining exact options are:
+  `1.` materialize the exact global tensor once and spill it to a host/disk-backed exact slice
+  store; `2.` add or adopt a lower-level MLX API that exposes deterministic counter-offset or
+  bits-based slice generation; `3.` retire or defer the item for current supported profiles if the
+  measured win remains economically negligible.
+- Memory math: the current global noise bytes are
+  `16 * latent_frames * latent_height * latent_width * 4`, which is approximately
+  `width * height * frame_count / 4` bytes for multi-frame clips. On the accepted 149-frame
+  `320x240` `29/8` proof profile this is `2.918 MB` global versus `0.614 MB` chunk-live, so the
+  theoretical maximum live-noise reduction is only `2.304 MB`. At `149f 1280x720` it is
+  `35.021 MB` global versus `7.373 MB` chunk-live. At `600f 1920x1080` it is `311.040 MB` global
+  versus `16.589 MB` chunk-live.
+- Consequence: for the currently validated low-resolution 149-frame restore proofs, item 0062 is a
+  residency-cleanliness issue rather than a dominant whole-process peak-memory lever. It becomes
+  more interesting only for materially longer and higher-resolution future safe-video profiles.
+- Required next proof before more product effort: if this item stays planned, run one larger still
+  supported SeedVR2 profile with explicit memory snapshots immediately before and after
+  global-noise materialization. If the delta is still only in the MiB-to-low-tens-of-MiB range
+  relative to total peak, treat the item as low-value for the current public profile set.
+
 ## Temporal quality repair update
 
 - Date: 2026-06-28

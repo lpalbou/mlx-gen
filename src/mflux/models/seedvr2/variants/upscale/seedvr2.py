@@ -211,7 +211,7 @@ class SeedVR2(nn.Module):
         )
 
         # 4. Create callback context and call before_loop
-        ctx = self.callbacks.start(seed=seed, prompt="", config=config)
+        ctx = self.callbacks.start(seed=seed, prompt="", config=config, task="image-to-image")
         ctx.before_loop(latents)
 
         for t in config.time_steps:
@@ -236,30 +236,35 @@ class SeedVR2(nn.Module):
         ctx.after_loop(latents)
 
         # 9. Decode the latents and return the image
-        decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=tiling_config)
-        decoded = decoded[:, :, :true_height, :true_width]
-        style = processed_image[:, :, :true_height, :true_width]
-        decoded = SeedVR2Util.apply_color_correction(decoded, style, mode=color_correction_mode)
+        try:
+            decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=tiling_config)
+            decoded = decoded[:, :, :true_height, :true_width]
+            style = processed_image[:, :, :true_height, :true_width]
+            decoded = SeedVR2Util.apply_color_correction(decoded, style, mode=color_correction_mode)
 
-        # 10. Read metadata from the original image if available
-        init_metadata = MetadataReader.read_all_metadata(image_path) if image_path else None
+            # 10. Read metadata from the original image if available
+            init_metadata = MetadataReader.read_all_metadata(image_path) if image_path else None
 
-        generated_image = ImageUtil.to_image(
-            seed=seed,
-            prompt="",
-            config=config,
-            quantization=self.bits,
-            decoded_latents=decoded,
-            generation_time=config.time_steps.format_dict["elapsed"],
-            image_path=image_path,
-            init_metadata=init_metadata,
-            extra_metadata={
-                "resolution": str(resolution),
-                "softness": round(float(softness), 3),
-                "color_correction_mode": color_correction_mode,
-                **self._seedvr2_metadata(),
-            },
-        )
+            generated_image = ImageUtil.to_image(
+                seed=seed,
+                prompt="",
+                config=config,
+                quantization=self.bits,
+                decoded_latents=decoded,
+                generation_time=config.time_steps.format_dict["elapsed"],
+                image_path=image_path,
+                init_metadata=init_metadata,
+                extra_metadata={
+                    "resolution": str(resolution),
+                    "softness": round(float(softness), 3),
+                    "color_correction_mode": color_correction_mode,
+                    **self._seedvr2_metadata(),
+                },
+            )
+        except Exception:
+            ctx.failed()
+            raise
+        ctx.complete()
         del decoded
         mx.clear_cache()
         gc.collect()
@@ -305,55 +310,77 @@ class SeedVR2(nn.Module):
             start_seconds=start_seconds,
             max_frames=requested_clip_frames,
         )
-        decoded, true_height, true_width, padded_input_frames = self._restore_video_frames(
-            seed=seed,
-            frames=video_clip.frames,
+        progress_height, progress_width = self._estimate_output_size(
+            source_width=video_clip.source_width,
+            source_height=video_clip.source_height,
             resolution=resolution,
-            softness=softness,
-            color_correction_mode=color_correction_mode,
         )
-        generation_time = time.perf_counter() - start_time
-
-        generated_video = VideoUtil.to_video(
-            decoded_latents=decoded,
-            fps=video_clip.fps,
-            model_config=self.model_config,
+        ctx = self.callbacks.start(
             seed=seed,
             prompt="",
-            steps=1,
-            guidance=1.0,
-            quantization=self.bits,
-            generation_time=generation_time,
+            config=self._build_restore_config(
+                true_height=progress_height,
+                true_width=progress_width,
+                num_inference_steps=1,
+            ),
             task="video-to-video",
-            video_path=video_path,
-            extra_metadata={
-                "resolution": str(resolution),
-                "softness": round(float(softness), 3),
-                **self._seedvr2_metadata(),
-                **(restore_metadata or {}),
-                "source_video_width": video_clip.source_width,
-                "source_video_height": video_clip.source_height,
-                "source_video_fps": round(float(video_clip.fps), 6),
-                "source_video_frames": video_clip.source_frame_count,
-                "source_video_duration_seconds": (
-                    round(video_clip.source_duration_seconds, 3)
-                    if video_clip.source_duration_seconds is not None
-                    else None
-                ),
-                "source_clip_start_frame": video_clip.clip_start_frame,
-                "source_clip_start_seconds": round(float(start_seconds), 3),
-                "source_clip_actual_start_seconds": round(float(video_clip.clip_start_frame / video_clip.fps), 6),
-                "source_clip_frames": video_clip.clip_frame_count,
-                "padded_input_frames": padded_input_frames,
-                "audio_present": video_clip.audio_present,
-                "audio_copied": False,
-                "audio_copy_mode": None,
-                "audio_copy_reason": "in_memory_output",
-                "temporal_chunk_size": None,
-                "temporal_chunk_overlap": None,
-                "color_correction_mode": color_correction_mode,
-            },
         )
+        try:
+            decoded, true_height, true_width, padded_input_frames = self._restore_video_frames(
+                seed=seed,
+                frames=video_clip.frames,
+                resolution=resolution,
+                softness=softness,
+                color_correction_mode=color_correction_mode,
+                progress_context=ctx,
+                finalize_progress=False,
+            )
+            generation_time = time.perf_counter() - start_time
+
+            generated_video = VideoUtil.to_video(
+                decoded_latents=decoded,
+                fps=video_clip.fps,
+                model_config=self.model_config,
+                seed=seed,
+                prompt="",
+                steps=1,
+                guidance=1.0,
+                quantization=self.bits,
+                generation_time=generation_time,
+                task="video-to-video",
+                video_path=video_path,
+                extra_metadata={
+                    "resolution": str(resolution),
+                    "softness": round(float(softness), 3),
+                    **self._seedvr2_metadata(),
+                    **(restore_metadata or {}),
+                    "source_video_width": video_clip.source_width,
+                    "source_video_height": video_clip.source_height,
+                    "source_video_fps": round(float(video_clip.fps), 6),
+                    "source_video_frames": video_clip.source_frame_count,
+                    "source_video_duration_seconds": (
+                        round(video_clip.source_duration_seconds, 3)
+                        if video_clip.source_duration_seconds is not None
+                        else None
+                    ),
+                    "source_clip_start_frame": video_clip.clip_start_frame,
+                    "source_clip_start_seconds": round(float(start_seconds), 3),
+                    "source_clip_actual_start_seconds": round(float(video_clip.clip_start_frame / video_clip.fps), 6),
+                    "source_clip_frames": video_clip.clip_frame_count,
+                    "padded_input_frames": padded_input_frames,
+                    "audio_present": video_clip.audio_present,
+                    "audio_copied": False,
+                    "audio_copy_mode": None,
+                    "audio_copy_reason": "in_memory_output",
+                    "temporal_chunk_size": None,
+                    "temporal_chunk_overlap": None,
+                    "color_correction_mode": color_correction_mode,
+                },
+            )
+        except Exception:
+            ctx.failed()
+            raise
+        ctx.complete()
         del decoded
         mx.clear_cache()
         gc.collect()
@@ -412,12 +439,29 @@ class SeedVR2(nn.Module):
             source_height=clip_probe.source_height,
             resolution=resolution,
         )
+        progress_height, progress_width = self._estimate_output_size(
+            source_width=clip_probe.source_width,
+            source_height=clip_probe.source_height,
+            resolution=resolution,
+        )
+        progress_ctx = self.callbacks.start(
+            seed=seed,
+            prompt="",
+            config=self._build_restore_config(
+                true_height=progress_height,
+                true_width=progress_width,
+                num_inference_steps=max(1, len(chunk_plan)),
+            ),
+            task="video-to-video",
+        )
 
         final_width: int | None = None
         final_height: int | None = None
         writer = None
         file_path: Path | None = None
         audio_copy_result = None
+        progress_started = False
+        progress_latents = None
         try:
             chunk_clips = VideoUtil.iter_video_frame_windows(
                 video_path,
@@ -441,6 +485,10 @@ class SeedVR2(nn.Module):
                     chunk_start_frame=chunk_info.input_start_frame,
                     target_input_frame_count=chunk_info.target_input_frame_count,
                 )
+                progress_latents = noise_slice
+                if not progress_started:
+                    progress_ctx.before_loop(noise_slice)
+                    progress_started = True
                 decoded, true_height, true_width, _ = self._restore_video_frames(
                     seed=seed,
                     frames=chunk_frames,
@@ -449,6 +497,7 @@ class SeedVR2(nn.Module):
                     color_correction_mode=color_correction_mode,
                     enforce_memory_budget=enforce_memory_budget,
                     noise_latents=noise_slice,
+                    emit_progress=False,
                 )
                 final_width = true_width
                 final_height = true_height
@@ -490,6 +539,8 @@ class SeedVR2(nn.Module):
                     frame_count=chunk_info.target_input_frame_count,
                     enforce_peak_budget=enforce_memory_budget,
                 )
+                if progress_started and progress_latents is not None:
+                    progress_ctx.in_loop(chunk_index, progress_latents)
 
             if writer is None:
                 raise ValueError("SeedVR2 video restore did not produce any frames.")
@@ -522,6 +573,8 @@ class SeedVR2(nn.Module):
                             "to allow a silent restored MP4 intentionally."
                         )
         except Exception:
+            if progress_started:
+                progress_ctx.failed()
             if writer is not None:
                 writer.abort()
             if file_path is not None:
@@ -529,6 +582,8 @@ class SeedVR2(nn.Module):
             raise
 
         try:
+            if progress_started and progress_latents is not None:
+                progress_ctx.after_loop(progress_latents)
             noise_metadata = noise_provider.metadata()
             del noise_provider
             mx.clear_cache()
@@ -613,8 +668,12 @@ class SeedVR2(nn.Module):
             finally:
                 if gc_was_enabled:
                     gc.enable()
+            if progress_started:
+                progress_ctx.complete()
             return file_path
         except Exception:
+            if progress_started:
+                progress_ctx.failed()
             if file_path is not None:
                 SeedVR2._cleanup_video_artifacts(file_path)
             raise
@@ -629,6 +688,9 @@ class SeedVR2(nn.Module):
         color_correction_mode: str,
         enforce_memory_budget: bool = True,
         noise_latents: mx.array | None = None,
+        progress_context=None,
+        finalize_progress: bool = True,
+        emit_progress: bool = True,
     ) -> tuple[mx.array, int, int, int]:
         processed_video, true_height, true_width = SeedVR2Util.preprocess_video_frames(
             frames=frames,
@@ -649,15 +711,7 @@ class SeedVR2(nn.Module):
             allow_encode_tiling=False,
         )
 
-        config = Config(
-            width=true_width,
-            height=true_height,
-            guidance=1.0,
-            num_inference_steps=1,
-            scheduler="seedvr2_euler",
-            model_config=self.model_config,
-            dimension_multiple=2,
-        )
+        config = self._build_restore_config(true_height=true_height, true_width=true_width, num_inference_steps=1)
 
         initial_latent = VAEUtil.encode(
             vae=self.vae,
@@ -692,8 +746,11 @@ class SeedVR2(nn.Module):
             else SeedVR2TextEmbeddings.load_positive()
         )
 
-        ctx = self.callbacks.start(seed=seed, prompt="", config=config)
-        ctx.before_loop(latents)
+        ctx = progress_context
+        if emit_progress and ctx is None:
+            ctx = self.callbacks.start(seed=seed, prompt="", config=config, task="video-to-video")
+        if emit_progress and ctx is not None:
+            ctx.before_loop(latents)
 
         for t in config.time_steps:
             model_input = mx.concatenate([latents, static_condition], axis=1)
@@ -703,36 +760,46 @@ class SeedVR2(nn.Module):
                 timestep=config.scheduler.timesteps[t],
             )
             latents = config.scheduler.step(noise=noise, timestep=t, latents=latents)
-            ctx.in_loop(t, latents)
+            if emit_progress and ctx is not None:
+                ctx.in_loop(t, latents)
             mx.eval(latents)
 
-        ctx.after_loop(latents)
+        if emit_progress and ctx is not None:
+            ctx.after_loop(latents)
         del model_input
         del noise
 
-        decoded = VAEUtil.decode(
-            vae=self.vae,
-            latent=latents,
-            tiling_config=tiling_config,
-            preserve_temporal_axis=True,
-        )
-        del latents
-        decoded = decoded[:, :, :original_frame_count, :true_height, :true_width]
-        if color_correction_mode != "off":
-            style_video, _, _ = SeedVR2Util.preprocess_video_frames(
-                frames=frames[:original_frame_count],
-                resolution=resolution,
-                softness=softness,
+        try:
+            decoded = VAEUtil.decode(
+                vae=self.vae,
+                latent=latents,
+                tiling_config=tiling_config,
+                preserve_temporal_axis=True,
             )
-            style = style_video[:, :, :original_frame_count, :true_height, :true_width]
-            decoded = SeedVR2Util.apply_color_correction(
-                decoded,
-                style,
-                mode=color_correction_mode,
-            )
-            del style
-            del style_video
-        mx.eval(decoded)
+            del latents
+            decoded = decoded[:, :, :original_frame_count, :true_height, :true_width]
+            if color_correction_mode != "off":
+                style_video, _, _ = SeedVR2Util.preprocess_video_frames(
+                    frames=frames[:original_frame_count],
+                    resolution=resolution,
+                    softness=softness,
+                )
+                style = style_video[:, :, :original_frame_count, :true_height, :true_width]
+                decoded = SeedVR2Util.apply_color_correction(
+                    decoded,
+                    style,
+                    mode=color_correction_mode,
+                )
+                del style
+                del style_video
+            mx.eval(decoded)
+        except Exception:
+            if emit_progress and ctx is not None:
+                ctx.failed()
+            mx.clear_cache()
+            raise
+        if emit_progress and finalize_progress and ctx is not None:
+            ctx.complete()
         del static_condition
         mx.clear_cache()
         return decoded, true_height, true_width, padded_frame_count
@@ -955,6 +1022,23 @@ class SeedVR2(nn.Module):
         width = max(16, width - (width % 16))
         height = max(16, height - (height % 16))
         return height, width
+
+    def _build_restore_config(
+        self,
+        *,
+        true_height: int,
+        true_width: int,
+        num_inference_steps: int,
+    ) -> Config:
+        return Config(
+            width=true_width,
+            height=true_height,
+            guidance=1.0,
+            num_inference_steps=num_inference_steps,
+            scheduler="seedvr2_euler",
+            model_config=self.model_config,
+            dimension_multiple=2,
+        )
 
     @staticmethod
     def _cleanup_video_artifacts(file_path: Path) -> None:

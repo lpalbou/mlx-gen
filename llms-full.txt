@@ -15,15 +15,16 @@
 - `docs/qwen-route-matrix.md`: current MLX-Gen route truth for Qwen Image and Qwen Image Edit, mapping public `mlxgen` capability ids to the upstream Diffusers Qwen pipeline families and to the proof surfaces that already exist.
 - `docs/qwen-localized-editing.md`: plain-language guide to Qwen localized-edit routes, contrasting masked edit/inpaint, structured control, and shipped base-Qwen control-inpaint, defining ControlNet and “sidecar” in user terms, and linking the accepted proof assets.
 - `docs/upscaling.md`: SeedVR2 image and video restoration guide with official 3B/7B source usage, published 3B/7B q8/q4 package handles, shortest-edge and scale-factor sizing, the conservative safe-video profile, the `29/8` multi-chunk video floor, accepted five-second Eiffel `1x` and `2x` 3B/7B proof bundles with readable mode labels, reproduction commands, timings/memory data, and real 5x source/output comparisons.
-- `docs/edit-capabilities.md`: image-edit and adjacent structured-control contact sheets, model/package status summaries, and exact command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, base Qwen structured control, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate` in the current release.
+- `docs/edit-capabilities.md`: image-edit and adjacent structured-control contact sheets, model/package status summaries, and exact command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, base Qwen structured control, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate`.
 - `docs/reframe-outpaint.md`: reframe/outpaint workflows, exact commands, the mixed June 8 profile, the current FLUX.2 Klein base source-model starship proof, and the related validation profile ids.
 - `docs/lora.md`: route-specific LoRA capability fields, explicit adapter download, strict scale matching, exact adapter/base-model compatibility, source/no-LoRA/with-LoRA validation, exact public proof rows for current Qwen, Z-Image, FLUX.2, ERNIE, and Wan routes, including base Qwen latent, the exact `AbstractFramework/z-image-turbo-8bit` latent children's-drawing row, Qwen 2511 multi-reference/reframe/outpaint, FLUX.2 Klein 9B multi-reference, FLUX.2 Klein base 4B outpaint, direct `lightx2v/Wan2.2-Lightning` download, and explicit guidance that the validated Lightning target is the MLX-Gen q8 package rather than an arbitrary external FP8 checkpoint.
 - `docs/wan-video.md`: practical Wan2.2 T2V/I2V guidance with broader A14B target size families and `101`-frame, 20 fps M5 Max comparison clips for A14B and TI2V-5B.
+- `docs/recommendations.md`: conservative model recommendations for `18 GB`, `24 GB`, `32 GB`, `64 GB`, and `128+ GB` Macs based on published MLX-Gen memory measurements.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
 - `docs/model-management.md`: explicit `download` and `prepare`, generation from local model files, local MLX-Gen packages, matching Hugging Face handle resolution, and `DownloadRequiredError`.
 - `docs/quantization.md`: complete published package matrix, q8/q4/BF16 policies, model-family compatibility, Wan TI2V/A14B package status, A14B q8 generated-output records, and the distinction between MLX-Gen q8 packages and third-party FP8 checkpoint guidance.
 - `docs/huggingface-publishing.md`: generated model cards and AbstractFramework Hugging Face upload guidance.
-- `docs/python-integration.md`: embedding MLX-Gen, capability checks, negative prompts, progress callbacks, AbstractVision/AbstractCore integration, and threading behavior.
+- `docs/python-integration.md`: embedding MLX-Gen, route-resolved runtime loading, serial multi-output reuse for unified `mlxgen generate` families, overwrite/collision behavior, SeedVR2's direct-model boundary, progress callbacks, AbstractVision/AbstractCore integration, and threading behavior.
 - `docs/faq.md`: common conceptual questions, I2I mode selection and output sizing, SeedVR2 image/video sizing and default audio-preservation behavior, Qwen edit variants, negative prompts, reframe/outpaint, Wan resolutions, prompting guidance, usage limits, and why MLX-Gen q8 Lightning guidance should not be generalized to arbitrary FP8 checkpoints.
 - `docs/troubleshooting.md`: user-facing failure symptoms, diagnostics, fixes, and legacy `mflux-generate-*` migration guidance.
 - `docs/release.md`: release and publishing process.
@@ -76,6 +77,12 @@ MLX-Gen separates setup from generation:
 Missing model, tokenizer, LoRA, or Depth Pro artifacts raise `DownloadRequiredError` with explicit
 download or prepare commands. This behavior is important for application integrations because long
 jobs should not unexpectedly start a network transfer.
+
+CLI multi-output is seed-driven: `--seed` accepts multiple explicit seeds, `--auto-seeds` is
+available on `mlxgen generate` and `mlxgen upscale`, duplicate explicit seeds are rejected,
+underlying model methods remain singular, and unified `mlxgen generate` Python families also
+expose `load_generation_model(...).generate_outputs(...)` for serial multi-output reuse. SeedVR2
+upscale remains on direct `SeedVR2` methods rather than that wrapper.
 
 A complete local MLX-Gen package under `./models/<repo-name>` can satisfy a matching Hugging Face handle.
 For example, `./models/wan2.2-i2v-a14b-diffusers-8bit` can be used when generation is requested as

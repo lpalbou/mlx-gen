@@ -1,10 +1,8 @@
 import argparse
 import gc
 import json
-import random
 import sys
 import threading
-import time
 from dataclasses import asdict
 from datetime import datetime
 from pathlib import Path
@@ -14,7 +12,10 @@ from tqdm import tqdm
 
 from mflux.callbacks import ProgressEvent
 from mflux.cli.defaults import defaults as ui_defaults
+from mflux.cli.output_paths import normalize_output_template, resolve_output_path
 from mflux.cli.parser.parsers import boolean_flag_value, positive_float
+from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
+from mflux.cli.seed_values import resolve_seed_values
 from mflux.models.common.config import ModelConfig
 from mflux.models.wan.variants import Wan2_2_TI2V
 from mflux.utils.exceptions import ModelConfigError, PromptFileReadError
@@ -34,7 +35,10 @@ def main() -> None:
     args = parser.parse_args()
     provided_options.update(_apply_metadata_defaults(args))
     _validate_args(parser, args)
-    _apply_seed_defaults(args)
+    try:
+        _apply_seed_defaults(args)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     try:
         model_config, model_path = _resolve_model(args.model)
@@ -54,8 +58,15 @@ def main() -> None:
         )
         release_denoisers_before_decode = args.low_ram and single_seed
         for seed in args.seed:
-            progress = _WanCliProgress(enabled=args.progress)
-            output_path = args.output.format(seed=seed)
+            progress = _WanCliProgress(enabled=args.progress and not args.json_events)
+            output_path = resolve_output_path(args.output, overwrite=args.replace, seed=seed)
+            events = CliRuntimeEventStream(
+                enabled=bool(args.json_events),
+                command="mlxgen generate",
+                model=model_config.model_name,
+                seed=seed,
+            )
+            events.set_output_path(output_path)
             prompt = ""
             try:
                 prompt = PromptUtil.read_prompt(args)
@@ -74,32 +85,44 @@ def main() -> None:
                     negative_prompt=args.negative_prompt,
                     image_path=args.image_path,
                     max_sequence_length=args.max_sequence_length,
-                    progress_callback=progress if args.progress else None,
+                    progress_callback=events.handle_progress
+                    if events.enabled
+                    else (progress if args.progress else None),
                     release_inactive_denoiser=release_inactive_denoiser,
                     release_denoisers_before_decode=release_denoisers_before_decode,
                     clear_cache_each_step=args.low_ram,
                     clear_cache_each_transformer_block=args.low_ram,
                     tensor_health_check_interval=args.tensor_health_check_interval,
                 )
-                print(f"Saving video to: {output_path}")
+                cli_print(f"Saving video to: {output_path}", json_events=bool(args.json_events))
+                events.emit_save(task=getattr(video, "task", None))
                 _emit_cli_video_progress(progress, phase="save", video=video)
                 saved_path = video.save(
                     path=output_path,
                     export_json_metadata=args.metadata,
-                    overwrite=args.replace,
+                    overwrite=True,
                 )
+                events.set_output_path(saved_path or output_path)
                 _emit_cli_video_progress(progress, phase="complete", video=video)
-                print(f"Saved video to: {saved_path or output_path}")
+                events.emit_complete(task=getattr(video, "task", None))
+                cli_print(f"Saved video to: {saved_path or output_path}", json_events=bool(args.json_events))
                 del video
                 gc.collect()
                 mx.clear_cache()
             except Exception as exc:
-                _write_failure_manifest(output_path=output_path, args=args, seed=seed, prompt=prompt, error=exc)
+                failure_path = _write_failure_manifest(
+                    output_path=output_path, args=args, seed=seed, prompt=prompt, error=exc
+                )
                 _emit_cli_failure_progress(
                     progress,
                     total_frames=args.frames,
                     total_steps=args.steps,
                     task="image-to-video" if args.image_path is not None else "text-to-video",
+                )
+                events.emit_failed(
+                    task="image-to-video" if args.image_path is not None else "text-to-video",
+                    error=exc,
+                    diagnostics_path=failure_path,
                 )
                 raise
             finally:
@@ -112,7 +135,7 @@ def main() -> None:
         ValueError,
         NotImplementedError,
     ) as exc:
-        print(exc)
+        cli_print(str(exc), json_events=bool(getattr(args, "json_events", False)), error=True)
         raise SystemExit(1) from None
 
 
@@ -189,7 +212,7 @@ def _parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument("--seed", "-s", type=int, default=None, nargs="+", help="One or more random seeds.")
-    parser.add_argument("--auto-seeds", type=int, default=-1, help="Generate N random seeds.")
+    parser.add_argument("--auto-seeds", type=int, default=-1, help="Generate N random seeds between 0 and 10,000,000.")
     parser.add_argument("--quantize", "-q", type=int, choices=ui_defaults.QUANTIZE_CHOICES, default=None)
     parser.add_argument(
         "--lora-paths",
@@ -240,6 +263,11 @@ def _parser() -> argparse.ArgumentParser:
         "--battery-percentage-stop-limit", "-B", type=int, default=ui_defaults.BATTERY_PERCENTAGE_STOP_LIMIT
     )
     parser.add_argument(
+        "--json-events",
+        action="store_true",
+        help="Emit machine-readable JSONL runtime events to stdout and move human CLI text to stderr.",
+    )
+    parser.add_argument(
         "--low-ram",
         action="store_true",
         help=(
@@ -284,7 +312,7 @@ def _apply_metadata_defaults(args: argparse.Namespace) -> set[str]:
         args.negative_prompt = metadata.get("negative_prompt") or ""
         if args.negative_prompt:
             provided_options.add("--negative-prompt")
-    if args.seed is None and metadata.get("seed") is not None:
+    if args.seed is None and args.auto_seeds == -1 and metadata.get("seed") is not None:
         args.seed = [int(metadata["seed"])]
         provided_options.add("--seed")
     if args.quantize is None:
@@ -329,13 +357,12 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
 
 
 def _apply_seed_defaults(args: argparse.Namespace) -> None:
-    if args.seed is None and args.auto_seeds > 0:
-        args.seed = random.sample(range(int(1e7) + 1), args.auto_seeds)
-    if args.seed is None:
-        args.seed = [int(time.time())]
+    args.seed = resolve_seed_values(
+        seed_values=args.seed,
+        auto_seeds=args.auto_seeds,
+    )
     if len(args.seed) > 1:
-        output_path = Path(args.output)
-        args.output = str(output_path.with_stem(output_path.stem + "_seed_{seed}"))
+        args.output = normalize_output_template(args.output, include_seed=True)
 
 
 def _resolve_model(model: str) -> tuple[ModelConfig, str | None]:
@@ -441,13 +468,14 @@ def _emit_cli_failure_progress(
 
 def _write_failure_manifest(
     *,
-    output_path: str,
+    output_path: str | Path,
     args: argparse.Namespace,
     seed: int,
     prompt: str,
     error: BaseException,
 ) -> Path:
-    failure_path = Path(output_path).with_suffix(".failure.json")
+    resolved_output_path = str(output_path)
+    failure_path = Path(resolved_output_path).with_suffix(".failure.json")
     failure_path.parent.mkdir(parents=True, exist_ok=True)
     tensor_report = getattr(error, "report", None)
     manifest = {
@@ -472,7 +500,7 @@ def _write_failure_manifest(
             "flow_shift": args.flow_shift,
             "solver": args.solver,
             "fps": args.fps,
-            "output": output_path,
+            "output": resolved_output_path,
             "low_ram": bool(args.low_ram),
             "tensor_health_check_interval": args.tensor_health_check_interval,
             "failure_diagnostics": bool(args.failure_diagnostics),

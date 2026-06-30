@@ -45,7 +45,13 @@ class ConceptHeatmap:
     height: int
     width: int
 
-    def save(self, path: str | Path, export_json_metadata: bool = False, overwrite: bool = False) -> None:
+    def save(
+        self,
+        path: str | Path,
+        export_json_metadata: bool = False,
+        overwrite: bool = False,
+        embed_metadata: bool = False,
+    ) -> None:
         from mflux.utils.image_util import ImageUtil
 
         ImageUtil.save_image(
@@ -54,6 +60,7 @@ class ConceptHeatmap:
             metadata=self.get_metadata(),
             export_json_metadata=export_json_metadata,
             overwrite=overwrite,
+            embed_metadata=embed_metadata,
         )
 
     def get_metadata(self) -> dict:

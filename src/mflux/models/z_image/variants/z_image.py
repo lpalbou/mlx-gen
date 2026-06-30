@@ -126,7 +126,12 @@ class ZImage(nn.Module):
         )
 
         # 3. Create callback context and call before_loop
-        ctx = self.callbacks.start(seed=seed, prompt=prompt, config=config)
+        ctx = self.callbacks.start(
+            seed=seed,
+            prompt=prompt,
+            config=config,
+            task="image-to-image" if mask_path is not None else None,
+        )
         ctx.before_loop(latents)
         predict = self._predict(self.transformer)
 
@@ -172,22 +177,28 @@ class ZImage(nn.Module):
         ctx.after_loop(latents)
 
         # 8. Decode the latents and return the image
-        decoded = self._decode_latents(latents=latents, config=config)
-        return ImageUtil.to_image(
-            decoded_latents=decoded,
-            config=config,
-            seed=seed,
-            prompt=prompt,
-            quantization=self.bits,
-            lora_paths=self.lora_paths,
-            lora_scales=self.lora_scales,
-            image_path=config.image_path,
-            image_strength=config.image_strength,
-            masked_image_path=mask_path,
-            generation_time=timer.elapsed_seconds(),
-            negative_prompt=negative_prompt,
-            extra_metadata=LoRALoader.extra_metadata_for_model(self),
-        )
+        try:
+            decoded = self._decode_latents(latents=latents, config=config)
+            image = ImageUtil.to_image(
+                decoded_latents=decoded,
+                config=config,
+                seed=seed,
+                prompt=prompt,
+                quantization=self.bits,
+                lora_paths=self.lora_paths,
+                lora_scales=self.lora_scales,
+                image_path=config.image_path,
+                image_strength=config.image_strength,
+                masked_image_path=mask_path,
+                generation_time=timer.elapsed_seconds(),
+                negative_prompt=negative_prompt,
+                extra_metadata=LoRALoader.extra_metadata_for_model(self),
+            )
+        except Exception:
+            ctx.failed()
+            raise
+        ctx.complete()
+        return image
 
     def _encode_prompts(
         self,
@@ -249,7 +260,7 @@ class ZImage(nn.Module):
                 cap_feats=negative_encodings,
                 sigmas=sigmas,
             )
-            return noise + guidance * (noise - negative_noise)
+            return negative_noise + guidance * (noise - negative_noise)
 
         if AppleSiliconUtil.is_m1_or_m2():
             return predict

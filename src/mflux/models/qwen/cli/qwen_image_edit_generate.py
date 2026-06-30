@@ -3,7 +3,9 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 
 from mflux.callbacks.callback_manager import CallbackManager
+from mflux.cli.output_paths import resolve_output_path
 from mflux.cli.parser.parsers import CommandLineParser
+from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.models.common.config import ModelConfig
 from mflux.models.qwen.latent_creator.qwen_latent_creator import QwenLatentCreator
 from mflux.models.qwen.variants.edit.qwen_image_edit import (
@@ -71,7 +73,9 @@ def main():
     if not _option_was_provided(sys.argv[1:], "--scheduler"):
         args.scheduler = "flow_match_euler_discrete"
     if args.guidance is None:
-        if _QwenImageEditImplementation._is_edit_plus_model_config(model_config=model_config, image_paths=source_image_paths):
+        if _QwenImageEditImplementation._is_edit_plus_model_config(
+            model_config=model_config, image_paths=source_image_paths
+        ):
             args.guidance = 4.0
         else:
             args.guidance = 4.0
@@ -111,49 +115,70 @@ def main():
 
             try:
                 for seed in args.seed:
-                    # 4. Generate an image for each seed value
-                    image = qwen.generate_image(
+                    events = CliRuntimeEventStream(
+                        enabled=bool(args.json_events),
+                        command="mlxgen generate",
+                        model=model_config.model_name,
                         seed=seed,
-                        prompt=PromptUtil.read_prompt(args),
-                        negative_prompt=_read_negative_prompt(args),
-                        width=args.width,
-                        height=args.height,
-                    guidance=args.guidance,
-                    image_path=source_image_paths[0],  # Use original source for metadata
-                    image_paths=image_paths,
-                    mask_path=args.mask_path,
-                    num_inference_steps=args.steps,
-                    scheduler=args.scheduler,
-                    canvas_policy=args.canvas_policy,
                     )
-                    if outpaint_canvas is not None:
-                        image.image = OutpaintUtil.composite_source_region(
-                            generated_image=image.image,
-                            canvas=outpaint_canvas,
+                    # 4. Generate an image for each seed value
+                    output_path = resolve_output_path(args.output, overwrite=args.replace, seed=seed)
+                    events.set_output_path(output_path)
+                    unsubscribe = events.subscribe_model(qwen, map_complete_to_generated=True)
+                    try:
+                        image = qwen.generate_image(
+                            seed=seed,
+                            prompt=PromptUtil.read_prompt(args),
+                            negative_prompt=_read_negative_prompt(args),
+                            width=args.width,
+                            height=args.height,
+                            guidance=args.guidance,
+                            image_path=source_image_paths[0],  # Use original source for metadata
+                            image_paths=image_paths,
+                            mask_path=args.mask_path,
+                            num_inference_steps=args.steps,
+                            scheduler=args.scheduler,
+                            canvas_policy=args.canvas_policy,
                         )
-                        image.image_paths = source_image_paths
-                        OutpaintUtil.attach_metadata(
-                            generated_image=image,
-                            canvas=outpaint_canvas,
-                            padding_value=args.outpaint_padding,
-                        )
-                    if reframe_canvas is not None:
-                        image.image_paths = source_image_paths
-                        OutpaintUtil.attach_reframe_metadata(
-                            generated_image=image,
-                            canvas=reframe_canvas,
-                            padding_value=args.reframe_padding,
-                        )
+                        if outpaint_canvas is not None:
+                            image.image = OutpaintUtil.composite_source_region(
+                                generated_image=image.image,
+                                canvas=outpaint_canvas,
+                            )
+                            image.image_paths = source_image_paths
+                            OutpaintUtil.attach_metadata(
+                                generated_image=image,
+                                canvas=outpaint_canvas,
+                                padding_value=args.outpaint_padding,
+                            )
+                        if reframe_canvas is not None:
+                            image.image_paths = source_image_paths
+                            OutpaintUtil.attach_reframe_metadata(
+                                generated_image=image,
+                                canvas=reframe_canvas,
+                                padding_value=args.reframe_padding,
+                            )
 
-                    # 5. Save the image
-                    output_path = Path(args.output.format(seed=seed))
-                    image.save(path=output_path, export_json_metadata=args.metadata, overwrite=args.replace)
+                        events.emit_save()
+                        image.save(
+                            path=output_path,
+                            export_json_metadata=args.metadata,
+                            overwrite=True,
+                            embed_metadata=args.embed_metadata,
+                        )
+                        events.emit_complete()
+                    except Exception as exc:
+                        events.emit_failed(error=exc)
+                        raise
+                    finally:
+                        if unsubscribe is not None:
+                            unsubscribe()
 
             except (StopImageGenerationException, PromptFileReadError) as exc:
-                print(exc)
+                cli_print(str(exc), json_events=bool(args.json_events))
     finally:
         if memory_saver:
-            print(memory_saver.memory_stats())
+            cli_print(memory_saver.memory_stats(), json_events=bool(args.json_events))
 
 
 def _resolve_image_paths(
@@ -196,10 +221,7 @@ def _validate_canvas_args(*, parser: CommandLineParser, args, source_image_paths
     if len(source_image_paths) != 1:
         parser.error(f"{option_name} requires exactly one --image-paths value.")
     if _any_option_was_provided(sys.argv[1:], ("--width", "--height")):
-        parser.error(
-            f"{option_name} computes --width and --height from the source image; "
-            "do not pass either option."
-        )
+        parser.error(f"{option_name} computes --width and --height from the source image; do not pass either option.")
     if _option_was_provided(sys.argv[1:], "--canvas-policy"):
         parser.error(f"{option_name} uses --canvas-policy exact-resize; do not pass --canvas-policy.")
 

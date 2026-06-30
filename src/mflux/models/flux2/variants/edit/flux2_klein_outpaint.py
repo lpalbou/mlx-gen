@@ -148,22 +148,28 @@ class Flux2KleinOutpaint(nn.Module):
                 )
 
         ctx.after_loop(latents)
-        packed_latents = latents.reshape(latents.shape[0], latent_height, latent_width, latents.shape[-1]).transpose(0, 3, 1, 2)  # fmt: off
-        decoded = self.vae.decode_packed_latents(packed_latents)
-        return ImageUtil.to_image(
-            decoded_latents=decoded,
-            config=config,
-            seed=seed,
-            prompt=prompt,
-            negative_prompt=None,
-            quantization=self.bits,
-            lora_paths=self.lora_paths,
-            lora_scales=self.lora_scales,
-            image_paths=[canvas.source_path],
-            image_path=canvas.source_path,
-            generation_time=timer.elapsed_seconds(),
-            extra_metadata=LoRALoader.extra_metadata_for_model(self),
-        )
+        try:
+            packed_latents = latents.reshape(latents.shape[0], latent_height, latent_width, latents.shape[-1]).transpose(0, 3, 1, 2)  # fmt: off
+            decoded = self.vae.decode_packed_latents(packed_latents)
+            image = ImageUtil.to_image(
+                decoded_latents=decoded,
+                config=config,
+                seed=seed,
+                prompt=prompt,
+                negative_prompt=None,
+                quantization=self.bits,
+                lora_paths=self.lora_paths,
+                lora_scales=self.lora_scales,
+                image_paths=[canvas.source_path],
+                image_path=canvas.source_path,
+                generation_time=timer.elapsed_seconds(),
+                extra_metadata=LoRALoader.extra_metadata_for_model(self),
+            )
+        except Exception:
+            ctx.failed()
+            raise
+        ctx.complete()
+        return image
 
     @staticmethod
     def _preserved_source_latents(

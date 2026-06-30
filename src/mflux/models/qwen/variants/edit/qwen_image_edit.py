@@ -190,23 +190,29 @@ class QwenImageEdit(nn.Module):
         ctx.after_loop(latents)
 
         # 10. Decode the latent array and return the image
-        latents = QwenLatentCreator.unpack_latents(latents=latents, height=config.height, width=config.width)
-        decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=self.tiling_config)
-        return ImageUtil.to_image(
-            decoded_latents=decoded,
-            config=config,
-            seed=seed,
-            prompt=prompt,
-            quantization=self.bits,
-            lora_paths=self.lora_paths,
-            lora_scales=self.lora_scales,
-            image_path=config.image_path,
-            image_paths=image_paths,
-            masked_image_path=mask_path,
-            generation_time=timer.elapsed_seconds(),
-            negative_prompt=negative_prompt,
-            extra_metadata=LoRALoader.extra_metadata_for_model(self),
-        )
+        try:
+            latents = QwenLatentCreator.unpack_latents(latents=latents, height=config.height, width=config.width)
+            decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=self.tiling_config)
+            image = ImageUtil.to_image(
+                decoded_latents=decoded,
+                config=config,
+                seed=seed,
+                prompt=prompt,
+                quantization=self.bits,
+                lora_paths=self.lora_paths,
+                lora_scales=self.lora_scales,
+                image_path=config.image_path,
+                image_paths=image_paths,
+                masked_image_path=mask_path,
+                generation_time=timer.elapsed_seconds(),
+                negative_prompt=negative_prompt,
+                extra_metadata=LoRALoader.extra_metadata_for_model(self),
+            )
+        except Exception:
+            ctx.failed()
+            raise
+        ctx.complete()
+        return image
 
     def _encode_prompts_with_images(
         self,

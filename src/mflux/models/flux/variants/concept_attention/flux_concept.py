@@ -147,29 +147,32 @@ class Flux1Concept(nn.Module):
         # 8. Call subscribers after loop
         ctx.after_loop(latents)
 
-        # 9. Generate concept attention heatmap
-        concept_heatmap = ConceptUtil.create_heatmap(
-            concept=concept,
-            attention_data=attention_data,
-            height=config.height,
-            width=config.width,
-            layer_indices=heatmap_layer_indices or list(range(15, 19)),
-            timesteps=heatmap_timesteps or list(range(config.num_inference_steps)),
-        )
-
-        # 10. Decode the latent array and return the image
-        latents = FluxLatentCreator.unpack_latents(latents=latents, height=config.height, width=config.width)
-        decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=self.tiling_config)
-        return ImageUtil.to_image(
-            decoded_latents=decoded,
-            config=config,
-            seed=seed,
-            prompt=prompt,
-            quantization=self.bits,
-            lora_paths=self.lora_paths,
-            lora_scales=self.lora_scales,
-            image_path=config.image_path,
-            image_strength=config.image_strength,
-            generation_time=config.time_steps.format_dict["elapsed"],
-            concept_heatmap=concept_heatmap,
-        )
+        try:
+            concept_heatmap = ConceptUtil.create_heatmap(
+                concept=concept,
+                attention_data=attention_data,
+                height=config.height,
+                width=config.width,
+                layer_indices=heatmap_layer_indices or list(range(15, 19)),
+                timesteps=heatmap_timesteps or list(range(config.num_inference_steps)),
+            )
+            latents = FluxLatentCreator.unpack_latents(latents=latents, height=config.height, width=config.width)
+            decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=self.tiling_config)
+            image = ImageUtil.to_image(
+                decoded_latents=decoded,
+                config=config,
+                seed=seed,
+                prompt=prompt,
+                quantization=self.bits,
+                lora_paths=self.lora_paths,
+                lora_scales=self.lora_scales,
+                image_path=config.image_path,
+                image_strength=config.image_strength,
+                generation_time=config.time_steps.format_dict["elapsed"],
+                concept_heatmap=concept_heatmap,
+            )
+        except Exception:
+            ctx.failed()
+            raise
+        ctx.complete()
+        return image

@@ -42,7 +42,7 @@ class TestMetadata:
             )
 
             # Save with metadata (overwrite=True since mkstemp creates an empty file)
-            image.save(path=output_path, overwrite=True)
+            image.save(path=output_path, overwrite=True, embed_metadata=True)
 
             # =================================================================
             # Test 1: Read metadata and verify structure
@@ -123,6 +123,8 @@ class TestMetadata:
             with Image.open(output_path) as img:
                 exif_bytes = img.info.get("exif")
                 assert exif_bytes is not None, "EXIF bytes should be present"
+                assert "XML:com.adobe.xmp" in img.info, "PNG XMP metadata should be present"
+                assert "IPTC" in img.info, "PNG IPTC metadata should be present"
 
             exif_dict = piexif.load(exif_bytes)
             user_comment = exif_dict.get("Exif", {}).get(piexif.ExifIFD.UserComment)

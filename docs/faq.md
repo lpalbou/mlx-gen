@@ -43,18 +43,26 @@ No. Generation and ordinary Python model construction use files that are already
 
 No. It is optional acceleration for explicit Hugging Face downloads and prepare operations. `mlxgen download` and `mlxgen prepare` already authorize network access.
 
+## Which Models Should I Start With On An 18 GB, 24 GB, 32 GB, 64 GB, Or 128+ GB Mac?
+
+Use [Model Recommendations](recommendations.md).
+
+That page groups the current published MLX-Gen model families by unified-memory tier and uses the
+measured benchmark envelope for each recommended route. It is intentionally conservative: Wan rows
+prefer full-process physical-peak measurements when they are available, and the page does not
+promote model families whose public memory evidence is still too thin.
+
 ## Can MLX-Gen Packages Load In Diffusers Or Transformers?
 
 No. MLX-Gen packages use the MLX/mflux saved-weight layout and MLX quantization tensors. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers `from_pretrained()` loading.
 
 ## Can I Use The Official BFL FLUX.2 FP8 Or NVFP4 Repos Directly?
 
-Not today.
+No.
 
-Current MLX-Gen `generate` and `prepare` flows support the standard FLUX.2 source repositories and
+MLX-Gen `generate` and `prepare` flows support the standard FLUX.2 source repositories and
 MLX-Gen model packages. The official `black-forest-labs/FLUX.2-klein-base-*-fp8` and
-`black-forest-labs/FLUX.2-klein-base-*-nvfp4` repositories are not direct MLX-Gen inputs in the
-current release.
+`black-forest-labs/FLUX.2-klein-base-*-nvfp4` repositories are not direct MLX-Gen inputs.
 
 Those repositories use a different transformer packaging format from MLX-Gen model packages, and
 the current MLX-Gen loader does not treat them as ready-to-run local models. Use the BF16 source
@@ -149,7 +157,7 @@ allow more transformation, while lower positive values stay closer to the encode
 
 ERNIE q8/q4 MLX-Gen packages do not bundle Prompt Enhancer files; use the full source snapshot path or the Hugging Face repo after `mlxgen download --all-files` when you need `--use-prompt-enhancer`.
 
-ERNIE LoRA support is route-specific. `AbstractFramework/ernie-image-turbo-8bit` now has exact
+ERNIE LoRA support is route-specific. `AbstractFramework/ernie-image-turbo-8bit` has exact
 validated text-to-image and latent img2img LoRA rows. Use
 `mlxgen capabilities --model AbstractFramework/ernie-image-turbo-8bit` to inspect the exact
 current status before relying on a specific adapter workflow.
@@ -165,7 +173,7 @@ MLX-Gen fails closed instead of pretending the adapter applied.
 
 ## Does Wan Video Support LoRA?
 
-Yes, for the current Wan q8 public routes. Exact validated rows now exist for:
+Yes, for the supported Wan q8 public routes. Exact validated rows exist for:
 
 - `AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit` on `wan.text-video`
 - `AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit` on `wan.first-frame`
@@ -200,7 +208,7 @@ BF16-trained Lightning LoRAs do not automatically behave correctly on every FP8 
 
 - <https://github.com/ModelTC/LightX2V-Qwen-Image-Lightning#-using-lightning-loras-with-fp8-models>
 
-For MLX-Gen today, the practical rule is simple:
+For MLX-Gen, the practical rule is simple:
 
 - prefer the validated q8 MLX-Gen package when one exists;
 - use the exact Lightning adapter example documented for that route;
@@ -375,7 +383,7 @@ mlxgen generate \
 
 The regular `qwen-image-edit` route intentionally rejects multi-reference input before loading
 weights. Use `mlxgen capabilities --model <model>` to see the image-count contract and
-`mlxgen validation --model <model>` to inspect the current release evidence for an exact package.
+`mlxgen validation --model <model>` to inspect the published release evidence for an exact package.
 
 ## How Do Negative Prompts Work?
 
@@ -818,7 +826,8 @@ sheets rather than relying only on MP4 existence.
 
 ## Why Do Some Imports Or Paths Still Say `mflux`?
 
-MLX-Gen is currently built on the mflux codebase. Some internal modules and compatibility entry points still use `mflux.*` names while the public package and command surface evolve under `mlx-gen` and `mlxgen`.
+MLX-Gen is built on the mflux codebase. Some internal modules and compatibility entry points still
+use `mflux.*` names, while the public package and command surface use `mlx-gen` and `mlxgen`.
 
 ## How Does This Relate To AbstractVision?
 

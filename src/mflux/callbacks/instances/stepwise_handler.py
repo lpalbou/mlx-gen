@@ -35,6 +35,7 @@ class StepwiseHandler(BeforeLoopCallback, InLoopCallback, InterruptCallback):
         canny_image: PIL.Image.Image | None = None,
         depth_image: PIL.Image.Image | None = None,
     ) -> None:
+        self._reset_stepwise_images()
         self._save_image(
             step=config.init_time_step,
             seed=seed,
@@ -115,6 +116,14 @@ class StepwiseHandler(BeforeLoopCallback, InLoopCallback, InterruptCallback):
             else:
                 composite_img = ImageUtil.to_composite_pil_images(self.step_wise_images)
             composite_img.save(self.output_dir / f"seed_{seed}_composite.png")
+
+    def _reset_stepwise_images(self) -> None:
+        for image in self.step_wise_images:
+            if isinstance(image, GeneratedImage):
+                image.image.close()
+                continue
+            image.close()
+        self.step_wise_images = []
 
     @staticmethod
     def _benchmark_legacy_retention() -> bool:

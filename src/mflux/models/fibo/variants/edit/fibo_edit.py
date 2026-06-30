@@ -190,20 +190,26 @@ class FIBOEdit(nn.Module):
 
         ctx.after_loop(latents)
 
-        latents = FiboLatentCreator.unpack_latents(latents, config.height, config.width)
-        TensorHealth.ensure_finite(latents, name="fibo.latents.unpack", phase="fibo-edit-decode")
-        decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=self.tiling_config)
-        return ImageUtil.to_image(
-            decoded_latents=decoded,
-            config=config,
-            seed=seed,
-            prompt=json_prompt,
-            quantization=self.bits,
-            image_path=config.image_path,
-            masked_image_path=mask_path,
-            generation_time=config.time_steps.format_dict["elapsed"],
-            negative_prompt=negative_prompt,
-        )
+        try:
+            latents = FiboLatentCreator.unpack_latents(latents, config.height, config.width)
+            TensorHealth.ensure_finite(latents, name="fibo.latents.unpack", phase="fibo-edit-decode")
+            decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=self.tiling_config)
+            image = ImageUtil.to_image(
+                decoded_latents=decoded,
+                config=config,
+                seed=seed,
+                prompt=json_prompt,
+                quantization=self.bits,
+                image_path=config.image_path,
+                masked_image_path=mask_path,
+                generation_time=config.time_steps.format_dict["elapsed"],
+                negative_prompt=negative_prompt,
+            )
+        except Exception:
+            ctx.failed()
+            raise
+        ctx.complete()
+        return image
 
     @staticmethod
     def _apply_classifier_free_guidance(noise: mx.array, guidance: float) -> mx.array:

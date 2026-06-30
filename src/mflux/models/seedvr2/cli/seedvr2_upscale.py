@@ -12,7 +12,9 @@ import mlx.core as mx
 
 from mflux.callbacks.callback_manager import CallbackManager
 from mflux.cli.defaults import defaults as ui_defaults
+from mflux.cli.output_paths import format_output_template, normalize_output_template, resolve_output_path
 from mflux.cli.parser.parsers import CommandLineParser
+from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print, emit_cli_failure_event_for_argv
 from mflux.models.common.config.model_config import ModelConfig
 from mflux.models.common.download_policy import DownloadRequiredError, is_huggingface_repo_id
 from mflux.models.common.vae.tiling_config import TilingConfig
@@ -146,15 +148,17 @@ def _resolve_seedvr2_model(model_arg: str | None, model_path: str | None) -> tup
             if has_official_7b_sharp and not (has_3b or has_official_3b or has_7b or has_official_7b):
                 return ModelConfig.seedvr2_7b_sharp(), requested_model_path
             if (has_7b or has_official_7b or has_official_7b_sharp) and not (has_3b or has_official_3b):
-                if has_official_7b_sharp and (
-                    "seedvr2-7b-sharp" in normalized or not (has_7b or has_official_7b)
-                ):
+                if has_official_7b_sharp and ("seedvr2-7b-sharp" in normalized or not (has_7b or has_official_7b)):
                     return ModelConfig.seedvr2_7b_sharp(), requested_model_path
                 return ModelConfig.seedvr2_7b(), requested_model_path
             if (has_3b or has_official_3b) and not (has_7b or has_official_7b):
                 return ModelConfig.seedvr2_3b(), requested_model_path
             if (path / "transformer" / "model.safetensors.index.json").exists():
-                if "seedvr2-7b-sharp" in normalized or "7b-sharp" in path.name.lower() or "7b_sharp" in path.name.lower():
+                if (
+                    "seedvr2-7b-sharp" in normalized
+                    or "7b-sharp" in path.name.lower()
+                    or "7b_sharp" in path.name.lower()
+                ):
                     return ModelConfig.seedvr2_7b_sharp(), requested_model_path
                 if "seedvr2-7b" in normalized or "7b" in path.name.lower():
                     return ModelConfig.seedvr2_7b(), requested_model_path
@@ -187,7 +191,7 @@ def _expand_image_paths(image_paths: list[Path]) -> list[Path]:
                 key=lambda path: path.name.lower(),
             )
             if not dir_images:
-                print(f"No images found in directory: {image_path}")
+                print(f"No images found in directory: {image_path}", file=sys.stderr)
             expanded.extend(dir_images)
         else:
             expanded.append(image_path)
@@ -203,17 +207,11 @@ def _expand_video_paths(video_paths: list[Path]) -> list[Path]:
                 key=lambda path: path.name.lower(),
             )
             if not dir_videos:
-                print(f"No videos found in directory: {video_path}")
+                print(f"No videos found in directory: {video_path}", file=sys.stderr)
             expanded.extend(dir_videos)
         else:
             expanded.append(video_path)
     return expanded
-
-
-def _default_output_for_inputs(output: str, *, is_video: bool) -> str:
-    if output != "image.png":
-        return output
-    return "video.mp4" if is_video else output
 
 
 def _provided_options(argv: list[str]) -> set[str]:
@@ -255,11 +253,47 @@ def _provided_options(argv: list[str]) -> set[str]:
     return provided
 
 
+def _validate_batch_output_collisions(
+    *,
+    output_pattern: str,
+    image_paths: list[Path],
+    video_paths: list[Path],
+    seeds: list[int],
+    replace: bool,
+) -> None:
+    if not replace:
+        return
+    planned_outputs: dict[Path, list[str]] = {}
+    for source_path in [*image_paths, *video_paths]:
+        for seed in seeds:
+            rendered = Path(
+                format_output_template(
+                    output_pattern,
+                    seed=seed,
+                    input_name=source_path.stem,
+                )
+            )
+            planned_outputs.setdefault(rendered, []).append(f"{source_path.name} (seed {seed})")
+    collisions = {path: sources for path, sources in planned_outputs.items() if len(sources) > 1}
+    if collisions:
+        details = "; ".join(
+            f"{path} <- {', '.join(sources)}"
+            for path, sources in sorted(collisions.items(), key=lambda item: str(item[0]))
+        )
+        raise ValueError(
+            "SeedVR2 would write multiple results to the same output path with --replace true. "
+            "Use distinct source basenames, choose a different --output template, or pass "
+            f"--replace false. Collisions: {details}"
+        )
+
+
 def _requested_video_frame_count(source_probe, max_frames: int | None) -> int:
     if source_probe.source_frame_count is not None:
         available_frames = max(0, source_probe.source_frame_count - source_probe.clip_start_frame)
     elif source_probe.source_duration_seconds is not None:
-        available_frames = max(1, int(round(source_probe.source_duration_seconds * source_probe.fps)) - source_probe.clip_start_frame)
+        available_frames = max(
+            1, int(round(source_probe.source_duration_seconds * source_probe.fps)) - source_probe.clip_start_frame
+        )
     else:
         raise ValueError("SeedVR2 video restore requires a finite source frame count or duration.")
     return min(max_frames, available_frames) if max_frames is not None else available_frames
@@ -603,8 +637,14 @@ def _write_seedvr2_failure_manifest(
     return failure_path
 
 
-def _print_seedvr2_video_preflight(video_path: Path, source_probe, plan: SeedVR2VideoRestorePlan) -> None:
-    print(
+def _print_seedvr2_video_preflight(
+    video_path: Path,
+    source_probe,
+    plan: SeedVR2VideoRestorePlan,
+    *,
+    json_events: bool,
+) -> None:
+    cli_print(
         "SeedVR2 video preflight: "
         f"model={plan.variant} "
         f"source={source_probe.source_width}x{source_probe.source_height} "
@@ -614,18 +654,20 @@ def _print_seedvr2_video_preflight(video_path: Path, source_probe, plan: SeedVR2
         f"reason={plan.route_reason} "
         f"low_ram={plan.low_ram_effective} "
         f"cache_limit_gb={plan.cache_limit_gb or 'none'} "
-        f"video={video_path.name}"
+        f"video={video_path.name}",
+        json_events=json_events,
     )
     if plan.restore_mode == "streaming":
-        print(
+        cli_print(
             "SeedVR2 streaming plan: "
             f"chunk_size={plan.effective_chunk_size} "
             f"chunk_overlap={plan.effective_chunk_overlap} "
             f"safe_chunk_frame_limit={plan.chunk_frame_limit} "
-            f"chunk_pixel_volume={plan.chunk_pixel_volume}"
+            f"chunk_pixel_volume={plan.chunk_pixel_volume}",
+            json_events=json_events,
         )
     for warning in plan.warnings:
-        print(f"SeedVR2 warning: {warning}")
+        cli_print(f"SeedVR2 warning: {warning}", json_events=json_events)
 
 
 def _run_seedvr2_video_restore(
@@ -641,16 +683,38 @@ def _run_seedvr2_video_restore(
     gc_was_enabled = gc.isenabled()
     if gc_was_enabled:
         gc.disable()
+    events = CliRuntimeEventStream(
+        enabled=bool(args.json_events),
+        command="mlxgen upscale",
+        model=model.model_config.model_name,
+        seed=seed,
+    )
+    unsubscribe = None
     try:
-        output_path = output_pattern.format(seed=seed, image_name=video_path.stem)
-        _print_seedvr2_video_preflight(video_path, source_probe, plan)
+        output_path = resolve_output_path(
+            output_pattern,
+            overwrite=args.replace,
+            seed=seed,
+            input_name=video_path.stem,
+        )
+        events.set_output_path(output_path)
+        unsubscribe = events.subscribe_model(
+            model,
+            map_complete_to_generated=False,
+            suppress_terminal_phases={"failed"},
+        )
+        _print_seedvr2_video_preflight(video_path, source_probe, plan, json_events=bool(args.json_events))
         if source_probe.audio_present:
             if args.drop_audio:
-                print("SeedVR2 note: source audio detected; --drop-audio was requested, so the restored MP4 will stay silent.")
+                cli_print(
+                    "SeedVR2 note: source audio detected; --drop-audio was requested, so the restored MP4 will stay silent.",
+                    json_events=bool(args.json_events),
+                )
             else:
-                print(
+                cli_print(
                     "SeedVR2 note: source audio detected; the CLI will preserve the matching source audio segment. "
-                    "If that cannot be proven safe, the run fails. Pass --drop-audio to allow a silent output intentionally."
+                    "If that cannot be proven safe, the run fails. Pass --drop-audio to allow a silent output intentionally.",
+                    json_events=bool(args.json_events),
                 )
         runtime_metadata = {
             "restore_mode": plan.restore_mode,
@@ -677,7 +741,7 @@ def _run_seedvr2_video_restore(
                 max_frames=args.max_frames,
                 output_path=output_path,
                 export_json_metadata=args.metadata,
-                overwrite=args.replace,
+                overwrite=True,
                 temporal_chunk_size=(
                     plan.effective_chunk_size if plan.effective_chunk_size is not None else args.temporal_chunk_size
                 ),
@@ -706,10 +770,14 @@ def _run_seedvr2_video_restore(
                 plan=plan,
                 error=exc,
             )
-            print(f"SeedVR2 failure manifest saved at: {failure_path}")
+            events.emit_failed(task="video-to-video", error=exc, diagnostics_path=failure_path)
+            cli_print(f"SeedVR2 failure manifest saved at: {failure_path}", json_events=bool(args.json_events))
             raise
-        print(f"Video saved successfully at: {result_path}")
+        events.set_output_path(result_path)
+        cli_print(f"Video saved successfully at: {result_path}", json_events=bool(args.json_events))
     finally:
+        if unsubscribe is not None:
+            unsubscribe()
         if gc_was_enabled:
             gc.enable()
 
@@ -728,6 +796,15 @@ def _load_seedvr2_model(
             model_config=model_config,
         )
     except DownloadRequiredError as exc:
+        if getattr(args, "json_events", False):
+            emit_cli_failure_event_for_argv(
+                prog=parser.prog,
+                argv=sys.argv[1:],
+                error=exc,
+                output_path=args.output,
+            )
+            cli_print(str(exc), json_events=True, error=True)
+            raise SystemExit(1) from None
         parser.error(str(exc))
     return model
 
@@ -769,7 +846,7 @@ def _run_video_with_fresh_model(
         )
     finally:
         if memory_saver:
-            print(memory_saver.memory_stats())
+            cli_print(memory_saver.memory_stats(), json_events=bool(args.json_events))
         del model
         mx.clear_cache()
 
@@ -787,12 +864,14 @@ def main():
     image_paths = _expand_image_paths(args.image_path) if args.image_path else []
     video_paths = _expand_video_paths(args.video_path) if args.video_path else []
     if not image_paths and not video_paths:
-        print("No images or videos to upscale.")
+        cli_print("No images or videos to upscale.", json_events=bool(args.json_events))
         return
     if image_paths and (args.start_seconds != 0.0 or args.max_frames is not None):
         parser.error("--start-seconds and --max-frames are only supported with --video-path.")
     if video_paths and args.vae_tiling:
-        parser.error("--vae-tiling is not supported for SeedVR2 video restore. Use --low-ram and temporal chunking instead.")
+        parser.error(
+            "--vae-tiling is not supported for SeedVR2 video restore. Use --low-ram and temporal chunking instead."
+        )
     if args.temporal_chunk_size <= 0:
         parser.error("--temporal-chunk-size must be greater than zero.")
     if args.temporal_chunk_overlap < 0:
@@ -803,7 +882,7 @@ def main():
     if video_paths and "--resolution" not in provided_options:
         args.resolution = ScaleFactor(1)
     if video_paths and not args.low_ram:
-        print("SeedVR2 video mode: enabling --low-ram automatically.")
+        cli_print("SeedVR2 video mode: enabling --low-ram automatically.", json_events=bool(args.json_events))
         args.low_ram = True
 
     try:
@@ -819,9 +898,10 @@ def main():
             if args.mlx_cache_limit_gb is None:
                 args.mlx_cache_limit_gb = DEFAULT_SEEDVR2_VIDEO_CACHE_LIMIT_GB
             elif safe_video_mode and args.mlx_cache_limit_gb > DEFAULT_SEEDVR2_VIDEO_CACHE_LIMIT_GB:
-                print(
+                cli_print(
                     "SeedVR2 safe video mode: clamping --mlx-cache-limit-gb to "
-                    f"{DEFAULT_SEEDVR2_VIDEO_CACHE_LIMIT_GB:g}."
+                    f"{DEFAULT_SEEDVR2_VIDEO_CACHE_LIMIT_GB:g}.",
+                    json_events=bool(args.json_events),
                 )
                 args.mlx_cache_limit_gb = DEFAULT_SEEDVR2_VIDEO_CACHE_LIMIT_GB
             cache_limit_gb = args.mlx_cache_limit_gb
@@ -855,7 +935,23 @@ def main():
         parser.error(str(exc))
 
     try:
-        output_pattern = _default_output_for_inputs(args.output, is_video=bool(video_paths))
+        output_pattern = normalize_output_template(
+            args.output,
+            is_video=bool(video_paths),
+            include_seed=len(args.seed) > 1,
+            include_input_name=len(image_paths) > 1 or len(video_paths) > 1,
+        )
+        _validate_batch_output_collisions(
+            output_pattern=output_pattern,
+            image_paths=image_paths,
+            video_paths=video_paths,
+            seeds=args.seed,
+            replace=args.replace,
+        )
+    except ValueError as exc:
+        parser.error(str(exc))
+
+    try:
         if image_paths and not video_paths:
             _apply_cache_limit_if_needed(args)
         if image_paths:
@@ -883,22 +979,45 @@ def main():
             try:
                 for image_path in image_paths:
                     for seed in args.seed:
-                        result = model.generate_image(
+                        events = CliRuntimeEventStream(
+                            enabled=bool(args.json_events),
+                            command="mlxgen upscale",
+                            model=model.model_config.model_name,
                             seed=seed,
-                            image_path=image_path,
-                            resolution=args.resolution,
-                            softness=args.softness,
-                            color_correction_mode=args.color_correction,
                         )
-
-                        result.save(
-                            output_pattern.format(seed=seed, image_name=image_path.stem),
-                            export_json_metadata=args.metadata,
+                        output_path = resolve_output_path(
+                            output_pattern,
                             overwrite=args.replace,
+                            seed=seed,
+                            input_name=image_path.stem,
                         )
+                        events.set_output_path(output_path)
+                        unsubscribe = events.subscribe_model(model, map_complete_to_generated=True)
+                        try:
+                            result = model.generate_image(
+                                seed=seed,
+                                image_path=image_path,
+                                resolution=args.resolution,
+                                softness=args.softness,
+                                color_correction_mode=args.color_correction,
+                            )
+                            events.emit_save()
+                            result.save(
+                                output_path,
+                                export_json_metadata=args.metadata,
+                                overwrite=True,
+                                embed_metadata=args.embed_metadata,
+                            )
+                            events.emit_complete()
+                        except Exception as exc:
+                            events.emit_failed(error=exc)
+                            raise
+                        finally:
+                            if unsubscribe is not None:
+                                unsubscribe()
             finally:
                 if memory_saver:
-                    print(memory_saver.memory_stats())
+                    cli_print(memory_saver.memory_stats(), json_events=bool(args.json_events))
         elif video_paths:
             with SeedVR2VideoRunLock():
                 for video_path in video_paths:
@@ -915,7 +1034,7 @@ def main():
                             seed=seed,
                         )
     except StopImageGenerationException as exc:
-        print(exc)
+        cli_print(str(exc), json_events=bool(args.json_events))
 
 
 if __name__ == "__main__":

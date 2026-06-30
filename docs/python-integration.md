@@ -1,6 +1,6 @@
 # Python Integration
 
-MLX-Gen can be embedded directly in Python. The current runtime still exposes most model classes through the original `mflux` package layout, and new applications can import the `mlxgen` helper APIs documented below.
+MLX-Gen can be embedded directly in Python. The underlying model classes remain available, but new integrations should start from the route-resolved `mlxgen` helper APIs documented below for the unified `mlxgen generate` families. SeedVR2 sits outside that planner surface: use `mlxgen upscale` on the CLI and direct `SeedVR2.generate_image(...)` / `SeedVR2.restore_video_to_path(...)` in Python.
 
 ## Cache-Only Runtime
 
@@ -33,7 +33,7 @@ That split means:
 - MLX-Gen owns MLX model loading, exact route behavior, local quantized formats, capability reporting, and runtime compatibility checks.
 - MLX-Gen should fail early when required local artifacts are missing so AbstractVision can surface a clear remediation message instead of starting a network transfer.
 
-The current integration path is still model-specific Python classes. A future higher-level facade may expose explicit model lifecycle states, but current docs only describe the APIs that exist now.
+New Python integrations should prefer the route-resolved runtime planner below. Direct model classes remain available as an advanced escape hatch when an application intentionally wants backend-specific control.
 
 [AbstractCore](https://abstractcore.ai/) can expose OpenAI-compatible endpoints backed by
 AbstractVision providers, including image and video generation. In that path, MLX-Gen remains the
@@ -101,6 +101,75 @@ it reports exact model/package status rows for the current validation profiles. 
 as AbstractVision can use capabilities for routing and validation status for UI warnings, filtering,
 or release gates.
 
+Underlying model methods are singular: each `generate_image(...)`,
+`generate_video(...)`, or `restore_video_to_path(...)` call produces one output artifact for one
+seed. `image_count` in the planning helpers means input-reference count for route selection, not
+output count.
+
+For multi-output generation on the unified `mlxgen generate` runtime families, use the loaded
+runtime wrapper instead of rebuilding the seed loop yourself. This is serial multi-output reuse,
+not tensor batching: MLX-Gen loads one model instance, runs one seed at a time, preserves exact
+per-seed outputs, and can save each artifact to a distinct path with one shared progress stream.
+When `overwrite=False`, the wrapper resolves the unique final path before save, so existing
+targets are preserved and colliding per-seed outputs are suffixed predictably.
+
+## Runtime Planning And Loading
+
+For embedded workers, `mlxgen` now exposes a public runtime planner that carries the resolved route,
+selected runtime class, and a stable worker-cache key base without forcing the app to map
+`handler_id` values back to concrete model classes.
+
+```python
+from mlxgen import resolve_generation_runtime
+
+runtime = resolve_generation_runtime(
+    model="Qwen/Qwen-Image",
+    has_control_image=True,
+)
+worker_key = runtime.cache_key(quantize=8, model_path="./models/qwen-image-8bit")
+model = runtime.load(quantize=8, model_path="./models/qwen-image-8bit")
+
+print(runtime.runtime_id)
+# qwen.controlnet
+
+print(runtime.plan.handler_id, runtime.plan.control_model)
+# qwen.generate InstantX/Qwen-Image-ControlNet-Union:diffusion_pytorch_model.safetensors
+```
+
+If you want the convenience path that both resolves and loads the runtime, use
+`load_generation_model(...)`. It returns the loaded model plus the resolved plan and cache keys.
+The returned object now also owns serial multi-output execution through `generate_output(...)` and
+`generate_outputs(...)`.
+
+```python
+from mlxgen import load_generation_model
+
+loaded = load_generation_model(model="qwen-image")
+results = loaded.generate_outputs(
+    seeds=[101, 202, 303],
+    prompt="A clean studio product photo of a ceramic teapot",
+    width=1024,
+    height=1024,
+    guidance=1.0,
+    num_inference_steps=8,
+    output="teapot.png",
+    save_kwargs={"export_json_metadata": True, "embed_metadata": False},
+)
+
+print([result.saved_path.name for result in results])
+# ['teapot_seed_101.png', 'teapot_seed_202.png', 'teapot_seed_303.png']
+```
+
+When `output=...` is provided, `generate_outputs(...)` maps the model's in-memory `complete` event
+to `generated`, then emits `save`, then emits final `complete` only after the file is written.
+When `output` is omitted, the wrapper returns the in-memory artifacts and preserves the model's
+original `complete` event.
+
+Published reuse-vs-reload validation covers Qwen masked edit, FLUX.2 multi-reference edit, Wan
+A14B image-to-video on a recurring short profile, and a `1024x1024` Z-Image Turbo image
+generation case. See
+[Python multi-output reuse validation](assets/validation/python-runtime-multi-output-2026-06-30/python_runtime_multi_output_reuse_report.md).
+
 Qwen edit versions are distinct. `qwen-image-edit` is the original single-reference edit
 checkpoint. Use `qwen-image-edit-2509` or `qwen-image-edit-2511` when you need multi-reference
 capabilities and the selected package supports that route.
@@ -148,7 +217,7 @@ MLX-Gen exposes one lightweight progress event type for applications that need t
 
 `ProgressEvent.progress` is denoise-step progress: `step / total_steps`. Video events also carry output-frame context through `frame`, `total_frames`, and `frame_progress`.
 
-For image generation, subscribe before calling `generate_image()`:
+For single-output image generation, subscribe before calling `generate_image()`:
 
 ```python
 from mflux.callbacks import ProgressEvent
@@ -208,7 +277,23 @@ video.save("video.mp4")
 
 For Wan2.2 T2V-A14B, construct the same class with `model_config=ModelConfig.wan2_2_t2v_a14b()` or the A14B model name routed through the CLI. For Wan2.2 I2V-A14B, use `model_config=ModelConfig.wan2_2_i2v_a14b()` or the `Wan-AI/Wan2.2-I2V-A14B-Diffusers` model name and pass `image_path` to `generate_video()`. A14B boundary routing is handled internally. If both `guidance` and `guidance_2` are omitted, MLX-Gen uses the model's two-stage defaults. If `guidance` is provided and `guidance_2` is omitted, the low-noise `transformer_2` stage follows `guidance`. For Wan image-to-video, `width` and `height` are size targets; the model API resolves the final output canvas from the source image aspect ratio and model spatial multiples.
 
-Image progress phases are `start`, `denoise`, and `complete`; image generation can also emit `interrupted` when a keyboard interruption is handled. Wan video generation emits `start`, `denoise`, `decode`, `convert`, and `generated` from `generate_video()`. The Wan CLI emits `save` and reserves `complete` for a saved MP4 that passes video-health validation. Progress callback exceptions propagate to the caller, so production applications should keep handlers small and defensive.
+Image generation emits `start` and `denoise`, followed by exactly one terminal phase: `complete`,
+`failed`, or `interrupted`. For image and in-memory video APIs, `complete` means the generated
+in-memory artifact is ready to return from `generate_image()` or `generate_video()`. Saving to
+disk is still a separate caller action, so Python progress `complete` is not a saved-file
+guarantee.
+
+The loaded runtime wrapper augments those same progress events with `seed`, `item_index`,
+`item_count`, and, when saving, `output_path`. That makes one shared callback usable for several
+serial outputs without losing per-seed attribution.
+
+Wan video generation emits `start`, `denoise`, `decode`, `convert`, and `generated` from `generate_video()`. The Wan CLI then emits `save` and reserves `complete` for a saved MP4 that passes video-health validation; it can emit `failed` instead if save or final validation fails after progress has started. Progress callback exceptions propagate to the caller, so production applications should keep handlers small and defensive.
+
+SeedVR2 streamed video restore follows the saved-output model rather than the in-memory one: `restore_video_to_path()` emits `task="video-to-video"` and reserves `complete` for a restored MP4 whose write, metadata, optional audio copy, and optional health validation all succeeded.
+
+For CLI integrations, prefer `mlxgen ... --json-events` over parsing human stdout. Image routes map
+model `complete` to `generated`, then emit `save` and final `complete` only after the output file
+is written. Wan failure events include `diagnostics_path` when a failure manifest is produced.
 
 ## Threading
 

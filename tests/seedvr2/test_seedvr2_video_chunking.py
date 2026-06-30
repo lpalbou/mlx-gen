@@ -173,7 +173,9 @@ def test_seedvr2_restore_video_to_path_records_chunk_metadata(monkeypatch, tmp_p
         color_correction_mode,
         enforce_memory_budget=True,
         noise_latents=None,
+        emit_progress=True,
     ):
+        del self, seed, resolution, softness, color_correction_mode, enforce_memory_budget, noise_latents, emit_progress
         chunk_calls.append(len(frames))
         return list(frames), 16, 16, len(frames)
 
@@ -305,8 +307,9 @@ def test_seedvr2_restore_video_to_path_uses_clip_global_noise_slices(monkeypatch
         color_correction_mode,
         enforce_memory_budget=True,
         noise_latents=None,
+        emit_progress=True,
     ):
-        del self, seed, resolution, softness, color_correction_mode, enforce_memory_budget
+        del self, seed, resolution, softness, color_correction_mode, enforce_memory_budget, emit_progress
         assert noise_latents is not None
         seen_noise_frames.append([float(value) for value in np.array(noise_latents[0, 0, :, 0, 0])])
         return [frames[0]] * len(frames), 16, 16, len(frames)
@@ -507,20 +510,38 @@ def test_seedvr2_restore_video_to_path_requires_audio_copy_by_default(monkeypatc
     )
 
     model = SeedVR2(quantize=8, model_config=ModelConfig.seedvr2_3b())
+    all_events = []
+    video_events = []
+
+    unsub_all = model.callbacks.subscribe_progress(lambda event: all_events.append((event.phase, event.task)))
+    unsub_video = model.callbacks.subscribe_progress(
+        lambda event: video_events.append((event.phase, event.task)),
+        task="video-to-video",
+    )
     with pytest.raises(RuntimeError, match="could not preserve it safely"):
-        model.restore_video_to_path(
-            seed=42,
-            video_path=source,
-            resolution=256,
-            softness=0.0,
-            output_path=output,
-            export_json_metadata=True,
-            temporal_chunk_size=13,
-            temporal_chunk_overlap=0,
-        )
+        try:
+            model.restore_video_to_path(
+                seed=42,
+                video_path=source,
+                resolution=256,
+                softness=0.0,
+                output_path=output,
+                export_json_metadata=True,
+                temporal_chunk_size=13,
+                temporal_chunk_overlap=0,
+            )
+        finally:
+            unsub_video()
+            unsub_all()
 
     assert not output.exists()
     assert not output.with_suffix(".metadata.json").exists()
+    assert all_events == [
+        ("start", "video-to-video"),
+        ("denoise", "video-to-video"),
+        ("failed", "video-to-video"),
+    ]
+    assert video_events == all_events
 
 
 @pytest.mark.fast
@@ -701,20 +722,38 @@ def test_seedvr2_restore_video_to_path_cleans_final_file_on_postwrite_validation
     monkeypatch.setattr(seedvr2_module.VideoHealth, "validate_file", staticmethod(lambda *args, **kwargs: (_ for _ in ()).throw(RuntimeError("bad video"))))
 
     model = SeedVR2(quantize=8, model_config=ModelConfig.seedvr2_3b())
+    all_events = []
+    video_events = []
+
+    unsub_all = model.callbacks.subscribe_progress(lambda event: all_events.append((event.phase, event.task)))
+    unsub_video = model.callbacks.subscribe_progress(
+        lambda event: video_events.append((event.phase, event.task)),
+        task="video-to-video",
+    )
     with pytest.raises(RuntimeError, match="bad video"):
-        model.restore_video_to_path(
-            seed=42,
-            video_path=source,
-            resolution=256,
-            softness=0.0,
-            output_path=output,
-            export_json_metadata=True,
-            temporal_chunk_size=13,
-            temporal_chunk_overlap=0,
-        )
+        try:
+            model.restore_video_to_path(
+                seed=42,
+                video_path=source,
+                resolution=256,
+                softness=0.0,
+                output_path=output,
+                export_json_metadata=True,
+                temporal_chunk_size=13,
+                temporal_chunk_overlap=0,
+            )
+        finally:
+            unsub_video()
+            unsub_all()
 
     assert not output.exists()
     assert not output.with_suffix(".metadata.json").exists()
+    assert all_events == [
+        ("start", "video-to-video"),
+        ("denoise", "video-to-video"),
+        ("failed", "video-to-video"),
+    ]
+    assert video_events == all_events
 
 
 @pytest.mark.fast

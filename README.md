@@ -52,10 +52,10 @@ The main capabilities are:
   T2V/I2V BF16 and mixed q8/BF16 packages; Wan I2V resolves output size from the source
   image aspect ratio so inputs are not stretched into a mismatched canvas;
 - SeedVR2 image and video restoration through `mlxgen upscale`, with official 3B/7B source
-  support including the first-class `seedvr2-7b-sharp` route, published q8/q4 packages,
+  support including the dedicated `seedvr2-7b-sharp` route, published q8/q4 packages,
   shortest-edge target sizing, explicit scale factors such as `2x` and `3x`, streamed restore for
   longer clips, preserved source FPS, a conservative host-safe default video profile, and
-  validated five-second `1x` and `2x` proof bundles for the current 3B/7B video path;
+  published five-second `1x` and `2x` validation bundles for the 3B/7B video path;
 - explicit `download` and `prepare` workflows for local MLX-Gen model packages;
 - JSON model capability inspection before starting a heavy run;
 - strict route-specific LoRA routing and adapter application checks, with model-card compatibility
@@ -64,7 +64,7 @@ The main capabilities are:
   Image q8 structured-control and control-inpaint rows, the exact
   `AbstractFramework/z-image-turbo-8bit` text and latent img2img rows, FLUX.2 Klein 9B edit and
   multi-reference, FLUX.2 Klein base 4B outpaint, ERNIE Image Turbo text and latent img2img, and
-  all current Wan q8 video routes; the LoRA guide now includes the
+  all supported Wan q8 video routes; the LoRA guide includes the
   documented `720p` Wan q8-vs-BF16 LightX2V keyframe comparison, readable `41`-frame M5 Max
   progress matrices, same-seed no-LoRA-versus-Lightning A/B sheets, a `240p`-versus-`480p` T2V
   sweep, time/RSS tables for T2V and I2V, and the exact Qwen/FLUX route-completion contact
@@ -123,6 +123,23 @@ mlxgen generate \
   --output spaceship.png
 ```
 
+Generate several output images or videos in one run by passing more than one seed:
+
+```sh
+mlxgen generate \
+  --model qwen-image \
+  --prompt "A clean studio product photo" \
+  --seed 101 202 303 \
+  --output product.png
+```
+
+MLX-Gen saves one artifact per seed and appends the seed to the output stem automatically, for
+example `product_seed_101.png`, `product_seed_202.png`, and `product_seed_303.png`.
+`mlxgen generate` and `mlxgen upscale` also support `--auto-seeds N` when you want several random
+variations from one command. Duplicate explicit seeds are rejected, `--auto-seeds` must be greater
+than zero, `--output` supports `{seed}`, and SeedVR2 multi-source runs also support `{input_name}`
+with legacy `{image_name}` accepted as a compatibility alias.
+
 Upscale an image with SeedVR2:
 
 ```sh
@@ -172,6 +189,13 @@ enables `--low-ram` automatically, and rejects enlarged video output unless you 
 `--force-unsafe-video-memory`. See
 [docs/upscaling.md](docs/upscaling.md) for the accepted five-second Eiffel quality proof bundle and
 the published Air France audio-copy proof bundle.
+
+`mlxgen upscale` accepts one or more explicit seeds and `--auto-seeds N` on both image and video
+restore runs. When you process several seeds, MLX-Gen appends `_seed_<seed>` automatically. When
+one SeedVR2 invocation processes several source files, MLX-Gen also appends the source-file stem so
+each saved artifact gets its own path. If two source files share the same basename, keep
+`--replace false` or rename the inputs; overwrite-prone SeedVR2 batches are rejected when
+`--replace true`.
 
 Inspect model capabilities before a run:
 
@@ -231,14 +255,14 @@ included assets.
 
 ![Spaceship mode contact sheet](https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/assets/examples/spaceship-snow/spaceship_modes_real_generation_contact_sheet.png)
 
-For current image-edit contact sheets, command logs, and model/package status across Qwen Image
+For image-edit contact sheets, command logs, and model/package status across Qwen Image
 Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, and latent I2I models, see
 [docs/edit-capabilities.md](docs/edit-capabilities.md).
-That guide now also includes the exact base Qwen q8 structured-control proof route, the exact
+That guide also includes the exact base Qwen q8 structured-control proof route, the exact
 base Qwen q8 control-inpaint proof route, and the exact Z-Image Turbo q8 native-inpaint proof
 route.
 For the full Qwen route map, including how `mlxgen` capability ids line up with upstream Diffusers
-Qwen pipelines and where the current proof surfaces live, see
+Qwen pipelines and where the published proof surfaces live, see
 [docs/qwen-route-matrix.md](docs/qwen-route-matrix.md).
 For a plain-language guide to latent img2img, instruction edit, masked edit/inpaint, multi-reference composition,
 Qwen structured control, generative reframe, and outpaint, see
@@ -363,12 +387,12 @@ progress callbacks make long runs observable.
 - [Image edit modes](docs/image-edit-modes.md): what latent img2img, edit-reference, multi-reference, generative reframe, and outpaint mean in practice, with examples.
 - [Wan video](docs/wan-video.md): practical Wan2.2 T2V/I2V sizing, broader A14B target size families, and 5-second M5 Max comparison clips.
 - [Example workflow](docs/examples/spaceship-snow.md): reproducible image and video commands.
-- [Image upscaling](docs/upscaling.md): SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, the accepted June 21 five-second Eiffel `1x` and `2x` 3B/7B proof bundles, readable tone-correction labels, and 5x source/output comparisons.
+- [Image upscaling](docs/upscaling.md): SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, published five-second Eiffel `1x` and `2x` 3B/7B validation bundles, readable tone-correction labels, and 5x source/output comparisons.
 - [Image edit capabilities](docs/edit-capabilities.md): image-edit contact sheets, exact model/package status, and command logs.
-- [Reframe and outpaint](docs/reframe-outpaint.md): `--reframe-padding` and `--outpaint-padding` routes with the mixed June 8 profile, the current FLUX.2 Klein base source-model proof, and links to the exact current Qwen/FLUX route proofs.
+- [Reframe and outpaint](docs/reframe-outpaint.md): `--reframe-padding` and `--outpaint-padding` routes with the mixed June 8 profile, FLUX.2 Klein base source-model validation, and links to the exact Qwen and FLUX route proofs.
 - [Model management](docs/model-management.md): download, prepare, and run from local model files.
 - [Quantization](docs/quantization.md): q8/q4/BF16 policies and measurements.
-- [Python integration](docs/python-integration.md): embedding, progress callbacks, and AbstractVision/AbstractCore notes.
+- [Python integration](docs/python-integration.md): route-resolved runtime loading, serial multi-output reuse for unified `mlxgen generate` families, SeedVR2's direct-model boundary, progress callbacks, and AbstractVision/AbstractCore notes.
 - [FAQ](docs/faq.md): recurring questions, image-to-image mode selection, SeedVR2 sizing, Qwen edit variants, negative prompts, reframe/outpaint, Wan resolutions, and usage limits.
 - [Troubleshooting](docs/troubleshooting.md): common setup and runtime failures.
 - [Acknowledgements](ACKNOWLEDGEMENTS.md): upstream mflux and model-community credits.

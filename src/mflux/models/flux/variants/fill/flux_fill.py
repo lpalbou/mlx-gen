@@ -138,18 +138,24 @@ class Flux1Fill(nn.Module):
         ctx.after_loop(latents)
 
         # 10. Decode the latent array and return the image
-        latents = FluxLatentCreator.unpack_latents(latents=latents, height=config.height, width=config.width)
-        decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=self.tiling_config)
-        return ImageUtil.to_image(
-            decoded_latents=decoded,
-            config=config,
-            seed=seed,
-            prompt=prompt,
-            quantization=self.bits,
-            lora_paths=self.lora_paths,
-            lora_scales=self.lora_scales,
-            image_path=config.image_path,
-            image_strength=config.image_strength,
-            masked_image_path=config.masked_image_path,
-            generation_time=config.time_steps.format_dict["elapsed"],
-        )
+        try:
+            latents = FluxLatentCreator.unpack_latents(latents=latents, height=config.height, width=config.width)
+            decoded = VAEUtil.decode(vae=self.vae, latent=latents, tiling_config=self.tiling_config)
+            image = ImageUtil.to_image(
+                decoded_latents=decoded,
+                config=config,
+                seed=seed,
+                prompt=prompt,
+                quantization=self.bits,
+                lora_paths=self.lora_paths,
+                lora_scales=self.lora_scales,
+                image_path=config.image_path,
+                image_strength=config.image_strength,
+                masked_image_path=config.masked_image_path,
+                generation_time=config.time_steps.format_dict["elapsed"],
+            )
+        except Exception:
+            ctx.failed()
+            raise
+        ctx.complete()
+        return image

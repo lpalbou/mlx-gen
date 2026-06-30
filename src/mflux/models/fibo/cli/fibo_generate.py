@@ -1,6 +1,8 @@
 from mflux.callbacks.callback_manager import CallbackManager
 from mflux.cli.defaults import defaults as ui_defaults
+from mflux.cli.output_paths import resolve_output_path
 from mflux.cli.parser.parsers import CommandLineParser
+from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.models.common.config.model_config import ModelConfig
 from mflux.models.fibo.latent_creator.fibo_latent_creator import FiboLatentCreator
 from mflux.models.fibo.variants.txt2img.fibo import FIBO
@@ -72,28 +74,48 @@ def main():
 
     try:
         for seed in args.seed:
-            # 3. Generate an image for each seed value
-            image = fibo.generate_image(
+            events = CliRuntimeEventStream(
+                enabled=bool(args.json_events),
+                command="mlxgen generate",
+                model=model_config.model_name,
                 seed=seed,
-                prompt=json_prompt,
-                width=args.width,
-                height=args.height,
-                guidance=args.guidance,
-                image_path=args.image_path,
-                num_inference_steps=args.steps,
-                image_strength=args.image_strength,
-                scheduler="flow_match_euler_discrete",
-                negative_prompt=PromptUtil.read_negative_prompt(args),
-                canvas_policy=args.canvas_policy,
             )
-
-            # 4. Save the image
-            image.save(path=args.output.format(seed=seed), export_json_metadata=args.metadata, overwrite=args.replace)
+            output_path = resolve_output_path(args.output, overwrite=args.replace, seed=seed)
+            events.set_output_path(output_path)
+            unsubscribe = events.subscribe_model(fibo, map_complete_to_generated=True)
+            try:
+                image = fibo.generate_image(
+                    seed=seed,
+                    prompt=json_prompt,
+                    width=args.width,
+                    height=args.height,
+                    guidance=args.guidance,
+                    image_path=args.image_path,
+                    num_inference_steps=args.steps,
+                    image_strength=args.image_strength,
+                    scheduler="flow_match_euler_discrete",
+                    negative_prompt=PromptUtil.read_negative_prompt(args),
+                    canvas_policy=args.canvas_policy,
+                )
+                events.emit_save()
+                image.save(
+                    path=output_path,
+                    export_json_metadata=args.metadata,
+                    overwrite=True,
+                    embed_metadata=args.embed_metadata,
+                )
+                events.emit_complete()
+            except Exception as exc:
+                events.emit_failed(error=exc)
+                raise
+            finally:
+                if unsubscribe is not None:
+                    unsubscribe()
     except (StopImageGenerationException, PromptFileReadError) as exc:
-        print(exc)
+        cli_print(str(exc), json_events=bool(args.json_events))
     finally:
         if memory_saver:
-            print(memory_saver.memory_stats())
+            cli_print(memory_saver.memory_stats(), json_events=bool(args.json_events))
 
 
 if __name__ == "__main__":

@@ -375,6 +375,95 @@ def test_qwen_base_structured_control_routes_to_dedicated_capability():
         mlxgen.resolve_generation_plan(model="qwen-image-edit-2511", has_control_image=True)
 
 
+def test_shared_family_override_rejects_conflicting_known_model():
+    with pytest.raises(TaskInferenceError, match="conflicts with model"):
+        mlxgen.get_model_capabilities(model="qwen-image", family="flux2")
+
+    with pytest.raises(TaskInferenceError, match="conflicts with model"):
+        mlxgen.resolve_generation_plan(model="qwen-image", family="flux2")
+
+
+def test_family_only_local_path_is_not_enough_for_shared_capabilities(tmp_path):
+    local_model = str(tmp_path / "random-folder")
+
+    with pytest.raises(TaskInferenceError, match="not enough to configure model"):
+        mlxgen.get_model_capabilities(model=local_model, family="flux2")
+
+    with pytest.raises(TaskInferenceError, match="not enough to configure model"):
+        mlxgen.resolve_generation_plan(model=local_model, family="flux2")
+
+
+def test_explicit_base_model_prevents_local_variant_spoofing(tmp_path):
+    qwen_base = mlxgen.get_model_capabilities(
+        model=str(tmp_path / "qwen-image-8bit-custom"),
+        base_model="qwen-image",
+    )
+    qwen_edit_spoof = mlxgen.get_model_capabilities(
+        model=str(tmp_path / "qwen-image-edit-custom"),
+        base_model="qwen-image",
+    )
+    z_image_base = mlxgen.get_model_capabilities(
+        model=str(tmp_path / "z-image-turbo-custom"),
+        base_model="z-image",
+    )
+    flux2_base = mlxgen.get_model_capabilities(
+        model=str(tmp_path / "flux2-klein-base-custom"),
+        base_model="flux2-klein-4b",
+    )
+    fibo_base = mlxgen.get_model_capabilities(
+        model=str(tmp_path / "fibo-edit-custom"),
+        base_model="fibo",
+    )
+
+    assert {capability.id for capability in qwen_base.capabilities} == {"qwen.latent", "qwen.text"}
+    assert {capability.id for capability in qwen_edit_spoof.capabilities} == {"qwen.latent", "qwen.text"}
+    assert {capability.id for capability in z_image_base.capabilities} == {"z-image.latent", "z-image.text"}
+    assert {capability.id for capability in flux2_base.capabilities} == {"flux2.edit", "flux2.text"}
+    assert {capability.id for capability in fibo_base.capabilities} == {"fibo.text"}
+
+
+def test_explicit_base_model_preserves_trusted_variant_capabilities(tmp_path):
+    qwen_edit = mlxgen.get_model_capabilities(
+        model=str(tmp_path / "local-qwen-edit"),
+        base_model="qwen-image-edit-2511",
+    )
+    z_image_turbo = mlxgen.get_model_capabilities(
+        model=str(tmp_path / "local-zimage-turbo"),
+        base_model="z-image-turbo",
+    )
+
+    assert {capability.id for capability in qwen_edit.capabilities} == {
+        "qwen.edit",
+        "qwen.inpaint",
+        "qwen.multi-reference",
+        "qwen.outpaint",
+        "qwen.reframe",
+    }
+    assert {capability.id for capability in z_image_turbo.capabilities} == {
+        "z-image.inpaint",
+        "z-image.latent",
+        "z-image.text",
+    }
+
+
+def test_remote_looking_prepared_ids_do_not_unlock_variant_sensitive_routes():
+    qwen_remote = mlxgen.get_model_capabilities(model="AbstractFramework/qwen-image-edit-custom")
+    z_image_remote = mlxgen.get_model_capabilities(model="AbstractFramework/z-image-turbo-custom")
+    flux2_remote = mlxgen.get_model_capabilities(model="AbstractFramework/flux2-klein-base-custom")
+    fibo_remote = mlxgen.get_model_capabilities(model="AbstractFramework/fibo-edit-custom")
+
+    assert {capability.id for capability in qwen_remote.capabilities} == {"qwen.latent", "qwen.text"}
+    assert {capability.id for capability in z_image_remote.capabilities} == {"z-image.latent", "z-image.text"}
+    assert {capability.id for capability in flux2_remote.capabilities} == {
+        "flux2.text",
+        "flux2.latent",
+        "flux2.edit",
+        "flux2.reframe",
+        "flux2.multi-reference",
+    }
+    assert {capability.id for capability in fibo_remote.capabilities} == {"fibo.text"}
+
+
 def test_original_qwen_edit_q8_single_edit_lora_status_is_exact():
     original_edit = mlxgen.get_model_capabilities(model="AbstractFramework/qwen-image-edit-8bit")
     original_edit_row = next(capability for capability in original_edit.capabilities if capability.id == "qwen.edit")

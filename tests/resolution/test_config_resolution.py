@@ -166,6 +166,20 @@ class TestConfigResolutionInferSubstring:
         assert edit_2511.transformer_overrides["zero_cond_t"] is True
 
     @pytest.mark.fast
+    def test_exact_prepared_repo_ids_are_trusted_official_prepared(self):
+        resolved = ConfigResolution.resolve_with_source(model_name="AbstractFramework/qwen-image-edit-2511-8bit")
+
+        assert resolved.identity_source == "official_prepared"
+        assert resolved.model_config.base_model == "Qwen/Qwen-Image-Edit-2511"
+
+    @pytest.mark.fast
+    def test_remote_looking_custom_repo_ids_are_not_trusted_official_prepared(self):
+        resolved = ConfigResolution.resolve_with_source(model_name="AbstractFramework/qwen-image-edit-custom")
+
+        assert resolved.identity_source == "infer_substring"
+        assert resolved.model_config.base_model == "Qwen/Qwen-Image-Edit"
+
+    @pytest.mark.fast
     def test_infers_ernie_image_turbo_from_local_path(self):
         config = ConfigResolution.resolve(model_name="/models/ernie-image-turbo-8bit")
 

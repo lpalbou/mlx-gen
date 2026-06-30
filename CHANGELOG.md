@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.24] - 2026-06-30
+
+### Added
+
+- **Python runtime loading and multi-output reuse**: add public
+  `resolve_generation_runtime(...)`, `load_generation_model(...)`, and loaded-runtime
+  `generate_output(...)` / `generate_outputs(...)` helpers for the unified `mlxgen generate`
+  families, with shared output naming, overwrite-safe collision handling, and published
+  reuse-vs-reload validation across Qwen masked edit, FLUX.2 multi-reference, Wan A14B
+  image-to-video, and large Z-Image generation.
+- **Machine-readable runtime events**: add `--json-events` for `mlxgen generate` and
+  `mlxgen upscale`, with structured runtime progress, saved-artifact terminal events, diagnostics
+  paths, and remediation objects for actionable failures.
+- **Model recommendations guide**: add a memory-tier recommendation page for `18 GB`, `24 GB`,
+  `32 GB`, `64 GB`, and `128+ GB` Macs based on published MLX-Gen memory measurements.
+
+### Changed
+
+- **Core documentation refresh**: rewrite the main user-facing docs so they describe the shipped
+  CLI and Python capabilities directly, including seed-driven multi-output generation, metadata
+  save behavior, Python runtime ownership, and conservative model recommendations by memory tier.
+
+### Fixed
+
+- **Image finalization memory tail**: default image save is now one-pass and metadata-light,
+  `--embed-metadata` is explicit opt-in, and the published `4096x4096` save-phase probe measured
+  peak sampled RSS `-51.2316%` and peak Darwin physical footprint `-54.1496%` versus the legacy
+  three-pass path.
+- **Runtime contract correctness**: fix progress terminal semantics, Qwen control/control-inpaint
+  no-LoRA completion, Z-Image CFG math, and variant-sensitive capability spoofing for local/custom
+  model identities.
+
 ## [0.18.23] - 2026-06-28
 
 ### Added

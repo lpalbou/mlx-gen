@@ -1,7 +1,9 @@
 from pathlib import Path
 
 from mflux.callbacks.callback_manager import CallbackManager
+from mflux.cli.output_paths import normalize_output_template, resolve_output_path
 from mflux.cli.parser.parsers import CommandLineParser
+from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.models.common.config.model_config import ModelConfig
 from mflux.models.fibo.latent_creator.fibo_latent_creator import FiboLatentCreator
 from mflux.models.fibo.variants.edit.fibo_edit import FIBOEdit
@@ -57,24 +59,41 @@ def _save_edit_result(
     args,
     model_config: ModelConfig,
     seed: int,
+    output_path: str | Path,
 ) -> None:
-    out_path = args.output.format(seed=seed)
     if _is_rmbg(model_config):
         rgba_pil = FiboEditUtil.build_rgba_composite_image(args.image_path, image.image)
         image.save_with_image(
-            path=out_path,
+            path=output_path,
             pixel_image=rgba_pil,
             export_json_metadata=args.metadata,
-            overwrite=args.replace,
+            overwrite=True,
+            embed_metadata=args.embed_metadata,
         )
         if args.matte_output is not None:
-            image.save(
-                path=args.matte_output.format(seed=seed),
-                export_json_metadata=False,
+            matte_output_path = resolve_output_path(
+                args.matte_output,
                 overwrite=args.replace,
+                seed=seed,
+            )
+            if Path(matte_output_path) == Path(output_path):
+                raise ValueError(
+                    "--matte-output resolved to the same path as --output. Choose a different matte path "
+                    "or pass --replace false so MLX-Gen can suffix one of the files safely."
+                )
+            image.save(
+                path=matte_output_path,
+                export_json_metadata=False,
+                overwrite=True,
+                embed_metadata=args.embed_metadata,
             )
     else:
-        image.save(path=out_path, export_json_metadata=args.metadata, overwrite=args.replace)
+        image.save(
+            path=output_path,
+            export_json_metadata=args.metadata,
+            overwrite=True,
+            embed_metadata=args.embed_metadata,
+        )
 
 
 def main():
@@ -99,6 +118,8 @@ def main():
     parser.add_argument("--matte-output", type=str, default=None, help="fibo-edit-rmbg only: also save the raw grayscale matte. Supports {seed} like --output.")  # fmt: skip
     parser.add_output_arguments()
     args = parser.parse_args()
+    if args.matte_output is not None and len(args.seed) > 1:
+        args.matte_output = normalize_output_template(args.matte_output, include_seed=True)
 
     if args.image_path is None:
         parser.error("--image-path is required, or 'image_path' must be specified in the config file.")
@@ -127,26 +148,44 @@ def main():
 
     try:
         for seed in args.seed:
-            image = fibo_edit.generate_image(
+            events = CliRuntimeEventStream(
+                enabled=bool(args.json_events),
+                command="mlxgen generate",
+                model=model_config.model_name,
                 seed=seed,
-                prompt=json_prompt,
-                image_path=args.image_path,
-                mask_path=args.mask_path,
-                width=args.width,
-                height=args.height,
-                guidance=args.guidance,
-                num_inference_steps=args.steps,
-                scheduler="flow_match_euler_discrete",
-                negative_prompt=PromptUtil.read_negative_prompt(args),
-                canvas_policy=args.canvas_policy,
             )
-            _save_edit_result(image, args, model_config, seed)
+            output_path = resolve_output_path(args.output, overwrite=args.replace, seed=seed)
+            events.set_output_path(output_path)
+            unsubscribe = events.subscribe_model(fibo_edit, map_complete_to_generated=True)
+            try:
+                image = fibo_edit.generate_image(
+                    seed=seed,
+                    prompt=json_prompt,
+                    image_path=args.image_path,
+                    mask_path=args.mask_path,
+                    width=args.width,
+                    height=args.height,
+                    guidance=args.guidance,
+                    num_inference_steps=args.steps,
+                    scheduler="flow_match_euler_discrete",
+                    negative_prompt=PromptUtil.read_negative_prompt(args),
+                    canvas_policy=args.canvas_policy,
+                )
+                events.emit_save()
+                _save_edit_result(image, args, model_config, seed, output_path)
+                events.emit_complete()
+            except Exception as exc:
+                events.emit_failed(error=exc)
+                raise
+            finally:
+                if unsubscribe is not None:
+                    unsubscribe()
     except (StopImageGenerationException, PromptFileReadError, ValueError) as exc:
-        print(exc)
+        cli_print(str(exc), json_events=bool(args.json_events), error=True)
         raise SystemExit(1) from exc
     finally:
         if memory_saver:
-            print(memory_saver.memory_stats())
+            cli_print(memory_saver.memory_stats(), json_events=bool(args.json_events))
 
 
 if __name__ == "__main__":

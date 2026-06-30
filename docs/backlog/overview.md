@@ -12,10 +12,39 @@ outside chat history.
 | State | Count |
 | --- | ---: |
 | Planned | 14 |
-| Proposed | 16 |
-| Completed | 34 |
+| Proposed | 15 |
+| Completed | 40 |
 | Deprecated | 1 |
 | Recurrent | 1 |
+
+## Completed runtime contract hardening band
+
+The 2026-06-29 serial validation pass converted several previously theoretical concerns into
+concrete shipped bugs with preserved repro commands and artifacts. Items 0067-0070 are now
+completed with focused regressions, one-at-a-time real proofs, and a shared validation report.
+
+1. Finished [progress event contract hardening](completed/0067_progress_event_contract_hardening.md)
+   so masked image routes, SeedVR2 upscale/restore routes, and terminal success semantics are
+   truthful for subscribers.
+2. Finished [Qwen control route hardening](completed/0068_qwen_control_route_hardening.md)
+   so public control-inpaint no longer crashes on the no-LoRA path and base control routes honor
+   the base-Qwen blank-negative contract.
+3. Finished [Z-Image CFG and inpaint repair](completed/0069_zimage_cfg_and_inpaint_repair.md)
+   so guided denoise math is correct and native inpaint has refreshed same-case evidence after the
+   formula fix.
+4. Finished [canonical capability identity for variant routes](completed/0070_canonical_capability_identity_for_variant_routes.md)
+   so spoofed local paths and remote-looking prepared ids cannot advertise unsupported
+   variant-sensitive routes.
+
+## Completed Python runtime multi-output surface
+
+MLX-Gen now owns the shared Python multi-output execution contract for the unified
+`mlxgen generate` families. Completed item 0071 records the route-resolved runtime wrapper,
+overwrite/collision behavior, and the reuse-vs-reload evidence across image and video routes.
+
+1. Finished [Python runtime serial multi-output reuse](completed/0071_python_runtime_serial_multi_output_reuse.md)
+   so embedding apps can call `load_generation_model(...).generate_outputs(...)` instead of
+   rebuilding seed loops, output naming, and per-seed save handling around direct model classes.
 
 ## Completed audit hardening band
 
@@ -70,38 +99,50 @@ remains an opt-in memory-pressure path rather than a default quality-preserving 
 5. Validate and finish [generation retention cleanup](planned/memory/0064_generation_retention_cleanup.md)
    with stepwise/debug and hidden-state-retention memory statistics plus quality/performance checks.
 
+## Topic tracks
+
+- [Runtime contract hardening](planned/runtime_contracts/README.md): completed June 29 closure band
+  for items 0067-0070, with the shared report in
+  `docs/assets/validation/runtime-contracts-2026-06-29/runtime_contracts_report.md`.
+- [Memory validation](planned/memory/README.md): items 0062-0064 keep the remaining exact-quality
+  memory validation work grouped separately from runtime contract repair.
+
 ## Next recommended work
 
-The highest-priority memory work is now the remaining validation track: find and test an exact-quality
-SeedVR2 video memory reduction for item 0062, run startup/first-step profiles for item 0063 and
-retention-isolating profiles for item 0064, record statistics under `validation_outputs/memory/`,
-and only then close those remaining items.
+The highest-priority work is now the remaining memory-validation band. The runtime-contract
+hardening band is closed and documented.
 
-1. Finish
+1. Finish the remaining memory validation track: find and test an exact-quality SeedVR2 video
+   memory reduction for item 0062 only if a larger still-supported profile proves the global-noise
+   term is materially relevant; otherwise re-scope it as a low-value research item for future
+   enlarged-video profiles. In parallel, run phase-isolated startup/first-step profiles for item
+   0063 and retention-isolating profiles for item 0064, record statistics under
+   `validation_outputs/memory/`, and only then close those remaining items.
+2. Finish
    [Wan prompt adherence parity validation](planned/0015_wan_prompt_adherence_parity_validation.md)
    before treating T2V/I2V prompt or motion behavior as quality-proven; explicitly match official
    Wan negative prompts and A14B guidance pairs in Diffusers-vs-MLX runs.
-2. Finish the remaining
+3. Finish the remaining
    [first-class I2I modes and outpaint/reframe UX](planned/0019_first_class_i2i_modes_and_outpaint_reframe.md)
    work where it still adds capability beyond the now-completed Qwen and FLUX.2 route surface.
    Route ownership is much clearer now; the next useful work is UX and contract cleanup, not
    another speculative route split.
-3. Finish
+4. Finish
    [Wan2.2 TI2V-5B math and behavior parity](planned/0035_wan_ti2v5b_math_and_behavior_parity.md)
    after the current image-route work is closed. The official Wan source and local Diffusers audit
    found no tensor mismatch in the existing TI2V-5B fixtures, but public quality claims still need
    the broader behavior proof and the explicit `--flow-shift 3` route.
-4. Keep proposed
+5. Keep proposed
    [SeedVR2 enlarged-video safe-profile certification](proposed/0048_seedvr2_enlarged_video_safe_profile_certification.md)
    as the remaining SeedVR2 proof question after release `0.18.20`. The bounded June 21 public
    proof already answers the `3B` versus `7B` comparison on the accepted slice; what remains is
    whether any enlarged SeedVR2 video recipe should graduate from explicit unsafe override to a
    documented safe public profile.
-5. Preserve
+6. Preserve
    [Z-Image ControlNet follow-up](proposed/0045_zimage_controlnet_followup.md) as the next image
    follow-up after native Z-Image inpaint and the completed Qwen parity work rather than
    broadening current items again.
-6. Keep proposed
+7. Keep proposed
    [LightX2V Wan distilled-model loader support](proposed/0041_lightx2v_wan_distilled_model_loader_support.md)
    scoped as the next Wan acceleration follow-up, not the current one. Completed
    [item 0040](completed/0040_lightx2v_wan_4step_acceleration_profiles.md) now provides the exact
@@ -113,70 +154,74 @@ Keep proposed
 as the next startup-memory follow-up after real process-memory profiling. The Z-Image cache-policy
 profile now shows startup/first-step peak still dominates even when retained cache falls sharply.
 Do not promote it until one specific family has a measured startup peak that justifies the
-family-specific migration risk. The SeedVR2 1280px image profile points instead to VAE spatial
-encode peak, so 0065 should not be promoted solely for that case.
+family-specific migration risk. The 2026-06-29 size audit suggests the first prepared-package
+candidate should be Z-Image or FLUX.2 rather than SeedVR2, while the SeedVR2 1280px image profile
+still points instead to VAE spatial encode peak, so 0065 should not be promoted solely for that
+case.
 
-Keep proposed
-[image finalization memory peak and metadata rewrite](proposed/0066_image_finalization_memory_peak_and_metadata_rewrite.md)
-as the immediate save-path memory follow-up. The current generated-image PNG path still does a
-primary write, an EXIF rewrite, and a second PNG metadata rewrite, while generated-image metadata
-also snapshots runtime memory at finalization time. Do not bury that cost inside broader runtime or
-retention items until it has its own measured before/after evidence.
+Completed
+[image finalization memory peak and metadata rewrite](completed/0066_image_finalization_memory_peak_and_metadata_rewrite.md).
+The current generated-image default path is now a one-pass save with zero reopen passes and zero
+runtime-memory snapshots, while opt-in embedded metadata still preserves EXIF plus PNG XMP/IPTC in
+one save call. The June 30, 2026 `4096x4096` save-phase probe measured peak sampled RSS
+`0.394 GB -> 0.192 GB` (`-51.2316%`) and peak Darwin physical footprint `0.373 GB -> 0.171 GB`
+(`-54.1496%`) versus the legacy three-pass simulation, so this no longer belongs in proposed
+memory follow-up state.
 
-7. Finish the prepared-package residue in
+8. Finish the prepared-package residue in
    [FLUX.2 Klein base source validation and contact sheets](planned/0036_flux2_klein_base_source_validation_and_contact_sheets.md).
    Source-model base `4B/9B` now have starship proof, and the exact q8 base-4B outpaint row is
    now validated through the LoRA route-completion bundle, but the broader prepared base package
    contact-sheet surface is still narrower than the source-model profile.
-8. Keep proposed
+9. Keep proposed
    [Wan VACE video editing and control](proposed/0039_wan_vace_video_editing_and_control.md) in
    view once current Wan parity work settles. Upstream Wan already has video-to-video and VACE
    editing/control pipelines, and this is a better medium-term extension than jumping to a second
    unrelated video family too early. Keep `Wan2.2-Animate-14B` and `Wan2.2-S2V-14B` as adjacent
    Wan-family watch points, not as silent scope creep inside 0039.
-9. Keep the
+10. Keep the
    [FLUX.2-dev multi-angle LoRA support](planned/0034_flux2_dev_multi_angle_lora_support.md)
    item parked even after 0007 completion. The lovis multi-angle adapter still targets
    `black-forest-labs/FLUX.2-dev`, not FLUX.2 Klein, so there is no reason to expand the runtime
    surface until the current supported image families have exact LoRA proofs.
-10. Validate and finish
+11. Validate and finish
    [Wan A14B boundary memory recovery and full-size validation](planned/0013_wan_a14b_boundary_memory_recovery.md)
    after the full-size I2V retry captures memory, exit-code, metadata, and output evidence across
    the high-noise to low-noise denoiser boundary. Remaining memory items 0062-0064 must provide quantitative
    evidence before this can depend on those memory claims.
-11. Finish the [Wan quantization and motion parity](planned/0002_wan_quantization_motion_parity.md)
+12. Finish the [Wan quantization and motion parity](planned/0002_wan_quantization_motion_parity.md)
    residuals: TI2V-5B now has clean source/BF16/q8 evidence at 1280x704, 17 frames, 20 steps, but
    the TI2V-5B memory result is storage/MLX-footprint focused rather than a full-process physical
    peak reduction; full-duration validation, I2V-A14B mixed q8 quality, q4 policy, and exact-setting
    card claims still need to stay tied to passed settings.
-12. Use the completed
+13. Use the completed
    [edit model prepared-package capability contact sheets](completed/0026_edit_model_prepared_capability_contact_sheets.md)
    as the current release gate for image-edit quality claims: FLUX.2 Klein source/q8 and Qwen Edit
    2509 source/q8 passed the standardized sequence. Qwen Edit 2511 has newer source/q8/q4 proof in
    [item 0029](completed/0029_qwen_image_edit_2511_base_parity.md). FIBO Edit remains unsupported
    through unified `mlxgen generate`. Use the [release validation registry](completed/0028_release_validation_registry.md)
    for machine-readable package status.
-13. Keep [FIBO Edit Diffusers parity](planned/0027_fibo_edit_diffusers_parity_release_quality.md)
+14. Keep [FIBO Edit Diffusers parity](planned/0027_fibo_edit_diffusers_parity_release_quality.md)
    and [FIBO Edit unified validation](planned/0024_fibo_edit_unified_i2i_validation.md) deferred.
    FIBO Edit remains unsupported through unified `mlxgen generate`; do not schedule more work here
    ahead of outpaint/reframe, LoRA strictness, or video quality work unless a specific product need
    changes the priority.
-14. Keep Bonsai binary 1-bit deferred in
+15. Keep Bonsai binary 1-bit deferred in
    [proposed item 0004](proposed/0004_bonsai_binary_1bit_runtime_support.md) until stock MLX can
    execute the required 1-bit packed affine matmul or an ADR accepts a custom kernel path.
-15. Investigate [Wan q8 performance](planned/0005_wan_q8_performance_investigation.md) only after
+16. Investigate [Wan q8 performance](planned/0005_wan_q8_performance_investigation.md) only after
    integrity-gated outputs are healthy enough for timing claims; current public docs describe mixed
    q8/BF16 as model-size and measured-profile footprint focused, not speed-improving.
-16. Continue the [model integration roadmap](planned/0001_model_integration_roadmap.md) in priority
+17. Continue the [model integration roadmap](planned/0001_model_integration_roadmap.md) in priority
    order, starting with automated publication audits, supported q4/q8 validation, and
    gated-derivative hygiene.
-17. Keep the second-family video bucket explicit. Proposed
+18. Keep the second-family video bucket explicit. Proposed
    [HunyuanVideo-1.5 second-family spike](proposed/0044_hunyuanvideo15_second_family_spike.md)
    is now the strongest concrete non-Wan candidate for Apple Silicon bounded by a public `480p`
    step-distilled path, while proposed
    [LTX family conditioning and LoRA spike](proposed/0010_ltx2_conditioning_lora_spike.md) should
    stay narrowed to `LTX-Video` first rather than broad `LTX-2.3` audio-video scope.
-18. Keep the image/edit watchlist honest. Proposed
+19. Keep the image/edit watchlist honest. Proposed
    [next-generation image/edit watchlist](proposed/0011_next_generation_image_edit_watchlist.md)
    now includes Ideogram 4, Ovis-Image, PRXPixel, and DreamLite, but those remain watchlist-only
    until license, runtime shape, or direct MLX value becomes clearer. Proposed
@@ -186,15 +231,15 @@ retention items until it has its own measured before/after evidence.
    Wan items. Proposed [Krea 2 Turbo integration](proposed/0050_krea2_turbo_integration.md) is an
    adjacent low-priority watch item: technically credible, but held back mainly by its
    materially restrictive custom license.
-19. Continue ERNIE-Image/Turbo after completed
+20. Continue ERNIE-Image/Turbo after completed
    [ERNIE Image Turbo LoRA runtime support](completed/0037_ernie_image_turbo_lora_runtime_support.md):
    the latent img2img proof is now accepted, so the remaining follow-up is stronger Diffusers
    parity coverage and non-turbo validation.
-20. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
+21. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
    stronger quality/performance checks, and remaining cancel APIs. SeedVR2 has a validated
    `mlxgen upscale` command, official 3B/7B source loading, and q8/q4 `mlxgen prepare` package
    support.
-21. Keep Bonsai LoRA fail-closed and low priority; revisit it only through
+22. Keep Bonsai LoRA fail-closed and low priority; revisit it only through
    [proposed item 0038](proposed/0038_bonsai_packed_lora_runtime_support.md). The current packed
    runtime does not expose replaceable linear targets for standard LoRA injection, and the first
    public “Bonsai LoRA” candidate inspected used unrelated SDXL UNet keys.
@@ -236,8 +281,6 @@ retention items until it has its own measured before/after evidence.
 | 0050 | [Krea 2 Turbo integration](proposed/0050_krea2_turbo_integration.md) | Image model roadmap, Krea 2, licensing, fast text-to-image | Promote only if MLX-Gen explicitly accepts the restrictive Krea license class and a bounded upstream smoke shows clear value over current fast image routes. |
 | 0058 | [Model profile registry authority](proposed/0058_model_profile_registry_authority.md) | Architecture, model identity, defaults, loader policy | Promote after an ADR spike proves one lightweight registry can own model family identity/defaults without import-cycle or startup-cost regressions. |
 | 0065 | [Component-wise weight streaming migration](proposed/0065_componentwise_weight_streaming_migration.md) | Memory, startup, weight loading | Promote when profiling shows startup peak remains a practical blocker after remaining item 0063, or when one specific family needs the reduction for a supported profile. |
-| 0066 | [Image finalization memory peak and metadata rewrite](proposed/0066_image_finalization_memory_peak_and_metadata_rewrite.md) | Memory, image finalization, metadata embedding | Promote when process memory sampling confirms the end-of-run save pipeline is a meaningful peak source, or when a lower-risk one-pass metadata rewrite is ready to validate. |
-
 ## Completed ledger
 
 | ID | Item | Area | Completed | Outcome |
@@ -276,6 +319,12 @@ retention items until it has its own measured before/after evidence.
 | 0059 | [Wan VAE streaming and memory measurement](completed/0059_wan_vae_streaming_memory_measurement.md) | Video, Wan, memory, measurement | 2026-06-27 | Completed real eager-versus-streamed Wan TI2V validation: median MLX peak fell 29.1%, metadata physical footprint fell 68.9%, saved MP4 output was exact, and startup peak remains tracked separately by 0063/0065. |
 | 0060 | [Runtime memory telemetry and manifests](completed/0060_runtime_memory_telemetry_and_manifests.md) | Memory, telemetry, manifests | 2026-06-28 | Completed real Z-Image telemetry-overhead validation: exact image parity, sampled RSS overhead +0.0019%, sampled Darwin physical-footprint overhead +0.3370%, wall overhead +1.0814%, and metadata physical footprint agreed with parent sampling. |
 | 0061 | [Prompt materialization for low-RAM release](completed/0061_prompt_materialization_for_low_ram_release.md) | Memory, prompt encoders, low-RAM | 2026-06-28 | Completed real Flux2 and ERNIE prompt-materialization validation with exact image parity; peak sampled RSS fell 7.25% for ERNIE and 2.17% for Flux2, while MLX peak stayed effectively flat. |
+| 0066 | [Image finalization memory peak and metadata rewrite](completed/0066_image_finalization_memory_peak_and_metadata_rewrite.md) | Memory, image finalization, metadata embedding | 2026-06-30 | Completed the default-save contract rewrite: default image save is now one-pass and metadata-light, embedded metadata remains opt-in and preserves EXIF/XMP/IPTC, and the dedicated `4096x4096` save-phase probe measured peak sampled RSS `-51.2316%` and peak Darwin physical footprint `-54.1496%` versus the legacy three-pass simulation. |
+| 0067 | [Progress event contract hardening](completed/0067_progress_event_contract_hardening.md) | Progress, callbacks, image/video task semantics | 2026-06-29 | Fixed task labeling and terminal progress semantics across masked image routes and SeedVR2 image/video restore so subscribers only see `complete` after artifact-ready success. |
+| 0068 | [Qwen control route hardening](completed/0068_qwen_control_route_hardening.md) | Qwen, control-inpaint, prompt contract | 2026-06-29 | Fixed the public base-Qwen control and control-inpaint no-LoRA crash, preserved base-Qwen blank-negative behavior, and refreshed the one-at-a-time control-inpaint proof. |
+| 0069 | [Z-Image CFG and inpaint repair](completed/0069_zimage_cfg_and_inpaint_repair.md) | Z-Image, CFG, native inpaint quality | 2026-06-29 | Corrected Z-Image CFG math, reran the native inpaint engine case on the same prompt/source/mask/seed settings, and kept the route-level quality claim tied to the documented proof row. |
+| 0070 | [Canonical capability identity for variant routes](completed/0070_canonical_capability_identity_for_variant_routes.md) | Routing, capabilities, model identity | 2026-06-29 | Hardened capability and route identity so spoofed local/custom names and remote-looking prepared ids cannot unlock unsupported Qwen, Z-Image, FLUX.2 base, or FIBO variant-sensitive routes. |
+| 0071 | [Python runtime serial multi-output reuse](completed/0071_python_runtime_serial_multi_output_reuse.md) | Python API, runtime loading, multi-output execution | 2026-06-30 | Added route-resolved Python runtime loading plus `generate_output(...)` / `generate_outputs(...)`, overwrite-safe save handling, and published reuse-vs-reload validation across Qwen masked edit, FLUX.2 multi-reference, Wan A14B I2V, and large Z-Image generation. |
 
 ## Deprecated ledger
 

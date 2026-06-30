@@ -1,0 +1,48 @@
+{
+  "after_save_snapshot": {
+    "darwin_physical_footprint_bytes": 372523752,
+    "errors": {},
+    "mlx_active_memory_bytes": 8,
+    "mlx_cache_memory_bytes": 0,
+    "mlx_peak_memory_bytes": 8,
+    "phase": "after-save",
+    "pid": 70251,
+    "platform": "macOS-26.3-arm64-arm-64bit",
+    "process_peak_rss_bytes": 393723904,
+    "process_rss_bytes": 393723904,
+    "synchronized": false,
+    "timestamp": 1782822256.899638
+  },
+  "before_save_snapshot": {
+    "darwin_physical_footprint_bytes": 170639960,
+    "errors": {},
+    "mlx_active_memory_bytes": 8,
+    "mlx_cache_memory_bytes": 0,
+    "mlx_peak_memory_bytes": 8,
+    "phase": "before-save",
+    "pid": 70251,
+    "platform": "macOS-26.3-arm64-arm-64bit",
+    "process_peak_rss_bytes": 191807488,
+    "process_rss_bytes": 191807488,
+    "synchronized": false,
+    "timestamp": 1782822254.736855
+  },
+  "case": "legacy-default-simulated",
+  "has_exif": true,
+  "has_png_iptc": true,
+  "has_png_xmp": true,
+  "metadata_sidecar_exists": false,
+  "output_path": "/Users/albou/projects/gh/sbx/mlx-gen/docs/assets/validation/image-finalization-2026-06-30/legacy-default-simulated/legacy-default-simulated.png",
+  "pipeline_image_open_calls": 2,
+  "pipeline_image_save_calls": 3,
+  "pipeline_runtime_snapshot_calls": [
+    "image-metadata"
+  ],
+  "saved_info_keys": [
+    "IPTC",
+    "XML:com.adobe.xmp",
+    "exif",
+    "xmp"
+  ],
+  "wall_time_seconds": 2.1427
+}

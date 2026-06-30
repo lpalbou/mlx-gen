@@ -98,6 +98,76 @@ mlxgen generate \
   --output bonsai.png
 ```
 
+## Generate Several Outputs
+
+Every public generative command accepts one or more explicit seeds through `--seed`. `mlxgen
+generate` and `mlxgen upscale` also accept `--auto-seeds N` for random batches. Each seed produces
+one saved artifact. Duplicate explicit seeds are rejected, and `--auto-seeds` must be greater than
+zero.
+
+Generate several image variations in one `mlxgen generate` run:
+
+```sh
+mlxgen generate \
+  --model z-image-turbo \
+  --prompt "A puffin standing on a cliff" \
+  --seed 101 202 303 \
+  --output puffin.png
+```
+
+That command writes `puffin_seed_101.png`, `puffin_seed_202.png`, and `puffin_seed_303.png`.
+
+`mlxgen generate` supports `--auto-seeds N` when you want several random image or Wan-video
+variations without listing seeds yourself:
+
+```sh
+mlxgen generate \
+  --model qwen-image \
+  --prompt "A clean studio product photo" \
+  --auto-seeds 4 \
+  --output product.png
+```
+
+`mlxgen upscale` supports the same multi-seed contract, including `--auto-seeds`:
+
+```sh
+mlxgen upscale \
+  --model seedvr2-3b \
+  --image-path source.png \
+  --auto-seeds 2 \
+  --output restored.png
+```
+
+That command writes `restored_seed_<seed>.png` once per generated seed.
+
+When one SeedVR2 invocation processes several source files, MLX-Gen also appends the source-file
+stem automatically so each image or MP4 gets its own path:
+
+```sh
+mlxgen upscale \
+  --model seedvr2-3b \
+  --video-path clip_a.mp4 clip_b.mp4 \
+  --seed 11 22 \
+  --output restored.mp4
+```
+
+That command writes `restored_seed_11_clip_a.mp4`, `restored_seed_22_clip_a.mp4`,
+`restored_seed_11_clip_b.mp4`, and `restored_seed_22_clip_b.mp4`.
+
+`--output` supports `{seed}` everywhere. SeedVR2 multi-source runs also support `{input_name}`:
+
+```sh
+mlxgen upscale \
+  --model seedvr2-3b \
+  --video-path clip_a.mp4 clip_b.mp4 \
+  --seed 11 22 \
+  --output "restored_{input_name}_{seed}.mp4"
+```
+
+Legacy `{image_name}` is still accepted as a compatibility alias. If two SeedVR2 source files share
+the same basename, keep `--replace false` or rename the inputs; overwrite-prone batches are
+rejected when `--replace true`.
+
 ## Edit An Image
 
 Pass one or more input images to the same `generate` command. MLX-Gen routes to the right
@@ -126,7 +196,7 @@ is required before treating an adapter as validated. See [LoRA](lora.md) for the
 
 Use `qwen-image-edit` for the original single-reference edit checkpoint; use
 `qwen-image-edit-2509` or `qwen-image-edit-2511` when you need multi-reference editing.
-Current contact sheets and commands for Qwen Image Edit, Qwen Image Edit 2509/2511, and FLUX.2
+Contact sheets and commands for Qwen Image Edit, Qwen Image Edit 2509/2511, and FLUX.2
 Klein source/q8/q4 packages are published in [Image Edit Capabilities](edit-capabilities.md).
 Use `--negative-prompt` or `--negative` to block concrete failure modes such as crop, blur, text,
 or unwanted color. Qwen edit models use the official blank negative-prompt behavior by default when
@@ -172,7 +242,7 @@ uses source-locked denoising with a narrow latent transition band instead of pas
 crop back over the result. This is not a native fill/inpaint pipeline with an explicit diffusion
 mask, and it is not an exact pixel-lock guarantee.
 
-Current reframe and outpaint proof assets are published in
+Validation assets for reframe and outpaint are published in
 [Image Edit Capabilities](edit-capabilities.md) and [Reframe and Outpaint](reframe-outpaint.md),
 including the 2026-06-10 FLUX.2 Klein base source-model starship proof.
 
@@ -364,6 +434,10 @@ mlxgen generate \
 ```
 
 TI2V-5B image-to-video uses the Diffusers first-frame latent-conditioning path. The separate A14B I2V route requires the complete I2V source snapshot before generation. Current Wan video support can produce MP4 output; quality, speed, and practical defaults depend strongly on model family, prompt, size, and frame count.
+
+To create several Wan variations from one command, pass more than one seed or use
+`--auto-seeds N`. MLX-Gen appends `_seed_<seed>` to the output stem automatically so each MP4 gets
+its own filename.
 
 Wan does not have a separate duration option. Control duration with `--frames` and `--fps`: duration
 is `frames / fps`, so `--frames 121 --fps 24` is about 5.04 seconds and `--frames 81 --fps 16` is

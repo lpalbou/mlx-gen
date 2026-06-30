@@ -10,7 +10,7 @@ from PIL import Image, ImageChops
 import mlxgen
 from mflux.cli import mlx_gen
 from mflux.cli.mlx_gen import RouterInvocation
-from mflux.models.common.download_policy import downloads_enabled
+from mflux.models.common.download_policy import DownloadRequiredError, downloads_enabled
 
 
 def test_generate_help_renders_padding_examples(monkeypatch, capsys):
@@ -29,9 +29,24 @@ def test_generate_help_renders_padding_examples(monkeypatch, capsys):
     assert "localized masked edit or inpaint" in help_output
 
 
+def test_generate_help_scopes_failure_diagnostics_to_wan_only(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["mlxgen", "generate", "--help"])
+
+    with pytest.raises(SystemExit) as exc:
+        mlx_gen.main()
+
+    assert exc.value.code == 0
+    help_output = capsys.readouterr().out
+    normalized_help = " ".join(help_output.split())
+    assert "--json-events" in help_output
+    assert "Wan video routes also accept --failure-diagnostics" in normalized_help
+
+
 def test_top_level_help_reports_version_and_release_date(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["mlxgen", "--help"])
-    monkeypatch.setattr(mlx_gen.VersionUtil, "format_cli_release_label", staticmethod(lambda: "MLX-Gen 9.9.9 (2099-01-01)"))
+    monkeypatch.setattr(
+        mlx_gen.VersionUtil, "format_cli_release_label", staticmethod(lambda: "MLX-Gen 9.9.9 (2099-01-01)")
+    )
 
     mlx_gen.main()
 
@@ -225,6 +240,84 @@ def test_qwen_backend_defaults_to_flow_match_scheduler(monkeypatch):
     qwen_image_generate.main()
 
     assert observed["generate"]["scheduler"] == "flow_match_euler_discrete"
+
+
+def test_qwen_backend_omitted_negative_prompt_stays_none(monkeypatch):
+    from mflux.models.qwen.cli import qwen_image_generate
+
+    observed = {}
+
+    class FakeImage:
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+
+    class FakeQwenImage:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_image(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeImage()
+
+    monkeypatch.setattr(qwen_image_generate, "QwenImage", FakeQwenImage)
+    monkeypatch.setattr(qwen_image_generate.CallbackManager, "register_callbacks", lambda **kwargs: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-qwen",
+            "--model",
+            "qwen-image",
+            "--prompt",
+            "a spaceship in the snow",
+            "--output",
+            "out.png",
+        ],
+    )
+
+    qwen_image_generate.main()
+
+    assert observed["generate"]["negative_prompt"] is None
+
+
+def test_qwen_backend_explicit_empty_negative_prompt_is_preserved(monkeypatch):
+    from mflux.models.qwen.cli import qwen_image_generate
+
+    observed = {}
+
+    class FakeImage:
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+
+    class FakeQwenImage:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_image(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeImage()
+
+    monkeypatch.setattr(qwen_image_generate, "QwenImage", FakeQwenImage)
+    monkeypatch.setattr(qwen_image_generate.CallbackManager, "register_callbacks", lambda **kwargs: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-qwen",
+            "--model",
+            "qwen-image",
+            "--prompt",
+            "a spaceship in the snow",
+            "--negative",
+            "",
+            "--output",
+            "out.png",
+        ],
+    )
+
+    qwen_image_generate.main()
+
+    assert observed["generate"]["negative_prompt"] == ""
 
 
 def test_qwen_edit_backend_outpaint_preserves_source_region(monkeypatch, tmp_path):
@@ -592,6 +685,16 @@ def test_capabilities_command_accepts_base_model_for_local_paths(capsys):
     payload = json.loads(capsys.readouterr().out)
     assert payload["family"] == "flux2"
     assert payload["model_name"] == "../models/local-flux2-folder"
+
+
+def test_capabilities_command_remote_like_spoofs_stay_conservative(capsys):
+    mlx_gen._show_capabilities(["--model", "AbstractFramework/qwen-image-edit-custom"])
+    qwen_payload = json.loads(capsys.readouterr().out)
+    assert {capability["id"] for capability in qwen_payload["capabilities"]} == {"qwen.text", "qwen.latent"}
+
+    mlx_gen._show_capabilities(["--model", "AbstractFramework/z-image-turbo-custom"])
+    z_payload = json.loads(capsys.readouterr().out)
+    assert {capability["id"] for capability in z_payload["capabilities"]} == {"z-image.text", "z-image.latent"}
 
 
 def test_unified_router_rejects_lora_scales_without_paths(capsys):
@@ -1383,7 +1486,10 @@ def test_controlnet_model_requires_control_image(capsys):
             ]
         )
 
-    assert "controlnet-model is only supported on exact ControlNet routes selected by mlxgen generate" in capsys.readouterr().err
+    assert (
+        "controlnet-model is only supported on exact ControlNet routes selected by mlxgen generate"
+        in capsys.readouterr().err
+    )
 
 
 def test_controlnet_strength_requires_control_image(capsys):
@@ -1829,6 +1935,7 @@ def test_z_image_turbo_backend_forwards_mask_path(monkeypatch, tmp_path):
 
 def test_z_image_backend_rejects_mask_path_on_non_turbo_before_model_init(monkeypatch, capsys):
     from mflux.models.z_image.cli import z_image_generate
+
     observed = {}
 
     class FakeZImage:
@@ -2617,7 +2724,7 @@ def test_ernie_family_override_local_folder_requires_base_model(capsys):
             ]
         )
 
-    assert "--family ernie-image is not enough to configure model path" in capsys.readouterr().err
+    assert "Pass --base-model with a supported model alias" in capsys.readouterr().err
 
 
 def test_ernie_family_override_routes_local_folder():
@@ -3185,6 +3292,8 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
     observed = {}
     image_path = tmp_path / "input.png"
     image_path.write_bytes(b"fake")
+    existing_output = tmp_path / "out.mp4"
+    existing_output.write_bytes(b"existing")
 
     class FakeVideo:
         def save(self, **kwargs):
@@ -3231,7 +3340,7 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
             "--replace",
             "false",
             "--output",
-            "out.mp4",
+            str(existing_output),
         ],
     )
 
@@ -3255,8 +3364,8 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
     assert observed["generate"]["clear_cache_each_step"] is False
     assert observed["generate"]["clear_cache_each_transformer_block"] is False
     assert observed["generate"]["tensor_health_check_interval"] is None
-    assert observed["save"]["path"] == "out.mp4"
-    assert observed["save"]["overwrite"] is False
+    assert observed["save"]["path"] == tmp_path / "out_1.mp4"
+    assert observed["save"]["overwrite"] is True
 
 
 def test_wan_cli_can_disable_progress(monkeypatch):
@@ -3366,6 +3475,124 @@ def test_wan_cli_writes_failure_manifest(monkeypatch, tmp_path):
     assert "mlx_peak_memory_bytes" in manifest["runtime_diagnostics"]
 
 
+def test_wan_cli_json_events_emit_failed_with_diagnostics_path(monkeypatch, tmp_path, capsys):
+    from mflux.models.wan.cli import wan_generate
+
+    output_path = tmp_path / "failed.mp4"
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            pass
+
+        def generate_video(self, **kwargs):
+            raise ValueError("synthetic tensor failure")
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "generate",
+            "--model",
+            "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--seed",
+            "123",
+            "--output",
+            str(output_path),
+            "--failure-diagnostics",
+            "--json-events",
+            "--no-progress",
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        mlx_gen.main()
+
+    stdout_lines = [json.loads(line) for line in capsys.readouterr().out.strip().splitlines() if line.strip()]
+    assert stdout_lines[-1]["phase"] == "failed"
+    assert stdout_lines[-1]["task"] == "text-to-video"
+    assert stdout_lines[-1]["diagnostics_path"] == str(output_path.with_suffix(".failure.json"))
+
+
+def test_routed_generate_json_events_emit_structured_remediation_for_download_required(monkeypatch, tmp_path, capsys):
+    from mflux.models.z_image.cli import z_image_turbo_generate
+
+    output_path = tmp_path / "missing.png"
+
+    class MissingZImageTurbo:
+        def __init__(self, **kwargs):
+            raise DownloadRequiredError("Tongyi-MAI/Z-Image-Turbo")
+
+    monkeypatch.setattr(z_image_turbo_generate, "ZImage", MissingZImageTurbo)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "generate",
+            "--model",
+            "z-image-turbo",
+            "--prompt",
+            "test",
+            "--json-events",
+            "--output",
+            str(output_path),
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        mlx_gen.main()
+
+    assert exc.value.code == 2
+    captured = capsys.readouterr()
+    events = [json.loads(line) for line in captured.out.strip().splitlines() if line.strip()]
+    assert events[-1]["phase"] == "failed"
+    assert events[-1]["command"] == "mlxgen generate"
+    assert events[-1]["model"] == "z-image-turbo"
+    assert events[-1]["output_path"] == str(output_path)
+    assert events[-1]["error_type"] == "DownloadRequiredError"
+    assert events[-1]["remediation"]["kind"] == "download-required"
+    assert events[-1]["remediation"]["repo_id"] == "Tongyi-MAI/Z-Image-Turbo"
+    assert events[-1]["remediation"]["download_command"] == "mlxgen download --model Tongyi-MAI/Z-Image-Turbo"
+    assert "prepare_command" in events[-1]["remediation"]
+    assert "MLX-Gen will not download model files during generation" in captured.err
+
+
+def test_routed_generate_json_events_emit_failed_for_backend_parser_errors(monkeypatch, capsys):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "generate",
+            "--model",
+            "qwen-image",
+            "--prompt",
+            "test",
+            "--failure-diagnostics",
+            "--json-events",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        mlx_gen.main()
+
+    assert exc.value.code == 2
+    captured = capsys.readouterr()
+    events = [json.loads(line) for line in captured.out.strip().splitlines() if line.strip()]
+    assert events[-1]["phase"] == "failed"
+    assert events[-1]["command"] == "mlxgen generate"
+    assert events[-1]["model"] == "qwen-image"
+    assert events[-1]["error_type"] == "CliArgumentError"
+    assert events[-1]["remediation"]["kind"] == "cli-usage"
+    assert "usage: mflux-generate-qwen" in events[-1]["remediation"]["usage"]
+    assert "unrecognized arguments: --failure-diagnostics" in events[-1]["error"]
+    assert "usage: mflux-generate-qwen" in captured.err
+
+
 def test_routes_wan_failure_diagnostics_to_backend():
     invocation = mlx_gen._resolve_invocation(
         [
@@ -3379,6 +3606,28 @@ def test_routes_wan_failure_diagnostics_to_backend():
 
     assert invocation.target_name == "mlxgen-generate-wan"
     assert "--failure-diagnostics" in invocation.argv
+
+
+def test_qwen_cli_rejects_failure_diagnostics_flag(monkeypatch):
+    from mflux.models.qwen.cli import qwen_image_generate
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-qwen",
+            "--model",
+            "qwen-image",
+            "--prompt",
+            "test",
+            "--failure-diagnostics",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        qwen_image_generate.main()
+
+    assert exc.value.code == 2
 
 
 def test_wan_cli_low_ram_releases_denoisers_before_decode_and_sets_cache_limit(monkeypatch):
@@ -4084,3 +4333,485 @@ def test_depth_pro_download_command_enables_direct_url_download(monkeypatch, cap
     ]
     assert downloads_enabled() is False
     assert "Downloaded Depth Pro weights" in capsys.readouterr().out
+
+
+def test_routed_generate_json_events_are_machine_readable(monkeypatch, tmp_path, capsys):
+    import mlx.core as mx
+    from PIL import Image
+
+    from mflux.callbacks import ProgressEvent
+    from mflux.callbacks.callback_registry import CallbackRegistry
+    from mflux.models.qwen.cli import qwen_image_generate
+    from mflux.utils.generated_image import GeneratedImage
+
+    output_path = tmp_path / "generated.png"
+
+    class FakeQwen:
+        def __init__(self, **kwargs):
+            self.callbacks = CallbackRegistry()
+            self.model_config = kwargs["model_config"]
+
+        def generate_image(self, **kwargs):
+            self.callbacks.emit_progress(ProgressEvent(task="text-to-image", phase="start", step=0, total_steps=4))
+            self.callbacks.emit_progress(ProgressEvent(task="text-to-image", phase="denoise", step=2, total_steps=4))
+            self.callbacks.emit_progress(ProgressEvent(task="text-to-image", phase="complete", step=4, total_steps=4))
+            return GeneratedImage(
+                image=Image.new("RGB", (16, 16), "white"),
+                model_config=self.model_config,
+                seed=kwargs["seed"],
+                prompt=kwargs["prompt"],
+                steps=4,
+                guidance=kwargs["guidance"],
+                precision=mx.bfloat16,
+                quantization=8,
+                generation_time=0.1,
+                height=16,
+                width=16,
+            )
+
+    monkeypatch.setattr(qwen_image_generate, "QwenImage", FakeQwen)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "generate",
+            "--model",
+            "qwen-image",
+            "--prompt",
+            "test prompt",
+            "--width",
+            "16",
+            "--height",
+            "16",
+            "--steps",
+            "4",
+            "--guidance",
+            "1",
+            "--seed",
+            "123",
+            "--json-events",
+            "--output",
+            str(output_path),
+        ],
+    )
+
+    mlx_gen.main()
+
+    events = [json.loads(line) for line in capsys.readouterr().out.strip().splitlines() if line.strip()]
+    assert [event["phase"] for event in events] == ["start", "denoise", "generated", "save", "complete"]
+    assert events[-1]["output_path"] == str(output_path)
+    assert output_path.exists()
+
+
+def test_routed_generate_multi_seed_outputs_are_unique_for_images(monkeypatch, tmp_path):
+    import mlx.core as mx
+
+    from mflux.models.qwen.cli import qwen_image_generate
+    from mflux.utils.generated_image import GeneratedImage
+
+    class FakeQwen:
+        def __init__(self, **kwargs):
+            self.model_config = kwargs["model_config"]
+
+        def generate_image(self, **kwargs):
+            return GeneratedImage(
+                image=Image.new("RGB", (16, 16), "white"),
+                model_config=self.model_config,
+                seed=kwargs["seed"],
+                prompt=kwargs["prompt"],
+                steps=4,
+                guidance=kwargs["guidance"],
+                precision=mx.bfloat16,
+                quantization=8,
+                generation_time=0.1,
+                height=16,
+                width=16,
+            )
+
+    monkeypatch.setattr(qwen_image_generate, "QwenImage", FakeQwen)
+    monkeypatch.setattr(qwen_image_generate.CallbackManager, "register_callbacks", lambda **kwargs: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "generate",
+            "--model",
+            "qwen-image",
+            "--prompt",
+            "test prompt",
+            "--width",
+            "16",
+            "--height",
+            "16",
+            "--steps",
+            "4",
+            "--guidance",
+            "1",
+            "--seed",
+            "123",
+            "456",
+            "--output",
+            str(tmp_path / "image.png"),
+        ],
+    )
+
+    mlx_gen.main()
+
+    assert (tmp_path / "image_seed_123.png").exists()
+    assert (tmp_path / "image_seed_456.png").exists()
+
+
+def test_routed_upscale_json_events_are_machine_readable(monkeypatch, tmp_path, capsys):
+    import mlx.core as mx
+    from PIL import Image
+
+    from mflux.callbacks import ProgressEvent
+    from mflux.callbacks.callback_registry import CallbackRegistry
+    from mflux.models.common.config import ModelConfig
+    from mflux.models.seedvr2.cli import seedvr2_upscale
+    from mflux.utils.generated_image import GeneratedImage
+
+    source_path = tmp_path / "source.png"
+    output_path = tmp_path / "upscaled.png"
+    Image.new("RGB", (8, 8), "white").save(source_path)
+
+    class FakeSeedVR2:
+        def __init__(self):
+            self.callbacks = CallbackRegistry()
+            self.model_config = ModelConfig.seedvr2_3b()
+            self.tiling_config = None
+
+        def generate_image(self, **kwargs):
+            self.callbacks.emit_progress(ProgressEvent(task="image-to-image", phase="start", step=0, total_steps=1))
+            self.callbacks.emit_progress(ProgressEvent(task="image-to-image", phase="denoise", step=1, total_steps=1))
+            self.callbacks.emit_progress(ProgressEvent(task="image-to-image", phase="complete", step=1, total_steps=1))
+            return GeneratedImage(
+                image=Image.new("RGB", (16, 16), "white"),
+                model_config=self.model_config,
+                seed=kwargs["seed"],
+                prompt="",
+                steps=1,
+                guidance=1.0,
+                precision=mx.bfloat16,
+                quantization=8,
+                generation_time=0.1,
+                height=16,
+                width=16,
+                image_path=str(source_path),
+                image_strength=1.0,
+                source_image_width=8,
+                source_image_height=8,
+            )
+
+    monkeypatch.setattr(seedvr2_upscale, "_load_seedvr2_model", lambda **kwargs: FakeSeedVR2())
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "upscale",
+            "--model",
+            "seedvr2-3b",
+            "--image-path",
+            str(source_path),
+            "--seed",
+            "123",
+            "--json-events",
+            "--output",
+            str(output_path),
+        ],
+    )
+
+    mlx_gen.main()
+
+    events = [json.loads(line) for line in capsys.readouterr().out.strip().splitlines() if line.strip()]
+    assert [event["phase"] for event in events] == ["start", "denoise", "generated", "save", "complete"]
+    assert events[-1]["output_path"] == str(output_path)
+    assert output_path.exists()
+
+
+def test_routed_generate_multi_seed_outputs_are_unique_for_wan_videos(monkeypatch, tmp_path):
+    from mflux.models.wan.cli import wan_generate
+
+    class FakeVideo:
+        def __init__(self, seed: int):
+            self.seed = seed
+
+        def save(self, **kwargs):
+            path = kwargs["path"]
+            path.write_bytes(f"seed:{self.seed}".encode("utf-8"))
+            return path
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            pass
+
+        def generate_video(self, **kwargs):
+            return FakeVideo(kwargs["seed"])
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "generate",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--width",
+            "128",
+            "--height",
+            "128",
+            "--frames",
+            "5",
+            "--fps",
+            "8",
+            "--steps",
+            "2",
+            "--seed",
+            "123",
+            "456",
+            "--output",
+            str(tmp_path / "video.mp4"),
+            "--no-progress",
+        ],
+    )
+
+    mlx_gen.main()
+
+    assert (tmp_path / "video_seed_123.mp4").exists()
+    assert (tmp_path / "video_seed_456.mp4").exists()
+
+
+def test_routed_generate_rejects_duplicate_wan_seeds(monkeypatch):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "generate",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--width",
+            "128",
+            "--height",
+            "128",
+            "--frames",
+            "5",
+            "--fps",
+            "8",
+            "--steps",
+            "2",
+            "--seed",
+            "7",
+            "7",
+            "--no-progress",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        mlx_gen.main()
+
+    assert exc.value.code == 2
+
+
+def test_routed_generate_rejects_nonpositive_wan_auto_seeds(monkeypatch):
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "generate",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--width",
+            "128",
+            "--height",
+            "128",
+            "--frames",
+            "5",
+            "--fps",
+            "8",
+            "--steps",
+            "2",
+            "--auto-seeds",
+            "0",
+            "--no-progress",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        mlx_gen.main()
+
+    assert exc.value.code == 2
+
+
+def test_routed_generate_wan_auto_seeds_override_metadata_seed(monkeypatch, tmp_path):
+    from mflux.models.wan.cli import wan_generate
+
+    metadata_path = tmp_path / "metadata.json"
+    metadata_path.write_text(json.dumps({"prompt": "a city timelapse", "seed": 24}))
+    observed_seeds: list[int] = []
+
+    class FakeVideo:
+        def __init__(self, seed: int):
+            self.seed = seed
+
+        def save(self, **kwargs):
+            path = kwargs["path"]
+            path.write_bytes(f"seed:{self.seed}".encode("utf-8"))
+            return path
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            pass
+
+        def generate_video(self, **kwargs):
+            observed_seeds.append(kwargs["seed"])
+            return FakeVideo(kwargs["seed"])
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr("mflux.cli.seed_values.random.sample", lambda population, k: [101, 202])
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "generate",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--config-from-metadata",
+            str(metadata_path),
+            "--width",
+            "128",
+            "--height",
+            "128",
+            "--frames",
+            "5",
+            "--fps",
+            "8",
+            "--steps",
+            "2",
+            "--auto-seeds",
+            "2",
+            "--output",
+            str(tmp_path / "video.mp4"),
+            "--no-progress",
+        ],
+    )
+
+    mlx_gen.main()
+
+    assert observed_seeds == [101, 202]
+    assert (tmp_path / "video_seed_101.mp4").exists()
+    assert (tmp_path / "video_seed_202.mp4").exists()
+
+
+def test_routed_upscale_auto_seeds_are_unique_for_images(monkeypatch, tmp_path):
+    import mlx.core as mx
+
+    from mflux.callbacks.callback_registry import CallbackRegistry
+    from mflux.models.common.config import ModelConfig
+    from mflux.models.seedvr2.cli import seedvr2_upscale
+    from mflux.utils.generated_image import GeneratedImage
+
+    source_path = tmp_path / "source.png"
+    Image.new("RGB", (8, 8), "white").save(source_path)
+
+    class FakeSeedVR2:
+        def __init__(self):
+            self.callbacks = CallbackRegistry()
+            self.model_config = ModelConfig.seedvr2_3b()
+            self.tiling_config = None
+
+        def generate_image(self, **kwargs):
+            return GeneratedImage(
+                image=Image.new("RGB", (16, 16), "white"),
+                model_config=self.model_config,
+                seed=kwargs["seed"],
+                prompt="",
+                steps=1,
+                guidance=1.0,
+                precision=mx.bfloat16,
+                quantization=8,
+                generation_time=0.1,
+                height=16,
+                width=16,
+                image_path=str(source_path),
+                image_strength=1.0,
+                source_image_width=8,
+                source_image_height=8,
+            )
+
+    monkeypatch.setattr(seedvr2_upscale, "_load_seedvr2_model", lambda **kwargs: FakeSeedVR2())
+    monkeypatch.setattr(seedvr2_upscale.CallbackManager, "register_callbacks", lambda **kwargs: None)
+    monkeypatch.setattr("mflux.cli.seed_values.random.sample", lambda population, k: [101, 202])
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "upscale",
+            "--model",
+            "seedvr2-3b",
+            "--image-path",
+            str(source_path),
+            "--auto-seeds",
+            "2",
+            "--output",
+            str(tmp_path / "upscaled.png"),
+        ],
+    )
+
+    mlx_gen.main()
+
+    assert (tmp_path / "upscaled_seed_101.png").exists()
+    assert (tmp_path / "upscaled_seed_202.png").exists()
+
+
+def test_routed_upscale_json_events_emit_structured_remediation_for_download_required(monkeypatch, tmp_path, capsys):
+    from mflux.models.seedvr2.cli import seedvr2_upscale
+
+    source_path = tmp_path / "source.png"
+    Image.new("RGB", (8, 8), "white").save(source_path)
+
+    class MissingPackageSeedVR2:
+        def __init__(self, *, quantize, model_path, model_config):
+            raise DownloadRequiredError("AbstractFramework/seedvr2-7b-8bit")
+
+    monkeypatch.setattr(seedvr2_upscale, "SeedVR2", MissingPackageSeedVR2)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen",
+            "upscale",
+            "--model",
+            "AbstractFramework/seedvr2-7b-8bit",
+            "--image-path",
+            str(source_path),
+            "--json-events",
+        ],
+    )
+
+    with pytest.raises(SystemExit) as exc:
+        mlx_gen.main()
+
+    assert exc.value.code == 1
+    captured = capsys.readouterr()
+    events = [json.loads(line) for line in captured.out.strip().splitlines() if line.strip()]
+    assert events[-1]["phase"] == "failed"
+    assert events[-1]["command"] == "mlxgen upscale"
+    assert events[-1]["model"] == "AbstractFramework/seedvr2-7b-8bit"
+    assert events[-1]["error_type"] == "DownloadRequiredError"
+    assert events[-1]["remediation"]["kind"] == "download-required"
+    assert events[-1]["remediation"]["repo_id"] == "AbstractFramework/seedvr2-7b-8bit"
+    assert "mlxgen download --model AbstractFramework/seedvr2-7b-8bit" in captured.err

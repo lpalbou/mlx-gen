@@ -57,6 +57,8 @@ class WanInitializer:
         model.weight_definition = weight_definition
         model.callbacks = CallbackRegistry()
         model.tiling_config = None
+        model.prompt_embed_cache = {}
+        model.image_condition_cache = {}
 
     @staticmethod
     def _load_weights(model_path: str, weight_definition: WanWeightDefinition) -> LoadedWeights:

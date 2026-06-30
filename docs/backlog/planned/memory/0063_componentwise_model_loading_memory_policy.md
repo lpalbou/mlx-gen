@@ -19,7 +19,8 @@ components into one `LoadedWeights` object before applying and quantizing.
 - Flux, Qwen, Z-Image, Flux2, FIBO, and ERNIE initializers generally load all weights, initialize
   modules, apply all weights, and then apply LoRA.
 - Wan's initializer has a component-wise path that clears component weights after each apply.
-- Generic image CLIs register low-RAM/cache behavior after model construction.
+- Generic image CLIs now apply the shared cache-limit hook before model construction, but that
+  earlier policy still has not been proven to reduce launch-to-first-step peak memory.
 
 ## Problem
 Startup peaks can include raw loaded weights, quantized model parameters, and LoRA work at the same
@@ -155,3 +156,41 @@ architecture-sensitive and can be completed incrementally only if the primitive 
 - Required next proof: a process-isolated launch-to-first-denoise or launch-to-first-upscale profile
   with and without pre-construction cache policy, including parent sampled RSS/physical footprint,
   MLX peak/cache, wall time, and a clear phase marker for model construction versus first compute.
+
+## Research update
+
+- Date: 2026-06-29
+- Local package-size ceilings from cached prepared packages show that the likely upside varies
+  sharply by family. The practical upper bound for component-wise overlap removal is roughly
+  `total_loaded_component_bytes - largest_component_bytes` before quantization, eval, and LoRA
+  transients:
+  - `seedvr2-3b-4bit`: total `2.732 GB`, largest component `2.234 GB`, overlap ceiling `0.498 GB`
+  - `seedvr2-7b-4bit`: total `5.138 GB`, largest component `4.639 GB`, overlap ceiling `0.498 GB`
+  - `z-image-turbo-8bit`: total `10.981 GB`, largest component `6.541 GB`, overlap ceiling
+    `4.440 GB`
+  - `flux.2-klein-4b-8bit`: total `8.558 GB`, largest component `4.274 GB`, overlap ceiling
+    `4.284 GB`
+  - `flux.2-klein-9b-8bit`: total `17.854 GB`, largest component `9.646 GB`, overlap ceiling
+    `8.208 GB`
+  - `qwen-image-8bit`: total `29.479 GB`, largest component `21.713 GB`, overlap ceiling
+    `7.767 GB`
+- Interpretation: the highest-value prepared-package streaming targets are the larger image
+  families, not SeedVR2 prepared packages. SeedVR2 still matters for safety-sensitive video work,
+  but its prepared-package overlap ceiling is modest compared with Z-Image, FLUX.2, and Qwen.
+- External evidence: Safetensors supports partial tensor access and slice-oriented loading, while
+  Diffusers documents sharded checkpoint loading as a load-time memory reducer. MLX unified memory
+  and lazy evaluation explain why cache-limit policy can improve retained cache without proving a
+  launch-to-first-step peak win. See:
+  `https://huggingface.co/docs/safetensors/en/index`,
+  `https://huggingface.co/docs/diffusers/optimization/memory`,
+  `https://ml-explore.github.io/mlx/build/html/usage/unified_memory.html`,
+  `https://ml-explore.github.io/mlx/build/html/usage/lazy_evaluation.html`.
+- Revised direction: keep item 0063 focused on two deliverables:
+  `1.` phase-isolated proof of where startup and end-of-run peaks actually occur;
+  `2.` one family-scoped component-wise or shard-wise migration with exact output parity.
+  Prefer a simpler prepared image family such as Z-Image or FLUX.2 for the first migration.
+  Defer Qwen until mixed-policy and corrupt-weight checks are preserved, and treat eager
+  source-checkpoint streaming as a separate follow-up if official `.pth` routes remain important.
+- Required next proof before closure: add benchmark phases for `model_init`,
+  `load_component.<name>`, `apply_component.<name>`, `first_eval`, `decode`, `save`, and `health`,
+  then compare launch-to-first-step and full-run peaks before claiming that startup memory is fixed.

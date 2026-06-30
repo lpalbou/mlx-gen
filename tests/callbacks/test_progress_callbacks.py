@@ -36,6 +36,7 @@ def test_image_progress_subscription_receives_lightweight_lifecycle_events():
     ctx.in_loop(0, latents=object(), time_steps=object())
     ctx.in_loop(1, latents=object(), time_steps=object())
     ctx.after_loop(latents=object())
+    ctx.complete()
 
     assert [event.phase for event in events] == ["start", "denoise", "denoise", "complete"]
     assert [event.step for event in events] == [0, 1, 2, 4]
@@ -63,6 +64,7 @@ def test_image_progress_infers_image_to_image_and_filters_subscribers():
     ctx.before_loop(latents=object())
     ctx.in_loop(2, latents=object(), time_steps=object())
     ctx.after_loop(latents=object())
+    ctx.complete()
 
     assert [event.phase for event in all_events] == ["start", "denoise", "complete"]
     assert [event.task for event in all_events] == ["image-to-image"] * 3
@@ -88,6 +90,7 @@ def test_image_progress_reports_text_to_image_when_image_strength_is_nonpositive
     )
     ctx.before_loop(latents=object())
     ctx.after_loop(latents=object())
+    ctx.complete()
 
     assert [event.task for event in all_events] == ["text-to-image", "text-to-image"]
     assert text_events == all_events
@@ -111,10 +114,39 @@ def test_image_progress_uses_explicit_task_for_edit_conditioned_generation():
     )
     ctx.before_loop(latents=object())
     ctx.after_loop(latents=object())
+    ctx.complete()
 
     assert [event.task for event in all_events] == ["image-to-image", "image-to-image"]
     assert img2img_events == all_events
     assert text_events == []
+
+
+def test_progress_subscribers_receive_distinct_terminal_sequences_for_serial_reuse():
+    registry = CallbackRegistry()
+    events = []
+    registry.subscribe_progress(events.append)
+
+    first = registry.start(seed=101, prompt="first", config=FakeConfig(num_inference_steps=3))
+    first.before_loop(latents=object())
+    first.in_loop(0, latents=object(), time_steps=object())
+    first.after_loop(latents=object())
+    first.complete()
+
+    second = registry.start(seed=202, prompt="second", config=FakeConfig(num_inference_steps=2))
+    second.before_loop(latents=object())
+    second.in_loop(0, latents=object(), time_steps=object())
+    second.after_loop(latents=object())
+    second.complete()
+
+    assert [event.phase for event in events] == [
+        "start",
+        "denoise",
+        "complete",
+        "start",
+        "denoise",
+        "complete",
+    ]
+    assert [event.step for event in events] == [0, 1, 3, 0, 1, 2]
 
 
 def test_progress_subscription_can_be_removed():
@@ -126,6 +158,7 @@ def test_progress_subscription_can_be_removed():
     ctx = registry.start(seed=7, prompt="prompt", config=FakeConfig())
     ctx.before_loop(latents=object())
     ctx.after_loop(latents=object())
+    ctx.complete()
 
     assert events == []
 
@@ -153,3 +186,57 @@ def test_image_progress_does_not_force_eval_without_listener(monkeypatch):
     ctx.in_loop(0, latents=object(), time_steps=object())
 
     assert eval_calls == []
+
+
+def test_after_loop_is_not_terminal_and_failed_is_terminal():
+    registry = CallbackRegistry()
+    events = []
+    registry.subscribe_progress(events.append)
+
+    ctx = registry.start(seed=7, prompt="prompt", config=FakeConfig(num_inference_steps=2))
+    ctx.before_loop(latents=object())
+    ctx.after_loop(latents=object())
+    ctx.failed()
+    ctx.complete()
+    ctx.failed()
+
+    assert [event.phase for event in events] == ["start", "failed"]
+
+
+def test_terminal_events_are_mutually_exclusive():
+    registry = CallbackRegistry()
+    events = []
+    registry.subscribe_progress(events.append)
+
+    ctx = registry.start(seed=7, prompt="prompt", config=FakeConfig(num_inference_steps=2))
+    ctx.before_loop(latents=object())
+    ctx.complete()
+    ctx.interruption(0, latents=object(), time_steps=object())
+    ctx.failed()
+
+    assert [event.phase for event in events] == ["start", "complete"]
+
+
+def test_after_loop_exception_emits_failed_terminal():
+    registry = CallbackRegistry()
+    events = []
+    registry.subscribe_progress(events.append)
+
+    class RaisingAfterLoop:
+        @staticmethod
+        def call_after_loop(**kwargs):
+            raise RuntimeError("after loop failed")
+
+    registry.register(RaisingAfterLoop())
+
+    ctx = registry.start(seed=7, prompt="prompt", config=FakeConfig(num_inference_steps=2))
+    ctx.before_loop(latents=object())
+
+    try:
+        ctx.after_loop(latents=object())
+    except RuntimeError as exc:
+        assert str(exc) == "after loop failed"
+    else:
+        raise AssertionError("expected after_loop failure")
+
+    assert [event.phase for event in events] == ["start", "failed"]
