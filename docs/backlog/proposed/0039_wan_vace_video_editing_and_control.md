@@ -8,10 +8,10 @@
 
 ## ADR status
 
-- Governing ADRs: [ADR 0001](../../adr/0001_runtime_smoke_validation_for_model_routes.md), [ADR 0002](../../adr/0002_no_silent_automatic_fallbacks.md)
-- ADR impact: May need a small video-task ADR if MLX-Gen adds first-class video-to-video,
-  masked video editing, or control-to-video taxonomy beyond the current text-to-video and
-  image-to-video split.
+- Governing ADRs: [ADR 0001](../../adr/0001_runtime_smoke_validation_for_model_routes.md),
+  [ADR 0002](../../adr/0002_no_silent_automatic_fallbacks.md),
+  [ADR 0006](../../adr/0006_generative_video_editing_task_boundary.md)
+- ADR impact: None. ADR 0006 already fixes the public workflow boundary.
 
 ## Context
 
@@ -56,20 +56,31 @@ generation. The strongest near-family gap is Wan VACE-style control and editing:
 That opportunity is currently under-tracked because it is buried inside the broader second-family
 selection proposal.
 
+## Decision boundary
+
+This item is no longer the place to decide the first public generative video-edit route.
+
+That boundary is already fixed:
+
+- public generative source-video editing belongs to `mlxgen generate`, not `mlxgen upscale`;
+- the first public implementation must be plain `video-to-video`;
+- richer Wan conditioning such as masks, reference images, or control belongs later.
+
+Those decisions are already owned by [ADR 0006](../../adr/0006_generative_video_editing_task_boundary.md),
+[0074 Wan plain generative video-to-video route](../completed/0074_wan_plain_generative_video_to_video_route.md),
+and [0075 Wan VACE conditioning expansion after plain video-to-video](0075_wan_vace_conditioning_expansion_after_plain_video_to_video.md).
+
 ## Proposed direction
 
-Track Wan VACE as its own future Wan extension:
+Keep this item as a bounded umbrella pointer for the Wan-family opportunity only:
 
-1. Audit the upstream Wan VACE and Wan video-to-video routes against current MLX-Gen Wan code.
-2. Decide the smallest useful first route:
-   - plain video-to-video;
-   - masked video edit;
-   - reference-image-guided video edit; or
-   - structured control-to-video.
-3. Reuse MLX-Gen's existing Wan scheduler, transformer-role, metadata, and MP4 save surface where
-   possible.
-4. Keep first implementation bounded and fail-closed. Do not infer VACE behavior from current T2V
-   or I2V routes.
+1. Preserve Wan VACE as the strongest already-adjacent path for future richer video editing and
+   control inside a family MLX-Gen already supports.
+2. Keep plain `video-to-video` runtime work separate and earlier in execution order.
+3. Keep VACE-specific mask, reference-image, and conditioning-scale work separate and later in
+   execution order.
+4. Reuse MLX-Gen's existing video save, metadata, and progress surfaces when later follow-up work
+   proves one specific VACE capability is worth shipping.
 
 ## Why it might matter
 
@@ -81,19 +92,16 @@ family just to get video editing primitives.
 
 - Planned items 0035 and 0015 settle current Wan TI2V prompt/motion confidence sufficiently that a
   new Wan mode will not hide unresolved base-family issues.
-- At least one official Wan VACE or Wan video-to-video model path is runnable locally with bounded
-  settings.
-- The public MLX-Gen/AbstractVision contract for video-to-video or masked video editing is clear
-  enough to expose without guesswork.
-- One exact upstream weight set is selected as the first proof target.
+- The plain public `video-to-video` route is either shipped or rejected with exact evidence.
+- One exact Wan VACE-conditioned use case is proven locally strongly enough to justify richer
+  conditioning beyond plain `video-to-video`.
 
 ## Validation ideas
 
-- Small MP4 smoke for the chosen first route with source video, prompt, seed, dimensions, frames,
-  steps, and output metadata.
-- Contact sheet or frame strip comparing source frames and edited frames.
-- If masked editing is chosen, include the mask visualization and command surface in proof assets.
-- If structured control is chosen, include the control input in the proof artifact set.
+- Preserve one exact upstream reference proof for a conditioned Wan VACE case with source video,
+  prompt, seed, dimensions, frames, steps, and output artifacts.
+- Preserve contact sheets comparing source, mask, and edited output frames.
+- Keep any public-runtime smoke proof on the separate plain `video-to-video` item, not here.
 
 ## Non-goals
 
@@ -105,9 +113,12 @@ family just to get video editing primitives.
 
 ## Guidance for future agents
 
-Start with the smallest credible Wan editing route and preserve exact evidence. If a first-class
-video-to-video or masked-video task needs a new public taxonomy, create the ADR before claiming
-support in docs or capabilities.
+Do not use this item to reopen the first-route decision. The execution path is already split:
+
+- [0074 Wan plain generative video-to-video route](../completed/0074_wan_plain_generative_video_to_video_route.md)
+  owns the first public runtime milestone.
+- [0075 Wan VACE conditioning expansion after plain video-to-video](0075_wan_vace_conditioning_expansion_after_plain_video_to_video.md)
+  owns the later richer-conditioning follow-up.
 
 ## Sources checked
 

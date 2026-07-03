@@ -853,9 +853,18 @@ def _run_video_with_fresh_model(
 
 def main():
     # 1. Parse command line arguments
-    parser = CommandLineParser(description="Upscale an image using SeedVR2 diffusion-based super-resolution.")
+    parser = CommandLineParser(
+        description="Restore or upscale an image or video using SeedVR2 diffusion-based super-resolution."
+    )
     parser.add_general_arguments()
     parser.add_model_arguments(require_model_arg=False)
+    for action in parser._actions:
+        if action.dest == "model":
+            action.help = (
+                "SeedVR2 model alias (seedvr2, seedvr2-3b, seedvr2-7b, or seedvr2-7b-sharp), an official "
+                "SeedVR2 Hugging Face repo, an AbstractFramework SeedVR2 package, or a local path."
+            )
+            break
     parser.add_seedvr2_upscale_arguments()
     parser.add_output_arguments()
     args = parser.parse_args()

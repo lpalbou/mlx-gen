@@ -48,10 +48,15 @@ class Wan2_2_DownBlock(nn.Module):
         else:
             self.downsampler = None
 
-    def __call__(self, x: mx.array) -> mx.array:
+    def __call__(
+        self,
+        x: mx.array,
+        feat_cache: list[mx.array | str | None] | None = None,
+        feat_idx: list[int] | None = None,
+    ) -> mx.array:
         x_copy = x
         for layer in self.resnets:
-            x = layer(x)
+            x = layer(x, feat_cache=feat_cache, feat_idx=feat_idx)
         if self.downsampler is not None:
-            x = self.downsampler(x)
+            x = self.downsampler(x, feat_cache=feat_cache, feat_idx=feat_idx)
         return x + self.avg_shortcut(x_copy)

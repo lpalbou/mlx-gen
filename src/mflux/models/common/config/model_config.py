@@ -850,6 +850,7 @@ AVAILABLE_MODELS = {
             },
             "task": "text-to-video",
             "supports_image_to_video": False,
+            "supports_video_to_video": True,
             "default_width": 1280,
             "default_height": 720,
             "default_frames": 81,

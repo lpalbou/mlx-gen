@@ -24,6 +24,15 @@ The public workflows are:
 The package also installs compatibility entry points from the mflux codebase. New workflows should
 prefer the `mlxgen` commands above when a matching command exists.
 
+Reader-first workflow split:
+
+| You have | You want | Current command |
+| --- | --- | --- |
+| Only a prompt | A new image or a new video | `mlxgen generate` |
+| One image | Image editing, reframe/outpaint, or Wan first-frame image-to-video | `mlxgen generate` |
+| One video clip | SeedVR2 restoration or upscale, with no prompt | `mlxgen upscale --video-path ...` |
+| One video clip | Prompt-guided content change | `mlxgen generate --model Wan-AI/Wan2.2-T2V-A14B-Diffusers --video-path ...` |
+
 That recommendation is especially important for application integrations that shell out to a
 subprocess. Use `mlxgen generate` instead of calling model-family commands such as
 `mflux-generate-flux2` or `mflux-generate-flux2-edit` directly. The unified `mlxgen` surface is
@@ -624,13 +633,16 @@ At the default 24 fps, `--frames 121` produces about 5.04 seconds of video, `--f
 
 | Option | Behavior |
 | --- | --- |
-| `--width`, `--height` | Accepted values are model-specific. Text-to-video values are adjusted up to the selected Wan VAE/patch multiple. For image-to-video, these values are a size target: MLX-Gen resolves the final canvas from the source image aspect ratio and the selected model's spatial multiple before conditioning the model. |
+| `--width`, `--height` | Accepted values are model-specific. Text-to-video and plain video-to-video values are adjusted up to the selected Wan VAE/patch multiple. For image-to-video, these values are a size target: MLX-Gen resolves the final canvas from the source image aspect ratio and the selected model's spatial multiple before conditioning the model. |
 | `--frames` | Number of output frames. Wan requires `4n + 1`; other values are adjusted to `4 * floor(frames / 4) + 1`. TI2V-5B default: `121`; A14B default: `81`. |
 | `--fps` | MP4 playback frame rate. Any positive integer is accepted. TI2V-5B default/recommended value: `24`; A14B default/recommended value: `16`. |
 | `--steps` | Denoising steps. TI2V-5B default/recommended quality value: `50`; A14B default/recommended value: `40`. Lower values run faster but reduce quality. |
 | `--guidance` | Classifier-free guidance scale. TI2V-5B default: `5`; A14B default: `4`. |
 | `--guidance-2` | Optional low-noise guidance scale for Wan A14B `transformer_2`. If both guidance flags are omitted, model-specific two-stage defaults are used. If `--guidance` is set and `--guidance-2` is omitted, the low-noise stage follows `--guidance`. It is rejected for single-transformer Wan models. |
 | `--flow-shift` | Flow-matching scheduler shift. Defaults to the selected Wan model config. TI2V-5B defaults to `5.0` for native 720p-class runs. A14B defaults to `3.0`. For new 480p-class TI2V-5B checks such as `832x480`, pass `--flow-shift 3`. Python callers use `flow_shift=...`. |
+| `--video`, `--video-path` | One source video for the plain public Wan video-to-video route. Current public support is limited to `Wan2.2-T2V-A14B`; TI2V-5B and I2V-A14B still reject source-video input, and masks, reference images, and VACE-style controls are not part of this route. |
+| `--video-strength` | Denoising strength for plain video-to-video. Higher values allow larger changes from the source clip. |
+| `--solver` | Wan supports `unipc` and `euler` broadly, but public Wan video-to-video currently requires `unipc`. |
 | `--negative-prompt`, `--negative` | If omitted, Wan uses the model's official default negative prompt. Pass `--negative ""` to intentionally run without a negative prompt; this can be better for simple abstract scenes where the default negative prompt adds unwanted texture. |
 | `--seed` | Deterministic seed. Repeat with multiple values to create multiple videos. |
 | `--progress`, `--no-progress` | Show or disable the CLI video progress bar. The bar advances by denoising step and keeps the requested frame count as context. Default: `--progress true`. |
@@ -641,7 +653,7 @@ Common Wan video sizes:
 | Model | Required width/height multiple | Recommended/native quality size | Lower-cost diagnostic sizes | Notes |
 | --- | ---: | --- | --- | --- |
 | TI2V-5B T2V/I2V | 32 px | `1280x704` or `704x1280` | `832x480`, `480x832`; smaller sizes such as `448x256` are smoke checks only | Text-to-video `1280x720` adjusts to `1280x736`; image-to-video preserves the source image ratio at a nearby supported canvas. |
-| T2V-A14B | 16 px | `1280x720` or `720x1280` | `832x480`, `480x832`, `448x256`, `256x448`, `432x240` | Text-to-video only; image input is rejected. |
+| T2V-A14B | 16 px | `1280x720` or `720x1280` | `832x480`, `480x832`, `448x256`, `256x448`, `432x240` | Text-to-video plus plain video-to-video; image input is rejected and public V2V currently requires `unipc`. |
 | I2V-A14B | 16 px | Source-ratio canvas near `1280x720` or `720x1280` | Source-ratio canvas near `832x480`, `448x256`, or `432x240` | Requires one input image; output preserves the source image ratio at a nearby supported canvas. |
 
 Additional A14B target families that MLX-Gen accepts are useful when you want a different aspect

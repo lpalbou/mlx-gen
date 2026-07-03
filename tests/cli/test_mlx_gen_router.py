@@ -53,6 +53,34 @@ def test_top_level_help_reports_version_and_release_date(monkeypatch, capsys):
     help_output = capsys.readouterr().out
     assert "MLX-Gen 9.9.9 (2099-01-01)" in help_output
     assert "Prepare local model assets and generate images or videos with MLX-Gen." in help_output
+    assert "generate    Generate images or videos, and edit images" in help_output
+    assert "upscale     Restore or upscale images and videos with SeedVR2." in help_output
+
+
+def test_generate_help_calls_out_first_frame_image_to_video(monkeypatch, capsys):
+    monkeypatch.setattr(sys, "argv", ["mlxgen", "generate", "--help"])
+
+    with pytest.raises(SystemExit) as exc:
+        mlx_gen.main()
+
+    assert exc.value.code == 0
+    help_output = capsys.readouterr().out
+    assert "Wan first-frame image-to-video" in help_output
+    assert "mlxgen upscale --video-path" in help_output
+
+
+def test_upscale_help_calls_out_video_restore_and_seedvr2_only(monkeypatch, capsys):
+    from mflux.models.seedvr2.cli import seedvr2_upscale
+
+    monkeypatch.setattr(sys, "argv", ["mlxgen", "upscale", "--help"])
+
+    with pytest.raises(SystemExit) as exc:
+        seedvr2_upscale.main()
+
+    assert exc.value.code == 0
+    help_output = capsys.readouterr().out
+    assert "Restore or upscale an image or video using SeedVR2" in help_output
+    assert "SeedVR2 model alias" in help_output
 
 
 @pytest.mark.parametrize(
@@ -762,6 +790,18 @@ def test_validation_command_reports_model_specific_status(capsys):
     assert payload["model"] == "briaai/Fibo-Edit"
     assert payload["status"] == "FAIL"
     assert {record["mode"] for record in payload["records"]} == {"edit-reference"}
+
+
+def test_validation_command_defaults_to_first_matching_model_profile(capsys):
+    mlx_gen._show_validation(["--model", "AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit"])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["model"] == "AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit"
+    assert payload["profile_id"].startswith("lora_wan_a14b_q8_")
+    assert payload["profile_id"].endswith("_i2v_2026_06_11") or payload["profile_id"].endswith("_i2v_2026_06_12")
+    assert payload["status"] == "PASS"
+    assert len(payload["records"]) == 1
+    assert payload["records"][0]["public_task"] == "image-to-video"
 
 
 def test_validation_command_lists_profiles(capsys):
@@ -3223,6 +3263,39 @@ def test_routes_wan_image_to_video_generation():
     assert "input.png" in invocation.argv
 
 
+def test_routes_wan_video_to_video_generation(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "wan2.2-ti2v-5b",
+                "--video-path",
+                "input.mp4",
+                "--prompt",
+                "change the ship silhouette",
+            ]
+        )
+
+    assert "does not support video-to-video latent editing" in capsys.readouterr().err
+
+
+def test_routes_wan_a14b_video_to_video_generation():
+    invocation = mlx_gen._resolve_invocation(
+        [
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--video-path",
+            "input.mp4",
+            "--prompt",
+            "change the ship silhouette",
+        ]
+    )
+
+    assert invocation.target_name == "mlxgen-generate-wan"
+    assert "--video-path" in invocation.argv
+    assert "input.mp4" in invocation.argv
+
+
 def test_wan_i2v_a14b_requires_image_before_model_load(capsys):
     with pytest.raises(SystemExit):
         mlx_gen._resolve_invocation(
@@ -3235,6 +3308,22 @@ def test_wan_i2v_a14b_requires_image_before_model_load(capsys):
         )
 
     assert "image-to-video model requires --image" in capsys.readouterr().err
+
+
+def test_wan_i2v_a14b_rejects_video_before_model_load(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "Wan-AI/Wan2.2-I2V-A14B-Diffusers",
+                "--video-path",
+                "input.mp4",
+                "--prompt",
+                "repaint the scene",
+            ]
+        )
+
+    assert "does not support video-to-video latent editing" in capsys.readouterr().err
 
 
 def test_wan_t2v_a14b_rejects_image_before_model_load(capsys):
@@ -3366,6 +3455,118 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
     assert observed["generate"]["tensor_health_check_interval"] is None
     assert observed["save"]["path"] == tmp_path / "out_1.mp4"
     assert observed["save"]["overwrite"] is True
+
+
+def test_wan_cli_rejects_video_to_video_without_explicit_model_support(monkeypatch, tmp_path, capsys):
+    from mflux.models.wan.cli import wan_generate
+
+    input_path = tmp_path / "input.mp4"
+    input_path.write_bytes(b"mp4")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+            "--video-path",
+            str(input_path),
+            "--prompt",
+            "change the hair color to dark brown",
+            "--output",
+            str(tmp_path / "out.mp4"),
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        wan_generate.main()
+
+    assert "does not support video-to-video input" in capsys.readouterr().err
+
+
+def test_wan_cli_generates_a14b_video_to_video(monkeypatch, tmp_path):
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {}
+    input_path = tmp_path / "input.mp4"
+    input_path.write_bytes(b"mp4")
+
+    class FakeVideo:
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_video(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeVideo()
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--video-path",
+            str(input_path),
+            "--prompt",
+            "change the ship silhouette",
+            "--width",
+            "128",
+            "--height",
+            "128",
+            "--frames",
+            "5",
+            "--steps",
+            "2",
+            "--seed",
+            "123",
+            "--output",
+            str(tmp_path / "out.mp4"),
+        ],
+    )
+
+    wan_generate.main()
+
+    assert observed["init"]["model_config"] is wan_generate.ModelConfig.wan2_2_t2v_a14b()
+    assert observed["generate"]["video_path"] == str(input_path)
+    assert observed["generate"]["video_strength"] == 0.8
+    assert observed["generate"]["solver"] == "unipc"
+    assert observed["save"]["path"] == tmp_path / "out.mp4"
+    assert observed["save"]["overwrite"] is True
+
+
+def test_wan_cli_rejects_euler_for_video_to_video(monkeypatch, tmp_path, capsys):
+    from mflux.models.wan.cli import wan_generate
+
+    input_path = tmp_path / "input.mp4"
+    input_path.write_bytes(b"mp4")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--video-path",
+            str(input_path),
+            "--solver",
+            "euler",
+            "--prompt",
+            "change the ship silhouette",
+            "--output",
+            str(tmp_path / "out.mp4"),
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        wan_generate.main()
+
+    assert "requires --solver unipc" in capsys.readouterr().err
 
 
 def test_wan_cli_can_disable_progress(monkeypatch):
@@ -3546,7 +3747,7 @@ def test_routed_generate_json_events_emit_structured_remediation_for_download_re
     with pytest.raises(SystemExit) as exc:
         mlx_gen.main()
 
-    assert exc.value.code == 2
+    assert exc.value.code == 1
     captured = capsys.readouterr()
     events = [json.loads(line) for line in captured.out.strip().splitlines() if line.strip()]
     assert events[-1]["phase"] == "failed"
@@ -4211,7 +4412,9 @@ def test_main_prints_download_hint_without_traceback(monkeypatch, capsys):
         mlx_gen.main()
 
     assert exc_info.value.code == 1
-    assert "MLX-Gen will not download model files during generation" in capsys.readouterr().out
+    captured = capsys.readouterr()
+    assert "MLX-Gen will not download model files during generation" in captured.err
+    assert "Traceback" not in captured.err
 
 
 def test_download_command_enables_downloads_temporarily(monkeypatch, capsys):

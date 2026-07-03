@@ -59,6 +59,16 @@ def test_wan_vae_encode_normalized_first_frame_matches_i2v_condition_shape():
     assert condition.shape == (1, 48, 1, 4, 4)
 
 
+def test_wan_vae_encode_normalized_video_handles_17_frame_clip():
+    vae = Wan2_2_VAE()
+    video = mx.zeros((1, 3, 17, 64, 64), dtype=mx.float32)
+
+    latents = vae.encode_normalized(video)
+    mx.eval(latents)
+
+    assert latents.shape == (1, 48, 5, 4, 4)
+
+
 def test_wan_vae_rms_norm_normalizes_bf16_inputs_in_fp32():
     norm = Wan2_2_RMSNorm(dim=4, images=False)
     x = mx.array(

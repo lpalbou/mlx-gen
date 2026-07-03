@@ -56,12 +56,19 @@ def test_base_fibo_no_longer_advertises_unvalidated_latent_i2i():
 
 def test_public_resolver_uses_wan_model_capability():
     assert mlxgen.infer_task(model="Wan-AI/Wan2.2-T2V-A14B-Diffusers") == "text-to-video"
+    assert mlxgen.infer_task(model="Wan-AI/Wan2.2-T2V-A14B-Diffusers", video_count=1) == "video-to-video"
     assert mlxgen.infer_task(model="Wan-AI/Wan2.2-I2V-A14B-Diffusers", image_count=1) == "image-to-video"
     assert mlxgen.infer_task(model="Wan-AI/Wan2.2-TI2V-5B-Diffusers", image_count=1) == "image-to-video"
     assert (
         mlxgen.resolve_generation_plan(model="Wan-AI/Wan2.2-I2V-A14B-Diffusers", image_count=1).mode
         == MODE_FIRST_FRAME_I2V
     )
+    assert (
+        mlxgen.resolve_generation_plan(model="Wan-AI/Wan2.2-T2V-A14B-Diffusers", video_count=1).capability_id
+        == "wan.video-video"
+    )
+    with pytest.raises(TaskInferenceError, match="does not support video-to-video latent editing"):
+        mlxgen.resolve_generation_plan(model="Wan-AI/Wan2.2-TI2V-5B-Diffusers", video_count=1)
 
 
 def test_public_resolver_rejects_wan_fixed_task_contradictions():
@@ -70,6 +77,9 @@ def test_public_resolver_rejects_wan_fixed_task_contradictions():
 
     with pytest.raises(TaskInferenceError, match="image-to-video model requires --image"):
         mlxgen.infer_task(model="Wan-AI/Wan2.2-I2V-A14B-Diffusers")
+
+    with pytest.raises(TaskInferenceError, match="does not support video-to-video latent editing"):
+        mlxgen.infer_task(model="Wan-AI/Wan2.2-I2V-A14B-Diffusers", video_count=1)
 
 
 def test_public_resolver_rejects_generic_wan_names_without_specific_config():

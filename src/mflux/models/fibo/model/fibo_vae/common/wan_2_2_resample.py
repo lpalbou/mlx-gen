@@ -103,6 +103,4 @@ class Wan2_2_Resample(nn.Module):
                 x = self.time_conv(mx.concatenate([feat_cache[idx][:, :, -1:, :, :], x], axis=2))
                 feat_cache[idx] = cache_x
                 feat_idx[0] += 1
-        elif self.mode == "downsample3d" and self.time_conv is not None and x.shape[2] >= 3:
-            x = self.time_conv(x)
         return x

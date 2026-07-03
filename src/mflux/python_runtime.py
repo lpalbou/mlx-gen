@@ -247,7 +247,7 @@ class _RuntimeGenerationExecutor:
     def _generate_method(loaded: LoadedGenerationModel):
         if loaded.plan.task in {"text-to-image", "image-to-image"}:
             return getattr(loaded.model, "generate_image")
-        if loaded.plan.task in {"text-to-video", "image-to-video"}:
+        if loaded.plan.task in {"text-to-video", "image-to-video", "video-to-video"}:
             return getattr(loaded.model, "generate_video")
         raise TaskInferenceError(f"Unsupported runtime task {loaded.plan.task!r} for Python generation execution.")
 
@@ -262,7 +262,7 @@ class _RuntimeGenerationExecutor:
             return None
         return normalize_output_template(
             str(output),
-            is_video=loaded.plan.task in {"text-to-video", "image-to-video"},
+            is_video=loaded.plan.task in {"text-to-video", "image-to-video", "video-to-video"},
             include_seed=len(seeds) > 1,
         )
 
@@ -336,9 +336,11 @@ def resolve_generation_runtime(
     family: str | None = None,
     base_model: str | None = None,
     image_count: int = 0,
+    video_count: int = 0,
     task: str | None = "auto",
     i2i_mode: str | None = "auto",
     has_image_strength: bool = False,
+    has_video_strength: bool = False,
     has_mask: bool = False,
     has_control_image: bool = False,
     has_outpaint: bool = False,
@@ -351,9 +353,11 @@ def resolve_generation_runtime(
         family=family,
         base_model=base_model,
         image_count=image_count,
+        video_count=video_count,
         task=task,
         i2i_mode=i2i_mode,
         has_image_strength=has_image_strength,
+        has_video_strength=has_video_strength,
         has_mask=has_mask,
         has_control_image=has_control_image,
         has_outpaint=has_outpaint,
@@ -398,9 +402,11 @@ def load_generation_model(
     family: str | None = None,
     base_model: str | None = None,
     image_count: int = 0,
+    video_count: int = 0,
     task: str | None = "auto",
     i2i_mode: str | None = "auto",
     has_image_strength: bool = False,
+    has_video_strength: bool = False,
     has_mask: bool = False,
     has_control_image: bool = False,
     has_outpaint: bool = False,
@@ -418,9 +424,11 @@ def load_generation_model(
         family=family,
         base_model=base_model,
         image_count=image_count,
+        video_count=video_count,
         task=task,
         i2i_mode=i2i_mode,
         has_image_strength=has_image_strength,
+        has_video_strength=has_video_strength,
         has_mask=has_mask,
         has_control_image=has_control_image,
         has_outpaint=has_outpaint,

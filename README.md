@@ -48,9 +48,12 @@ The main capabilities are:
   control where the selected model supports `--controlnet-image-path`, Z-Image Turbo native
   inpaint on the exact validated `AbstractFramework/z-image-turbo-8bit` row, and route-specific
   reframe/outpaint workflows where the selected model supports them;
-- Wan2.2 text-to-video and image-to-video, including TI2V-5B BF16/q8 packages plus A14B
-  T2V/I2V BF16 and mixed q8/BF16 packages; Wan I2V resolves output size from the source
-  image aspect ratio so inputs are not stretched into a mismatched canvas;
+- Wan2.2 text-to-video, image-to-video, and plain prompt-guided video-to-video, including
+  TI2V-5B BF16/q8 packages plus A14B T2V/I2V BF16 and mixed q8/BF16 packages; the current public
+  video-to-video route is limited to `Wan2.2-T2V-A14B`, uses one source video plus one prompt,
+  requires `--solver unipc`, and does not include masks, reference images, or VACE-style
+  conditioning; Wan I2V resolves output size from the source image aspect ratio so inputs are not
+  stretched into a mismatched canvas;
 - SeedVR2 image and video restoration through `mlxgen upscale`, with official 3B/7B source
   support including the dedicated `seedvr2-7b-sharp` route, published q8/q4 packages,
   shortest-edge target sizing, explicit scale factors such as `2x` and `3x`, streamed restore for

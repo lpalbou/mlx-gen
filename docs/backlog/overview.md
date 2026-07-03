@@ -11,9 +11,9 @@ outside chat history.
 
 | State | Count |
 | --- | ---: |
-| Planned | 14 |
-| Proposed | 15 |
-| Completed | 40 |
+| Planned | 15 |
+| Proposed | 16 |
+| Completed | 42 |
 | Deprecated | 1 |
 | Recurrent | 1 |
 
@@ -45,6 +45,26 @@ overwrite/collision behavior, and the reuse-vs-reload evidence across image and 
 1. Finished [Python runtime serial multi-output reuse](completed/0071_python_runtime_serial_multi_output_reuse.md)
    so embedding apps can call `load_generation_model(...).generate_outputs(...)` instead of
    rebuilding seed loops, output naming, and per-seed save handling around direct model classes.
+
+## Completed video-edit boundary, public route, and reference-proof groundwork
+
+The 2026-07-03 video-edit pass now has three concrete outcomes: the public boundary is coherent,
+the first plain public Wan `video-to-video` route is shipped, and the bounded upstream VACE
+reference proof is preserved. The remaining result is intentionally split: plain source-video
+editing is now real, but the local `Wan2.1-VACE-1.3B` MPS proof was still not good enough to
+promote richer VACE conditioning into the public runtime yet.
+
+1. Finished [reader-first video workflow boundary and generative video-edit contract](completed/0072_reader_first_video_workflow_boundary_and_generative_video_edit_contract.md)
+   so the current CLI, docs, and ADR surfaces agree that prompt-guided source-video editing
+   belongs to `mlxgen generate` and starts with plain `video-to-video`.
+2. Finished [Wan VACE reference validation harness and bounded source cases](completed/0073_wan_vace_reference_validation_harness_and_bounded_source_cases.md)
+   so future agents have preserved local artifacts, wall time, and memory evidence instead of
+   generic “VACE exists upstream” claims. The bounded portrait and ship cases ran, but they did
+   not pass a release-quality visual bar on this host.
+3. Finished [Wan plain generative video-to-video route](completed/0074_wan_plain_generative_video_to_video_route.md)
+   so `mlxgen generate` now owns a bounded public Wan source-video edit route on `Wan2.2-T2V-A14B`
+   with truthful config gating, `unipc`-only public solver support, focused tests, and a preserved
+   ship-edit proof bundle.
 
 ## Completed audit hardening band
 
@@ -174,54 +194,55 @@ memory follow-up state.
    now validated through the LoRA route-completion bundle, but the broader prepared base package
    contact-sheet surface is still narrower than the source-model profile.
 9. Keep proposed
-   [Wan VACE video editing and control](proposed/0039_wan_vace_video_editing_and_control.md) in
-   view once current Wan parity work settles. Upstream Wan already has video-to-video and VACE
-   editing/control pipelines, and this is a better medium-term extension than jumping to a second
-   unrelated video family too early. Keep `Wan2.2-Animate-14B` and `Wan2.2-S2V-14B` as adjacent
-   Wan-family watch points, not as silent scope creep inside 0039.
+   [Wan VACE video editing and control](proposed/0039_wan_vace_video_editing_and_control.md) and
+   [Wan VACE conditioning expansion after plain video-to-video](proposed/0075_wan_vace_conditioning_expansion_after_plain_video_to_video.md)
+   as the later richer-conditioning follow-up, not the current runtime baseline. The shipped plain
+   V2V route means the remaining bar is now strictly about whether richer conditioning is good
+   enough to justify expansion. The July 3 local VACE proof bundle is useful because it stops
+   overclaiming: the path runs, but the bounded `1.3B` MPS results were not good enough to promote yet.
 10. Keep the
    [FLUX.2-dev multi-angle LoRA support](planned/0034_flux2_dev_multi_angle_lora_support.md)
    item parked even after 0007 completion. The lovis multi-angle adapter still targets
    `black-forest-labs/FLUX.2-dev`, not FLUX.2 Klein, so there is no reason to expand the runtime
    surface until the current supported image families have exact LoRA proofs.
-11. Validate and finish
+12. Validate and finish
    [Wan A14B boundary memory recovery and full-size validation](planned/0013_wan_a14b_boundary_memory_recovery.md)
    after the full-size I2V retry captures memory, exit-code, metadata, and output evidence across
    the high-noise to low-noise denoiser boundary. Remaining memory items 0062-0064 must provide quantitative
    evidence before this can depend on those memory claims.
-12. Finish the [Wan quantization and motion parity](planned/0002_wan_quantization_motion_parity.md)
+13. Finish the [Wan quantization and motion parity](planned/0002_wan_quantization_motion_parity.md)
    residuals: TI2V-5B now has clean source/BF16/q8 evidence at 1280x704, 17 frames, 20 steps, but
    the TI2V-5B memory result is storage/MLX-footprint focused rather than a full-process physical
    peak reduction; full-duration validation, I2V-A14B mixed q8 quality, q4 policy, and exact-setting
    card claims still need to stay tied to passed settings.
-13. Use the completed
+14. Use the completed
    [edit model prepared-package capability contact sheets](completed/0026_edit_model_prepared_capability_contact_sheets.md)
    as the current release gate for image-edit quality claims: FLUX.2 Klein source/q8 and Qwen Edit
    2509 source/q8 passed the standardized sequence. Qwen Edit 2511 has newer source/q8/q4 proof in
    [item 0029](completed/0029_qwen_image_edit_2511_base_parity.md). FIBO Edit remains unsupported
    through unified `mlxgen generate`. Use the [release validation registry](completed/0028_release_validation_registry.md)
    for machine-readable package status.
-14. Keep [FIBO Edit Diffusers parity](planned/0027_fibo_edit_diffusers_parity_release_quality.md)
+15. Keep [FIBO Edit Diffusers parity](planned/0027_fibo_edit_diffusers_parity_release_quality.md)
    and [FIBO Edit unified validation](planned/0024_fibo_edit_unified_i2i_validation.md) deferred.
    FIBO Edit remains unsupported through unified `mlxgen generate`; do not schedule more work here
    ahead of outpaint/reframe, LoRA strictness, or video quality work unless a specific product need
    changes the priority.
-15. Keep Bonsai binary 1-bit deferred in
+16. Keep Bonsai binary 1-bit deferred in
    [proposed item 0004](proposed/0004_bonsai_binary_1bit_runtime_support.md) until stock MLX can
    execute the required 1-bit packed affine matmul or an ADR accepts a custom kernel path.
-16. Investigate [Wan q8 performance](planned/0005_wan_q8_performance_investigation.md) only after
+17. Investigate [Wan q8 performance](planned/0005_wan_q8_performance_investigation.md) only after
    integrity-gated outputs are healthy enough for timing claims; current public docs describe mixed
    q8/BF16 as model-size and measured-profile footprint focused, not speed-improving.
-17. Continue the [model integration roadmap](planned/0001_model_integration_roadmap.md) in priority
+18. Continue the [model integration roadmap](planned/0001_model_integration_roadmap.md) in priority
    order, starting with automated publication audits, supported q4/q8 validation, and
    gated-derivative hygiene.
-18. Keep the second-family video bucket explicit. Proposed
+19. Keep the second-family video bucket explicit. Proposed
    [HunyuanVideo-1.5 second-family spike](proposed/0044_hunyuanvideo15_second_family_spike.md)
    is now the strongest concrete non-Wan candidate for Apple Silicon bounded by a public `480p`
    step-distilled path, while proposed
    [LTX family conditioning and LoRA spike](proposed/0010_ltx2_conditioning_lora_spike.md) should
    stay narrowed to `LTX-Video` first rather than broad `LTX-2.3` audio-video scope.
-19. Keep the image/edit watchlist honest. Proposed
+20. Keep the image/edit watchlist honest. Proposed
    [next-generation image/edit watchlist](proposed/0011_next_generation_image_edit_watchlist.md)
    now includes Ideogram 4, Ovis-Image, PRXPixel, and DreamLite, but those remain watchlist-only
    until license, runtime shape, or direct MLX value becomes clearer. Proposed
@@ -231,15 +252,15 @@ memory follow-up state.
    Wan items. Proposed [Krea 2 Turbo integration](proposed/0050_krea2_turbo_integration.md) is an
    adjacent low-priority watch item: technically credible, but held back mainly by its
    materially restrictive custom license.
-20. Continue ERNIE-Image/Turbo after completed
+21. Continue ERNIE-Image/Turbo after completed
    [ERNIE Image Turbo LoRA runtime support](completed/0037_ernie_image_turbo_lora_runtime_support.md):
    the latent img2img proof is now accepted, so the remaining follow-up is stronger Diffusers
    parity coverage and non-turbo validation.
-21. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
+22. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
    stronger quality/performance checks, and remaining cancel APIs. SeedVR2 has a validated
    `mlxgen upscale` command, official 3B/7B source loading, and q8/q4 `mlxgen prepare` package
    support.
-22. Keep Bonsai LoRA fail-closed and low priority; revisit it only through
+23. Keep Bonsai LoRA fail-closed and low priority; revisit it only through
    [proposed item 0038](proposed/0038_bonsai_packed_lora_runtime_support.md). The current packed
    runtime does not expose replaceable linear targets for standard LoRA injection, and the first
    public “Bonsai LoRA” candidate inspected used unrelated SDXL UNet keys.
@@ -281,6 +302,7 @@ memory follow-up state.
 | 0050 | [Krea 2 Turbo integration](proposed/0050_krea2_turbo_integration.md) | Image model roadmap, Krea 2, licensing, fast text-to-image | Promote only if MLX-Gen explicitly accepts the restrictive Krea license class and a bounded upstream smoke shows clear value over current fast image routes. |
 | 0058 | [Model profile registry authority](proposed/0058_model_profile_registry_authority.md) | Architecture, model identity, defaults, loader policy | Promote after an ADR spike proves one lightweight registry can own model family identity/defaults without import-cycle or startup-cost regressions. |
 | 0065 | [Component-wise weight streaming migration](proposed/0065_componentwise_weight_streaming_migration.md) | Memory, startup, weight loading | Promote when profiling shows startup peak remains a practical blocker after remaining item 0063, or when one specific family needs the reduction for a supported profile. |
+| 0075 | [Wan VACE conditioning expansion after plain video-to-video](proposed/0075_wan_vace_conditioning_expansion_after_plain_video_to_video.md) | Video editing, Wan, richer conditioning | Promote only after the plain public `video-to-video` route is shipped or strongly proven and a new exact VACE proof beats the bounded July 3 `1.3B` MPS results. |
 ## Completed ledger
 
 | ID | Item | Area | Completed | Outcome |
@@ -325,6 +347,9 @@ memory follow-up state.
 | 0069 | [Z-Image CFG and inpaint repair](completed/0069_zimage_cfg_and_inpaint_repair.md) | Z-Image, CFG, native inpaint quality | 2026-06-29 | Corrected Z-Image CFG math, reran the native inpaint engine case on the same prompt/source/mask/seed settings, and kept the route-level quality claim tied to the documented proof row. |
 | 0070 | [Canonical capability identity for variant routes](completed/0070_canonical_capability_identity_for_variant_routes.md) | Routing, capabilities, model identity | 2026-06-29 | Hardened capability and route identity so spoofed local/custom names and remote-looking prepared ids cannot unlock unsupported Qwen, Z-Image, FLUX.2 base, or FIBO variant-sensitive routes. |
 | 0071 | [Python runtime serial multi-output reuse](completed/0071_python_runtime_serial_multi_output_reuse.md) | Python API, runtime loading, multi-output execution | 2026-06-30 | Added route-resolved Python runtime loading plus `generate_output(...)` / `generate_outputs(...)`, overwrite-safe save handling, and published reuse-vs-reload validation across Qwen masked edit, FLUX.2 multi-reference, Wan A14B I2V, and large Z-Image generation. |
+| 0072 | [Reader-first video workflow boundary and generative video-edit contract](completed/0072_reader_first_video_workflow_boundary_and_generative_video_edit_contract.md) | CLI help, docs, ADR alignment, validation discovery | 2026-07-03 | Aligned the current video workflow boundary across CLI help, docs, ADR 0006, and backlog sequencing so future source-video editing starts from a truthful public surface instead of hidden or ambiguous terminology. |
+| 0073 | [Wan VACE reference validation harness and bounded source cases](completed/0073_wan_vace_reference_validation_harness_and_bounded_source_cases.md) | Video editing, Wan VACE, reference proof, memory | 2026-07-03 | Added a repeatable upstream VACE probe with preserved artifacts and memory metrics, then proved that the bounded `Wan2.1-VACE-1.3B` MPS path runs locally but did not meet a release-quality visual bar on the portrait and ship cases. |
+| 0074 | [Wan plain generative video-to-video route](completed/0074_wan_plain_generative_video_to_video_route.md) | Video editing, public task surface, Wan runtime | 2026-07-03 | Shipped the bounded public Wan `video-to-video` route on `Wan2.2-T2V-A14B`, kept non-V2V Wan rows fail-closed, required `unipc` on the public V2V surface, aligned source-video conditioning with float32 warm-start prep, and preserved a model-backed ship-edit proof bundle. |
 
 ## Deprecated ledger
 

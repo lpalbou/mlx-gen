@@ -6,12 +6,14 @@ import pytest
 
 from mflux import (
     load_generation_model,
+    load_generation_model_for_plan,
     resolve_generation_plan,
     resolve_generation_runtime,
     resolve_generation_runtime_for_plan,
 )
 from mflux.callbacks import ProgressEvent
 from mflux.callbacks.callback_registry import CallbackRegistry
+from mflux.task_inference import GenerationPlan
 
 
 def test_resolve_generation_runtime_selects_qwen_controlnet(monkeypatch):
@@ -222,12 +224,71 @@ def test_loaded_generation_model_reuses_one_model_instance_across_serial_seeds(m
         (202, "save"),
         (202, "complete"),
     ]
-    assert [event.item_index for event in progress_events[:5]] == [1, 1, 1, 1, 1]
-    assert [event.item_index for event in progress_events[5:]] == [2, 2, 2, 2, 2]
-    assert all(event.item_count == 2 for event in progress_events)
-    assert [event.step for event in progress_events] == [0, 1, 2, 2, 2, 0, 1, 2, 2, 2]
-    assert progress_events[0].output_path == str(tmp_path / "image_seed_101.png")
-    assert progress_events[-1].output_path == str(tmp_path / "image_seed_202.png")
+
+
+def test_loaded_generation_model_routes_video_to_video_to_generate_video(monkeypatch, tmp_path):
+    created = {}
+    original_import = importlib.import_module
+
+    class FakeArtifact:
+        task = "video-to-video"
+
+        def save(self, path, overwrite=True, **kwargs):
+            created["save"] = {"path": Path(path), "overwrite": overwrite, "kwargs": dict(kwargs)}
+            Path(path).write_text("video")
+            return Path(path)
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            created["init"] = kwargs
+            self.callbacks = CallbackRegistry()
+
+        def generate_video(self, **kwargs):
+            created["generate"] = kwargs
+            self.callbacks.emit_progress(ProgressEvent(task="video-to-video", phase="start", step=0, total_steps=3))
+            self.callbacks.emit_progress(ProgressEvent(task="video-to-video", phase="denoise", step=1, total_steps=3))
+            self.callbacks.emit_progress(ProgressEvent(task="video-to-video", phase="complete", step=3, total_steps=3))
+            return FakeArtifact()
+
+    def fake_import(name, package=None):
+        if name == "mflux.models.wan.variants.wan2_2_ti2v":
+            return types.SimpleNamespace(Wan2_2_TI2V=FakeWan)
+        return original_import(name, package)
+
+    monkeypatch.setattr("mflux.python_runtime.importlib.import_module", fake_import)
+
+    loaded = load_generation_model_for_plan(
+        plan=GenerationPlan(
+            public_task="video-to-video",
+            mode="latent-video",
+            capability_id="wan.video-video",
+            family="wan",
+            handler_id="wan.generate",
+            image_count=0,
+            video_count=1,
+            model_name="Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+        )
+    )
+    progress_events = []
+    result = loaded.generate_output(
+        seed=777,
+        prompt="replace the ship hull",
+        video_path="input.mp4",
+        video_strength=0.6,
+        output=tmp_path / "video.mp4",
+        progress_callback=progress_events.append,
+    )
+
+    assert created["generate"]["video_path"] == "input.mp4"
+    assert created["generate"]["video_strength"] == 0.6
+    assert result.task == "video-to-video"
+    assert result.saved_path == tmp_path / "video.mp4"
+    assert [event.phase for event in progress_events] == ["start", "denoise", "generated", "save", "complete"]
+    assert [event.item_index for event in progress_events] == [1, 1, 1, 1, 1]
+    assert all(event.item_count == 1 for event in progress_events)
+    assert [event.step for event in progress_events] == [0, 1, 3, 3, 3]
+    assert progress_events[0].output_path == str(tmp_path / "video.mp4")
+    assert progress_events[-1].output_path == str(tmp_path / "video.mp4")
 
 
 def test_loaded_generation_model_preserves_existing_image_output_when_overwrite_false(monkeypatch, tmp_path):

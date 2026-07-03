@@ -15,6 +15,8 @@ TASK_ALIASES = {
     "t2v": "text-to-video",
     "img2vid": "image-to-video",
     "i2v": "image-to-video",
+    "vid2vid": "video-to-video",
+    "v2v": "video-to-video",
 }
 
 TASK_AUTO = "auto"
@@ -23,9 +25,10 @@ IMAGE_TO_IMAGE = "image-to-image"
 EDIT = "edit"
 TEXT_TO_VIDEO = "text-to-video"
 IMAGE_TO_VIDEO = "image-to-video"
+VIDEO_TO_VIDEO = "video-to-video"
 
 PUBLIC_IMAGE_TASKS = {TEXT_TO_IMAGE, IMAGE_TO_IMAGE}
-PUBLIC_VIDEO_TASKS = {TEXT_TO_VIDEO, IMAGE_TO_VIDEO}
+PUBLIC_VIDEO_TASKS = {TEXT_TO_VIDEO, IMAGE_TO_VIDEO, VIDEO_TO_VIDEO}
 PUBLIC_TASKS = {*PUBLIC_IMAGE_TASKS, *PUBLIC_VIDEO_TASKS}
 IMAGE_TASKS = {*PUBLIC_IMAGE_TASKS, EDIT}
 VIDEO_TASKS = PUBLIC_VIDEO_TASKS
@@ -47,6 +50,7 @@ MODE_EDIT_REFERENCE = "edit-reference"
 MODE_MULTI_REFERENCE = "multi-reference"
 MODE_TEXT_VIDEO = "text-video"
 MODE_FIRST_FRAME_I2V = "first-frame-i2v"
+MODE_LATENT_VIDEO = "latent-video"
 
 I2I_MODE_ALIASES = {
     None: I2I_MODE_AUTO,
@@ -76,7 +80,10 @@ class GenerationCapability:
     handler_id: str
     min_images: int = 0
     max_images: int | None = 0
+    min_videos: int = 0
+    max_videos: int | None = 0
     supports_image_strength: bool = False
+    supports_video_strength: bool = False
     supports_mask: bool = False
     supports_control_image: bool = False
     supports_control_mask: bool = False
@@ -101,6 +108,11 @@ class GenerationCapability:
             return False
         return self.max_images is None or image_count <= self.max_images
 
+    def allows_video_count(self, video_count: int) -> bool:
+        if video_count < self.min_videos:
+            return False
+        return self.max_videos is None or video_count <= self.max_videos
+
     def to_dict(self) -> dict:
         return {
             "id": self.id,
@@ -109,7 +121,10 @@ class GenerationCapability:
             "handler_id": self.handler_id,
             "min_images": self.min_images,
             "max_images": self.max_images,
+            "min_videos": self.min_videos,
+            "max_videos": self.max_videos,
             "supports_image_strength": self.supports_image_strength,
+            "supports_video_strength": self.supports_video_strength,
             "supports_mask": self.supports_mask,
             "supports_control_image": self.supports_control_image,
             "supports_control_mask": self.supports_control_mask,
@@ -157,6 +172,7 @@ class GenerationPlan:
     family: str
     handler_id: str
     image_count: int
+    video_count: int = 0
     model_name: str | None = None
     model_override: str | None = None
     canvas_policies: tuple[str, ...] = ()
@@ -182,6 +198,7 @@ class GenerationPlan:
             "family": self.family,
             "handler_id": self.handler_id,
             "image_count": self.image_count,
+            "video_count": self.video_count,
             "model_name": self.model_name,
             "model_override": self.model_override,
             "canvas_policies": list(self.canvas_policies),
@@ -201,6 +218,7 @@ class ResolvedTask:
     task: str
     family: str
     image_count: int
+    video_count: int = 0
     model_name: str | None = None
     mode: str | None = None
     capability_id: str | None = None
@@ -252,9 +270,11 @@ def resolve_generation_plan(
     family: str | None = None,
     base_model: str | None = None,
     image_count: int = 0,
+    video_count: int = 0,
     task: str | None = TASK_AUTO,
     i2i_mode: str | None = I2I_MODE_AUTO,
     has_image_strength: bool = False,
+    has_video_strength: bool = False,
     has_mask: bool = False,
     has_control_image: bool = False,
     has_outpaint: bool = False,
@@ -263,23 +283,39 @@ def resolve_generation_plan(
 ) -> GenerationPlan:
     if image_count < 0:
         raise TaskInferenceError("image_count must be greater than or equal to zero.")
+    if video_count < 0:
+        raise TaskInferenceError("video_count must be greater than or equal to zero.")
+    if image_count > 0 and video_count > 0:
+        raise TaskInferenceError("mlxgen generate accepts either input images or input videos for one request, not both.")
     if has_image_strength and image_count == 0:
         raise TaskInferenceError("--image-strength requires --image or --image-path.")
+    if has_video_strength and video_count == 0:
+        raise TaskInferenceError("--video-strength requires --video or --video-path.")
     if has_mask and image_count == 0:
         raise TaskInferenceError("--mask-path requires --image or --image-path.")
     if has_mask and has_image_strength:
         raise TaskInferenceError(
             "--image-strength cannot be combined with --mask-path; masked inpaint is a separate route from latent image-to-image."
         )
+    if has_video_strength and image_count > 0:
+        raise TaskInferenceError("--video-strength can only be used with --video or --video-path.")
+    if has_mask and video_count > 0:
+        raise TaskInferenceError("--mask-path is only supported for image inputs, not source videos.")
     if has_control_image and image_count > 0:
         raise TaskInferenceError(
             "--controlnet-image-path currently targets text-to-image structured control and cannot be combined "
             "with --image or --image-path."
         )
+    if has_control_image and video_count > 0:
+        raise TaskInferenceError("--controlnet-image-path is only supported for image generation routes, not source videos.")
     if has_outpaint and image_count == 0:
         raise TaskInferenceError("--outpaint-padding requires --image or --image-path.")
+    if has_outpaint and video_count > 0:
+        raise TaskInferenceError("--outpaint-padding is only supported for image edit routes, not source videos.")
     if has_reframe and image_count == 0:
         raise TaskInferenceError("--reframe-padding requires --image or --image-path.")
+    if has_reframe and video_count > 0:
+        raise TaskInferenceError("--reframe-padding is only supported for image edit routes, not source videos.")
 
     if model_config is None and model is not None and _is_unsupported_flux2_dev_model(model):
         raise TaskInferenceError(
@@ -301,6 +337,7 @@ def resolve_generation_plan(
         model_capabilities=model_capabilities,
         task=normalized_task,
         image_count=image_count,
+        video_count=video_count,
     )
     requested_mode = _requested_mode(
         task=normalized_task,
@@ -313,7 +350,11 @@ def resolve_generation_plan(
     candidates = [
         capability
         for capability in model_capabilities.capabilities
-        if capability.public_task == public_task and capability.allows_image_count(image_count)
+        if (
+            capability.public_task == public_task
+            and capability.allows_image_count(image_count)
+            and capability.allows_video_count(video_count)
+        )
     ]
     if requested_mode != I2I_MODE_AUTO:
         candidates = [capability for capability in candidates if _mode_matches_request(capability.mode, requested_mode)]
@@ -322,6 +363,10 @@ def resolve_generation_plan(
         candidates = [capability for capability in candidates if capability.supports_image_strength]
         if not candidates:
             raise TaskInferenceError("--image-strength is only supported for latent image-to-image mode.")
+    if has_video_strength:
+        candidates = [capability for capability in candidates if capability.supports_video_strength]
+        if not candidates:
+            raise TaskInferenceError("--video-strength is only supported for video-to-video latent edit mode.")
     if has_mask:
         candidates = [capability for capability in candidates if capability.supports_mask]
         if not candidates:
@@ -357,6 +402,7 @@ def resolve_generation_plan(
         public_task=public_task,
         requested_mode=requested_mode,
         image_count=image_count,
+        video_count=video_count,
         candidates=candidates,
     )
     if (
@@ -374,6 +420,7 @@ def resolve_generation_plan(
         family=model_capabilities.family,
         handler_id=capability.handler_id,
         image_count=image_count,
+        video_count=video_count,
         model_name=model_capabilities.model_name,
         model_override=capability.model_override,
         canvas_policies=capability.canvas_policies,
@@ -395,9 +442,11 @@ def resolve_task(
     family: str | None = None,
     base_model: str | None = None,
     image_count: int = 0,
+    video_count: int = 0,
     task: str | None = TASK_AUTO,
     i2i_mode: str | None = I2I_MODE_AUTO,
     has_image_strength: bool = False,
+    has_video_strength: bool = False,
     has_mask: bool = False,
     has_control_image: bool = False,
     has_outpaint: bool = False,
@@ -410,9 +459,11 @@ def resolve_task(
         family=family,
         base_model=base_model,
         image_count=image_count,
+        video_count=video_count,
         task=task,
         i2i_mode=i2i_mode,
         has_image_strength=has_image_strength,
+        has_video_strength=has_video_strength,
         has_mask=has_mask,
         has_control_image=has_control_image,
         has_outpaint=has_outpaint,
@@ -423,6 +474,7 @@ def resolve_task(
         task=plan.public_task,
         family=plan.family,
         image_count=plan.image_count,
+        video_count=plan.video_count,
         model_name=plan.model_name,
         mode=plan.mode,
         capability_id=plan.capability_id,
@@ -437,9 +489,11 @@ def infer_task(
     family: str | None = None,
     base_model: str | None = None,
     image_count: int = 0,
+    video_count: int = 0,
     task: str | None = TASK_AUTO,
     i2i_mode: str | None = I2I_MODE_AUTO,
     has_image_strength: bool = False,
+    has_video_strength: bool = False,
     has_mask: bool = False,
     has_control_image: bool = False,
     has_outpaint: bool = False,
@@ -452,9 +506,11 @@ def infer_task(
         family=family,
         base_model=base_model,
         image_count=image_count,
+        video_count=video_count,
         task=task,
         i2i_mode=i2i_mode,
         has_image_strength=has_image_strength,
+        has_video_strength=has_video_strength,
         has_mask=has_mask,
         has_control_image=has_control_image,
         has_outpaint=has_outpaint,
@@ -987,6 +1043,7 @@ def _wan_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
         )
     declared_task = identity.model_config.transformer_overrides.get("task")
     supports_image_to_video = bool(identity.model_config.transformer_overrides.get("supports_image_to_video", True))
+    supports_video_to_video = bool(identity.model_config.transformer_overrides.get("supports_video_to_video", False))
     supports_lora = True
     lora_target_roles = (
         ("high_noise_transformer", "low_noise_transformer")
@@ -1012,6 +1069,27 @@ def _wan_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 ),
             )
         )
+        if supports_video_to_video:
+            capabilities.append(
+                GenerationCapability(
+                    id="wan.video-video",
+                    public_task=VIDEO_TO_VIDEO,
+                    mode=MODE_LATENT_VIDEO,
+                    handler_id="wan.generate",
+                    min_videos=1,
+                    max_videos=1,
+                    supports_video_strength=True,
+                    supports_frames=True,
+                    supports_fps=True,
+                    default_for_task=True,
+                    **_lora_capability_kwargs(
+                        identity=identity,
+                        capability_id="wan.video-video",
+                        supports_lora=supports_lora,
+                        lora_target_roles=lora_target_roles,
+                    ),
+                )
+            )
     if (declared_task in {IMAGE_TO_VIDEO, "text-image-to-video", None}) and supports_image_to_video:
         capabilities.append(
             GenerationCapability(
@@ -1048,6 +1126,7 @@ def _requested_public_task(
     model_capabilities: ModelCapabilities,
     task: str,
     image_count: int,
+    video_count: int,
 ) -> str:
     if task == EDIT:
         if model_capabilities.family == "wan":
@@ -1055,6 +1134,8 @@ def _requested_public_task(
         return IMAGE_TO_IMAGE
     if task != TASK_AUTO:
         return task
+    if video_count:
+        return VIDEO_TO_VIDEO
     public_tasks = {capability.public_task for capability in model_capabilities.capabilities}
     if public_tasks.issubset(PUBLIC_VIDEO_TASKS):
         if image_count:
@@ -1101,6 +1182,7 @@ def _select_capability(
     public_task: str,
     requested_mode: str,
     image_count: int,
+    video_count: int,
     candidates: list[GenerationCapability],
 ) -> GenerationCapability:
     if candidates:
@@ -1122,6 +1204,7 @@ def _select_capability(
         public_task=public_task,
         requested_mode=requested_mode,
         image_count=image_count,
+        video_count=video_count,
     )
 
 
@@ -1131,6 +1214,7 @@ def _raise_no_capability(
     public_task: str,
     requested_mode: str,
     image_count: int,
+    video_count: int,
 ) -> None:
     label = model_capabilities.label
     if not model_capabilities.capabilities:
@@ -1167,6 +1251,16 @@ def _raise_no_capability(
         raise TaskInferenceError(f"{label} image-to-video accepts exactly one input image.")
     if public_task == IMAGE_TO_VIDEO:
         raise TaskInferenceError(f"This {label} text-to-video model does not accept input images.")
+    if public_task == VIDEO_TO_VIDEO and not any(
+        cap.public_task == VIDEO_TO_VIDEO for cap in model_capabilities.capabilities
+    ):
+        raise TaskInferenceError(f"{label} does not support video-to-video latent editing.")
+    if public_task == VIDEO_TO_VIDEO and video_count == 0:
+        raise TaskInferenceError(f"{label} video-to-video requires --video or --video-path.")
+    if public_task == VIDEO_TO_VIDEO and video_count > 1:
+        raise TaskInferenceError(f"{label} video-to-video accepts exactly one input video.")
+    if public_task == VIDEO_TO_VIDEO:
+        raise TaskInferenceError(f"{label} does not support the requested video-to-video route.")
     raise TaskInferenceError(f"{label} does not support {public_task}.")
 
 

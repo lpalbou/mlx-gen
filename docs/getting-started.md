@@ -19,9 +19,19 @@ mlxgen --help
 The top-level command shows the public workflows:
 
 - `mlxgen generate` for image generation and supported video generation.
+- `mlxgen upscale` for SeedVR2 image restoration/upscaling and video restoration.
 - `mlxgen capabilities` for inspecting model tasks, image-to-image modes, and option support without loading weights.
 - `mlxgen download` for explicit Hugging Face cache downloads.
 - `mlxgen prepare` for reusable local MLX-Gen model packages.
+
+Choose the workflow by the media you start from and the outcome you want:
+
+| You have | You want | Current command |
+| --- | --- | --- |
+| Only a prompt | A new image or a new video | `mlxgen generate` |
+| One image | Image editing, reframe/outpaint, or Wan first-frame image-to-video | `mlxgen generate` |
+| One video clip | SeedVR2 restoration or upscale, with no prompt | `mlxgen upscale --video-path ...` |
+| One video clip | Prompt-guided content change | `mlxgen generate --model Wan-AI/Wan2.2-T2V-A14B-Diffusers --video-path ...` |
 
 For scripts, desktop apps, and other integrations, call these `mlxgen` commands directly. The
 package still includes some `mflux-generate-*` compatibility entry points from the upstream code,
@@ -435,6 +445,37 @@ mlxgen generate \
 
 TI2V-5B image-to-video uses the Diffusers first-frame latent-conditioning path. The separate A14B I2V route requires the complete I2V source snapshot before generation. Current Wan video support can produce MP4 output; quality, speed, and practical defaults depend strongly on model family, prompt, size, and frame count.
 
+Plain prompt-guided video-to-video uses one source clip as the motion and composition anchor, then
+regenerates the clip under a new prompt. It is useful for whole-scene restyling or broad object
+changes while keeping the source clip's camera path and overall motion. It is not a restoration
+workflow, not frame-accurate source preservation, and not a masked or reference-guided local edit.
+
+Use the current public A14B plain video-to-video route like this:
+
+```sh
+mlxgen download --model Wan-AI/Wan2.2-T2V-A14B-Diffusers
+
+mlxgen generate \
+  --model Wan-AI/Wan2.2-T2V-A14B-Diffusers \
+  --video-path docs/assets/examples/spaceship-snow/06_i2v_a14b_spaceship_takeoff_from_source.mp4 \
+  --prompt "Keep the same icy cliffs, snow haze, soft sunrise lighting, and lift-off camera motion. Transform the ship into a bulkier smuggler-style starship with a bright circular rear reactor and two side nacelles while preserving realistic vehicle detail." \
+  --negative-prompt "Bright tones, overexposed, static, blurred details, subtitles, paintings, still picture, low quality, JPEG residue, duplicate ships, warped hull, melted nacelles, unreadable reactor, washed out frame, blown highlights" \
+  --width 448 \
+  --height 256 \
+  --frames 17 \
+  --steps 3 \
+  --guidance 4 \
+  --guidance-2 3 \
+  --video-strength 0.7 \
+  --solver unipc \
+  --fps 10 \
+  --seed 4242 \
+  --low-ram \
+  --output starship_v2v_a14b.mp4
+```
+
+That exact route shape produced the accepted ship-edit proof described in [Wan Video](wan-video.md).
+
 To create several Wan variations from one command, pass more than one seed or use
 `--auto-seeds N`. MLX-Gen appends `_seed_<seed>` to the output stem automatically so each MP4 gets
 its own filename.
@@ -446,7 +487,8 @@ about 5.06 seconds. Wan frame counts must be `4n + 1`; MLX-Gen adjusts other val
 Width and height are adjusted up to the selected Wan model's VAE/patch multiple. For image-to-video,
 MLX-Gen also preserves the source image aspect ratio: the requested `--width` and `--height` act as
 a size target, and the actual output canvas is resolved from the input image ratio and model
-multiples before generation.
+multiples before generation. For plain video-to-video, MLX-Gen uses the requested `--width` and
+`--height` after Wan model-multiple normalization.
 
 | Model | Required multiple | Recommended/native size | Lower-cost diagnostic sizes |
 | --- | ---: | --- | --- |

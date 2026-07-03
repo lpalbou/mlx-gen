@@ -48,7 +48,7 @@ and writes generated assets.
 
 Applications can use the same routing contract as the CLI through the public `mlxgen` package. The
 resolver does not load weights. Public tasks describe media direction only:
-`text-to-image`, `image-to-image`, `text-to-video`, and `image-to-video`. Image editing,
+`text-to-image`, `image-to-image`, `text-to-video`, `image-to-video`, and `video-to-video`. Image editing,
 multi-reference editing, and latent image-to-image are internal modes selected by model capability,
 image count, and options such as `image_strength`.
 
@@ -80,6 +80,9 @@ print(latent_plan.task, latent_plan.mode, latent_plan.handler_id, latent_plan.ca
 
 print(resolve_task(model="Wan-AI/Wan2.2-I2V-A14B-Diffusers", image_count=1).task)
 # image-to-video
+
+print(resolve_task(model="Wan-AI/Wan2.2-T2V-A14B-Diffusers", video_count=1).task)
+# video-to-video
 
 validation = get_model_validation("AbstractFramework/qwen-image-edit-2509-8bit")
 print(validation.status)
@@ -275,7 +278,7 @@ video = model.generate_video(
 video.save("video.mp4")
 ```
 
-For Wan2.2 T2V-A14B, construct the same class with `model_config=ModelConfig.wan2_2_t2v_a14b()` or the A14B model name routed through the CLI. For Wan2.2 I2V-A14B, use `model_config=ModelConfig.wan2_2_i2v_a14b()` or the `Wan-AI/Wan2.2-I2V-A14B-Diffusers` model name and pass `image_path` to `generate_video()`. A14B boundary routing is handled internally. If both `guidance` and `guidance_2` are omitted, MLX-Gen uses the model's two-stage defaults. If `guidance` is provided and `guidance_2` is omitted, the low-noise `transformer_2` stage follows `guidance`. For Wan image-to-video, `width` and `height` are size targets; the model API resolves the final output canvas from the source image aspect ratio and model spatial multiples.
+For Wan2.2 T2V-A14B, construct the same class with `model_config=ModelConfig.wan2_2_t2v_a14b()` or the A14B model name routed through the CLI. That same route now owns plain `video-to-video`: pass `video_path`, keep `solver="unipc"`, and use `video_strength` for the source-change amount. For Wan2.2 I2V-A14B, use `model_config=ModelConfig.wan2_2_i2v_a14b()` or the `Wan-AI/Wan2.2-I2V-A14B-Diffusers` model name and pass `image_path` to `generate_video()`. A14B boundary routing is handled internally. If both `guidance` and `guidance_2` are omitted, MLX-Gen uses the model's two-stage defaults. If `guidance` is provided and `guidance_2` is omitted, the low-noise `transformer_2` stage follows `guidance`. For Wan image-to-video, `width` and `height` are size targets; the model API resolves the final output canvas from the source image aspect ratio and model spatial multiples. For Wan video-to-video, `width` and `height` are the requested output canvas after Wan patch-multiple normalization.
 
 Image generation emits `start` and `denoise`, followed by exactly one terminal phase: `complete`,
 `failed`, or `interrupted`. For image and in-memory video APIs, `complete` means the generated

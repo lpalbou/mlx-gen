@@ -207,6 +207,13 @@ def get_model_validation(model: str, profile_id: str = I2I_EDIT_5X4_PROFILE_ID) 
     )
 
 
+def default_validation_profile_id_for_model(model: str) -> str:
+    for profile in list_validation_profiles():
+        if get_model_validation(model, profile_id=profile.id).records:
+            return profile.id
+    return I2I_EDIT_5X4_PROFILE_ID
+
+
 def _aggregate_status(records: tuple[ValidationRecord, ...]) -> str:
     if not records:
         return STATUS_NOT_AVAILABLE

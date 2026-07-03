@@ -14,7 +14,12 @@ from mflux.models.common.config import ModelConfig
 from mflux.models.common.download_policy import allow_downloads, is_huggingface_repo_id
 from mflux.models.common.lora.lora_compatibility import LoRACompatibility
 from mflux.models.common.lora.mapping.lora_loader import LoRAApplicationError
-from mflux.release.validation_registry import get_model_validation, get_validation_profile, list_validation_profiles
+from mflux.release.validation_registry import (
+    default_validation_profile_id_for_model,
+    get_model_validation,
+    get_validation_profile,
+    list_validation_profiles,
+)
 from mflux.task_inference import TaskInferenceError, get_model_capabilities, normalize_task, resolve_generation_plan
 from mflux.utils.box_values import BoxValueError, BoxValues
 from mflux.utils.exceptions import ModelConfigError
@@ -33,6 +38,7 @@ class _Route:
     target_name: str
     target_main: Callable[[], None]
     image_argument: str | None
+    video_argument: str | None
     requires_image: bool
     model_override: str | None = None
     control_model: str | None = None
@@ -70,7 +76,8 @@ def main() -> None:
 def _resolve_invocation(argv: list[str]) -> RouterInvocation:
     args, forwarded = _parse_router_args(argv)
     images = _collect_images(args)
-    route = _resolve_route(args, image_count=len(images))
+    videos = _collect_videos(args)
+    route = _resolve_route(args, image_count=len(images), video_count=len(videos))
     if route.requires_image and not images:
         _parser().error(f"{route.target_name} requires --image or --images.")
     reframe_argv = _reframe_forwarded_argv(args=args, images=images, forwarded=forwarded)
@@ -94,6 +101,9 @@ def _resolve_invocation(argv: list[str]) -> RouterInvocation:
     if route.image_argument is not None and images:
         normalized_argv.append(route.image_argument)
     normalized_argv.extend(images)
+    if route.video_argument is not None and videos:
+        normalized_argv.append(route.video_argument)
+    normalized_argv.extend(videos)
     normalized_argv.extend(forwarded)
     normalized_argv.extend(reframe_argv)
     normalized_argv.extend(outpaint_argv)
@@ -130,6 +140,7 @@ def _parse_router_args(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
         args.base_model = metadata.get("base_model")
     _reject_prepare_path_in_generate(parser, args, forwarded)
     args.metadata_images = _metadata_images(metadata)
+    args.metadata_videos = _metadata_videos(metadata)
     try:
         args.task = normalize_task(args.task)
     except TaskInferenceError as exc:
@@ -137,6 +148,10 @@ def _parse_router_args(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
     args.has_image_strength = _option_was_provided(argv, "--image-strength") or _metadata_has_positive_number(
         metadata,
         "image_strength",
+    )
+    args.has_video_strength = _option_was_provided(argv, "--video-strength") or _metadata_has_positive_number(
+        metadata,
+        "video_strength",
     )
     if args.reframe_padding is None:
         args.reframe_padding = metadata.get("reframe_padding")
@@ -212,8 +227,8 @@ def _top_level_parser() -> argparse.ArgumentParser:
         ),
         epilog=(
             "Commands:\n"
-            "  generate    Generate or edit images and videos from a prepared or cached model.\n"
-            "  upscale     Upscale/restore images with SeedVR2.\n"
+            "  generate    Generate images or videos, and edit images, from a prepared or cached model.\n"
+            "  upscale     Restore or upscale images and videos with SeedVR2.\n"
             "  capabilities Inspect model generation tasks, modes, and option support.\n"
             "  validation   Inspect release-validation evidence for exact model/package rows.\n"
             "  download     Explicitly download a model snapshot into the Hugging Face cache.\n"
@@ -357,12 +372,25 @@ def _metadata_images(metadata: dict) -> list[str]:
     return []
 
 
+def _metadata_videos(metadata: dict) -> list[str]:
+    video_paths = metadata.get("video_paths")
+    if isinstance(video_paths, list):
+        return [str(path) for path in video_paths]
+    if isinstance(video_paths, str):
+        return [video_paths]
+
+    video_path = metadata.get("video_path")
+    if isinstance(video_path, str):
+        return [video_path]
+    return []
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = CommandLineParser(
         prog="mlxgen generate",
         description=(
             "Generate images or videos with MLX-Gen. The command routes to the right model backend from --model "
-            "and from whether input images are supplied."
+            "and from whether input images or a source video are supplied."
         ),
         epilog=(
             "Common generation options are forwarded to the selected backend, including --prompt, "
@@ -370,8 +398,11 @@ def _parser() -> argparse.ArgumentParser:
             "--negative-prompt/--negative, --canvas-policy, --quantize, --lora-paths, --lora-scales, "
             "--mask-path, --controlnet-image-path, --controlnet-strength, --metadata, "
             "--config-from-metadata/-C, --output, --replace, --frames, --fps, --guidance-2, "
-            "--flow-shift, --reframe-padding, --outpaint-padding, --low-ram, --debug, "
+            "--flow-shift, --video-strength, --reframe-padding, --outpaint-padding, --low-ram, --debug, "
             "--tensor-health-check-interval, --json-events, --embed-metadata, and --progress/--no-progress.\n"
+            "Restore or upscale an existing source video with `mlxgen upscale --video-path ...`.\n"
+            "Plain prompt-guided video-to-video is available on exact Wan video-to-video routes such as "
+            "`Wan2.2-T2V-A14B`; keep `--solver unipc` for that public path.\n"
             "Wan video routes also accept --failure-diagnostics for failure manifests.\n\n"
             "Use --mask-path for localized masked edit or inpaint on models that support masked edit or inpaint.\n"
             "Use --controlnet-image-path for structured control on a text-to-image route; it is not the same as "
@@ -411,6 +442,9 @@ def _parser() -> argparse.ArgumentParser:
             "image-to-video",
             "img2vid",
             "i2v",
+            "video-to-video",
+            "vid2vid",
+            "v2v",
         ],
         default="auto",
         help="Override automatic routing. Default: auto.",
@@ -431,7 +465,10 @@ def _parser() -> argparse.ArgumentParser:
         dest="images",
         action="append",
         default=[],
-        help="Input image for image-to-image. Repeat for multi-reference image-to-image.",
+        help=(
+            "Input image. Use one image for image-to-image or Wan first-frame image-to-video. "
+            "Repeat only for multi-reference image-to-image."
+        ),
     )
     parser.add_argument(
         "--images",
@@ -447,7 +484,29 @@ def _parser() -> argparse.ArgumentParser:
         "--image-path",
         dest="image_path",
         default=None,
-        help="Compatibility alias for a single input image.",
+        help="Compatibility alias for a single input image, including Wan first-frame image-to-video.",
+    )
+    parser.add_argument(
+        "--video",
+        "--input-video",
+        dest="videos",
+        action="append",
+        default=[],
+        help="Input source video for plain prompt-guided video-to-video routes.",
+    )
+    parser.add_argument(
+        "--video-path",
+        dest="video_path",
+        default=None,
+        help="Compatibility alias for a single source video on plain video-to-video routes.",
+    )
+    parser.add_argument(
+        "--video-strength",
+        type=float,
+        default=None,
+        help=(
+            "Denoising strength for plain video-to-video routes. Higher values allow larger appearance changes."
+        ),
     )
     parser.add_argument(
         "--reframe-padding",
@@ -543,7 +602,10 @@ def _show_validation(argv: list[str]) -> None:
     parser.add_argument(
         "--profile",
         default=None,
-        help="Validation profile id. Defaults to the current I2I edit 5x4 profile.",
+        help=(
+            "Validation profile id. Defaults to the first profile with evidence for the requested model, "
+            "or the current I2I edit 5x4 profile when no model-specific evidence exists."
+        ),
     )
     parser.add_argument(
         "--list",
@@ -566,7 +628,10 @@ def _show_validation(argv: list[str]) -> None:
                 ]
             }
         elif args.model:
-            payload = get_model_validation(args.model, profile_id=args.profile or get_validation_profile().id).to_dict()
+            payload = get_model_validation(
+                args.model,
+                profile_id=args.profile or default_validation_profile_id_for_model(args.model),
+            ).to_dict()
         else:
             payload = get_validation_profile(args.profile or get_validation_profile().id).to_dict()
     except KeyError as exc:
@@ -715,6 +780,14 @@ def _collect_images(args: argparse.Namespace) -> list[str]:
     return images or args.metadata_images
 
 
+def _collect_videos(args: argparse.Namespace) -> list[str]:
+    videos = []
+    if args.video_path is not None:
+        videos.append(args.video_path)
+    videos.extend(args.videos)
+    return videos or args.metadata_videos
+
+
 def _reframe_forwarded_argv(args: argparse.Namespace, images: list[str], forwarded: list[str]) -> list[str]:
     if not args.has_reframe:
         return []
@@ -778,16 +851,18 @@ def _padding_part_number(value: int | str) -> int:
         raise ValueError(f"Invalid padding value: {value}") from exc
 
 
-def _resolve_route(args: argparse.Namespace, image_count: int) -> _Route:
+def _resolve_route(args: argparse.Namespace, image_count: int, video_count: int) -> _Route:
     has_images = image_count > 0
+    has_videos = video_count > 0
     model_config = _model_config(args.model, base_model=args.base_model)
-    plan = _resolve_generation_plan(args, image_count=image_count, model_config=model_config)
+    plan = _resolve_generation_plan(args, image_count=image_count, video_count=video_count, model_config=model_config)
     _validate_controlnet_route_options(args, plan=plan)
     _validate_lora_compatibility(args=args, model_config=model_config)
     _validate_family_override(args, model_config=model_config, plan=plan)
     return _route_for_plan(
         plan.handler_id,
         has_image=has_images,
+        has_video=has_videos,
         model_override=plan.model_override,
         control_model=plan.control_model,
     )
@@ -830,6 +905,7 @@ def _resolve_generation_plan(
     args: argparse.Namespace,
     *,
     image_count: int,
+    video_count: int,
     model_config: ModelConfig | None,
 ):
     try:
@@ -839,9 +915,11 @@ def _resolve_generation_plan(
             family=args.family,
             base_model=args.base_model,
             image_count=image_count,
+            video_count=video_count,
             task=args.task,
             i2i_mode=args.i2i_mode,
             has_image_strength=args.has_image_strength,
+            has_video_strength=args.has_video_strength,
             has_mask=args.has_mask,
             has_control_image=args.has_control_image,
             has_outpaint=args.has_outpaint,
@@ -892,6 +970,7 @@ def _route_for_plan(
     handler_id: str,
     *,
     has_image: bool,
+    has_video: bool,
     model_override: str | None,
     control_model: str | None,
 ) -> _Route:
@@ -914,7 +993,7 @@ def _route_for_plan(
     if handler_id == "ernie-image.generate":
         return _ernie_route()
     if handler_id == "wan.generate":
-        return _wan_route(has_image=has_image)
+        return _wan_route(has_image=has_image, has_video=has_video)
     if handler_id == "bonsai.generate":
         return _bonsai_route()
     _parser().error(f"Unsupported generation handler {handler_id!r}.")
@@ -1002,53 +1081,70 @@ def _is_seedvr2(aliases: set[str], model_key: str) -> bool:
 def _qwen_route(control_model: str | None = None) -> _Route:
     from mflux.models.qwen.cli.qwen_image_generate import main as target_main
 
-    return _Route("mflux-generate-qwen", target_main, "--image-path", requires_image=False, control_model=control_model)
+    return _Route(
+        "mflux-generate-qwen",
+        target_main,
+        "--image-path",
+        None,
+        requires_image=False,
+        control_model=control_model,
+    )
 
 
 def _qwen_edit_route(model_override: str | None = None) -> _Route:
     from mflux.models.qwen.cli.qwen_image_edit_generate import main as target_main
 
     return _Route(
-        "mflux-generate-qwen-edit", target_main, "--image-paths", requires_image=True, model_override=model_override
+        "mflux-generate-qwen-edit",
+        target_main,
+        "--image-paths",
+        None,
+        requires_image=True,
+        model_override=model_override,
     )
 
 
 def _flux2_route() -> _Route:
     from mflux.models.flux2.cli.flux2_generate import main as target_main
 
-    return _Route("mflux-generate-flux2", target_main, "--image-path", requires_image=False)
+    return _Route("mflux-generate-flux2", target_main, "--image-path", None, requires_image=False)
 
 
 def _flux2_edit_route() -> _Route:
     from mflux.models.flux2.cli.flux2_edit_generate import main as target_main
 
-    return _Route("mflux-generate-flux2-edit", target_main, "--image-paths", requires_image=True)
+    return _Route("mflux-generate-flux2-edit", target_main, "--image-paths", None, requires_image=True)
 
 
 def _fibo_route() -> _Route:
     from mflux.models.fibo.cli.fibo_generate import main as target_main
 
-    return _Route("mflux-generate-fibo", target_main, "--image-path", requires_image=False)
+    return _Route("mflux-generate-fibo", target_main, "--image-path", None, requires_image=False)
 
 
 def _fibo_edit_route(model_override: str | None = None) -> _Route:
     from mflux.models.fibo.cli.fibo_edit import main as target_main
 
     return _Route(
-        "mflux-generate-fibo-edit", target_main, "--image-path", requires_image=True, model_override=model_override
+        "mflux-generate-fibo-edit",
+        target_main,
+        "--image-path",
+        None,
+        requires_image=True,
+        model_override=model_override,
     )
 
 
 def _z_image_route() -> _Route:
     from mflux.models.z_image.cli.z_image_generate import main as target_main
 
-    return _Route("mflux-generate-z-image", target_main, "--image-path", requires_image=False)
+    return _Route("mflux-generate-z-image", target_main, "--image-path", None, requires_image=False)
 
 
 def _z_image_turbo_route() -> _Route:
     from mflux.models.z_image.cli.z_image_turbo_generate import main as target_main
 
-    return _Route("mflux-generate-z-image-turbo", target_main, "--image-path", requires_image=False)
+    return _Route("mflux-generate-z-image-turbo", target_main, "--image-path", None, requires_image=False)
 
 
 def _ernie_route() -> _Route:
@@ -1058,17 +1154,19 @@ def _ernie_route() -> _Route:
         "mflux-generate-ernie-image",
         target_main,
         image_argument="--image-path",
+        video_argument=None,
         requires_image=False,
     )
 
 
-def _wan_route(has_image: bool) -> _Route:
+def _wan_route(has_image: bool, has_video: bool) -> _Route:
     from mflux.models.wan.cli.wan_generate import main as target_main
 
     return _Route(
         "mlxgen-generate-wan",
         target_main,
         image_argument="--image-path" if has_image else None,
+        video_argument="--video-path" if has_video else None,
         requires_image=False,
     )
 
@@ -1076,7 +1174,7 @@ def _wan_route(has_image: bool) -> _Route:
 def _bonsai_route() -> _Route:
     from mflux.models.bonsai_image.cli.bonsai_image_generate import main as target_main
 
-    return _Route("mflux-generate-bonsai", target_main, image_argument=None, requires_image=False)
+    return _Route("mflux-generate-bonsai", target_main, image_argument=None, video_argument=None, requires_image=False)
 
 
 if __name__ == "__main__":

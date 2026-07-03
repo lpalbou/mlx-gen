@@ -83,6 +83,8 @@ class Wan2_2_TI2V(nn.Module):
         solver: str | None = None,
         negative_prompt: str | None = None,
         image_path: Path | str | None = None,
+        video_path: Path | str | None = None,
+        video_strength: float | None = None,
         max_sequence_length: int = 512,
         progress_callback: ProgressCallback | None = None,
         release_inactive_denoiser: bool = False,
@@ -100,22 +102,42 @@ class Wan2_2_TI2V(nn.Module):
         ):
             raise ValueError("guidance_2 is only supported for Wan models with two-transformer boundary routing.")
         is_image_to_video = image_path is not None
-        task = "image-to-video" if is_image_to_video else "text-to-video"
+        is_video_to_video = video_path is not None
+        if is_image_to_video and is_video_to_video:
+            raise ValueError("Wan accepts either image_path or video_path, not both.")
+        task = "video-to-video" if is_video_to_video else ("image-to-video" if is_image_to_video else "text-to-video")
         if image_path is not None and not self._supports_image_to_video():
             raise ValueError(f"{self.model_config.model_name} does not support image-to-video input.")
+        if video_path is not None and not self._supports_video_to_video():
+            raise ValueError(f"{self.model_config.model_name} does not support video-to-video input.")
         self._validate_denoisers_available()
         height, width, spatial_metadata = self._resolve_video_spatial_size(
             height=height,
             width=width,
             image_path=image_path,
+            video_path=video_path,
         )
         num_frames = self._validated_frame_count(num_frames)
+        video_strength = self._resolve_video_strength(video_strength) if is_video_to_video else None
         guidance, guidance_2 = self._resolve_guidance_pair(guidance=guidance, guidance_2=guidance_2)
         self._validate_guidance_values(guidance=guidance, guidance_2=guidance_2)
         flow_shift = self._resolve_flow_shift(flow_shift)
         solver = self._resolve_solver(solver)
+        self._validate_video_to_video_solver(is_video_to_video=is_video_to_video, solver=solver)
         negative_prompt = self._resolve_negative_prompt(negative_prompt)
-        self._validate_runtime_contract(is_image_to_video=is_image_to_video)
+        self._validate_runtime_contract(is_image_to_video=is_image_to_video, is_video_to_video=is_video_to_video)
+        batch_size = 1
+        scheduler = self._create_scheduler(flow_shift=flow_shift, solver=solver)
+        scheduler.set_timesteps(num_inference_steps)
+        timesteps = scheduler.timesteps.tolist()
+        if is_video_to_video:
+            timesteps = self._video_to_video_timesteps(
+                scheduler=scheduler,
+                num_inference_steps=num_inference_steps,
+                strength=video_strength,
+            )
+        effective_steps = len(timesteps)
+        boundary_timestep = self._boundary_timestep(scheduler)
         progress_registry = getattr(self, "callbacks", None)
         self._emit_progress(
             progress_callback,
@@ -123,11 +145,10 @@ class Wan2_2_TI2V(nn.Module):
             frame=0,
             total_frames=num_frames,
             step=0,
-            total_steps=num_inference_steps,
+            total_steps=effective_steps,
             task=task,
             registry=progress_registry,
         )
-        batch_size = 1
 
         prompt_embeds, negative_prompt_embeds = self.encode_prompt(
             prompt=prompt,
@@ -143,16 +164,26 @@ class Wan2_2_TI2V(nn.Module):
                 name="negative_prompt_embeds",
             )
 
-        scheduler = self._create_scheduler(flow_shift=flow_shift, solver=solver)
-        scheduler.set_timesteps(num_inference_steps)
-        boundary_timestep = self._boundary_timestep(scheduler)
-        latents = self.prepare_latents(
-            seed=seed,
-            batch_size=batch_size,
-            height=height,
-            width=width,
-            num_frames=num_frames,
-        )
+        if is_video_to_video:
+            latents, source_video_metadata = self._prepare_video_to_video_latents(
+                seed=seed,
+                batch_size=batch_size,
+                scheduler=scheduler,
+                height=height,
+                width=width,
+                num_frames=num_frames,
+                video_path=video_path,
+                timesteps=timesteps,
+            )
+            spatial_metadata.update(source_video_metadata)
+        else:
+            latents = self.prepare_latents(
+                seed=seed,
+                batch_size=batch_size,
+                height=height,
+                width=width,
+                num_frames=num_frames,
+            )
         self._require_tensor_health(latents, phase="prepare-latents", name="latents")
         first_frame_mask = None
         condition = None
@@ -175,9 +206,9 @@ class Wan2_2_TI2V(nn.Module):
                 )
                 self._require_tensor_health(condition, phase="image-conditioning", name="condition")
 
-        total_steps = len(scheduler.timesteps)
+        total_steps = effective_steps
         high_noise_denoiser_released = False
-        for step_index, timestep in enumerate(scheduler.timesteps.tolist()):
+        for step_index, timestep in enumerate(timesteps):
             step_number = step_index + 1
             should_check_tensors = TensorHealth.should_check_step(step_number, total_steps, health_check_interval)
             high_noise_denoiser_released = self._maybe_release_high_noise_denoiser(
@@ -217,7 +248,10 @@ class Wan2_2_TI2V(nn.Module):
                 expanded_timestep = self._batch_timestep(batch_size=batch_size, timestep=timestep)
             else:
                 latent_model_input = latents.astype(ModelConfig.precision)
-                if self._uses_expanded_timesteps():
+                if is_video_to_video:
+                    # Plain Wan V2V follows the scalar-timestep reference path rather than TI2V patch-expanded time ids.
+                    expanded_timestep = self._batch_timestep(batch_size=batch_size, timestep=timestep)
+                elif self._uses_expanded_timesteps():
                     expanded_timestep = WanTimestepPolicy.expand_for_text_to_video(
                         latent_shape=latents.shape,
                         timestep=timestep,
@@ -381,7 +415,7 @@ class Wan2_2_TI2V(nn.Module):
                 model_config=self.model_config,
                 seed=seed,
                 prompt=prompt,
-                steps=num_inference_steps,
+                steps=effective_steps,
                 guidance=guidance,
                 guidance_2=guidance_2,
                 flow_shift=flow_shift,
@@ -393,6 +427,7 @@ class Wan2_2_TI2V(nn.Module):
                 frame_count=num_frames,
                 task=task,
                 image_path=image_path,
+                video_path=video_path,
                 negative_prompt=negative_prompt,
                 source_width=spatial_metadata.get("source_width"),
                 source_height=spatial_metadata.get("source_height"),
@@ -402,6 +437,7 @@ class Wan2_2_TI2V(nn.Module):
                 lora_scales=getattr(self, "lora_scales", None),
                 extra_metadata={
                     **extra_metadata,
+                    "video_strength": video_strength,
                     "wan_decode_mode": "streamed_vae_slices",
                     "generation_time_scope": "pre-save",
                 },
@@ -421,7 +457,7 @@ class Wan2_2_TI2V(nn.Module):
                 model_config=self.model_config,
                 seed=seed,
                 prompt=prompt,
-                steps=num_inference_steps,
+                steps=effective_steps,
                 guidance=guidance,
                 guidance_2=guidance_2,
                 flow_shift=flow_shift,
@@ -430,6 +466,7 @@ class Wan2_2_TI2V(nn.Module):
                 generation_time=time.time() - start_time,
                 task=task,
                 image_path=image_path,
+                video_path=video_path,
                 negative_prompt=negative_prompt,
                 source_width=spatial_metadata.get("source_width"),
                 source_height=spatial_metadata.get("source_height"),
@@ -437,7 +474,7 @@ class Wan2_2_TI2V(nn.Module):
                 requested_height=spatial_metadata.get("requested_height"),
                 lora_paths=getattr(self, "lora_paths", None),
                 lora_scales=getattr(self, "lora_scales", None),
-                extra_metadata=extra_metadata,
+                extra_metadata={**extra_metadata, "video_strength": video_strength},
                 materialize_frames=False,
             )
         self._emit_progress(
@@ -494,6 +531,125 @@ class Wan2_2_TI2V(nn.Module):
             width // self.vae.spatial_scale,
         )
         return mx.random.normal(shape, dtype=mx.float32)
+
+    def _prepare_video_to_video_latents(
+        self,
+        *,
+        seed: int,
+        batch_size: int,
+        scheduler,
+        height: int,
+        width: int,
+        num_frames: int,
+        video_path: Path | str,
+        timesteps: list[int | float],
+    ) -> tuple[mx.array, dict[str, int | float | None]]:
+        if not timesteps:
+            raise ValueError("Wan video-to-video requires at least one denoise timestep.")
+        init_latents, source_metadata = self._encode_video_to_video_latents(
+            video_path=video_path,
+            height=height,
+            width=width,
+            num_frames=num_frames,
+        )
+        noise = self.prepare_latents(
+            seed=seed,
+            batch_size=batch_size,
+            height=height,
+            width=width,
+            num_frames=num_frames,
+        )
+        latent_timestep = self._batch_timestep(batch_size=batch_size, timestep=timesteps[0])
+        latents = scheduler.scale_noise(init_latents, latent_timestep, noise).astype(mx.float32)
+        mx.eval(latents)
+        return latents, source_metadata
+
+    def _encode_video_to_video_latents(
+        self,
+        *,
+        video_path: Path | str,
+        height: int,
+        width: int,
+        num_frames: int,
+    ) -> tuple[mx.array, dict[str, int | float | None]]:
+        cache_key = ("video-to-video", self._cache_path_key(video_path), height, width, num_frames)
+        cached = self._cached_tensor(cache_name="video_condition_cache", key=cache_key)
+        if cached is not None:
+            return cached, self._cached_video_source_metadata(cache_key)
+        latents, source_metadata = self._load_video_to_video_latents(
+            video_path=video_path,
+            height=height,
+            width=width,
+            num_frames=num_frames,
+        )
+        return self._store_video_latent_cache(cache_key=cache_key, latents=latents, source_metadata=source_metadata)
+
+    def _load_video_to_video_latents(
+        self,
+        *,
+        video_path: Path | str,
+        height: int,
+        width: int,
+        num_frames: int,
+    ) -> tuple[mx.array, dict[str, int | float | None]]:
+        clip = VideoUtil.read_video_clip(video_path, max_frames=num_frames)
+        if clip.clip_frame_count < num_frames:
+            raise ValueError(
+                f"Wan video-to-video requires at least {num_frames} source frames, but {video_path} only yielded {clip.clip_frame_count}."
+            )
+        resized_frames = [
+            np.array(
+                ImageUtil.scale_to_dimensions(frame, target_width=width, target_height=height),
+                dtype=np.float32,
+            )
+            / 255.0
+            for frame in clip.frames[:num_frames]
+        ]
+        video_np = np.stack(resized_frames, axis=0)
+        video_mx = mx.array(video_np[None, ...])
+        video_mx = mx.transpose(video_mx, (0, 4, 1, 2, 3))
+        # Keep source-video conditioning in float32 to match the upstream Wan V2V warm-start path.
+        video_mx = ImageUtil._normalize(video_mx).astype(mx.float32)
+        latents = self.vae.encode_normalized(video_mx).astype(mx.float32)
+        mx.eval(latents)
+        source_metadata = {
+            "source_width": clip.source_width,
+            "source_height": clip.source_height,
+            "source_video_frame_count": clip.source_frame_count,
+            "source_video_duration_seconds": clip.source_duration_seconds,
+            "source_video_fps": clip.fps,
+        }
+        return latents, source_metadata
+
+    def _store_video_latent_cache(
+        self,
+        *,
+        cache_key: tuple,
+        latents: mx.array,
+        source_metadata: dict[str, int | float | None],
+    ) -> tuple[mx.array, dict[str, int | float | None]]:
+        cache = getattr(self, "video_condition_cache", None)
+        if cache is None:
+            cache = {}
+            setattr(self, "video_condition_cache", cache)
+        metadata_cache = getattr(self, "video_condition_metadata_cache", None)
+        if metadata_cache is None:
+            metadata_cache = {}
+            setattr(self, "video_condition_metadata_cache", metadata_cache)
+        materialized = RuntimeMemory.materialize_inference_tree(latents)
+        cache[cache_key] = materialized
+        metadata_cache[cache_key] = dict(source_metadata)
+        while len(cache) > 2:
+            oldest_key = next(iter(cache))
+            if oldest_key == cache_key:
+                break
+            del cache[oldest_key]
+            metadata_cache.pop(oldest_key, None)
+        return materialized, dict(source_metadata)
+
+    def _cached_video_source_metadata(self, cache_key: tuple) -> dict[str, int | float | None]:
+        metadata_cache = getattr(self, "video_condition_metadata_cache", None) or {}
+        return dict(metadata_cache.get(cache_key, {}))
 
     def save_model(self, base_path: str) -> None:
         ModelSaver.save_model(
@@ -714,11 +870,13 @@ class Wan2_2_TI2V(nn.Module):
         height: int,
         width: int,
         image_path: Path | str | None,
+        video_path: Path | str | None = None,
     ) -> tuple[int, int]:
         resolved_height, resolved_width, _ = self._resolve_video_spatial_size(
             height=height,
             width=width,
             image_path=image_path,
+            video_path=video_path,
         )
         return resolved_height, resolved_width
 
@@ -728,42 +886,64 @@ class Wan2_2_TI2V(nn.Module):
         height: int,
         width: int,
         image_path: Path | str | None,
+        video_path: Path | str | None = None,
     ) -> tuple[int, int, dict[str, int]]:
-        if image_path is None:
+        if image_path is None and video_path is None:
             resolved_height, resolved_width = self._validated_spatial_size(height=height, width=width)
             return resolved_height, resolved_width, {}
-        source_image = ImageUtil.load_image(image_path)
-        resolved_height, resolved_width = self._validated_i2v_spatial_size(
+        if image_path is not None:
+            source_image = ImageUtil.load_image(image_path)
+            source_info = {"height": source_image.height, "width": source_image.width}
+            source_label = "image"
+        else:
+            video_info = VideoUtil.inspect_video(video_path)
+            source_info = {"height": video_info.source_height, "width": video_info.source_width}
+            if source_info["height"] <= 0 or source_info["width"] <= 0:
+                raise ValueError("Wan video-to-video source video must have positive dimensions.")
+            resolved_height, resolved_width = self._validated_spatial_size(height=height, width=width)
+            return (
+                resolved_height,
+                resolved_width,
+                {
+                    "source_width": source_info["width"],
+                    "source_height": source_info["height"],
+                    "requested_width": width,
+                    "requested_height": height,
+                },
+            )
+        resolved_height, resolved_width = self._validated_source_aspect_spatial_size(
             height=height,
             width=width,
-            source_height=source_image.height,
-            source_width=source_image.width,
+            source_height=source_info["height"],
+            source_width=source_info["width"],
+            source_label="image",
         )
         return (
             resolved_height,
             resolved_width,
             {
-                "source_width": source_image.width,
-                "source_height": source_image.height,
+                "source_width": source_info["width"],
+                "source_height": source_info["height"],
                 "requested_width": width,
                 "requested_height": height,
             },
         )
 
-    def _validated_i2v_spatial_size(
+    def _validated_source_aspect_spatial_size(
         self,
         *,
         height: int,
         width: int,
         source_height: int,
         source_width: int,
+        source_label: str,
     ) -> tuple[int, int]:
         multiple_h = self.vae.spatial_scale * self.transformer.patch_size[1]
         multiple_w = self.vae.spatial_scale * self.transformer.patch_size[2]
         if height <= 0 or width <= 0:
             raise ValueError(f"Wan height and width must be at least ({multiple_h}, {multiple_w})px.")
         if source_height <= 0 or source_width <= 0:
-            raise ValueError("Wan image-to-video source image must have positive dimensions.")
+            raise ValueError(f"Wan video-to-video source {source_label} must have positive dimensions.")
         calc_height, calc_width = self._closest_spatial_size_for_ratio(
             requested_height=height,
             requested_width=width,
@@ -774,8 +954,8 @@ class Wan2_2_TI2V(nn.Module):
         )
         if (height, width) != (calc_height, calc_width):
             print(
-                "Wan image-to-video preserves the input image aspect ratio. "
-                f"Adjusting requested video size ({height}, {width}) with source image "
+                f"Wan {source_label}-guided video generation preserves the source aspect ratio. "
+                f"Adjusting requested video size ({height}, {width}) with source {source_label} "
                 f"({source_height}, {source_width}) -> ({calc_height}, {calc_width})."
             )
         return calc_height, calc_width
@@ -835,7 +1015,7 @@ class Wan2_2_TI2V(nn.Module):
             num_frames = adjusted
         return max(num_frames, 1)
 
-    def _validate_runtime_contract(self, *, is_image_to_video: bool) -> None:
+    def _validate_runtime_contract(self, *, is_image_to_video: bool, is_video_to_video: bool) -> None:
         task = self._wan_config("task", "text-image-to-video")
         if task == "image-to-video" and not is_image_to_video:
             raise ValueError(f"{self.model_config.model_name} requires image-to-video input.")
@@ -1016,6 +1196,9 @@ class Wan2_2_TI2V(nn.Module):
     def _supports_image_to_video(self) -> bool:
         return bool(self._wan_config("supports_image_to_video", True))
 
+    def _supports_video_to_video(self) -> bool:
+        return bool(self._wan_config("supports_video_to_video", False))
+
     def _default_guidance(self) -> float:
         return float(self._wan_config("default_guidance", 5.0))
 
@@ -1035,11 +1218,23 @@ class Wan2_2_TI2V(nn.Module):
             raise ValueError(f"Wan flow_shift must be a finite positive value, got {flow_shift!r}.")
         return resolved
 
+    @staticmethod
+    def _resolve_video_strength(video_strength: float | None) -> float:
+        resolved = 0.8 if video_strength is None else float(video_strength)
+        if not np.isfinite(resolved) or resolved <= 0 or resolved > 1:
+            raise ValueError(f"Wan video_strength must be in (0, 1], got {video_strength!r}.")
+        return resolved
+
     def _resolve_solver(self, solver: str | None) -> str:
         resolved = self._default_solver() if solver is None else str(solver).strip().lower()
         if resolved not in _WAN_SOLVERS:
             raise ValueError(f"Wan solver must be one of {_WAN_SOLVERS}, got {solver!r}.")
         return resolved
+
+    @staticmethod
+    def _validate_video_to_video_solver(*, is_video_to_video: bool, solver: str) -> None:
+        if is_video_to_video and solver != "unipc":
+            raise ValueError("Wan video-to-video currently requires solver='unipc'.")
 
     def _create_scheduler(self, *, flow_shift: float, solver: str):
         if solver == "unipc":
@@ -1047,6 +1242,19 @@ class Wan2_2_TI2V(nn.Module):
         if solver == "euler":
             return WanEulerScheduler(flow_shift=flow_shift)
         raise ValueError(f"Wan solver must be one of {_WAN_SOLVERS}, got {solver!r}.")
+
+    @staticmethod
+    def _video_to_video_timesteps(
+        *,
+        scheduler,
+        num_inference_steps: int,
+        strength: float,
+    ) -> list[int | float]:
+        init_timestep = min(max(int(num_inference_steps * strength), 1), num_inference_steps)
+        t_start = max(num_inference_steps - init_timestep, 0)
+        if hasattr(scheduler, "set_begin_index"):
+            scheduler.set_begin_index(t_start * getattr(scheduler, "order", 1))
+        return scheduler.timesteps[t_start * getattr(scheduler, "order", 1) :].tolist()
 
     def _resolve_guidance_pair(
         self, guidance: float | None, guidance_2: float | None | object

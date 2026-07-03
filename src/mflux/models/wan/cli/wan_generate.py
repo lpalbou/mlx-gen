@@ -13,7 +13,7 @@ from tqdm import tqdm
 from mflux.callbacks import ProgressEvent
 from mflux.cli.defaults import defaults as ui_defaults
 from mflux.cli.output_paths import normalize_output_template, resolve_output_path
-from mflux.cli.parser.parsers import boolean_flag_value, positive_float
+from mflux.cli.parser.parsers import boolean_flag_value, image_strength_value, positive_float
 from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.cli.seed_values import resolve_seed_values
 from mflux.models.common.config import ModelConfig
@@ -26,6 +26,7 @@ WAN_DEFAULT_WIDTH = Wan2_2_TI2V.RECOMMENDED_WIDTH
 WAN_DEFAULT_HEIGHT = Wan2_2_TI2V.RECOMMENDED_HEIGHT
 WAN_DEFAULT_FRAMES = Wan2_2_TI2V.RECOMMENDED_FRAMES
 WAN_DEFAULT_FPS = Wan2_2_TI2V.RECOMMENDED_FPS
+WAN_DEFAULT_VIDEO_STRENGTH = 0.8
 GENERIC_WAN_ALIASES = {"wan", "wan-video"}
 
 
@@ -42,6 +43,7 @@ def main() -> None:
 
     try:
         model_config, model_path = _resolve_model(args.model)
+        _validate_model_runtime_args(args=args, model_config=model_config)
         _apply_model_defaults(args, model_config, provided_options)
         _apply_runtime_memory_options(args)
         model = Wan2_2_TI2V(
@@ -84,6 +86,8 @@ def main() -> None:
                     num_inference_steps=args.steps,
                     negative_prompt=args.negative_prompt,
                     image_path=args.image_path,
+                    video_path=args.video_path,
+                    video_strength=args.video_strength,
                     max_sequence_length=args.max_sequence_length,
                     progress_callback=events.handle_progress
                     if events.enabled
@@ -117,10 +121,10 @@ def main() -> None:
                     progress,
                     total_frames=args.frames,
                     total_steps=args.steps,
-                    task="image-to-video" if args.image_path is not None else "text-to-video",
+                    task=_requested_task(args),
                 )
                 events.emit_failed(
-                    task="image-to-video" if args.image_path is not None else "text-to-video",
+                    task=_requested_task(args),
                     error=exc,
                     diagnostics_path=failure_path,
                 )
@@ -146,6 +150,11 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--model", "-m", required=True, help="Wan model alias, Hugging Face repo, or local path.")
     parser.add_argument("--image-path", default=None, help="Input image for Wan image-to-video models.")
+    parser.add_argument(
+        "--video-path",
+        default=None,
+        help="Input source video for Wan video-to-video model configs when explicitly supported.",
+    )
     prompt_group = parser.add_mutually_exclusive_group()
     prompt_group.add_argument("--prompt", type=str, help="Text prompt for video generation.")
     prompt_group.add_argument("--prompt-file", type=Path, help="Path to a text file containing the prompt.")
@@ -162,7 +171,7 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=WAN_DEFAULT_WIDTH,
         help=(
-            "Video width. For text-to-video, adjusted up to a model-specific patch multiple. "
+            "Video width. For text-to-video and video-to-video, adjusted up to a model-specific patch multiple. "
             "For image-to-video, used as a size target while preserving the input image aspect ratio."
         ),
     )
@@ -171,7 +180,7 @@ def _parser() -> argparse.ArgumentParser:
         type=int,
         default=WAN_DEFAULT_HEIGHT,
         help=(
-            "Video height. For text-to-video, adjusted up to a model-specific patch multiple. "
+            "Video height. For text-to-video and video-to-video, adjusted up to a model-specific patch multiple. "
             "For image-to-video, used as a size target while preserving the input image aspect ratio."
         ),
     )
@@ -189,10 +198,19 @@ def _parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Wan denoiser solver. Defaults to the model profile. LightX2V 4-step Wan LoRAs are designed around "
-            "the euler path."
+            "the euler path. Public Wan video-to-video currently requires unipc."
         ),
     )
     parser.add_argument("--guidance", type=float, default=5.0, help="Classifier-free guidance scale.")
+    parser.add_argument(
+        "--video-strength",
+        type=image_strength_value,
+        default=None,
+        help=(
+            "Denoising strength in (0, 1] for plain prompt-guided Wan video-to-video. "
+            f"Default for that route is {WAN_DEFAULT_VIDEO_STRENGTH}."
+        ),
+    )
     parser.add_argument(
         "--flow-shift",
         type=positive_float,
@@ -322,6 +340,9 @@ def _apply_metadata_defaults(args: argparse.Namespace) -> set[str]:
     if args.image_path is None and metadata.get("image_path") is not None:
         args.image_path = metadata.get("image_path")
         provided_options.add("--image-path")
+    if args.video_path is None and metadata.get("video_path") is not None:
+        args.video_path = metadata.get("video_path")
+        provided_options.add("--video-path")
     if args.lora_paths is None and metadata.get("lora_paths") is not None:
         args.lora_paths = metadata.get("lora_paths")
         provided_options.add("--lora-paths")
@@ -336,6 +357,9 @@ def _apply_metadata_defaults(args: argparse.Namespace) -> set[str]:
         if value is not None and getattr(args, name) == _parser().get_default(name):
             setattr(args, name, value)
             provided_options.add(f"--{name.replace('_', '-')}")
+    if args.video_strength is None and metadata.get("video_strength") is not None:
+        args.video_strength = metadata.get("video_strength")
+        provided_options.add("--video-strength")
     return provided_options
 
 
@@ -348,12 +372,27 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
         parser.error("--steps must be greater than zero.")
     if args.max_sequence_length <= 0:
         parser.error("--max-sequence-length must be greater than zero.")
+    if args.image_path is not None and args.video_path is not None:
+        parser.error("--image-path and --video-path cannot be used together.")
     if args.image_path is not None and not Path(args.image_path).exists():
         parser.error(f"--image-path does not exist: {args.image_path}")
+    if args.video_path is not None and not Path(args.video_path).exists():
+        parser.error(f"--video-path does not exist: {args.video_path}")
+    if args.video_strength is not None and args.video_path is None:
+        parser.error("--video-strength requires --video-path.")
     if args.lora_scales is not None and not args.lora_paths:
         parser.error("--lora-scales requires --lora-paths.")
     if args.lora_target_roles is not None and not args.lora_paths:
         parser.error("--lora-target-roles requires --lora-paths.")
+
+
+def _validate_model_runtime_args(*, args: argparse.Namespace, model_config: ModelConfig) -> None:
+    if args.image_path is not None and not bool(model_config.transformer_overrides.get("supports_image_to_video", True)):
+        raise ValueError(f"{model_config.model_name} does not support image-to-video input.")
+    if args.video_path is not None and not bool(model_config.transformer_overrides.get("supports_video_to_video", False)):
+        raise ValueError(f"{model_config.model_name} does not support video-to-video input.")
+    if args.video_path is not None and args.solver is not None and str(args.solver).strip().lower() != "unipc":
+        raise ValueError("Wan video-to-video currently requires --solver unipc.")
 
 
 def _apply_seed_defaults(args: argparse.Namespace) -> None:
@@ -419,6 +458,8 @@ def _apply_model_defaults(args: argparse.Namespace, model_config: ModelConfig, p
         args.guidance_2 = wan_config["default_guidance_2"]
     if "--solver" not in provided_options and args.solver is None:
         args.solver = wan_config.get("default_solver", "unipc")
+    if "--video-strength" not in provided_options and args.video_path is not None and args.video_strength is None:
+        args.video_strength = WAN_DEFAULT_VIDEO_STRENGTH
 
 
 def _apply_runtime_memory_options(args: argparse.Namespace) -> None:
@@ -486,11 +527,13 @@ def _write_failure_manifest(
         "tensor_health": asdict(tensor_report) if tensor_report is not None else None,
         "run": {
             "model": args.model,
-            "task": "image-to-video" if args.image_path is not None else "text-to-video",
+            "task": _requested_task(args),
             "seed": seed,
             "prompt": prompt,
             "negative_prompt": args.negative_prompt or None,
             "image_path": str(args.image_path) if args.image_path is not None else None,
+            "video_path": str(args.video_path) if args.video_path is not None else None,
+            "video_strength": args.video_strength,
             "width": args.width,
             "height": args.height,
             "frames": args.frames,
@@ -514,6 +557,14 @@ def _write_failure_manifest(
 
 def _runtime_diagnostics() -> dict:
     return RuntimeMemory.snapshot("wan-failure", synchronize=True).to_metadata()
+
+
+def _requested_task(args: argparse.Namespace) -> str:
+    if args.video_path is not None:
+        return "video-to-video"
+    if args.image_path is not None:
+        return "image-to-video"
+    return "text-to-video"
 
 
 def _provided_options(argv: list[str]) -> set[str]:

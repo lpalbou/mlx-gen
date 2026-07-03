@@ -8,6 +8,8 @@ from mflux.models.fibo.model.fibo_vae.encoder.wan_2_2_down_block import Wan2_2_D
 
 
 class Wan2_2_Encoder3d(nn.Module):
+    supports_cache = True
+
     def __init__(
         self,
         in_channels: int = 3,
@@ -64,12 +66,38 @@ class Wan2_2_Encoder3d(nn.Module):
         self.norm_out = Wan2_2_RMSNorm(out_dim, images=False)
         self.conv_out = Wan2_2_CausalConv3d(out_dim, z_dim, 3, padding=1)
 
-    def __call__(self, x: mx.array) -> mx.array:
-        x = self.conv_in(x)
+    def __call__(
+        self,
+        x: mx.array,
+        feat_cache: list[mx.array | str | None] | None = None,
+        feat_idx: list[int] | None = None,
+    ) -> mx.array:
+        if feat_cache is not None and feat_idx is not None:
+            idx = feat_idx[0]
+            cache_x = self._cache_slice(x, feat_cache[idx])
+            x = self.conv_in(x, None if feat_cache[idx] == "Rep" else feat_cache[idx])
+            feat_cache[idx] = cache_x
+            feat_idx[0] += 1
+        else:
+            x = self.conv_in(x)
         for block in self.down_blocks:
-            x = block(x)
-        x = self.mid_block(x)
+            x = block(x, feat_cache=feat_cache, feat_idx=feat_idx)
+        x = self.mid_block(x, feat_cache=feat_cache, feat_idx=feat_idx)
         x = self.norm_out(x)
         x = nn.silu(x)
-        x = self.conv_out(x)
+        if feat_cache is not None and feat_idx is not None:
+            idx = feat_idx[0]
+            cache_x = self._cache_slice(x, feat_cache[idx])
+            x = self.conv_out(x, None if feat_cache[idx] == "Rep" else feat_cache[idx])
+            feat_cache[idx] = cache_x
+            feat_idx[0] += 1
+        else:
+            x = self.conv_out(x)
         return x
+
+    @staticmethod
+    def _cache_slice(x: mx.array, previous: mx.array | str | None) -> mx.array:
+        cache_x = x[:, :, -2:, :, :]
+        if cache_x.shape[2] < 2 and previous is not None and previous != "Rep":
+            cache_x = mx.concatenate([previous[:, :, -1:, :, :], cache_x], axis=2)
+        return cache_x

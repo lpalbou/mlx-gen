@@ -702,11 +702,12 @@ whole-image recomposition.
 ## What Wan Video Resolutions Should I Use?
 
 Wan width and height are normalized to the selected model's VAE/patch multiple. For text-to-video,
-MLX-Gen uses the requested canvas after model-multiple normalization. For image-to-video, MLX-Gen
-preserves the source image aspect ratio: requested `--width` and `--height` define the approximate
-size target, and the runtime resolves the closest supported canvas from the input image ratio before
-conditioning the model. The video is generated directly at the resolved canvas; MLX-Gen does not
-generate a stretched canvas and then crop or resize it back afterward.
+MLX-Gen uses the requested canvas after model-multiple normalization. Plain video-to-video uses the
+same requested-canvas rule. For image-to-video, MLX-Gen preserves the source image aspect ratio:
+requested `--width` and `--height` define the approximate size target, and the runtime resolves the
+closest supported canvas from the input image ratio before conditioning the model. The video is
+generated directly at the resolved canvas; MLX-Gen does not generate a stretched canvas and then
+crop or resize it back afterward.
 
 | Model | Required multiple | Recommended/native size | Lower-cost diagnostic sizes |
 | --- | ---: | --- | --- |
@@ -716,9 +717,47 @@ generate a stretched canvas and then crop or resize it back afterward.
 
 For TI2V-5B text-to-video, `1280x720` adjusts to `1280x736`, and `432x240` adjusts to `448x256`.
 For A14B text-to-video, `1280x720`, `832x480`, `448x256`, and `432x240` are already valid multiples
-of 16. For TI2V-5B, use at least `832x480` for visual prompt checks; smaller canvases are useful for
+of 16. Plain A14B video-to-video follows that same requested-canvas rule. For TI2V-5B, use at least `832x480` for visual prompt checks; smaller canvases are useful for
 route checks only. Use the
 recommended/native size, frame count, and step count when judging visual quality.
+
+## Does Wan Support Video-To-Video Editing?
+
+Yes, in a narrow public form.
+
+MLX-Gen currently supports plain prompt-guided video-to-video on `Wan2.2-T2V-A14B`. You pass one
+source video plus one prompt, and MLX-Gen regenerates the clip while following the source clip's
+overall motion and composition.
+
+Use this route:
+
+```sh
+mlxgen generate \
+  --model Wan-AI/Wan2.2-T2V-A14B-Diffusers \
+  --video-path source.mp4 \
+  --prompt "Keep the same motion and setting, but redesign the main subject" \
+  --width 448 \
+  --height 256 \
+  --frames 17 \
+  --steps 3 \
+  --guidance 4 \
+  --guidance-2 3 \
+  --video-strength 0.7 \
+  --solver unipc \
+  --fps 10 \
+  --seed 4242 \
+  --output edited.mp4
+```
+
+Limits that matter:
+
+- this is not SeedVR2 restore or upscale;
+- this is not a frame-accurate source-preservation workflow;
+- this is not masked video editing or localized inpaint;
+- this does not accept extra reference images or VACE-style controls;
+- TI2V-5B and I2V-A14B do not currently accept `--video-path`.
+
+For a full explanation and a reproducible example with the exact accepted command, see [Wan Video](wan-video.md).
 
 TI2V-5B also has a flow-matching schedule shift. MLX-Gen uses the model default `5.0` for native
 `1280x704` or `704x1280` runs. For new 480p-class TI2V-5B checks such as `832x480`, pass

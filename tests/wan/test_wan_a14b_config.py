@@ -641,6 +641,118 @@ def test_wan_generate_can_request_transformer_block_cache_clearing(monkeypatch):
     assert all(call["clear_cache_each_block"] is True for call in calls)
 
 
+def test_wan_supports_video_to_video_is_config_gated():
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    model.model_config = ModelConfig.wan2_2_ti2v_5b()
+
+    assert model._supports_video_to_video() is False
+
+    model.model_config = ModelConfig.wan2_2_t2v_a14b()
+
+    assert model._supports_video_to_video() is True
+
+
+def test_wan_video_to_video_uses_scalar_timesteps_when_route_enabled(monkeypatch):
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    model.model_config = ModelConfig.wan2_2_ti2v_5b()
+    model.bits = None
+    model.vae = SimpleNamespace(
+        z_dim=48,
+        temporal_scale=4,
+        spatial_scale=8,
+        decode_normalized_latents=lambda latents, **kwargs: mx.zeros((1, 3, 1, 8, 8), dtype=mx.float32),
+    )
+    model.transformer = _FakeWanTransformer(output=mx.zeros((1, 48, 1, 8, 8), dtype=mx.float32))
+    model.transformer.in_channels = 48
+    model.transformer.out_channels = 48
+    model.transformer_2 = None
+
+    class FakeScheduler:
+        num_train_timesteps = 1000
+
+        def __init__(self, flow_shift):
+            self.flow_shift = flow_shift
+            self.timesteps = mx.array([], dtype=mx.int64)
+
+        def set_timesteps(self, num_inference_steps):
+            del num_inference_steps
+            self.timesteps = mx.array([900, 875], dtype=mx.int64)
+
+        def set_begin_index(self, begin_index=0):
+            self.begin_index = begin_index
+
+        def step(self, model_output, timestep, sample, return_dict):
+            del model_output, timestep, return_dict
+            return (sample,)
+
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.WanUniPCMultistepScheduler",
+        FakeScheduler,
+    )
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.WanEulerScheduler",
+        FakeScheduler,
+    )
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video",
+        lambda **kwargs: SimpleNamespace(**kwargs),
+    )
+    monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
+    monkeypatch.setattr(
+        model,
+        "_prepare_video_to_video_latents",
+        lambda **kwargs: (mx.zeros((1, 48, 1, 8, 8), dtype=mx.float32), {}),
+    )
+    monkeypatch.setattr(
+        model,
+        "_resolve_video_spatial_size",
+        lambda **kwargs: (kwargs["height"], kwargs["width"], {}),
+    )
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.gc.collect", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.synchronize", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.clear_cache", lambda: None)
+    monkeypatch.setattr(model, "_supports_video_to_video", lambda: True)
+
+    model.generate_video(
+        seed=1,
+        prompt="replace the ship hull",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        video_path="input.mp4",
+        video_strength=0.8,
+    )
+
+    assert model.transformer.calls
+    assert model.transformer.calls[0]["timestep"].shape == (1,)
+    assert np.array(model.transformer.calls[0]["timestep"]).tolist() == [875.0]
+
+
+def test_wan_video_to_video_rejects_euler_solver(monkeypatch):
+    model = _fake_t2v_a14b_model()
+    monkeypatch.setattr(
+        model,
+        "_resolve_video_spatial_size",
+        lambda **kwargs: (kwargs["height"], kwargs["width"], {}),
+    )
+
+    with pytest.raises(ValueError, match="requires solver='unipc'"):
+        model.generate_video(
+            seed=1,
+            prompt="replace the ship hull",
+            width=64,
+            height=64,
+            num_frames=1,
+            num_inference_steps=2,
+            guidance=1,
+            solver="euler",
+            video_path="input.mp4",
+            video_strength=0.8,
+        )
+
+
 def test_wan_generate_materializes_cfg_predictions_without_tensor_health(monkeypatch):
     model = _fake_t2v_a14b_model()
     _patch_fake_wan_generation(monkeypatch, model)
@@ -1005,6 +1117,23 @@ def test_wan_i2v_resolved_spatial_size_reads_source_image(tmp_path):
     assert model._resolved_spatial_size(height=240, width=432, image_path=image_path) == (288, 384)
 
 
+def test_wan_v2v_resolved_spatial_size_uses_requested_canvas(monkeypatch):
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    model.transformer = SimpleNamespace(patch_size=(1, 4, 4))
+    model.vae = SimpleNamespace(spatial_scale=8)
+
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.inspect_video",
+        lambda path: SimpleNamespace(source_width=320, source_height=240),
+    )
+
+    assert model._resolve_video_spatial_size(height=240, width=432, image_path=None, video_path="input.mp4") == (
+        256,
+        448,
+        {"source_width": 320, "source_height": 240, "requested_width": 432, "requested_height": 240},
+    )
+
+
 def test_wan_generate_i2v_uses_resolved_source_ratio_size_for_a14b_condition(monkeypatch):
     model = _fake_t2v_a14b_model()
     model.model_config = ModelConfig.wan2_2_i2v_a14b()
@@ -1117,6 +1246,36 @@ def test_wan_generate_i2v_uses_resolved_source_ratio_size_for_ti2v_condition(mon
     assert observed["to_video"]["source_height"] == 240
     assert observed["to_video"]["requested_width"] == 432
     assert observed["to_video"]["requested_height"] == 240
+
+
+def test_wan_video_to_video_source_conditioning_uses_float32(monkeypatch):
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    observed = {}
+
+    def encode_normalized(video):
+        observed["dtype"] = video.dtype
+        return mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32)
+
+    model.vae = SimpleNamespace(encode_normalized=encode_normalized)
+    clip = SimpleNamespace(
+        clip_frame_count=1,
+        frames=[Image.new("RGB", (64, 64), "white")],
+        source_width=64,
+        source_height=64,
+        source_frame_count=1,
+        source_duration_seconds=0.1,
+        fps=10.0,
+    )
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.read_video_clip",
+        lambda video_path, max_frames: clip,
+    )
+
+    latents, metadata = model._load_video_to_video_latents(video_path="input.mp4", height=64, width=64, num_frames=1)
+
+    assert observed["dtype"] == mx.float32
+    assert latents.dtype == mx.float32
+    assert metadata["source_width"] == 64
 
 
 def test_wan_explicit_empty_negative_prompt_disables_default():
