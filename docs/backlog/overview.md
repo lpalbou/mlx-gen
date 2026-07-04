@@ -65,6 +65,11 @@ promote richer VACE conditioning into the public runtime yet.
    so `mlxgen generate` now owns a bounded public Wan source-video edit route on `Wan2.2-T2V-A14B`
    with truthful config gating, `unipc`-only public solver support, focused tests, and a preserved
    ship-edit proof bundle.
+4. Finished [Wan masked video-to-video via latent compositing](completed/0076_wan_masked_video_to_video_latent_compositing.md)
+   so `--video-mask-path` locks preserved regions to the source at the measured H.264 floor
+   (drift 1.7 vs 14.9 unmasked on the conference proof), with UniPC scheduler-state compositing,
+   fail-closed contracts, replayable metadata, and an in-repo proof bundle under
+   `docs/assets/examples/conference-masked-v2v/`.
 
 ## Completed audit hardening band
 
@@ -350,6 +355,7 @@ memory follow-up state.
 | 0072 | [Reader-first video workflow boundary and generative video-edit contract](completed/0072_reader_first_video_workflow_boundary_and_generative_video_edit_contract.md) | CLI help, docs, ADR alignment, validation discovery | 2026-07-03 | Aligned the current video workflow boundary across CLI help, docs, ADR 0006, and backlog sequencing so future source-video editing starts from a truthful public surface instead of hidden or ambiguous terminology. |
 | 0073 | [Wan VACE reference validation harness and bounded source cases](completed/0073_wan_vace_reference_validation_harness_and_bounded_source_cases.md) | Video editing, Wan VACE, reference proof, memory | 2026-07-03 | Added a repeatable upstream VACE probe with preserved artifacts and memory metrics, then proved that the bounded `Wan2.1-VACE-1.3B` MPS path runs locally but did not meet a release-quality visual bar on the portrait and ship cases. |
 | 0074 | [Wan plain generative video-to-video route](completed/0074_wan_plain_generative_video_to_video_route.md) | Video editing, public task surface, Wan runtime | 2026-07-03 | Shipped the bounded public Wan `video-to-video` route on `Wan2.2-T2V-A14B`, kept non-V2V Wan rows fail-closed, required `unipc` on the public V2V surface, aligned source-video conditioning with float32 warm-start prep, and preserved a model-backed ship-edit proof bundle. |
+| 0076 | [Wan masked video-to-video via latent compositing](completed/0076_wan_masked_video_to_video_latent_compositing.md) | Video editing, masked conditioning, Wan runtime, planner roles | 2026-07-04 | Shipped `--video-mask-path` masked video-to-video on the existing A14B route with per-step latent plus UniPC-state compositing, exact background preservation at the measured H.264 floor (drift 1.7 vs 14.9 unmasked), typed planner role, replayable metadata, and an in-repo conference proof bundle. |
 
 ## Deprecated ledger
 

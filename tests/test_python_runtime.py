@@ -275,12 +275,14 @@ def test_loaded_generation_model_routes_video_to_video_to_generate_video(monkeyp
         prompt="replace the ship hull",
         video_path="input.mp4",
         video_strength=0.6,
+        video_mask_path="mask.png",
         output=tmp_path / "video.mp4",
         progress_callback=progress_events.append,
     )
 
     assert created["generate"]["video_path"] == "input.mp4"
     assert created["generate"]["video_strength"] == 0.6
+    assert created["generate"]["video_mask_path"] == "mask.png"
     assert result.task == "video-to-video"
     assert result.saved_path == tmp_path / "video.mp4"
     assert [event.phase for event in progress_events] == ["start", "denoise", "generated", "save", "complete"]

@@ -33,7 +33,7 @@ PUBLIC_TASKS = {*PUBLIC_IMAGE_TASKS, *PUBLIC_VIDEO_TASKS}
 IMAGE_TASKS = {*PUBLIC_IMAGE_TASKS, EDIT}
 VIDEO_TASKS = PUBLIC_VIDEO_TASKS
 VALID_TASKS = {TASK_AUTO, EDIT, *PUBLIC_TASKS}
-CAPABILITIES_SCHEMA_VERSION = 3
+CAPABILITIES_SCHEMA_VERSION = 4
 QWEN_CONTROL_UNION_MODEL = (
     "InstantX/Qwen-Image-ControlNet-Union:"
     "diffusion_pytorch_model.safetensors"
@@ -84,6 +84,7 @@ class GenerationCapability:
     max_videos: int | None = 0
     supports_image_strength: bool = False
     supports_video_strength: bool = False
+    supports_video_mask: bool = False
     supports_mask: bool = False
     supports_control_image: bool = False
     supports_control_mask: bool = False
@@ -125,6 +126,7 @@ class GenerationCapability:
             "max_videos": self.max_videos,
             "supports_image_strength": self.supports_image_strength,
             "supports_video_strength": self.supports_video_strength,
+            "supports_video_mask": self.supports_video_mask,
             "supports_mask": self.supports_mask,
             "supports_control_image": self.supports_control_image,
             "supports_control_mask": self.supports_control_mask,
@@ -275,6 +277,7 @@ def resolve_generation_plan(
     i2i_mode: str | None = I2I_MODE_AUTO,
     has_image_strength: bool = False,
     has_video_strength: bool = False,
+    has_video_mask: bool = False,
     has_mask: bool = False,
     has_control_image: bool = False,
     has_outpaint: bool = False,
@@ -291,6 +294,10 @@ def resolve_generation_plan(
         raise TaskInferenceError("--image-strength requires --image or --image-path.")
     if has_video_strength and video_count == 0:
         raise TaskInferenceError("--video-strength requires --video or --video-path.")
+    if has_video_mask and video_count == 0:
+        raise TaskInferenceError("--video-mask-path requires --video or --video-path.")
+    if has_video_mask and has_mask:
+        raise TaskInferenceError("--video-mask-path cannot be combined with --mask-path.")
     if has_mask and image_count == 0:
         raise TaskInferenceError("--mask-path requires --image or --image-path.")
     if has_mask and has_image_strength:
@@ -367,6 +374,10 @@ def resolve_generation_plan(
         candidates = [capability for capability in candidates if capability.supports_video_strength]
         if not candidates:
             raise TaskInferenceError("--video-strength is only supported for video-to-video latent edit mode.")
+    if has_video_mask:
+        candidates = [capability for capability in candidates if capability.supports_video_mask]
+        if not candidates:
+            raise TaskInferenceError("--video-mask-path is only supported for video-to-video routes with mask support.")
     if has_mask:
         candidates = [capability for capability in candidates if capability.supports_mask]
         if not candidates:
@@ -447,6 +458,7 @@ def resolve_task(
     i2i_mode: str | None = I2I_MODE_AUTO,
     has_image_strength: bool = False,
     has_video_strength: bool = False,
+    has_video_mask: bool = False,
     has_mask: bool = False,
     has_control_image: bool = False,
     has_outpaint: bool = False,
@@ -464,6 +476,7 @@ def resolve_task(
         i2i_mode=i2i_mode,
         has_image_strength=has_image_strength,
         has_video_strength=has_video_strength,
+        has_video_mask=has_video_mask,
         has_mask=has_mask,
         has_control_image=has_control_image,
         has_outpaint=has_outpaint,
@@ -494,6 +507,7 @@ def infer_task(
     i2i_mode: str | None = I2I_MODE_AUTO,
     has_image_strength: bool = False,
     has_video_strength: bool = False,
+    has_video_mask: bool = False,
     has_mask: bool = False,
     has_control_image: bool = False,
     has_outpaint: bool = False,
@@ -511,6 +525,7 @@ def infer_task(
         i2i_mode=i2i_mode,
         has_image_strength=has_image_strength,
         has_video_strength=has_video_strength,
+        has_video_mask=has_video_mask,
         has_mask=has_mask,
         has_control_image=has_control_image,
         has_outpaint=has_outpaint,
@@ -1079,6 +1094,7 @@ def _wan_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                     min_videos=1,
                     max_videos=1,
                     supports_video_strength=True,
+                    supports_video_mask=True,
                     supports_frames=True,
                     supports_fps=True,
                     default_for_task=True,

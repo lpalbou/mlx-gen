@@ -104,9 +104,11 @@ def _resolve_invocation(argv: list[str]) -> RouterInvocation:
     if route.video_argument is not None and videos:
         normalized_argv.append(route.video_argument)
     normalized_argv.extend(videos)
-    # The router parser consumes --video-strength for validation, so it must be re-emitted explicitly.
+    # The router parser consumes --video-strength/--video-mask-path for validation, so they must be re-emitted explicitly.
     if args.video_strength is not None:
         normalized_argv.extend(["--video-strength", str(args.video_strength)])
+    if args.video_mask_path is not None:
+        normalized_argv.extend(["--video-mask-path", str(args.video_mask_path)])
     normalized_argv.extend(forwarded)
     normalized_argv.extend(reframe_argv)
     normalized_argv.extend(outpaint_argv)
@@ -156,6 +158,9 @@ def _parse_router_args(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
         metadata,
         "video_strength",
     )
+    if args.video_mask_path is None:
+        args.video_mask_path = metadata.get("video_mask_path")
+    args.has_video_mask = args.video_mask_path is not None
     if args.reframe_padding is None:
         args.reframe_padding = metadata.get("reframe_padding")
     if args.outpaint_padding is None:
@@ -401,7 +406,7 @@ def _parser() -> argparse.ArgumentParser:
             "--negative-prompt/--negative, --canvas-policy, --quantize, --lora-paths, --lora-scales, "
             "--mask-path, --controlnet-image-path, --controlnet-strength, --metadata, "
             "--config-from-metadata/-C, --output, --replace, --frames, --fps, --guidance-2, "
-            "--flow-shift, --video-strength, --reframe-padding, --outpaint-padding, --low-ram, --debug, "
+            "--flow-shift, --video-strength, --video-mask-path, --reframe-padding, --outpaint-padding, --low-ram, --debug, "
             "--tensor-health-check-interval, --json-events, --embed-metadata, and --progress/--no-progress.\n"
             "Restore or upscale an existing source video with `mlxgen upscale --video-path ...`.\n"
             "Plain prompt-guided video-to-video is available on exact Wan video-to-video routes such as "
@@ -509,6 +514,14 @@ def _parser() -> argparse.ArgumentParser:
         default=None,
         help=(
             "Denoising strength for plain video-to-video routes. Higher values allow larger appearance changes."
+        ),
+    )
+    parser.add_argument(
+        "--video-mask-path",
+        default=None,
+        help=(
+            "Static image mask for masked video-to-video. White marks the region the model may change; "
+            "black regions are preserved exactly from the source video."
         ),
     )
     parser.add_argument(
@@ -923,6 +936,7 @@ def _resolve_generation_plan(
             i2i_mode=args.i2i_mode,
             has_image_strength=args.has_image_strength,
             has_video_strength=args.has_video_strength,
+            has_video_mask=args.has_video_mask,
             has_mask=args.has_mask,
             has_control_image=args.has_control_image,
             has_outpaint=args.has_outpaint,

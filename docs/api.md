@@ -621,7 +621,7 @@ The TI2V-5B I2V path follows Diffusers first-frame latent conditioning: the firs
 For Wan image-to-video, saved metadata records the requested dimensions, the source image
 dimensions, and the resolved output dimensions.
 
-For Wan plain video-to-video, saved metadata records the requested `steps` (so
+For Wan video-to-video, saved metadata records the requested `steps` (so
 `--config-from-metadata` replays the same schedule) plus `effective_steps`, `video_strength`,
 `high_noise_stage_skipped`, and the source clip's dimensions, frame count, duration, and fps.
 The route consumes the first `--frames` source frames as-is; there is no temporal resampling, so a
@@ -639,15 +639,16 @@ At the default 24 fps, `--frames 121` produces about 5.04 seconds of video, `--f
 
 | Option | Behavior |
 | --- | --- |
-| `--width`, `--height` | Accepted values are model-specific. Text-to-video and plain video-to-video values are adjusted up to the selected Wan VAE/patch multiple. For image-to-video, these values are a size target: MLX-Gen resolves the final canvas from the source image aspect ratio and the selected model's spatial multiple before conditioning the model. |
+| `--width`, `--height` | Accepted values are model-specific. Text-to-video and video-to-video values are adjusted up to the selected Wan VAE/patch multiple. For image-to-video, these values are a size target: MLX-Gen resolves the final canvas from the source image aspect ratio and the selected model's spatial multiple before conditioning the model. |
 | `--frames` | Number of output frames. Wan requires `4n + 1`; other values are adjusted to `4 * floor(frames / 4) + 1`. TI2V-5B default: `121`; A14B default: `81`. |
 | `--fps` | MP4 playback frame rate. Any positive integer is accepted. TI2V-5B default/recommended value: `24`; A14B default/recommended value: `16`. |
 | `--steps` | Denoising steps. TI2V-5B default/recommended quality value: `50`; A14B default/recommended value: `40`. Lower values run faster but reduce quality. |
 | `--guidance` | Classifier-free guidance scale. TI2V-5B default: `5`; A14B default: `4`. |
 | `--guidance-2` | Optional low-noise guidance scale for Wan A14B `transformer_2`. If both guidance flags are omitted, model-specific two-stage defaults are used. If `--guidance` is set and `--guidance-2` is omitted, the low-noise stage follows `--guidance`. It is rejected for single-transformer Wan models. |
 | `--flow-shift` | Flow-matching scheduler shift. Defaults to the selected Wan model config. TI2V-5B defaults to `5.0` for native 720p-class runs. A14B defaults to `3.0`. For new 480p-class TI2V-5B checks such as `832x480`, pass `--flow-shift 3`. Python callers use `flow_shift=...`. |
-| `--video`, `--video-path` | One source video for the plain public Wan video-to-video route. Current public support is limited to `Wan2.2-T2V-A14B`; TI2V-5B and I2V-A14B still reject source-video input, and masks, reference images, and VACE-style controls are not part of this route. |
-| `--video-strength` | Denoising strength in `(0, 1]` for plain video-to-video. Default: `0.8`. Higher values allow larger changes from the source clip. The run denoises `floor(steps x video_strength)` effective steps; saved metadata records the requested `steps` plus the resolved `effective_steps`, and below roughly `0.7` the A14B high-noise stage (and `--guidance`) is skipped with a printed warning. |
+| `--video`, `--video-path` | One source video for the public Wan video-to-video route (plain, or masked with `--video-mask-path`). Current public support is limited to `Wan2.2-T2V-A14B`; TI2V-5B and I2V-A14B still reject source-video input, and reference images and VACE-style learned controls are not part of this route. |
+| `--video-strength` | Denoising strength in `(0, 1]` for Wan video-to-video. Default: `0.8`. Higher values allow larger changes from the source clip. The run denoises `floor(steps x video_strength)` effective steps; saved metadata records the requested `steps` plus the resolved `effective_steps`, and below roughly `0.7` the A14B high-noise stage (and `--guidance`) is skipped with a printed warning. On masked runs, strength applies inside the mask. |
+| `--video-mask-path` | One static image mask for masked video-to-video. White marks the region the model may change; black regions are locked to the source video at every denoising step and match it up to VAE round-trip precision. Binarized at 50% on the latent grid. Requires `--video-path`; all-black masks are rejected before model load; strength applies inside the mask. Recorded in metadata and replayed by `--config-from-metadata`. |
 | `--solver` | Wan supports `unipc` and `euler` broadly, but public Wan video-to-video currently requires `unipc`. |
 | `--negative-prompt`, `--negative` | If omitted, Wan uses the model's official default negative prompt. Pass `--negative ""` to intentionally run without a negative prompt; this can be better for simple abstract scenes where the default negative prompt adds unwanted texture. |
 | `--seed` | Deterministic seed. Repeat with multiple values to create multiple videos. |
@@ -659,7 +660,7 @@ Common Wan video sizes:
 | Model | Required width/height multiple | Recommended/native quality size | Lower-cost diagnostic sizes | Notes |
 | --- | ---: | --- | --- | --- |
 | TI2V-5B T2V/I2V | 32 px | `1280x704` or `704x1280` | `832x480`, `480x832`; smaller sizes such as `448x256` are smoke checks only | Text-to-video `1280x720` adjusts to `1280x736`; image-to-video preserves the source image ratio at a nearby supported canvas. |
-| T2V-A14B | 16 px | `1280x720` or `720x1280` | `832x480`, `480x832`, `448x256`, `256x448`, `432x240` | Text-to-video plus plain video-to-video; image input is rejected and public V2V currently requires `unipc`. |
+| T2V-A14B | 16 px | `1280x720` or `720x1280` | `832x480`, `480x832`, `448x256`, `256x448`, `432x240` | Text-to-video plus public video-to-video (plain or masked with `--video-mask-path`); image input is rejected and public V2V currently requires `unipc`. |
 | I2V-A14B | 16 px | Source-ratio canvas near `1280x720` or `720x1280` | Source-ratio canvas near `832x480`, `448x256`, or `432x240` | Requires one input image; output preserves the source image ratio at a nearby supported canvas. |
 
 Additional A14B target families that MLX-Gen accepts are useful when you want a different aspect

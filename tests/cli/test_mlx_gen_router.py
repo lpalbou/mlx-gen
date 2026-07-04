@@ -21,12 +21,14 @@ def test_generate_help_renders_padding_examples(monkeypatch, capsys):
 
     assert exc.value.code == 0
     help_output = capsys.readouterr().out
+    normalized_help = " ".join(help_output.split())
     assert "--reframe-padding" in help_output
     assert "--debug" in help_output
     assert "--mask-path" in help_output
+    assert "--video-mask-path" in help_output
     assert "--controlnet-image-path" in help_output
     assert "0,25%,0,25%" in help_output
-    assert "localized masked edit or inpaint" in help_output
+    assert "localized masked edit or inpaint" in normalized_help
 
 
 def test_generate_help_scopes_failure_diagnostics_to_wan_only(monkeypatch, capsys):
@@ -37,7 +39,8 @@ def test_generate_help_scopes_failure_diagnostics_to_wan_only(monkeypatch, capsy
 
     assert exc.value.code == 0
     help_output = capsys.readouterr().out
-    normalized_help = " ".join(help_output.split())
+    # argparse may wrap long option names at hyphens; rejoin before phrase checks.
+    normalized_help = " ".join(help_output.replace("-\n", "-").split())
     assert "--json-events" in help_output
     assert "Wan video routes also accept --failure-diagnostics" in normalized_help
 
@@ -717,6 +720,7 @@ def test_capabilities_command_reports_wan_a14b_video_to_video(capsys):
     assert v2v["min_videos"] == 1
     assert v2v["max_videos"] == 1
     assert v2v["supports_video_strength"] is True
+    assert v2v["supports_video_mask"] is True
 
     mlx_gen._show_capabilities(["--model", "Wan-AI/Wan2.2-TI2V-5B-Diffusers"])
     ti2v_payload = json.loads(capsys.readouterr().out)
@@ -3330,6 +3334,60 @@ def test_router_forwards_video_strength_to_wan_backend():
     assert invocation.argv[strength_index + 1] == "0.7"
 
 
+def test_router_forwards_video_mask_path_to_wan_backend(tmp_path):
+    mask_file = tmp_path / "mask.png"
+    mask_file.write_bytes(b"png")
+    invocation = mlx_gen._resolve_invocation(
+        [
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--video-path",
+            "input.mp4",
+            "--video-mask-path",
+            str(mask_file),
+            "--prompt",
+            "change only the speaker",
+        ]
+    )
+
+    mask_index = invocation.argv.index("--video-mask-path")
+    assert invocation.argv[mask_index + 1] == str(mask_file)
+
+
+def test_router_rejects_video_mask_without_video(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+                "--video-mask-path",
+                "mask.png",
+                "--prompt",
+                "change only the speaker",
+            ]
+        )
+
+    assert "--video-mask-path requires --video or --video-path" in capsys.readouterr().err
+
+
+def test_router_rejects_video_mask_on_image_route(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "z-image-turbo",
+                "--image",
+                "input.png",
+                "--video-mask-path",
+                "mask.png",
+                "--prompt",
+                "change only the subject",
+            ]
+        )
+
+    assert "--video-mask-path" in capsys.readouterr().err
+
+
 def test_router_rejects_video_strength_above_one(capsys):
     with pytest.raises(SystemExit):
         mlx_gen._resolve_invocation(
@@ -3591,6 +3649,168 @@ def test_wan_cli_generates_a14b_video_to_video(monkeypatch, tmp_path):
     assert observed["generate"]["solver"] == "unipc"
     assert observed["save"]["path"] == tmp_path / "out.mp4"
     assert observed["save"]["overwrite"] is True
+
+
+def test_wan_cli_rejects_all_black_video_mask_before_model_load(monkeypatch, tmp_path, capsys):
+    from PIL import Image
+
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {}
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(wan_generate, "_probe_source_video", lambda **kwargs: None)
+    input_path = tmp_path / "input.mp4"
+    input_path.write_bytes(b"mp4")
+    mask_path = tmp_path / "all_black.png"
+    Image.new("L", (64, 64), 0).save(mask_path)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--video-path",
+            str(input_path),
+            "--video-mask-path",
+            str(mask_path),
+            "--prompt",
+            "change only the speaker",
+            "--output",
+            str(tmp_path / "out.mp4"),
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        wan_generate.main()
+
+    assert "no editable (white) region" in capsys.readouterr().err
+    assert "init" not in observed
+
+
+def test_wan_cli_rejects_video_mask_without_video_path(monkeypatch, tmp_path, capsys):
+    from PIL import Image
+
+    from mflux.models.wan.cli import wan_generate
+
+    mask_path = tmp_path / "mask.png"
+    Image.new("L", (64, 64), 255).save(mask_path)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--video-mask-path",
+            str(mask_path),
+            "--prompt",
+            "change only the speaker",
+            "--output",
+            str(tmp_path / "out.mp4"),
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        wan_generate.main()
+
+    assert "--video-mask-path requires --video-path" in capsys.readouterr().err
+
+
+def test_wan_cli_forwards_video_mask_and_replays_it_from_metadata(monkeypatch, tmp_path):
+    import json as json_module
+
+    from PIL import Image
+
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {}
+    input_path = tmp_path / "input.mp4"
+    input_path.write_bytes(b"mp4")
+    mask_path = tmp_path / "mask.png"
+    Image.new("L", (64, 64), 255).save(mask_path)
+
+    class FakeVideo:
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_video(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeVideo()
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(wan_generate, "_probe_source_video", lambda **kwargs: None)
+    metadata_path = tmp_path / "run.metadata.json"
+    metadata_path.write_text(
+        json_module.dumps(
+            {
+                "model": "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+                "prompt": "change only the speaker",
+                "video_path": str(input_path),
+                "video_mask_path": str(mask_path),
+                "seed": 123,
+            }
+        )
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--config-from-metadata",
+            str(metadata_path),
+            "--frames",
+            "5",
+            "--steps",
+            "2",
+            "--output",
+            str(tmp_path / "out.mp4"),
+        ],
+    )
+
+    wan_generate.main()
+
+    assert observed["generate"]["video_mask_path"] == str(mask_path)
+
+
+def test_wan_metadata_defaults_mark_video_mask_as_provided_option(tmp_path):
+    from mflux.models.wan.cli import wan_generate
+
+    metadata_path = tmp_path / "run.metadata.json"
+    metadata_path.write_text(
+        json.dumps(
+            {
+                "prompt": "change only the speaker",
+                "video_path": "input.mp4",
+                "video_mask_path": "mask.png",
+            }
+        )
+    )
+
+    args = wan_generate._parser().parse_args(
+        [
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--config-from-metadata",
+            str(metadata_path),
+        ]
+    )
+
+    provided = wan_generate._apply_metadata_defaults(args)
+
+    assert "--video-mask-path" in provided
+    assert "--video-strength" not in provided
 
 
 def test_wan_cli_rejects_unreadable_source_video_before_model_load(monkeypatch, tmp_path, capsys):

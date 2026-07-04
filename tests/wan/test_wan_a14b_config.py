@@ -702,7 +702,12 @@ def test_wan_video_to_video_uses_scalar_timesteps_when_route_enabled(monkeypatch
     monkeypatch.setattr(
         model,
         "_prepare_video_to_video_latents",
-        lambda **kwargs: (mx.zeros((1, 48, 1, 8, 8), dtype=mx.float32), {}),
+        lambda **kwargs: (
+            mx.zeros((1, 48, 1, 8, 8), dtype=mx.float32),
+            mx.zeros((1, 48, 1, 8, 8), dtype=mx.float32),
+            mx.zeros((1, 48, 1, 8, 8), dtype=mx.float32),
+            {},
+        ),
     )
     monkeypatch.setattr(
         model,
@@ -746,6 +751,8 @@ def test_wan_v2v_metadata_records_requested_and_effective_steps(monkeypatch):
         "_prepare_video_to_video_latents",
         lambda **kwargs: (
             mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32),
+            mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32),
+            mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32),
             {"source_video_frame_count": 30, "source_video_duration_seconds": 3.0, "source_video_fps": 10.0},
         ),
     )
@@ -771,6 +778,196 @@ def test_wan_v2v_metadata_records_requested_and_effective_steps(monkeypatch):
     assert metadata["extra_metadata"]["high_noise_stage_skipped"] is False
     assert metadata["extra_metadata"]["source_video_frame_count"] == 30
     assert metadata["extra_metadata"]["source_video_fps"] == 10.0
+
+
+def _run_masked_v2v_with_real_scheduler(monkeypatch, tmp_path, *, mask_color: int | None, seed: int = 1):
+    model = _fake_t2v_a14b_model()
+    source_latents = mx.arange(16 * 8 * 8, dtype=mx.float32).reshape(1, 16, 1, 8, 8) / 100.0
+    noise = mx.ones((1, 16, 1, 8, 8), dtype=mx.float32) * 0.5
+    warm_start = 0.9 * noise + 0.1 * source_latents
+    observed = {}
+
+    def decode(latents, **kwargs):
+        observed["decode_latents"] = latents
+        return mx.zeros((1, 3, 1, 8, 8), dtype=mx.float32)
+
+    model.vae = SimpleNamespace(
+        z_dim=16,
+        temporal_scale=4,
+        spatial_scale=8,
+        decode_normalized_latents=decode,
+    )
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", lambda **kwargs: SimpleNamespace())
+    monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
+    monkeypatch.setattr(
+        model,
+        "_prepare_video_to_video_latents",
+        lambda **kwargs: (warm_start, source_latents, noise, {}),
+    )
+    monkeypatch.setattr(
+        model,
+        "_resolve_video_spatial_size",
+        lambda **kwargs: (kwargs["height"], kwargs["width"], {}),
+    )
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.gc.collect", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.synchronize", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.clear_cache", lambda: None)
+
+    mask_path = None
+    if mask_color is not None:
+        mask_file = tmp_path / f"mask_{mask_color}.png"
+        Image.new("L", (64, 64), mask_color).save(mask_file)
+        mask_path = str(mask_file)
+
+    model.generate_video(
+        seed=seed,
+        prompt="replace the speaker",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=4,
+        guidance=1,
+        guidance_2=1,
+        video_path="input.mp4",
+        video_strength=0.75,
+        video_mask_path=mask_path,
+    )
+    return observed["decode_latents"], source_latents
+
+
+def test_wan_masked_v2v_all_black_mask_returns_exact_source_roundtrip(monkeypatch, tmp_path, capsys):
+    decode_latents, source_latents = _run_masked_v2v_with_real_scheduler(monkeypatch, tmp_path, mask_color=0)
+
+    expected = source_latents.astype(ModelConfig.precision).astype(mx.float32)
+    assert np.array_equal(np.array(decode_latents.astype(mx.float32)), np.array(expected))
+    assert "no editable region" in capsys.readouterr().out
+
+
+def test_wan_masked_v2v_all_white_mask_matches_plain_v2v(monkeypatch, tmp_path, capsys):
+    masked, _ = _run_masked_v2v_with_real_scheduler(monkeypatch, tmp_path, mask_color=255)
+    plain, _ = _run_masked_v2v_with_real_scheduler(monkeypatch, tmp_path, mask_color=None)
+
+    masked_np = np.array(masked.astype(mx.float32))
+    plain_np = np.array(plain.astype(mx.float32))
+    assert np.array_equal(masked_np, plain_np)
+    assert not np.array_equal(masked_np, np.zeros_like(masked_np))
+    assert "equivalent to plain video-to-video" in capsys.readouterr().out
+
+
+def test_wan_masked_v2v_partial_mask_locks_background_and_edits_foreground(monkeypatch, tmp_path):
+    mask_file = tmp_path / "half.png"
+    half = Image.new("L", (64, 64), 0)
+    for x in range(32, 64):
+        for y in range(64):
+            half.putpixel((x, y), 255)
+    half.save(mask_file)
+
+    model = _fake_t2v_a14b_model()
+    source_latents = mx.arange(16 * 8 * 8, dtype=mx.float32).reshape(1, 16, 1, 8, 8) / 100.0
+    noise = mx.ones((1, 16, 1, 8, 8), dtype=mx.float32) * 0.5
+    observed = {}
+
+    def decode(latents, **kwargs):
+        observed["decode_latents"] = latents
+        return mx.zeros((1, 3, 1, 8, 8), dtype=mx.float32)
+
+    model.vae = SimpleNamespace(z_dim=16, temporal_scale=4, spatial_scale=8, decode_normalized_latents=decode)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", lambda **kwargs: SimpleNamespace())
+    monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
+    monkeypatch.setattr(
+        model,
+        "_prepare_video_to_video_latents",
+        lambda **kwargs: (0.9 * noise + 0.1 * source_latents, source_latents, noise, {}),
+    )
+    monkeypatch.setattr(model, "_resolve_video_spatial_size", lambda **kwargs: (kwargs["height"], kwargs["width"], {}))
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.gc.collect", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.synchronize", lambda: None)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.clear_cache", lambda: None)
+
+    model.generate_video(
+        seed=1,
+        prompt="replace the right half",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=4,
+        guidance=1,
+        guidance_2=1,
+        video_path="input.mp4",
+        video_strength=0.75,
+        video_mask_path=str(mask_file),
+    )
+
+    result = np.array(observed["decode_latents"].astype(mx.float32))
+    expected_background = np.array(source_latents.astype(ModelConfig.precision).astype(mx.float32))
+    # Preserved (black, left) columns are exactly the source; edited (white, right) columns differ.
+    assert np.array_equal(result[..., :4], expected_background[..., :4])
+    assert not np.array_equal(result[..., 4:], expected_background[..., 4:])
+
+
+def test_wan_prepare_video_mask_polarity_shape_and_binarization(tmp_path):
+    mask_image = Image.new("L", (64, 64), 0)
+    for x in range(32, 64):
+        for y in range(64):
+            mask_image.putpixel((x, y), 255)
+    mask_file = tmp_path / "half_mask.png"
+    mask_image.save(mask_file)
+
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    model.vae = SimpleNamespace(spatial_scale=8)
+
+    mask = model._prepare_video_mask(mask_file, height=64, width=64)
+
+    assert mask.shape == (1, 1, 1, 8, 8)
+    values = np.array(mask)[0, 0, 0]
+    assert np.array_equal(values[:, :4], np.zeros((8, 4), dtype=np.float32))
+    assert np.array_equal(values[:, 4:], np.ones((8, 4), dtype=np.float32))
+
+
+def test_wan_composite_masked_video_state_locks_scheduler_state():
+    sigmas = mx.array([0.9, 0.7, 0.4, 0.0], dtype=mx.float32)
+    source = mx.ones((1, 2, 1, 2, 2), dtype=mx.float32) * 3.0
+    noise = mx.ones((1, 2, 1, 2, 2), dtype=mx.float32) * -1.0
+    latents = mx.zeros((1, 2, 1, 2, 2), dtype=mx.float32)
+    last_sample = mx.zeros((1, 2, 1, 2, 2), dtype=mx.float32)
+    model_outputs = [None, mx.zeros((1, 2, 1, 2, 2), dtype=mx.float32)]
+    scheduler = SimpleNamespace(sigmas=sigmas, step_index=2, last_sample=last_sample, model_outputs=model_outputs)
+    mask = mx.zeros((1, 1, 1, 2, 2), dtype=mx.float32)  # preserve everywhere
+
+    result = Wan2_2_TI2V._composite_masked_video_state(
+        scheduler=scheduler,
+        latents=latents,
+        video_mask=mask,
+        source_latents=source,
+        noise=noise,
+    )
+
+    # Returned latents locked at the current level: sigma=0.4 -> 0.4*(-1) + 0.6*3 = 1.4
+    np.testing.assert_allclose(np.array(result), np.full((1, 2, 1, 2, 2), 1.4, dtype=np.float32), rtol=1e-6)
+    # Corrector anchor locked one level back: sigma=0.7 -> 0.7*(-1) + 0.3*3 = 0.2
+    np.testing.assert_allclose(np.array(scheduler.last_sample), np.full((1, 2, 1, 2, 2), 0.2, dtype=np.float32), rtol=1e-6, atol=1e-6)
+    # x0 history locked to the clean source.
+    np.testing.assert_allclose(np.array(scheduler.model_outputs[-1]), np.full((1, 2, 1, 2, 2), 3.0, dtype=np.float32), rtol=1e-6)
+
+
+def test_wan_video_mask_without_video_path_raises(monkeypatch, tmp_path):
+    mask_file = tmp_path / "mask.png"
+    Image.new("L", (64, 64), 255).save(mask_file)
+    model = _fake_t2v_a14b_model()
+    _patch_fake_wan_generation(monkeypatch, model)
+
+    with pytest.raises(ValueError, match="video_mask_path requires video_path"):
+        model.generate_video(
+            seed=1,
+            prompt="a slow wave",
+            width=64,
+            height=64,
+            num_frames=1,
+            num_inference_steps=2,
+            guidance=1,
+            guidance_2=1,
+            video_mask_path=str(mask_file),
+        )
 
 
 def test_wan_video_strength_without_video_path_raises(monkeypatch):

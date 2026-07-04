@@ -7,7 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.18.25] - 2026-07-05
+
 ### Added
+
+- **Masked Wan video-to-video**: new `--video-mask-path` role on the `Wan2.2-T2V-A14B`
+  video-to-video route. White mask regions are regenerated under the prompt; black regions are
+  locked to the source video at every denoising step (including UniPC corrector state) and match
+  the source up to VAE round-trip precision after the final clean composite. Static image masks,
+  binarized at 50% on the latent grid; all-black masks fail before model load; recorded in
+  metadata and replayed by `--config-from-metadata`. Capabilities schema bumped to version 4
+  with `supports_video_mask`.
+
+- **Lightning fast video-to-video recipe**: bounded validation of the `lightx2v/Wan2.2-Lightning`
+  T2V-A14B 4-step LoRA pairs (Seko-V1.1 and Seko-V2.0) on the public video-to-video route via
+  the on-grid recipe (`--steps 4 --video-strength 0.75 --guidance 1 --flow-shift 5 --solver
+  unipc`), including the masked combination whose preserved regions stay at the H.264 re-encode
+  floor while cutting the denoise loop from 28 to 3 transformer forwards. Documented with the
+  strength-lattice and inert-negative-prompt caveats.
 
 - **Wan plain video-to-video route**: public prompt-guided source-video editing on
   `Wan2.2-T2V-A14B` through `mlxgen generate --video-path ...` with `--video-strength`

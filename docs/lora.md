@@ -254,6 +254,16 @@ A14B:
 For A14B, pass the intended `high_noise_transformer` / `low_noise_transformer` role assignment
 explicitly when you use separate adapter files. MLX-Gen does not silently duplicate roles.
 
+Video-to-video (plain and masked) on `Wan2.2-T2V-A14B` also accepts the T2V Lightning pairs
+through the public `unipc` route. Bounded validation on 2026-07-04 covered
+`Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1` (two seeds, conference and ship clips at
+480x832/25f and 448x256/17f, plus the `--video-mask-path` combination) and
+`...-Seko-V2.0` (one seed; slightly closer source tracking). Recipe: `--steps 4
+--video-strength 0.75 --guidance 1 --guidance-2 1 --flow-shift 5 --solver unipc`. Negative
+prompts are inert at guidance 1, and unmasked runs re-synthesize the scene more than the
+20-step CFG-on baseline; see [Wan Video](wan-video.md#fast-video-to-video-with-lightning) and
+the proof bundle `validation_outputs/lightning_v2v_matrix_2026_07_04/README.md`.
+
 For the current A14B fast path:
 
 ```sh

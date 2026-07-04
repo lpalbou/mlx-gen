@@ -48,10 +48,11 @@ The main capabilities are:
   control where the selected model supports `--controlnet-image-path`, Z-Image Turbo native
   inpaint on the exact validated `AbstractFramework/z-image-turbo-8bit` row, and route-specific
   reframe/outpaint workflows where the selected model supports them;
-- Wan2.2 text-to-video, image-to-video, and plain prompt-guided video-to-video, including
+- Wan2.2 text-to-video, image-to-video, and prompt-guided video-to-video (plain or masked via
+  `--video-mask-path`, which locks everything outside the mask to the source video), including
   TI2V-5B BF16/q8 packages plus A14B T2V/I2V BF16 and mixed q8/BF16 packages; the current public
   video-to-video route is limited to `Wan2.2-T2V-A14B`, uses one source video plus one prompt,
-  requires `--solver unipc`, and does not include masks, reference images, or VACE-style
+  requires `--solver unipc`, and does not include reference images or VACE-style learned
   conditioning; Wan I2V resolves output size from the source image aspect ratio so inputs are not
   stretched into a mismatched canvas;
 - SeedVR2 image and video restoration through `mlxgen upscale`, with official 3B/7B source
@@ -388,7 +389,7 @@ progress callbacks make long runs observable.
 - [Getting started](docs/getting-started.md): installation, first runs, SeedVR2 upscaling, and Wan video.
 - [API and CLI](docs/api.md): command surface, router behavior, image-to-image modes, generative reframe, backend-specific outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.
 - [Image edit modes](docs/image-edit-modes.md): what latent img2img, edit-reference, multi-reference, generative reframe, and outpaint mean in practice, with examples.
-- [Wan video](docs/wan-video.md): practical Wan2.2 T2V/I2V sizing, plain prompt-guided A14B video-to-video with included proof artifacts, broader A14B target size families, and 5-second M5 Max comparison clips.
+- [Wan video](docs/wan-video.md): practical Wan2.2 T2V/I2V sizing, plain and masked prompt-guided A14B video-to-video with included proof artifacts, broader A14B target size families, and 5-second M5 Max comparison clips.
 - [Example workflow](docs/examples/spaceship-snow.md): reproducible image and video commands.
 - [Image upscaling](docs/upscaling.md): SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, published five-second Eiffel `1x` and `2x` 3B/7B validation bundles, readable tone-correction labels, and 5x source/output comparisons.
 - [Image edit capabilities](docs/edit-capabilities.md): image-edit contact sheets, exact model/package status, and command logs.

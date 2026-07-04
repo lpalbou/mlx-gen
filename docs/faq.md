@@ -727,9 +727,10 @@ recommended/native size, frame count, and step count when judging visual quality
 
 Yes, in a narrow public form.
 
-MLX-Gen currently supports plain prompt-guided video-to-video on `Wan2.2-T2V-A14B`. You pass one
-source video plus one prompt, and MLX-Gen regenerates the clip while following the source clip's
-overall motion and composition.
+MLX-Gen currently supports prompt-guided video-to-video on `Wan2.2-T2V-A14B`. You pass one source
+video plus one prompt, and MLX-Gen regenerates the clip while following the source clip's overall
+motion and composition. Add `--video-mask-path` when you need preserved regions locked to the
+source.
 
 Use this route. The sizes and counts below are bounded diagnostic settings for a quick check, not
 quality settings; for quality, use the A14B defaults (`832x480` or `1280x720`, `81` frames,
@@ -762,11 +763,20 @@ prints a warning when that happens.
 Limits that matter:
 
 - this is not SeedVR2 restore or upscale;
-- this is not a frame-accurate source-preservation workflow;
-- this is not masked video editing or localized inpaint;
+- plain video-to-video (no mask) re-synthesizes everything, so background text and logos drift;
+  pass `--video-mask-path` to lock everything outside a mask to the source video exactly;
 - this does not accept extra reference images or VACE-style controls;
 - source frames are stretched to the requested canvas, so match the aspect ratio to the source;
 - TI2V-5B and I2V-A14B do not currently accept `--video-path`.
+
+## How Do I Keep The Background From Changing In Video-To-Video?
+
+Use masked video-to-video: add `--video-mask-path mask.png` to the video-to-video command. White
+regions of the mask are regenerated under your prompt; black regions are locked to the source
+video at every denoising step and match it up to VAE round-trip precision. Draw the mask over the
+union of the subject's positions if the subject moves. All-black masks are rejected (they would
+edit nothing), and an all-white mask is equivalent to plain video-to-video. See
+[Wan Video](wan-video.md#masked-video-to-video) for the full contract and a reproducible example.
 
 For a full explanation and a reproducible example with the exact accepted command, see [Wan Video](wan-video.md).
 

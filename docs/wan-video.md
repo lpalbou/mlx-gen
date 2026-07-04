@@ -1,8 +1,9 @@
 # Wan Video
 
-MLX-Gen supports Wan2.2 text-to-video and image-to-video through `mlxgen generate`, plus plain
-prompt-guided video-to-video on `Wan2.2-T2V-A14B`. Use this page for practical size, frame, and
-runtime guidance; use [API and CLI](api.md#wan-video) for the full command surface.
+MLX-Gen supports Wan2.2 text-to-video and image-to-video through `mlxgen generate`, plus
+prompt-guided video-to-video on `Wan2.2-T2V-A14B` in plain form or with `--video-mask-path`. Use
+this page for practical size, frame, and runtime guidance; use [API and CLI](api.md#wan-video) for
+the full command surface.
 
 ## Current Practical Guidance
 
@@ -23,7 +24,7 @@ Wan uses a flow-matching schedule shift. MLX-Gen uses the selected model's defau
 `--flow-shift`: TI2V-5B defaults to `5.0` for native 720p-class runs, while A14B defaults to `3.0`.
 For new 480p-class TI2V-5B checks such as `832x480`, use `--flow-shift 3`.
 
-Plain Wan video-to-video currently stays intentionally narrow:
+The public Wan video-to-video route stays intentionally narrow:
 
 Plain video-to-video means one source clip plus one text prompt. MLX-Gen uses the source clip as a
 motion and composition anchor, then regenerates the video under the prompt. It is useful for broad
@@ -41,8 +42,112 @@ whole-scene or whole-subject changes while keeping the overall camera path and c
 - match the requested `--width`/`--height` aspect ratio to the source clip: plain video-to-video
   stretches source frames to the requested canvas and warns on a mismatch, unlike image-to-video
   which preserves the source aspect ratio;
-- do not expect frame-accurate preservation, masks, reference images, localized edits, SeedVR2-style restore/upscale behavior, or VACE-style controls on this route;
+- use `--video-mask-path` when you want the background locked to the source (see
+  [Masked Video-To-Video](#masked-video-to-video) below);
+- do not expect reference images, control videos, SeedVR2-style restore/upscale behavior, or
+  VACE-style learned conditioning on this route;
 - do not expect TI2V-5B or I2V-A14B to accept source-video input on the public CLI.
+
+## Masked Video-To-Video
+
+Plain video-to-video re-synthesizes every pixel, so background details (text, logos, posters)
+drift even when the prompt asks to keep them. Masked video-to-video fixes that: pass one static
+image mask with `--video-mask-path`, and MLX-Gen locks everything outside the mask to the source
+video at every denoising step, then composites the exact source latents back at the end. Preserved
+regions match the source up to VAE round-trip precision; only the white region is regenerated.
+
+Mask contract:
+
+- one static image (PNG or similar); white marks the region the model may change, black is
+  preserved; values are binarized at 50% after downsampling to the latent grid;
+- the mask is resized to the requested canvas, so match its aspect ratio to the output;
+- for moving subjects, draw the mask over the union of the subject's positions across the clip;
+- `--video-strength` applies inside the mask; an all-black mask is rejected before model load;
+- masked video-to-video follows the same route rules as plain video-to-video
+  (`Wan2.2-T2V-A14B`, `--solver unipc`).
+
+Example (this exact command produced the masked proof below):
+
+```sh
+mlxgen generate \
+  --model AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit \
+  --video-path source.mp4 \
+  --video-mask-path person_mask.png \
+  --prompt "A realistic wide shot of a woman giving a talk on a conference stage. Keep the exact same stage, podium, screen, and framing. She wears the same dark blue suit." \
+  --width 480 \
+  --height 832 \
+  --frames 25 \
+  --steps 20 \
+  --guidance 4 \
+  --guidance-2 3 \
+  --video-strength 0.8 \
+  --solver unipc \
+  --fps 16 \
+  --seed 8602 \
+  --low-ram \
+  --metadata \
+  --output edited.mp4
+```
+
+Included proof artifacts (measured on the conference gender-swap case, 480x832, 25 frames):
+
+- mask: [person_mask.png](assets/examples/conference-masked-v2v/person_mask.png)
+- output video: [woman_masked_v2v.mp4](assets/examples/conference-masked-v2v/woman_masked_v2v.mp4)
+- run metadata: [woman_masked_v2v.metadata.json](assets/examples/conference-masked-v2v/woman_masked_v2v.metadata.json)
+- side-by-side with zooms: [comparison_masked_vs_plain.png](assets/examples/conference-masked-v2v/comparison_masked_vs_plain.png)
+
+Measured preservation on that proof: preserved-region drift dropped from `14.9` (plain
+video-to-video) to `1.7` mean per-pixel delta - at the measured H.264 re-encode floor of `1.9`,
+meaning preserved regions are indistinguishable from a lossless copy of the source. The edited
+region still changed strongly (delta `23.4`), so the man -> woman edit went through. Overhead
+versus plain video-to-video is negligible (three elementwise blends per step).
+
+## Fast Video-To-Video With Lightning
+
+The `lightx2v/Wan2.2-Lightning` T2V-A14B 4-step LoRA pairs work on the video-to-video route
+through the public `unipc` path, cutting the denoise loop from 28 transformer forwards
+(20 steps, CFG on) to 3. Validated in a bounded matrix (two seeds, two clips at two
+resolutions, two adapter versions, plus the masked combination):
+`Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1` and `...-Seko-V2.0`. The I2V-A14B and TI2V-5B
+Lightning adapters do not apply here (public video-to-video runs on the T2V-A14B route only).
+
+The on-grid recipe keeps the truncated schedule exactly on the 4-step distillation grid:
+
+```sh
+mlxgen download --model lightx2v/Wan2.2-Lightning --all-files
+
+mlxgen generate \
+  --model AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit \
+  --video-path source.mp4 \
+  --prompt "..." \
+  --steps 4 \
+  --video-strength 0.75 \
+  --guidance 1 \
+  --guidance-2 1 \
+  --flow-shift 5 \
+  --solver unipc \
+  --lora-paths <lightning>/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors \
+               <lightning>/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors \
+  --lora-target-roles high_noise_transformer low_noise_transformer \
+  --low-ram --metadata \
+  --output edited_fast.mp4
+```
+
+Contract and trade-offs:
+
+- the strength setting is a lattice at 4 steps: `0.75-0.99` gives 3 effective steps with the
+  high-noise LoRA engaged, `1.0` gives 4, and `0.7` drops to 2 steps and silently skips the
+  high-noise LoRA;
+- guidance 1 disables classifier-free guidance, so negative prompts have no effect on this
+  recipe;
+- without a mask, Lightning re-synthesizes the scene more than the 20-step CFG-on baseline
+  (measured background drift 26-32 vs 15-17);
+- combine with `--video-mask-path` to remove that trade-off where it matters: the masked +
+  Lightning combination measured preserved-region drift `1.9` - at the H.264 re-encode floor -
+  while still applying the edit inside the mask.
+
+Proof bundle with all runs, metrics, and exact commands:
+`validation_outputs/lightning_v2v_matrix_2026_07_04/README.md`.
 
 ## A14B Size Families
 

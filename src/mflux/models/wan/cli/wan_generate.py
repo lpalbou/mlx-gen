@@ -8,6 +8,7 @@ from datetime import datetime
 from pathlib import Path
 
 import mlx.core as mx
+import numpy as np
 from tqdm import tqdm
 
 from mflux.callbacks import ProgressEvent
@@ -88,6 +89,7 @@ def main() -> None:
                     image_path=args.image_path,
                     video_path=args.video_path,
                     video_strength=args.video_strength,
+                    video_mask_path=args.video_mask_path,
                     max_sequence_length=args.max_sequence_length,
                     progress_callback=events.handle_progress
                     if events.enabled
@@ -209,6 +211,14 @@ def _parser() -> argparse.ArgumentParser:
         help=(
             "Denoising strength in (0, 1] for plain prompt-guided Wan video-to-video. "
             f"Default for that route is {WAN_DEFAULT_VIDEO_STRENGTH}."
+        ),
+    )
+    parser.add_argument(
+        "--video-mask-path",
+        default=None,
+        help=(
+            "Static image mask for masked Wan video-to-video. White marks the region the model may "
+            "change; black regions are preserved exactly from the source video. Requires --video-path."
         ),
     )
     parser.add_argument(
@@ -359,7 +369,9 @@ def _apply_metadata_defaults(args: argparse.Namespace) -> set[str]:
             provided_options.add(f"--{name.replace('_', '-')}")
     if args.video_strength is None and metadata.get("video_strength") is not None:
         args.video_strength = metadata.get("video_strength")
-        provided_options.add("--video-strength")
+    if args.video_mask_path is None and metadata.get("video_mask_path") is not None:
+        args.video_mask_path = metadata.get("video_mask_path")
+        provided_options.add("--video-mask-path")
     return provided_options
 
 
@@ -380,6 +392,10 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
         parser.error(f"--video-path does not exist: {args.video_path}")
     if args.video_strength is not None and args.video_path is None:
         parser.error("--video-strength requires --video-path.")
+    if args.video_mask_path is not None and args.video_path is None:
+        parser.error("--video-mask-path requires --video-path.")
+    if args.video_mask_path is not None and not Path(args.video_mask_path).exists():
+        parser.error(f"--video-mask-path does not exist: {args.video_mask_path}")
     if args.lora_scales is not None and not args.lora_paths:
         parser.error("--lora-scales requires --lora-paths.")
     if args.lora_target_roles is not None and not args.lora_paths:
@@ -395,6 +411,24 @@ def _validate_model_runtime_args(*, args: argparse.Namespace, model_config: Mode
         raise ValueError("Wan video-to-video currently requires --solver unipc.")
     if args.video_path is not None:
         _probe_source_video(video_path=args.video_path, requested_frames=args.frames)
+    if args.video_mask_path is not None:
+        _probe_video_mask(mask_path=args.video_mask_path)
+
+
+def _probe_video_mask(*, mask_path: str) -> None:
+    # Fail on unreadable or all-black masks before the multi-minute model weight load.
+    from PIL import Image
+
+    try:
+        with Image.open(mask_path) as image:
+            mask = np.asarray(image.convert("L"), dtype=np.uint8)
+    except Exception as exc:
+        raise ValueError(f"--video-mask-path is not a readable image: {mask_path} ({exc})") from exc
+    if not bool((mask >= 128).any()):
+        raise ValueError(
+            f"--video-mask-path has no editable (white) region: {mask_path}. "
+            "White marks the region the model may change; an all-black mask would edit nothing."
+        )
 
 
 def _probe_source_video(*, video_path: str, requested_frames: int | None) -> None:
@@ -556,6 +590,7 @@ def _write_failure_manifest(
             "image_path": str(args.image_path) if args.image_path is not None else None,
             "video_path": str(args.video_path) if args.video_path is not None else None,
             "video_strength": args.video_strength,
+            "video_mask_path": str(args.video_mask_path) if args.video_mask_path is not None else None,
             "width": args.width,
             "height": args.height,
             "frames": args.frames,

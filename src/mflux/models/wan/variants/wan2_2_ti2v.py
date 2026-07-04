@@ -11,6 +11,7 @@ from pathlib import Path
 import mlx.core as mx
 import numpy as np
 from mlx import nn
+from PIL import Image
 
 from mflux.callbacks import ProgressCallback, ProgressEvent
 from mflux.callbacks.callback_registry import CallbackRegistry
@@ -85,6 +86,7 @@ class Wan2_2_TI2V(nn.Module):
         image_path: Path | str | None = None,
         video_path: Path | str | None = None,
         video_strength: float | None = None,
+        video_mask_path: Path | str | None = None,
         max_sequence_length: int = 512,
         progress_callback: ProgressCallback | None = None,
         release_inactive_denoiser: bool = False,
@@ -120,7 +122,14 @@ class Wan2_2_TI2V(nn.Module):
         num_frames = self._validated_frame_count(num_frames)
         if video_strength is not None and not is_video_to_video:
             raise ValueError("video_strength requires video_path.")
+        if video_mask_path is not None and not is_video_to_video:
+            raise ValueError("video_mask_path requires video_path.")
         video_strength = self._resolve_video_strength(video_strength) if is_video_to_video else None
+        video_mask = (
+            self._prepare_video_mask(video_mask_path, height=height, width=width)
+            if video_mask_path is not None
+            else None
+        )
         guidance, guidance_2 = self._resolve_guidance_pair(guidance=guidance, guidance_2=guidance_2)
         self._validate_guidance_values(guidance=guidance, guidance_2=guidance_2)
         flow_shift = self._resolve_flow_shift(flow_shift)
@@ -176,8 +185,10 @@ class Wan2_2_TI2V(nn.Module):
                 name="negative_prompt_embeds",
             )
 
+        v2v_source_latents = None
+        v2v_noise = None
         if is_video_to_video:
-            latents, source_video_metadata = self._prepare_video_to_video_latents(
+            latents, v2v_source_latents, v2v_noise, source_video_metadata = self._prepare_video_to_video_latents(
                 seed=seed,
                 batch_size=batch_size,
                 scheduler=scheduler,
@@ -188,6 +199,9 @@ class Wan2_2_TI2V(nn.Module):
                 timesteps=timesteps,
             )
             spatial_metadata.update(source_video_metadata)
+            if video_mask is None:
+                v2v_source_latents = None
+                v2v_noise = None
         else:
             latents = self.prepare_latents(
                 seed=seed,
@@ -337,6 +351,14 @@ class Wan2_2_TI2V(nn.Module):
                     )
 
             latents = scheduler.step(noise_pred.astype(mx.float32), timestep, latents, return_dict=False)[0]
+            if video_mask is not None:
+                latents = self._composite_masked_video_state(
+                    scheduler=scheduler,
+                    latents=latents,
+                    video_mask=video_mask,
+                    source_latents=v2v_source_latents,
+                    noise=v2v_noise,
+                )
             mx.eval(latents)
             if should_check_tensors:
                 self._require_tensor_health(
@@ -376,7 +398,12 @@ class Wan2_2_TI2V(nn.Module):
                 first_frame_mask=first_frame_mask,
             )
             self._require_tensor_health(latents, phase="final-conditioning", name="latents")
-        del prompt_embeds, negative_prompt_embeds, scheduler
+        if video_mask is not None:
+            # Final clean composite: preserved regions become exactly the VAE latents of the source.
+            latents = video_mask * latents + (1.0 - video_mask) * v2v_source_latents
+            mx.eval(latents)
+            self._require_tensor_health(latents, phase="final-mask-composite", name="latents")
+        del prompt_embeds, negative_prompt_embeds, scheduler, v2v_source_latents, v2v_noise, video_mask
         if "noise_uncond" in locals():
             del noise_uncond
         if "condition" in locals():
@@ -452,6 +479,7 @@ class Wan2_2_TI2V(nn.Module):
                     **self._video_to_video_extra_metadata(
                         is_video_to_video=is_video_to_video,
                         video_strength=video_strength,
+                        video_mask_path=video_mask_path,
                         effective_steps=effective_steps,
                         high_noise_stage_skipped=v2v_high_noise_stage_skipped,
                         spatial_metadata=spatial_metadata,
@@ -497,6 +525,7 @@ class Wan2_2_TI2V(nn.Module):
                     **self._video_to_video_extra_metadata(
                         is_video_to_video=is_video_to_video,
                         video_strength=video_strength,
+                        video_mask_path=video_mask_path,
                         effective_steps=effective_steps,
                         high_noise_stage_skipped=v2v_high_noise_stage_skipped,
                         spatial_metadata=spatial_metadata,
@@ -570,7 +599,7 @@ class Wan2_2_TI2V(nn.Module):
         num_frames: int,
         video_path: Path | str,
         timesteps: list[int | float],
-    ) -> tuple[mx.array, dict[str, int | float | None]]:
+    ) -> tuple[mx.array, mx.array, mx.array, dict[str, int | float | None]]:
         if not timesteps:
             raise ValueError("Wan video-to-video requires at least one denoise timestep.")
         init_latents, source_metadata = self._encode_video_to_video_latents(
@@ -589,7 +618,58 @@ class Wan2_2_TI2V(nn.Module):
         latent_timestep = self._batch_timestep(batch_size=batch_size, timestep=timesteps[0])
         latents = scheduler.scale_noise(init_latents, latent_timestep, noise).astype(mx.float32)
         mx.eval(latents)
-        return latents, source_metadata
+        return latents, init_latents, noise, source_metadata
+
+    def _prepare_video_mask(
+        self,
+        mask_path: Path | str,
+        *,
+        height: int,
+        width: int,
+    ) -> mx.array:
+        latent_height = height // self.vae.spatial_scale
+        latent_width = width // self.vae.spatial_scale
+        with Image.open(mask_path) as image:
+            if "A" in image.getbands():
+                print("⚠️  Wan video mask has an alpha channel; alpha is ignored and luminance is used.")
+            mask_image = image.convert("L").resize((latent_width, latent_height), Image.Resampling.BOX)
+        mask_values = np.asarray(mask_image, dtype=np.float32) / 255.0
+        mask = mx.array(mask_values)[None, None, None, :, :]
+        # White (>= 0.5) marks the region the model may change; black is preserved from the source.
+        mask = mx.where(mask < 0.5, mx.zeros_like(mask), mx.ones_like(mask))
+        active_cells = float(mx.sum(mask).item())
+        total_cells = float(latent_height * latent_width)
+        if active_cells == 0:
+            print("⚠️  Wan video mask has no editable region after latent downsampling; output will be a source round-trip.")
+        elif active_cells == total_cells:
+            print("⚠️  Wan video mask covers the full canvas; this is equivalent to plain video-to-video.")
+        return mask
+
+    @staticmethod
+    def _composite_masked_video_state(
+        *,
+        scheduler,
+        latents: mx.array,
+        video_mask: mx.array,
+        source_latents: mx.array,
+        noise: mx.array,
+    ) -> mx.array:
+        # After scheduler.step, step_index already points at the level of the returned latents.
+        index = scheduler.step_index
+        keep = 1.0 - video_mask
+        sigma = scheduler.sigmas[index]
+        latents = video_mask * latents + keep * (sigma * noise + (1.0 - sigma) * source_latents)
+        # The UniPC corrector rebuilds each step from last_sample and the x0 history, so preserved
+        # regions must be locked in scheduler state as well, not only in the returned latents.
+        last_sample = getattr(scheduler, "last_sample", None)
+        if last_sample is not None:
+            sigma_prev = scheduler.sigmas[index - 1]
+            renoised_prev = sigma_prev * noise + (1.0 - sigma_prev) * source_latents
+            scheduler.last_sample = video_mask * last_sample + keep * renoised_prev
+        model_outputs = getattr(scheduler, "model_outputs", None)
+        if model_outputs and model_outputs[-1] is not None:
+            model_outputs[-1] = video_mask * model_outputs[-1] + keep * source_latents
+        return latents
 
     def _encode_video_to_video_latents(
         self,
@@ -1321,6 +1401,7 @@ class Wan2_2_TI2V(nn.Module):
         *,
         is_video_to_video: bool,
         video_strength: float | None,
+        video_mask_path: Path | str | None,
         effective_steps: int,
         high_noise_stage_skipped: bool,
         spatial_metadata: dict,
@@ -1334,6 +1415,8 @@ class Wan2_2_TI2V(nn.Module):
             "effective_steps": effective_steps,
             "high_noise_stage_skipped": high_noise_stage_skipped,
         }
+        if video_mask_path is not None:
+            extra["video_mask_path"] = str(video_mask_path)
         for key in ("source_video_frame_count", "source_video_duration_seconds", "source_video_fps"):
             if key in spatial_metadata:
                 extra[key] = spatial_metadata[key]

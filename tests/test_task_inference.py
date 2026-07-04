@@ -71,6 +71,33 @@ def test_public_resolver_uses_wan_model_capability():
         mlxgen.resolve_generation_plan(model="Wan-AI/Wan2.2-TI2V-5B-Diffusers", video_count=1)
 
 
+def test_public_resolver_video_mask_constraints():
+    plan = mlxgen.resolve_generation_plan(
+        model="Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+        video_count=1,
+        has_video_mask=True,
+    )
+    assert plan.capability_id == "wan.video-video"
+
+    with pytest.raises(TaskInferenceError, match="--video-mask-path requires --video or --video-path"):
+        mlxgen.resolve_generation_plan(model="Wan-AI/Wan2.2-T2V-A14B-Diffusers", has_video_mask=True)
+
+    with pytest.raises(TaskInferenceError, match="--video-mask-path cannot be combined with --mask-path"):
+        mlxgen.resolve_generation_plan(
+            model="Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            video_count=1,
+            has_video_mask=True,
+            has_mask=True,
+        )
+
+    with pytest.raises(TaskInferenceError, match="only supported for video-to-video routes with mask support"):
+        mlxgen.resolve_generation_plan(
+            model="Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+            video_count=1,
+            has_video_mask=True,
+        )
+
+
 def test_public_resolver_rejects_wan_fixed_task_contradictions():
     with pytest.raises(TaskInferenceError, match="text-to-video model does not accept input images"):
         mlxgen.infer_task(model="Wan-AI/Wan2.2-T2V-A14B-Diffusers", image_count=1)
@@ -270,7 +297,7 @@ def test_reframe_option_is_limited_to_validated_edit_capabilities():
 def test_model_capabilities_are_publicly_inspectable():
     capabilities = mlxgen.get_model_capabilities(model="flux2-klein-4b")
 
-    assert capabilities.schema_version == 3
+    assert capabilities.schema_version == 4
     assert capabilities.family == "flux2"
     assert {capability.mode for capability in capabilities.capabilities} >= {
         MODE_TEXT_ONLY,

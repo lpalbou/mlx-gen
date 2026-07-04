@@ -1,6 +1,7 @@
 # ADR 0006: Generative Video Editing Task Boundary
 
-Status: Accepted.
+Status: Accepted. Amended 2026-07-04: the "dedicated handler/runtime" enforcement clause is
+relaxed to match the shipped implementation (see Enforcement).
 
 ## Context
 
@@ -91,8 +92,15 @@ The implementation boundary is also explicit:
   source-video editing.
 - Any future `video-to-video` implementation must require explicit source-video input and fail
   closed on unsupported request shapes.
-- Model-specific video-edit implementations must use a dedicated handler/runtime boundary instead of
-  silently branching inside the current Wan TI2V/I2V runtime.
+- Amended 2026-07-04: the shipped plain and masked `video-to-video` routes live inside the shared
+  Wan runtime (`wan2_2_ti2v.py`) as explicitly-gated branches (`supports_video_to_video`, mask
+  requires source video), not a separate handler. That is accepted as long as every branch is
+  config-gated and fail-closed; a dedicated runtime becomes mandatory only when conditioning
+  requires new weights (for example VACE), because that is a different model row rather than a
+  behavior of the current one.
+- Masked video-to-video is a typed conditioning role (`--video-mask-path`) under the existing
+  `video-to-video` task, per the original decision that conditioning does not create new public
+  task names.
 
 ## Validation
 

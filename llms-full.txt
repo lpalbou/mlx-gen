@@ -18,7 +18,7 @@
 - `docs/edit-capabilities.md`: image-edit and adjacent structured-control contact sheets, model/package status summaries, and exact command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, base Qwen structured control, FLUX.2 Klein, and latent I2I rows. FIBO Edit is unsupported through unified `mlxgen generate`.
 - `docs/reframe-outpaint.md`: reframe/outpaint workflows, exact commands, the mixed June 8 profile, the current FLUX.2 Klein base source-model starship proof, and the related validation profile ids.
 - `docs/lora.md`: route-specific LoRA capability fields, explicit adapter download, strict scale matching, exact adapter/base-model compatibility, source/no-LoRA/with-LoRA validation, exact public proof rows for current Qwen, Z-Image, FLUX.2, ERNIE, and Wan routes, including base Qwen latent, the exact `AbstractFramework/z-image-turbo-8bit` latent children's-drawing row, Qwen 2511 multi-reference/reframe/outpaint, FLUX.2 Klein 9B multi-reference, FLUX.2 Klein base 4B outpaint, direct `lightx2v/Wan2.2-Lightning` download, and explicit guidance that the validated Lightning target is the MLX-Gen q8 package rather than an arbitrary external FP8 checkpoint.
-- `docs/wan-video.md`: practical Wan2.2 T2V/I2V guidance, plain prompt-guided A14B video-to-video with the exact reproducible proof command and included artifacts, broader A14B target size families, and `101`-frame, 20 fps M5 Max comparison clips for A14B and TI2V-5B.
+- `docs/wan-video.md`: practical Wan2.2 T2V/I2V guidance, plain and masked prompt-guided A14B video-to-video with the exact reproducible proof commands and included artifacts, broader A14B target size families, and `101`-frame, 20 fps M5 Max comparison clips for A14B and TI2V-5B.
 - `docs/recommendations.md`: conservative model recommendations for `18 GB`, `24 GB`, `32 GB`, `64 GB`, and `128+ GB` Macs based on published MLX-Gen memory measurements.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
 - `docs/model-management.md`: explicit `download` and `prepare`, generation from local model files, local MLX-Gen packages, matching Hugging Face handle resolution, and `DownloadRequiredError`.
@@ -45,9 +45,10 @@ as the public command surface. It keeps the mflux foundation and focuses on pred
 generation for real applications: users download or prepare models before running a job, then use
 one command to generate, inspect supported modes, and compare generated examples and measured
 results. MLX-Gen contributes by adding tested T2I/I2I routes, Qwen Image Edit 2509/2511 routing
-and parity fixes, Bonsai Image support, Wan2.2 text-to-video and image-to-video support,
-model-specific mixed quantization policies, published MLX-Gen optimized packages, and progress callbacks for
-apps. The fork exists so AbstractFramework projects can move quickly without losing the option to
+and parity fixes, Bonsai Image support, Wan2.2 text-to-video, image-to-video, and prompt-guided
+video-to-video support, model-specific mixed quantization policies, published MLX-Gen optimized
+packages, and progress callbacks for apps. The fork exists so AbstractFramework projects can move
+quickly without losing the option to
 merge useful changes back upstream if that becomes valuable for the wider mflux community.
 
 The project focuses on practical Apple Silicon workflows:
@@ -301,16 +302,20 @@ Wan uses the model's official default negative prompt when `--negative-prompt` i
 `--negative ""` or `--negative-prompt ""` to intentionally run without a negative prompt for simple
 abstract scenes where the default negative prompt creates unwanted texture.
 
-Plain prompt-guided video-to-video is public on `Wan2.2-T2V-A14B` only: one source video via
+Prompt-guided video-to-video is public on `Wan2.2-T2V-A14B` only: one source video via
 `--video-path`, one prompt, optional `--video-strength` (default `0.8`, range `(0, 1]`), and
 `--solver unipc` required. The run denoises `floor(steps x video_strength)` effective steps; saved
 metadata records the requested `steps` plus `effective_steps`, `video_strength`,
 `high_noise_stage_skipped`, and source-clip frame count, duration, and fps. Below roughly strength
 `0.7` the A14B high-noise stage is skipped and `--guidance` is inactive (a warning is printed).
 Source frames are stretched to the requested canvas, so the requested aspect ratio should match the
-source. The route rejects masks, reference images, and VACE-style controls, and TI2V-5B and
-I2V-A14B reject `--video-path`. The exact reproducible proof command and included artifacts live in
-`docs/wan-video.md` and `docs/assets/examples/spaceship-v2v/`.
+source. Masked video-to-video adds one static image mask via `--video-mask-path`: white marks the
+region the model may change, black regions are locked to the source video at every denoising step
+and match it up to VAE round-trip precision; masks are binarized at 50% on the latent grid,
+all-black masks fail before model load, and the mask path is recorded in metadata and replayed by
+`--config-from-metadata`. The route rejects reference images and VACE-style controls, and TI2V-5B
+and I2V-A14B reject `--video-path`. The exact reproducible proof command and included artifacts
+live in `docs/wan-video.md` and `docs/assets/examples/spaceship-v2v/`.
 
 ---
 

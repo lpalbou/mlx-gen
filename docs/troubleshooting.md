@@ -143,7 +143,7 @@ accept that the model may reshape or recompose the source.
 
 ## Wan Video Quality Looks Weak At Tiny Sizes
 
-Wan2.2 supports TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, T2V-A14B plain prompt-guided video-to-video, and I2V-A14B image-to-video. Very small or very short runs are useful for quick command checks, but they are not quality settings.
+Wan2.2 supports TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, T2V-A14B prompt-guided video-to-video (plain or masked with `--video-mask-path`), and I2V-A14B image-to-video. Very small or very short runs are useful for quick command checks, but they are not quality settings.
 
 Use the upstream TI2V-5B settings when validating that route at its intended native scale:
 

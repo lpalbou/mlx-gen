@@ -445,13 +445,14 @@ mlxgen generate \
 
 TI2V-5B image-to-video uses the Diffusers first-frame latent-conditioning path. The separate A14B I2V route requires the complete I2V source snapshot before generation. Current Wan video support can produce MP4 output; quality, speed, and practical defaults depend strongly on model family, prompt, size, and frame count.
 
-Plain prompt-guided video-to-video uses one source clip as the motion and composition anchor, then
-regenerates the clip under a new prompt. It is useful for whole-scene restyling or broad object
-changes while keeping the source clip's camera path and overall motion. It is not a restoration
-workflow, not frame-accurate source preservation, and not a masked or reference-guided local edit.
+Prompt-guided video-to-video uses one source clip as the motion and composition anchor, then
+regenerates the clip under a new prompt. The plain form is useful for whole-scene restyling or
+broad object changes while keeping the source clip's camera path and overall motion. It is not a
+restoration workflow, not a reference-guided edit, and not frame-accurate source preservation
+unless you add `--video-mask-path` for preserved regions.
 
-Use the current public A14B plain video-to-video route like this. These are bounded diagnostic
-settings for a quick route check, not quality settings; for quality use the A14B defaults
+Use the current public A14B video-to-video route like this. These are bounded diagnostic settings
+for a quick route check, not quality settings; for quality use the A14B defaults
 (`832x480` or `1280x720`, `81` frames, `40` steps):
 
 ```sh
@@ -482,6 +483,10 @@ That exact command produced the ship-edit proof artifacts included in [Wan Video
 steps, and the source clip is stretched to the requested canvas, so match the `--width`/`--height`
 aspect ratio to the source.
 
+To keep the background locked to the source while editing only one region, add
+`--video-mask-path mask.png`: white marks the region the model may change, black regions are
+preserved exactly. See [Wan Video](wan-video.md#masked-video-to-video).
+
 To create several Wan variations from one command, pass more than one seed or use
 `--auto-seeds N`. MLX-Gen appends `_seed_<seed>` to the output stem automatically so each MP4 gets
 its own filename.
@@ -493,7 +498,7 @@ about 5.06 seconds. Wan frame counts must be `4n + 1`; MLX-Gen adjusts other val
 Width and height are adjusted up to the selected Wan model's VAE/patch multiple. For image-to-video,
 MLX-Gen also preserves the source image aspect ratio: the requested `--width` and `--height` act as
 a size target, and the actual output canvas is resolved from the input image ratio and model
-multiples before generation. For plain video-to-video, MLX-Gen uses the requested `--width` and
+multiples before generation. For Wan video-to-video, MLX-Gen uses the requested `--width` and
 `--height` after Wan model-multiple normalization.
 
 | Model | Required multiple | Recommended/native size | Lower-cost diagnostic sizes |
