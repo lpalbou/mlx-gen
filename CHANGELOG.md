@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Wan plain video-to-video route**: public prompt-guided source-video editing on
+  `Wan2.2-T2V-A14B` through `mlxgen generate --video-path ...` with `--video-strength`
+  (default `0.8`), unipc-only solver enforcement, fail-closed rejection on TI2V-5B and I2V-A14B,
+  and included reproducible proof artifacts under `docs/assets/examples/spaceship-v2v/`.
+- **V2V observability**: saved metadata records requested `steps` plus `effective_steps`,
+  `video_strength`, `high_noise_stage_skipped`, and source-clip frame count, duration, and fps;
+  the runtime warns when a low `video_strength` skips the A14B high-noise stage (making
+  `--guidance` inactive) and when source frames are stretched to a mismatched canvas.
+
+### Fixed
+
+- **Router `--video-strength` forwarding**: `mlxgen generate` consumed `--video-strength` for
+  validation but never forwarded it to the Wan backend, so every V2V run silently used the
+  `0.8` default; the router now re-emits the flag and rejects out-of-range values before any
+  model work.
+- **V2V metadata replay**: metadata previously recorded the strength-truncated step count as
+  `steps`, so `--config-from-metadata` replays shrank the schedule on every round trip; `steps`
+  now records the requested count.
+- **Early source-video validation**: unreadable or too-short `--video-path` inputs now fail
+  before the multi-minute A14B weight load instead of after prompt encoding.
+- **Source latent cache staleness**: image/video conditioning cache keys now include file
+  mtime and size, so overwriting a source file inside one Python session re-encodes instead of
+  silently reusing stale latents.
+
+### Changed
+
+- **Dependency hygiene**: `accelerate` moved from runtime dependencies to the `dev` extra; it is
+  only needed by the upstream Diffusers reference probe in `tools/`, not by the MLX runtime.
+  `ftfy` stays in runtime dependencies because Wan prompt cleaning uses it for upstream-parity
+  text normalization.
+
 ## [0.18.24] - 2026-06-30
 
 ### Added

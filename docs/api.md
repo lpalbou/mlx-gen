@@ -44,10 +44,10 @@ and runtime examples, see [Wan Video](wan-video.md).
 
 ## Generation Router
 
-`mlxgen generate` chooses the backend from `--model`, optional `--family`, and image inputs. Public
-tasks are media directions: `text-to-image`, `image-to-image`, `text-to-video`, and
-`image-to-video`. Edit/reference behavior is an internal image-to-image mode, not a separate public
-task.
+`mlxgen generate` chooses the backend from `--model`, optional `--family`, and image or video
+inputs. Public tasks are media directions: `text-to-image`, `image-to-image`, `text-to-video`,
+`image-to-video`, and `video-to-video`. Edit/reference behavior is an internal image-to-image mode,
+not a separate public task.
 
 ```sh
 mlxgen generate \
@@ -621,6 +621,12 @@ The TI2V-5B I2V path follows Diffusers first-frame latent conditioning: the firs
 For Wan image-to-video, saved metadata records the requested dimensions, the source image
 dimensions, and the resolved output dimensions.
 
+For Wan plain video-to-video, saved metadata records the requested `steps` (so
+`--config-from-metadata` replays the same schedule) plus `effective_steps`, `video_strength`,
+`high_noise_stage_skipped`, and the source clip's dimensions, frame count, duration, and fps.
+The route consumes the first `--frames` source frames as-is; there is no temporal resampling, so a
+source recorded at a different fps than `--fps` changes playback speed rather than motion coverage.
+
 ### Wan Video Parameters
 
 Wan uses frame-count control rather than a separate duration flag. The output duration is:
@@ -641,7 +647,7 @@ At the default 24 fps, `--frames 121` produces about 5.04 seconds of video, `--f
 | `--guidance-2` | Optional low-noise guidance scale for Wan A14B `transformer_2`. If both guidance flags are omitted, model-specific two-stage defaults are used. If `--guidance` is set and `--guidance-2` is omitted, the low-noise stage follows `--guidance`. It is rejected for single-transformer Wan models. |
 | `--flow-shift` | Flow-matching scheduler shift. Defaults to the selected Wan model config. TI2V-5B defaults to `5.0` for native 720p-class runs. A14B defaults to `3.0`. For new 480p-class TI2V-5B checks such as `832x480`, pass `--flow-shift 3`. Python callers use `flow_shift=...`. |
 | `--video`, `--video-path` | One source video for the plain public Wan video-to-video route. Current public support is limited to `Wan2.2-T2V-A14B`; TI2V-5B and I2V-A14B still reject source-video input, and masks, reference images, and VACE-style controls are not part of this route. |
-| `--video-strength` | Denoising strength for plain video-to-video. Higher values allow larger changes from the source clip. |
+| `--video-strength` | Denoising strength in `(0, 1]` for plain video-to-video. Default: `0.8`. Higher values allow larger changes from the source clip. The run denoises `floor(steps x video_strength)` effective steps; saved metadata records the requested `steps` plus the resolved `effective_steps`, and below roughly `0.7` the A14B high-noise stage (and `--guidance`) is skipped with a printed warning. |
 | `--solver` | Wan supports `unipc` and `euler` broadly, but public Wan video-to-video currently requires `unipc`. |
 | `--negative-prompt`, `--negative` | If omitted, Wan uses the model's official default negative prompt. Pass `--negative ""` to intentionally run without a negative prompt; this can be better for simple abstract scenes where the default negative prompt adds unwanted texture. |
 | `--seed` | Deterministic seed. Repeat with multiple values to create multiple videos. |

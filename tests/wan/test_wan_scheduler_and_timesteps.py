@@ -3,6 +3,7 @@ import numpy as np
 
 from mflux.models.wan.latent_creator import WanTimestepPolicy
 from mflux.models.wan.scheduler import WanEulerScheduler, WanUniPCMultistepScheduler
+from mflux.models.wan.variants import Wan2_2_TI2V
 
 
 def test_wan_t2v_expanded_timesteps_match_diffusers_mask_policy():
@@ -124,6 +125,53 @@ def test_wan_euler_flow_shift_5_timesteps_match_lightx2v_reference():
         rtol=1e-6,
         atol=1e-6,
     )
+
+
+def test_wan_v2v_timesteps_follow_diffusers_strength_truncation():
+    scheduler = WanUniPCMultistepScheduler(flow_shift=3.0)
+    scheduler.set_timesteps(5)
+    full = np.array(scheduler.timesteps).tolist()
+
+    # strength 1.0 keeps the full schedule and starts at index 0.
+    timesteps = Wan2_2_TI2V._video_to_video_timesteps(scheduler=scheduler, num_inference_steps=5, strength=1.0)
+    assert timesteps == full
+    assert scheduler.begin_index == 0
+
+    # strength 0.7 at 5 steps truncates to floor(5 * 0.7) = 3 trailing steps.
+    scheduler.set_timesteps(5)
+    timesteps = Wan2_2_TI2V._video_to_video_timesteps(scheduler=scheduler, num_inference_steps=5, strength=0.7)
+    assert timesteps == full[2:]
+    assert scheduler.begin_index == 2
+
+    # very small strength clamps to exactly one step at the final timestep.
+    scheduler.set_timesteps(5)
+    timesteps = Wan2_2_TI2V._video_to_video_timesteps(scheduler=scheduler, num_inference_steps=5, strength=0.01)
+    assert timesteps == full[-1:]
+    assert scheduler.begin_index == 4
+
+
+def test_wan_unipc_scale_noise_uses_begin_index_sigma():
+    scheduler = WanUniPCMultistepScheduler(flow_shift=3.0)
+    scheduler.set_timesteps(5)
+    sample = mx.ones((1, 2, 1, 2, 2), dtype=mx.float32)
+    noise = mx.zeros_like(sample)
+
+    scheduler.set_begin_index(0)
+    scaled = scheduler.scale_noise(sample, scheduler.timesteps[0], noise)
+    # sigmas[0] is deliberately 1 - 1e-6, so a strength-1.0 warm start keeps a 1e-6 source term.
+    np.testing.assert_allclose(float(scaled[0, 0, 0, 0, 0].item()), 1.0 - float(scheduler.sigmas[0].item()), atol=1e-7)
+
+    scheduler.set_timesteps(5)
+    scheduler.set_begin_index(2)
+    scaled = scheduler.scale_noise(sample, scheduler.timesteps[2], noise)
+    np.testing.assert_allclose(float(scaled[0, 0, 0, 0, 0].item()), 1.0 - float(scheduler.sigmas[2].item()), atol=1e-7)
+
+
+def test_wan_skips_high_noise_stage_detection():
+    assert Wan2_2_TI2V._skips_high_noise_stage(timesteps=[900, 800], boundary_timestep=875.0) is False
+    assert Wan2_2_TI2V._skips_high_noise_stage(timesteps=[800, 700], boundary_timestep=875.0) is True
+    assert Wan2_2_TI2V._skips_high_noise_stage(timesteps=[800], boundary_timestep=None) is False
+    assert Wan2_2_TI2V._skips_high_noise_stage(timesteps=[], boundary_timestep=875.0) is False
 
 
 def test_wan_euler_steps_match_lightx2v_reference():

@@ -8,7 +8,7 @@ from pathlib import Path
 
 from huggingface_hub import snapshot_download
 
-from mflux.cli.parser.parsers import CommandLineParser
+from mflux.cli.parser.parsers import CommandLineParser, image_strength_value
 from mflux.cli.runtime_events import cli_print, emit_cli_failure_event_for_argv
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.download_policy import allow_downloads, is_huggingface_repo_id
@@ -104,6 +104,9 @@ def _resolve_invocation(argv: list[str]) -> RouterInvocation:
     if route.video_argument is not None and videos:
         normalized_argv.append(route.video_argument)
     normalized_argv.extend(videos)
+    # The router parser consumes --video-strength for validation, so it must be re-emitted explicitly.
+    if args.video_strength is not None:
+        normalized_argv.extend(["--video-strength", str(args.video_strength)])
     normalized_argv.extend(forwarded)
     normalized_argv.extend(reframe_argv)
     normalized_argv.extend(outpaint_argv)
@@ -502,7 +505,7 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--video-strength",
-        type=float,
+        type=image_strength_value,
         default=None,
         help=(
             "Denoising strength for plain video-to-video routes. Higher values allow larger appearance changes."

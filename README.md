@@ -16,7 +16,7 @@ callbacks.
 > download or prepare models before running a job, then use one `mlxgen` command to generate,
 > inspect supported modes, and compare generated examples and measured results. MLX-Gen contributes
 > by adding tested T2I/I2I routes, Qwen Image Edit 2509/2511 routing and parity fixes, Bonsai Image
-> support, Wan2.2 text-to-video and image-to-video support, model-specific mixed quantization
+> support, Wan2.2 text-to-video, image-to-video, and video-to-video support, model-specific mixed quantization
 > policies, published quantized Hugging Face repos optimized for MLX-Gen, and progress callbacks
 > for apps. The fork exists so AbstractVision and related AbstractFramework projects can move
 > quickly without losing the option to merge useful changes back upstream if that becomes valuable
@@ -388,7 +388,7 @@ progress callbacks make long runs observable.
 - [Getting started](docs/getting-started.md): installation, first runs, SeedVR2 upscaling, and Wan video.
 - [API and CLI](docs/api.md): command surface, router behavior, image-to-image modes, generative reframe, backend-specific outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.
 - [Image edit modes](docs/image-edit-modes.md): what latent img2img, edit-reference, multi-reference, generative reframe, and outpaint mean in practice, with examples.
-- [Wan video](docs/wan-video.md): practical Wan2.2 T2V/I2V sizing, broader A14B target size families, and 5-second M5 Max comparison clips.
+- [Wan video](docs/wan-video.md): practical Wan2.2 T2V/I2V sizing, plain prompt-guided A14B video-to-video with included proof artifacts, broader A14B target size families, and 5-second M5 Max comparison clips.
 - [Example workflow](docs/examples/spaceship-snow.md): reproducible image and video commands.
 - [Image upscaling](docs/upscaling.md): SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, published five-second Eiffel `1x` and `2x` 3B/7B validation bundles, readable tone-correction labels, and 5x source/output comparisons.
 - [Image edit capabilities](docs/edit-capabilities.md): image-edit contact sheets, exact model/package status, and command logs.

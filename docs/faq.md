@@ -703,11 +703,13 @@ whole-image recomposition.
 
 Wan width and height are normalized to the selected model's VAE/patch multiple. For text-to-video,
 MLX-Gen uses the requested canvas after model-multiple normalization. Plain video-to-video uses the
-same requested-canvas rule. For image-to-video, MLX-Gen preserves the source image aspect ratio:
-requested `--width` and `--height` define the approximate size target, and the runtime resolves the
-closest supported canvas from the input image ratio before conditioning the model. The video is
-generated directly at the resolved canvas; MLX-Gen does not generate a stretched canvas and then
-crop or resize it back afterward.
+same requested-canvas rule, and source frames are stretched to that canvas: if the source clip's
+aspect ratio differs from the requested `--width`/`--height` ratio, the source is distorted to fit
+and MLX-Gen prints a warning, so match the requested ratio to the source. For image-to-video,
+MLX-Gen preserves the source image aspect ratio: requested `--width` and `--height` define the
+approximate size target, and the runtime resolves the closest supported canvas from the input image
+ratio before conditioning the model. The video is generated directly at the resolved canvas;
+MLX-Gen does not generate a stretched canvas and then crop or resize it back afterward.
 
 | Model | Required multiple | Recommended/native size | Lower-cost diagnostic sizes |
 | --- | ---: | --- | --- |
@@ -729,7 +731,9 @@ MLX-Gen currently supports plain prompt-guided video-to-video on `Wan2.2-T2V-A14
 source video plus one prompt, and MLX-Gen regenerates the clip while following the source clip's
 overall motion and composition.
 
-Use this route:
+Use this route. The sizes and counts below are bounded diagnostic settings for a quick check, not
+quality settings; for quality, use the A14B defaults (`832x480` or `1280x720`, `81` frames,
+`40` steps):
 
 ```sh
 mlxgen generate \
@@ -739,7 +743,7 @@ mlxgen generate \
   --width 448 \
   --height 256 \
   --frames 17 \
-  --steps 3 \
+  --steps 5 \
   --guidance 4 \
   --guidance-2 3 \
   --video-strength 0.7 \
@@ -749,12 +753,19 @@ mlxgen generate \
   --output edited.mp4
 ```
 
+`--video-strength` defaults to `0.8` and controls how far the result may move from the source: the
+run denoises `floor(steps x video_strength)` effective steps (the example above resolves to `3`),
+and saved metadata records both the requested `steps` and the resolved `effective_steps`. Below
+roughly `0.7`, the A14B high-noise stage is skipped and `--guidance` becomes inactive; MLX-Gen
+prints a warning when that happens.
+
 Limits that matter:
 
 - this is not SeedVR2 restore or upscale;
 - this is not a frame-accurate source-preservation workflow;
 - this is not masked video editing or localized inpaint;
 - this does not accept extra reference images or VACE-style controls;
+- source frames are stretched to the requested canvas, so match the aspect ratio to the source;
 - TI2V-5B and I2V-A14B do not currently accept `--video-path`.
 
 For a full explanation and a reproducible example with the exact accepted command, see [Wan Video](wan-video.md).

@@ -7,7 +7,7 @@ from mflux.utils.scale_factor import ScaleFactor
 
 
 class _SavedImage:
-    def save(self, path, export_json_metadata=False, overwrite=True):
+    def save(self, path, export_json_metadata=False, overwrite=True, embed_metadata=False):
         Path(path).touch()
 
 

@@ -43,8 +43,8 @@ def main() -> None:
 
     try:
         model_config, model_path = _resolve_model(args.model)
-        _validate_model_runtime_args(args=args, model_config=model_config)
         _apply_model_defaults(args, model_config, provided_options)
+        _validate_model_runtime_args(args=args, model_config=model_config)
         _apply_runtime_memory_options(args)
         model = Wan2_2_TI2V(
             model_config=model_config,
@@ -393,6 +393,28 @@ def _validate_model_runtime_args(*, args: argparse.Namespace, model_config: Mode
         raise ValueError(f"{model_config.model_name} does not support video-to-video input.")
     if args.video_path is not None and args.solver is not None and str(args.solver).strip().lower() != "unipc":
         raise ValueError("Wan video-to-video currently requires --solver unipc.")
+    if args.video_path is not None:
+        _probe_source_video(video_path=args.video_path, requested_frames=args.frames)
+
+
+def _probe_source_video(*, video_path: str, requested_frames: int | None) -> None:
+    # Fail on unreadable/short sources before the multi-minute model weight load.
+    from mflux.utils.video_util import VideoUtil
+
+    try:
+        source_info = VideoUtil.inspect_video(video_path)
+    except Exception as exc:
+        raise ValueError(f"--video-path is not a readable video: {video_path} ({exc})") from exc
+    source_frame_count = source_info.source_frame_count
+    if (
+        requested_frames is not None
+        and source_frame_count is not None
+        and source_frame_count < int(requested_frames)
+    ):
+        raise ValueError(
+            f"Wan video-to-video requires at least {requested_frames} source frames, "
+            f"but {video_path} only has {source_frame_count}."
+        )
 
 
 def _apply_seed_defaults(args: argparse.Namespace) -> None:

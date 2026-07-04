@@ -4,8 +4,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image
 import pytest
+from PIL import Image
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 MODULE_PATH = REPO_ROOT / "tools" / "wan_vace_reference_probe.py"

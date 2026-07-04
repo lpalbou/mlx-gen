@@ -48,7 +48,6 @@ dependencies = [
     "transformers>=5.0.0,<6.0",
     "urllib3>=2.6.0",
     "protobuf>=4.25.0,<8.0",
-    "accelerate>=1.14.0",
     "ftfy>=6.3.1",
 ]
 classifiers = [
@@ -71,6 +70,7 @@ dev = [
     "mlx==0.31.0; sys_platform=='darwin'",
     "mlx[cuda13]==0.30.3; sys_platform=='linux'",
     "twine>=6.1.0,<7.0",
+    "accelerate>=1.14.0",
 ]
 release = [
     "twine>=6.1.0,<7.0",

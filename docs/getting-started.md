@@ -450,7 +450,9 @@ regenerates the clip under a new prompt. It is useful for whole-scene restyling 
 changes while keeping the source clip's camera path and overall motion. It is not a restoration
 workflow, not frame-accurate source preservation, and not a masked or reference-guided local edit.
 
-Use the current public A14B plain video-to-video route like this:
+Use the current public A14B plain video-to-video route like this. These are bounded diagnostic
+settings for a quick route check, not quality settings; for quality use the A14B defaults
+(`832x480` or `1280x720`, `81` frames, `40` steps):
 
 ```sh
 mlxgen download --model Wan-AI/Wan2.2-T2V-A14B-Diffusers
@@ -463,7 +465,7 @@ mlxgen generate \
   --width 448 \
   --height 256 \
   --frames 17 \
-  --steps 3 \
+  --steps 5 \
   --guidance 4 \
   --guidance-2 3 \
   --video-strength 0.7 \
@@ -471,10 +473,14 @@ mlxgen generate \
   --fps 10 \
   --seed 4242 \
   --low-ram \
+  --metadata \
   --output starship_v2v_a14b.mp4
 ```
 
-That exact route shape produced the accepted ship-edit proof described in [Wan Video](wan-video.md).
+That exact command produced the ship-edit proof artifacts included in [Wan Video](wan-video.md).
+`--video-strength` defaults to `0.8`; the run denoises `floor(steps x video_strength)` effective
+steps, and the source clip is stretched to the requested canvas, so match the `--width`/`--height`
+aspect ratio to the source.
 
 To create several Wan variations from one command, pass more than one seed or use
 `--auto-seeds N`. MLX-Gen appends `_seed_<seed>` to the output stem automatically so each MP4 gets

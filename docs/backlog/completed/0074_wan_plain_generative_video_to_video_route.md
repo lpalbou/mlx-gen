@@ -43,25 +43,49 @@ conditioning is already proven or already belongs in the runtime contract.
 - Focused route, CLI, runtime, geometry, and source-conditioning tests.
 - One model-backed bounded ship-edit proof with preserved metrics and output.
 
+## Post-completion hardening (2026-07-04)
+
+Three independent adversarial audits (upstream-parity, contract truthfulness, production readiness)
+confirmed the scheduler/latent math matches the Diffusers reference and surfaced these defects,
+which are now fixed:
+
+- The `mlxgen generate` router consumed `--video-strength` without forwarding it to the Wan
+  backend, so public V2V runs silently used the `0.8` default. The router now re-emits the flag
+  and rejects out-of-range values.
+- V2V metadata recorded the strength-truncated step count as `steps`, breaking
+  `--config-from-metadata` replay. `steps` now records the requested count and
+  `effective_steps`, `high_noise_stage_skipped`, and `source_video_*` fields are recorded
+  alongside `video_strength`.
+- Unreadable or too-short source videos now fail before the A14B weight load.
+- Conditioning cache keys now include source file mtime and size to prevent stale latents.
+- The runtime warns when low `video_strength` skips the A14B high-noise stage (making
+  `--guidance` inactive) and when source frames are stretched to a mismatched canvas.
+- Six stale test call sites shipped broken in the original commit were repaired.
+
 ## Validation
 
-- Focused tests passed on 2026-07-03:
-  - `uv run pytest tests/test_task_inference.py tests/test_python_runtime.py tests/cli/test_mlx_gen_router.py tests/wan/test_wan_a14b_config.py -k 'video_to_video or video-to-video or wan_a14b_video_to_video or solver or supports_video_to_video or resolved_spatial_size or source_conditioning_uses_float32'`
-- Preserved bounded proof run on the shipped route:
+- Focused suites passed on 2026-07-04 after the hardening pass:
+  - `uv run pytest tests/wan/test_wan_a14b_config.py tests/wan/test_wan_scheduler_and_timesteps.py tests/test_task_inference.py tests/test_python_runtime.py` (128 passed)
+  - `uv run pytest tests/cli/test_mlx_gen_router.py` (181 passed)
+- Reproducible public-CLI proof run (exact command in `docs/wan-video.md`), artifacts included in
+  the repo under `docs/assets/examples/spaceship-v2v/`:
   - model: `AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit`
   - source: `docs/assets/examples/spaceship-snow/06_i2v_a14b_spaceship_takeoff_from_source.mp4`
-  - output: `validation_outputs/v2v_native_a14b_q8_patched_2026_07_03/ship_a14b_q8_native.mp4`
-  - contact sheet: `validation_outputs/v2v_native_a14b_q8_patched_2026_07_03/ship_a14b_q8_native_contact_sheet.png`
-  - settings: `448x256`, `17` frames, `5` requested steps, `guidance 4`, `guidance_2 3`,
-    `video_strength 0.7`, `solver unipc`, `seed 4242`
-  - measured wall time: `85.62s`
-  - generation time in metadata: `79.88s`
-  - peak RSS from `/usr/bin/time -l`: `14.81 GB`
-  - recorded MLX peak memory in metadata: `30.12 GB`
+  - output: `docs/assets/examples/spaceship-v2v/starship_v2v_a14b.mp4`
+  - metadata: `docs/assets/examples/spaceship-v2v/starship_v2v_a14b.metadata.json`
+  - contact sheets: `starship_v2v_source_contact_sheet.png`, `starship_v2v_output_contact_sheet.png`
+  - settings: `448x256`, `17` frames, `5` requested steps (`3` effective), `guidance 4`,
+    `guidance_2 3`, `video_strength 0.7`, `solver unipc`, `seed 4242`, `--metadata`
+  - measured wall time: `234.89s` (cold load), generation time in metadata: `221.3s`
+  - peak RSS from `/usr/bin/time -l`: `14.78 GB`
+  - recorded MLX peak memory in metadata: `29.89 GB`
+  - byte-identical output to the preserved direct-class proof run
+    (`validation_outputs/v2v_native_a14b_q8_patched_2026_07_03/ship_a14b_q8_native.mp4`),
+    proving the public CLI route now reproduces the internal API path exactly.
 
 ## Outcome
 
 MLX-Gen now ships a bounded public Wan plain `video-to-video` route. The current supported surface
-is intentionally narrow, but it is real, tested, and backed by a preserved model run. Richer
-conditioning remains separate follow-up work in [0075 Wan VACE conditioning expansion after plain
-video-to-video](../proposed/0075_wan_vace_conditioning_expansion_after_plain_video_to_video.md).
+is intentionally narrow, but it is real, tested, and backed by an in-repo reproducible proof run.
+Richer conditioning remains separate follow-up work in [0075 Wan VACE conditioning expansion after
+plain video-to-video](../proposed/0075_wan_vace_conditioning_expansion_after_plain_video_to_video.md).

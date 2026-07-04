@@ -707,6 +707,22 @@ def test_capabilities_command_reports_model_modes(capsys):
     assert reframe["supports_reframe"] is True
 
 
+def test_capabilities_command_reports_wan_a14b_video_to_video(capsys):
+    mlx_gen._show_capabilities(["--model", "Wan-AI/Wan2.2-T2V-A14B-Diffusers"])
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["family"] == "wan"
+    v2v = next(capability for capability in payload["capabilities"] if capability["id"] == "wan.video-video")
+    assert v2v["public_task"] == "video-to-video"
+    assert v2v["min_videos"] == 1
+    assert v2v["max_videos"] == 1
+    assert v2v["supports_video_strength"] is True
+
+    mlx_gen._show_capabilities(["--model", "Wan-AI/Wan2.2-TI2V-5B-Diffusers"])
+    ti2v_payload = json.loads(capsys.readouterr().out)
+    assert all(capability["public_task"] != "video-to-video" for capability in ti2v_payload["capabilities"])
+
+
 def test_capabilities_command_accepts_base_model_for_local_paths(capsys):
     mlx_gen._show_capabilities(["--model", "../models/local-flux2-folder", "--base-model", "flux2-klein-4b"])
 
@@ -3296,6 +3312,42 @@ def test_routes_wan_a14b_video_to_video_generation():
     assert "input.mp4" in invocation.argv
 
 
+def test_router_forwards_video_strength_to_wan_backend():
+    invocation = mlx_gen._resolve_invocation(
+        [
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--video-path",
+            "input.mp4",
+            "--video-strength",
+            "0.7",
+            "--prompt",
+            "change the ship silhouette",
+        ]
+    )
+
+    strength_index = invocation.argv.index("--video-strength")
+    assert invocation.argv[strength_index + 1] == "0.7"
+
+
+def test_router_rejects_video_strength_above_one(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+                "--video-path",
+                "input.mp4",
+                "--video-strength",
+                "1.5",
+                "--prompt",
+                "change the ship silhouette",
+            ]
+        )
+
+    assert "must be <= 1" in capsys.readouterr().err
+
+
 def test_wan_i2v_a14b_requires_image_before_model_load(capsys):
     with pytest.raises(SystemExit):
         mlx_gen._resolve_invocation(
@@ -3504,6 +3556,7 @@ def test_wan_cli_generates_a14b_video_to_video(monkeypatch, tmp_path):
             return FakeVideo()
 
     monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(wan_generate, "_probe_source_video", lambda **kwargs: None)
     monkeypatch.setattr(
         sys,
         "argv",
@@ -3538,6 +3591,84 @@ def test_wan_cli_generates_a14b_video_to_video(monkeypatch, tmp_path):
     assert observed["generate"]["solver"] == "unipc"
     assert observed["save"]["path"] == tmp_path / "out.mp4"
     assert observed["save"]["overwrite"] is True
+
+
+def test_wan_cli_rejects_unreadable_source_video_before_model_load(monkeypatch, tmp_path, capsys):
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {}
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    input_path = tmp_path / "corrupt.mp4"
+    input_path.write_bytes(b"not a real video")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--video-path",
+            str(input_path),
+            "--prompt",
+            "change the ship silhouette",
+            "--output",
+            str(tmp_path / "out.mp4"),
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        wan_generate.main()
+
+    assert "not a readable video" in capsys.readouterr().err
+    assert "init" not in observed
+
+
+def test_wan_cli_rejects_short_source_video_before_model_load(monkeypatch, tmp_path, capsys):
+    from types import SimpleNamespace
+
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {}
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(
+        "mflux.utils.video_util.VideoUtil.inspect_video",
+        staticmethod(lambda path: SimpleNamespace(source_frame_count=5)),
+    )
+    input_path = tmp_path / "short.mp4"
+    input_path.write_bytes(b"mp4")
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--video-path",
+            str(input_path),
+            "--frames",
+            "17",
+            "--prompt",
+            "change the ship silhouette",
+            "--output",
+            str(tmp_path / "out.mp4"),
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        wan_generate.main()
+
+    assert "at least 17 source frames" in capsys.readouterr().err
+    assert "init" not in observed
 
 
 def test_wan_cli_rejects_euler_for_video_to_video(monkeypatch, tmp_path, capsys):

@@ -1,4 +1,5 @@
 import json
+import os
 from types import SimpleNamespace
 
 import mlx.core as mx
@@ -730,6 +731,100 @@ def test_wan_video_to_video_uses_scalar_timesteps_when_route_enabled(monkeypatch
     assert np.array(model.transformer.calls[0]["timestep"]).tolist() == [875.0]
 
 
+def test_wan_v2v_metadata_records_requested_and_effective_steps(monkeypatch):
+    model = _fake_t2v_a14b_model()
+    _patch_fake_wan_generation(monkeypatch, model, patch_to_video=False)
+    observed = {}
+
+    def to_video(**kwargs):
+        observed["to_video"] = kwargs
+        return SimpleNamespace()
+
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", to_video)
+    monkeypatch.setattr(
+        model,
+        "_prepare_video_to_video_latents",
+        lambda **kwargs: (
+            mx.zeros((1, 16, 1, 8, 8), dtype=mx.float32),
+            {"source_video_frame_count": 30, "source_video_duration_seconds": 3.0, "source_video_fps": 10.0},
+        ),
+    )
+
+    model.generate_video(
+        seed=1,
+        prompt="replace the ship hull",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        guidance_2=1,
+        video_path="input.mp4",
+        video_strength=0.5,
+    )
+
+    metadata = observed["to_video"]
+    # `steps` must stay the requested count so --config-from-metadata replays the same schedule.
+    assert metadata["steps"] == 2
+    assert metadata["extra_metadata"]["effective_steps"] == 1
+    assert metadata["extra_metadata"]["video_strength"] == 0.5
+    assert metadata["extra_metadata"]["high_noise_stage_skipped"] is False
+    assert metadata["extra_metadata"]["source_video_frame_count"] == 30
+    assert metadata["extra_metadata"]["source_video_fps"] == 10.0
+
+
+def test_wan_video_strength_without_video_path_raises(monkeypatch):
+    model = _fake_t2v_a14b_model()
+    _patch_fake_wan_generation(monkeypatch, model)
+
+    with pytest.raises(ValueError, match="video_strength requires video_path"):
+        model.generate_video(
+            seed=1,
+            prompt="a slow wave",
+            width=64,
+            height=64,
+            num_frames=1,
+            num_inference_steps=2,
+            guidance=1,
+            guidance_2=1,
+            video_strength=0.5,
+        )
+
+
+def test_wan_cache_path_key_tracks_file_identity(tmp_path):
+    source = tmp_path / "source.mp4"
+    source.write_bytes(b"first")
+    first_key = Wan2_2_TI2V._cache_path_key(source)
+
+    source.write_bytes(b"rewritten-content")
+    os.utime(source, ns=(1, 1))
+    second_key = Wan2_2_TI2V._cache_path_key(source)
+
+    assert first_key != second_key
+    assert first_key[0] == second_key[0]
+    assert Wan2_2_TI2V._cache_path_key(None) is None
+    assert Wan2_2_TI2V._cache_path_key(tmp_path / "missing.mp4") == (str(tmp_path / "missing.mp4"), 0, 0)
+
+
+def test_wan_v2v_warns_on_source_aspect_stretch(capsys):
+    clip = SimpleNamespace(
+        source_width=320,
+        source_height=240,
+        source_frame_count=40,
+        fps=30.0,
+    )
+
+    Wan2_2_TI2V._warn_video_to_video_source_handling(clip=clip, num_frames=17, height=256, width=448)
+
+    output = capsys.readouterr().out
+    assert "stretches source frames" in output
+    assert "first 17 of 40 source frames" in output
+
+    matching_clip = SimpleNamespace(source_width=448, source_height=256, source_frame_count=17, fps=10.0)
+    Wan2_2_TI2V._warn_video_to_video_source_handling(clip=matching_clip, num_frames=17, height=256, width=448)
+    assert capsys.readouterr().out == ""
+
+
 def test_wan_video_to_video_rejects_euler_solver(monkeypatch):
     model = _fake_t2v_a14b_model()
     monkeypatch.setattr(
@@ -1080,11 +1175,12 @@ def test_wan_i2v_spatial_size_preserves_source_ratio_for_ti2v_multiple():
     model.transformer = SimpleNamespace(patch_size=(1, 4, 4))
     model.vae = SimpleNamespace(spatial_scale=8)
 
-    height, width = model._validated_i2v_spatial_size(
+    height, width = model._validated_source_aspect_spatial_size(
         height=240,
         width=432,
         source_height=240,
         source_width=320,
+        source_label="image",
     )
 
     assert (height, width) == (288, 384)
@@ -1096,11 +1192,12 @@ def test_wan_i2v_spatial_size_preserves_source_ratio_for_a14b_multiple():
     model.transformer = SimpleNamespace(patch_size=(1, 2, 2))
     model.vae = SimpleNamespace(spatial_scale=8)
 
-    height, width = model._validated_i2v_spatial_size(
+    height, width = model._validated_source_aspect_spatial_size(
         height=288,
         width=512,
         source_height=240,
         source_width=320,
+        source_label="image",
     )
 
     assert (height, width) == (336, 448)
@@ -1175,7 +1272,7 @@ def test_wan_generate_i2v_uses_resolved_source_ratio_size_for_a14b_condition(mon
         image_path="input.png",
     )
 
-    assert observed["resolve"] == {"height": 288, "width": 512, "image_path": "input.png"}
+    assert observed["resolve"] == {"height": 288, "width": 512, "image_path": "input.png", "video_path": None}
     assert observed["prepare"]["height"] == 336
     assert observed["prepare"]["width"] == 448
     assert observed["condition"]["height"] == 336
@@ -1236,7 +1333,7 @@ def test_wan_generate_i2v_uses_resolved_source_ratio_size_for_ti2v_condition(mon
         image_path="input.png",
     )
 
-    assert observed["resolve"] == {"height": 240, "width": 432, "image_path": "input.png"}
+    assert observed["resolve"] == {"height": 240, "width": 432, "image_path": "input.png", "video_path": None}
     assert observed["prepare"]["height"] == 288
     assert observed["prepare"]["width"] == 384
     assert observed["condition"]["height"] == 288

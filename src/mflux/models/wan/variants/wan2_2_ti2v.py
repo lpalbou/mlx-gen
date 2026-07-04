@@ -118,6 +118,8 @@ class Wan2_2_TI2V(nn.Module):
             video_path=video_path,
         )
         num_frames = self._validated_frame_count(num_frames)
+        if video_strength is not None and not is_video_to_video:
+            raise ValueError("video_strength requires video_path.")
         video_strength = self._resolve_video_strength(video_strength) if is_video_to_video else None
         guidance, guidance_2 = self._resolve_guidance_pair(guidance=guidance, guidance_2=guidance_2)
         self._validate_guidance_values(guidance=guidance, guidance_2=guidance_2)
@@ -125,7 +127,7 @@ class Wan2_2_TI2V(nn.Module):
         solver = self._resolve_solver(solver)
         self._validate_video_to_video_solver(is_video_to_video=is_video_to_video, solver=solver)
         negative_prompt = self._resolve_negative_prompt(negative_prompt)
-        self._validate_runtime_contract(is_image_to_video=is_image_to_video, is_video_to_video=is_video_to_video)
+        self._validate_runtime_contract(is_image_to_video=is_image_to_video)
         batch_size = 1
         scheduler = self._create_scheduler(flow_shift=flow_shift, solver=solver)
         scheduler.set_timesteps(num_inference_steps)
@@ -138,6 +140,16 @@ class Wan2_2_TI2V(nn.Module):
             )
         effective_steps = len(timesteps)
         boundary_timestep = self._boundary_timestep(scheduler)
+        v2v_high_noise_stage_skipped = is_video_to_video and self._skips_high_noise_stage(
+            timesteps=timesteps,
+            boundary_timestep=boundary_timestep,
+        )
+        if v2v_high_noise_stage_skipped:
+            print(
+                f"⚠️  Wan video-to-video with video_strength {video_strength} starts below the two-transformer "
+                f"boundary: the high-noise transformer and guidance={guidance} are unused; only guidance_2="
+                f"{guidance_2} applies. Increase video_strength to engage the high-noise stage."
+            )
         progress_registry = getattr(self, "callbacks", None)
         self._emit_progress(
             progress_callback,
@@ -415,7 +427,7 @@ class Wan2_2_TI2V(nn.Module):
                 model_config=self.model_config,
                 seed=seed,
                 prompt=prompt,
-                steps=effective_steps,
+                steps=num_inference_steps,
                 guidance=guidance,
                 guidance_2=guidance_2,
                 flow_shift=flow_shift,
@@ -437,7 +449,13 @@ class Wan2_2_TI2V(nn.Module):
                 lora_scales=getattr(self, "lora_scales", None),
                 extra_metadata={
                     **extra_metadata,
-                    "video_strength": video_strength,
+                    **self._video_to_video_extra_metadata(
+                        is_video_to_video=is_video_to_video,
+                        video_strength=video_strength,
+                        effective_steps=effective_steps,
+                        high_noise_stage_skipped=v2v_high_noise_stage_skipped,
+                        spatial_metadata=spatial_metadata,
+                    ),
                     "wan_decode_mode": "streamed_vae_slices",
                     "generation_time_scope": "pre-save",
                 },
@@ -457,7 +475,7 @@ class Wan2_2_TI2V(nn.Module):
                 model_config=self.model_config,
                 seed=seed,
                 prompt=prompt,
-                steps=effective_steps,
+                steps=num_inference_steps,
                 guidance=guidance,
                 guidance_2=guidance_2,
                 flow_shift=flow_shift,
@@ -474,7 +492,16 @@ class Wan2_2_TI2V(nn.Module):
                 requested_height=spatial_metadata.get("requested_height"),
                 lora_paths=getattr(self, "lora_paths", None),
                 lora_scales=getattr(self, "lora_scales", None),
-                extra_metadata={**extra_metadata, "video_strength": video_strength},
+                extra_metadata={
+                    **extra_metadata,
+                    **self._video_to_video_extra_metadata(
+                        is_video_to_video=is_video_to_video,
+                        video_strength=video_strength,
+                        effective_steps=effective_steps,
+                        high_noise_stage_skipped=v2v_high_noise_stage_skipped,
+                        spatial_metadata=spatial_metadata,
+                    ),
+                },
                 materialize_frames=False,
             )
         self._emit_progress(
@@ -597,16 +624,17 @@ class Wan2_2_TI2V(nn.Module):
             raise ValueError(
                 f"Wan video-to-video requires at least {num_frames} source frames, but {video_path} only yielded {clip.clip_frame_count}."
             )
-        resized_frames = [
-            np.array(
+        self._warn_video_to_video_source_handling(clip=clip, num_frames=num_frames, height=height, width=width)
+        # Fill one preallocated buffer instead of stacking per-frame copies to bound transient memory.
+        video_np = np.empty((1, num_frames, height, width, 3), dtype=np.float32)
+        for index, frame in enumerate(clip.frames[:num_frames]):
+            video_np[0, index] = np.asarray(
                 ImageUtil.scale_to_dimensions(frame, target_width=width, target_height=height),
                 dtype=np.float32,
             )
-            / 255.0
-            for frame in clip.frames[:num_frames]
-        ]
-        video_np = np.stack(resized_frames, axis=0)
-        video_mx = mx.array(video_np[None, ...])
+        video_np /= 255.0
+        video_mx = mx.array(video_np)
+        del video_np
         video_mx = mx.transpose(video_mx, (0, 4, 1, 2, 3))
         # Keep source-video conditioning in float32 to match the upstream Wan V2V warm-start path.
         video_mx = ImageUtil._normalize(video_mx).astype(mx.float32)
@@ -650,6 +678,23 @@ class Wan2_2_TI2V(nn.Module):
     def _cached_video_source_metadata(self, cache_key: tuple) -> dict[str, int | float | None]:
         metadata_cache = getattr(self, "video_condition_metadata_cache", None) or {}
         return dict(metadata_cache.get(cache_key, {}))
+
+    @staticmethod
+    def _warn_video_to_video_source_handling(*, clip, num_frames: int, height: int, width: int) -> None:
+        if clip.source_height > 0 and height > 0:
+            source_ratio = clip.source_width / clip.source_height
+            target_ratio = width / height
+            if target_ratio > 0 and abs(source_ratio - target_ratio) / target_ratio > 0.02:
+                print(
+                    f"⚠️  Wan video-to-video stretches source frames ({clip.source_width}x{clip.source_height}) "
+                    f"to the requested canvas ({width}x{height}). Match the requested aspect ratio to the source "
+                    "to avoid distortion."
+                )
+        if clip.source_frame_count is not None and clip.source_frame_count > num_frames:
+            print(
+                f"Wan video-to-video uses the first {num_frames} of {clip.source_frame_count} source frames "
+                f"(source fps {clip.fps:.3g})."
+            )
 
     def save_model(self, base_path: str) -> None:
         ModelSaver.save_model(
@@ -815,10 +860,16 @@ class Wan2_2_TI2V(nn.Module):
         return condition.astype(mx.float32)
 
     @staticmethod
-    def _cache_path_key(image_path: Path | str | None) -> str | None:
+    def _cache_path_key(image_path: Path | str | None) -> tuple[str, int, int] | None:
         if image_path is None:
             return None
-        return str(Path(image_path).expanduser().resolve(strict=False))
+        resolved = Path(image_path).expanduser().resolve(strict=False)
+        # Include mtime and size so overwriting a source file in one session invalidates cached latents.
+        try:
+            stat = resolved.stat()
+            return (str(resolved), stat.st_mtime_ns, stat.st_size)
+        except OSError:
+            return (str(resolved), 0, 0)
 
     def _cached_tensor(self, *, cache_name: str, key: tuple) -> mx.array | None:
         cache = getattr(self, cache_name, None)
@@ -894,7 +945,6 @@ class Wan2_2_TI2V(nn.Module):
         if image_path is not None:
             source_image = ImageUtil.load_image(image_path)
             source_info = {"height": source_image.height, "width": source_image.width}
-            source_label = "image"
         else:
             video_info = VideoUtil.inspect_video(video_path)
             source_info = {"height": video_info.source_height, "width": video_info.source_width}
@@ -1015,7 +1065,7 @@ class Wan2_2_TI2V(nn.Module):
             num_frames = adjusted
         return max(num_frames, 1)
 
-    def _validate_runtime_contract(self, *, is_image_to_video: bool, is_video_to_video: bool) -> None:
+    def _validate_runtime_contract(self, *, is_image_to_video: bool) -> None:
         task = self._wan_config("task", "text-image-to-video")
         if task == "image-to-video" and not is_image_to_video:
             raise ValueError(f"{self.model_config.model_name} requires image-to-video input.")
@@ -1255,6 +1305,39 @@ class Wan2_2_TI2V(nn.Module):
         if hasattr(scheduler, "set_begin_index"):
             scheduler.set_begin_index(t_start * getattr(scheduler, "order", 1))
         return scheduler.timesteps[t_start * getattr(scheduler, "order", 1) :].tolist()
+
+    @staticmethod
+    def _skips_high_noise_stage(
+        *,
+        timesteps: list[int | float],
+        boundary_timestep: float | None,
+    ) -> bool:
+        if boundary_timestep is None or not timesteps:
+            return False
+        return timesteps[0] < boundary_timestep
+
+    @staticmethod
+    def _video_to_video_extra_metadata(
+        *,
+        is_video_to_video: bool,
+        video_strength: float | None,
+        effective_steps: int,
+        high_noise_stage_skipped: bool,
+        spatial_metadata: dict,
+    ) -> dict:
+        if not is_video_to_video:
+            return {}
+        # `steps` in metadata records the requested count so --config-from-metadata replays exactly;
+        # the strength-truncated schedule length is preserved separately here.
+        extra = {
+            "video_strength": video_strength,
+            "effective_steps": effective_steps,
+            "high_noise_stage_skipped": high_noise_stage_skipped,
+        }
+        for key in ("source_video_frame_count", "source_video_duration_seconds", "source_video_fps"):
+            if key in spatial_metadata:
+                extra[key] = spatial_metadata[key]
+        return extra
 
     def _resolve_guidance_pair(
         self, guidance: float | None, guidance_2: float | None | object

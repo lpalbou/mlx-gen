@@ -1178,7 +1178,6 @@ name = "mlx-gen"
 version = "0.18.24"
 source = { editable = "." }
 dependencies = [
-    { name = "accelerate" },
     { name = "av" },
     { name = "filelock" },
     { name = "fonttools" },
@@ -1209,6 +1208,7 @@ dependencies = [
 
 [package.optional-dependencies]
 dev = [
+    { name = "accelerate" },
     { name = "matplotlib" },
     { name = "mlx", version = "0.30.3", source = { registry = "https://pypi.org/simple" }, extra = ["cuda13"], marker = "sys_platform == 'linux'" },
     { name = "mlx", version = "0.31.0", source = { registry = "https://pypi.org/simple" }, marker = "sys_platform == 'darwin'" },
@@ -1222,7 +1222,7 @@ release = [
 
 [package.metadata]
 requires-dist = [
-    { name = "accelerate", specifier = ">=1.14.0" },
+    { name = "accelerate", marker = "extra == 'dev'", specifier = ">=1.14.0" },
     { name = "av", specifier = ">=17.0.1" },
     { name = "filelock", specifier = ">=3.20.1" },
     { name = "fonttools", specifier = ">=4.60.2" },

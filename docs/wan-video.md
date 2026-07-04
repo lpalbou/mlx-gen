@@ -32,7 +32,15 @@ whole-scene or whole-subject changes while keeping the overall camera path and c
 - use `Wan-AI/Wan2.2-T2V-A14B-Diffusers` or the matching prepared A14B T2V package;
 - pass exactly one `--video` or `--video-path`;
 - keep `--solver unipc`;
-- use `--video-strength` when you want more or less change from the source clip;
+- use `--video-strength` when you want more or less change from the source clip (default `0.8`);
+- know the strength contract: the run denoises `floor(steps x video_strength)` effective steps, so
+  the saved metadata records both your requested `steps` and the resolved `effective_steps`;
+- know that below roughly `--video-strength 0.7` the A14B high-noise stage is skipped, `--guidance`
+  becomes inactive, and only `--guidance-2` shapes the result; MLX-Gen prints a warning when this
+  happens;
+- match the requested `--width`/`--height` aspect ratio to the source clip: plain video-to-video
+  stretches source frames to the requested canvas and warns on a mismatch, unlike image-to-video
+  which preserves the source aspect ratio;
 - do not expect frame-accurate preservation, masks, reference images, localized edits, SeedVR2-style restore/upscale behavior, or VACE-style controls on this route;
 - do not expect TI2V-5B or I2V-A14B to accept source-video input on the public CLI.
 
@@ -181,8 +189,10 @@ mlxgen generate \
   --output starship_takeoff_a14b_i2v.mp4
 ```
 
-Use A14B T2V for the current plain public video-to-video route. This is the exact accepted proof
-command shape:
+Use A14B T2V for the current plain public video-to-video route. This is the exact command that
+produced the included proof artifacts. It uses bounded diagnostic settings (`448x256`, `17` frames,
+`5` requested steps, which resolve to `3` effective steps at `--video-strength 0.7`) so it runs in
+about 90 seconds; it is a route and behavior proof, not a quality setting:
 
 ```sh
 mlxgen generate \
@@ -193,7 +203,7 @@ mlxgen generate \
   --width 448 \
   --height 256 \
   --frames 17 \
-  --steps 3 \
+  --steps 5 \
   --guidance 4 \
   --guidance-2 3 \
   --video-strength 0.7 \
@@ -201,14 +211,21 @@ mlxgen generate \
   --fps 10 \
   --seed 4242 \
   --low-ram \
+  --metadata \
   --output starship_v2v_a14b.mp4
 ```
 
-The accepted proof used this source clip:
+For quality output rather than a route check, start from the A14B defaults and keep the strength
+contract in mind: `--width 832 --height 480` (or `1280x720`), `--frames 81`, `--steps 40`
+(about `32` effective steps at `--video-strength 0.8`), `--fps 16`. Expect a long run at those
+settings; see the timing profiles above.
+
+The proof used this source clip:
 [06_i2v_a14b_spaceship_takeoff_from_source.mp4](assets/examples/spaceship-snow/06_i2v_a14b_spaceship_takeoff_from_source.mp4)
 
-Preserved proof artifacts:
+Included proof artifacts:
 
-- output video: [ship_a14b_q8_native.mp4](../validation_outputs/v2v_native_a14b_q8_patched_2026_07_03/ship_a14b_q8_native.mp4)
-- source contact sheet: [ship_source_contact_sheet.png](../validation_outputs/v2v_cli_proof_2026_07_03/ship_source_contact_sheet.png)
-- output contact sheet: [ship_cli_q8_contact_sheet.png](../validation_outputs/v2v_cli_proof_2026_07_03/ship_cli_q8_contact_sheet.png)
+- output video: [starship_v2v_a14b.mp4](assets/examples/spaceship-v2v/starship_v2v_a14b.mp4)
+- run metadata: [starship_v2v_a14b.metadata.json](assets/examples/spaceship-v2v/starship_v2v_a14b.metadata.json)
+- source contact sheet: [starship_v2v_source_contact_sheet.png](assets/examples/spaceship-v2v/starship_v2v_source_contact_sheet.png)
+- output contact sheet: [starship_v2v_output_contact_sheet.png](assets/examples/spaceship-v2v/starship_v2v_output_contact_sheet.png)
