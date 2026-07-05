@@ -18,6 +18,7 @@ from mflux.cli.parser.parsers import boolean_flag_value, image_strength_value, p
 from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.cli.seed_values import resolve_seed_values
 from mflux.models.common.config import ModelConfig
+from mflux.models.common.lora.mapping.lora_loader import LoRALoader
 from mflux.models.wan.variants import Wan2_2_TI2V
 from mflux.utils.exceptions import ModelConfigError, PromptFileReadError
 from mflux.utils.prompt_util import PromptUtil
@@ -35,6 +36,7 @@ def main() -> None:
     parser = _parser()
     provided_options = _provided_options(sys.argv[1:])
     args = parser.parse_args()
+    LoRALoader.set_debug_enabled(bool(getattr(args, "debug", False)))
     provided_options.update(_apply_metadata_defaults(args))
     _validate_args(parser, args)
     try:
@@ -151,6 +153,11 @@ def _parser() -> argparse.ArgumentParser:
         description="Generate a video using supported Wan2.2 models.",
     )
     parser.add_argument("--model", "-m", required=True, help="Wan model alias, Hugging Face repo, or local path.")
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable debug logging for internal generation details such as LoRA fusion targets.",
+    )
     parser.add_argument("--image-path", default=None, help="Input image for Wan image-to-video models.")
     parser.add_argument(
         "--video-path",
@@ -403,14 +410,18 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
 
 
 def _validate_model_runtime_args(*, args: argparse.Namespace, model_config: ModelConfig) -> None:
-    if args.image_path is not None and not bool(model_config.transformer_overrides.get("supports_image_to_video", True)):
+    if args.image_path is not None and not bool(
+        model_config.transformer_overrides.get("supports_image_to_video", True)
+    ):
         raise ValueError(f"{model_config.model_name} does not support image-to-video input.")
-    if args.video_path is not None and not bool(model_config.transformer_overrides.get("supports_video_to_video", False)):
+    if args.video_path is not None and not bool(
+        model_config.transformer_overrides.get("supports_video_to_video", False)
+    ):
         raise ValueError(f"{model_config.model_name} does not support video-to-video input.")
     if args.video_path is not None and args.solver is not None and str(args.solver).strip().lower() != "unipc":
         raise ValueError("Wan video-to-video currently requires --solver unipc.")
     if args.video_path is not None:
-        _probe_source_video(video_path=args.video_path, requested_frames=args.frames)
+        _probe_source_video(video_path=args.video_path, requested_frames=args.frames, requested_fps=args.fps)
     if args.video_mask_path is not None:
         _probe_video_mask(mask_path=args.video_mask_path)
 
@@ -431,7 +442,9 @@ def _probe_video_mask(*, mask_path: str) -> None:
         )
 
 
-def _probe_source_video(*, video_path: str, requested_frames: int | None) -> None:
+def _probe_source_video(
+    *, video_path: str, requested_frames: int | None, requested_fps: int | float | None = None
+) -> None:
     # Fail on unreadable/short sources before the multi-minute model weight load.
     from mflux.utils.video_util import VideoUtil
 
@@ -439,12 +452,22 @@ def _probe_source_video(*, video_path: str, requested_frames: int | None) -> Non
         source_info = VideoUtil.inspect_video(video_path)
     except Exception as exc:
         raise ValueError(f"--video-path is not a readable video: {video_path} ({exc})") from exc
+    if requested_frames is None:
+        return
+    source_duration = getattr(source_info, "source_duration_seconds", None)
     source_frame_count = source_info.source_frame_count
-    if (
-        requested_frames is not None
-        and source_frame_count is not None
-        and source_frame_count < int(requested_frames)
-    ):
+    if requested_fps and source_duration is not None:
+        # Resampling samples the output timeline, so the requirement is duration-based. One
+        # target-frame period of slack absorbs the fps filter's round=near boundary behavior.
+        needed_seconds = int(requested_frames) / float(requested_fps)
+        slack = 1.0 / float(requested_fps)
+        if source_duration + slack < needed_seconds:
+            raise ValueError(
+                f"Wan video-to-video needs {needed_seconds:.2f}s of source video "
+                f"({requested_frames} frames at {float(requested_fps):.3g} fps), "
+                f"but {video_path} is only {float(source_duration):.2f}s long."
+            )
+    elif source_frame_count is not None and source_frame_count < int(requested_frames):
         raise ValueError(
             f"Wan video-to-video requires at least {requested_frames} source frames, "
             f"but {video_path} only has {source_frame_count}."

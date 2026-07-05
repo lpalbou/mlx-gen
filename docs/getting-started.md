@@ -445,11 +445,15 @@ mlxgen generate \
 
 TI2V-5B image-to-video uses the Diffusers first-frame latent-conditioning path. The separate A14B I2V route requires the complete I2V source snapshot before generation. Current Wan video support can produce MP4 output; quality, speed, and practical defaults depend strongly on model family, prompt, size, and frame count.
 
-Prompt-guided video-to-video uses one source clip as the motion and composition anchor, then
+Prompt-guided video-to-video uses one source clip as the composition anchor, then
 regenerates the clip under a new prompt. The plain form is useful for whole-scene restyling or
-broad object changes while keeping the source clip's camera path and overall motion. It is not a
+broad object changes while keeping the source clip's camera path and framing; subject gestures
+and timing are re-synthesized rather than copied at the default strength - at
+`--video-strength 0.5-0.6` with 20 steps, measured runs preserved source gesture timing (see
+[Motion Fidelity Versus Strength](wan-video.md#motion-fidelity-versus-strength)). It is not a
 restoration workflow, not a reference-guided edit, and not frame-accurate source preservation
-unless you add `--video-mask-path` for preserved regions.
+unless you add `--video-mask-path` for preserved regions (which also preserves motion inside
+those regions).
 
 Use the current public A14B video-to-video route like this. These are bounded diagnostic settings
 for a quick route check, not quality settings; for quality use the A14B defaults

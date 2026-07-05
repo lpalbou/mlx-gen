@@ -33,6 +33,9 @@ class DecodedVideoClip:
     audio_present: bool
     clip_start_frame: int
     clip_frame_count: int
+    # Set only when frames were resampled onto a different output timeline; None means the
+    # frames are raw source frames at `fps`.
+    sampled_fps: float | None = None
 
 
 @dataclass(frozen=True)
@@ -51,6 +54,13 @@ class AudioCopyResult:
     audio_copied: bool
     copy_mode: str | None
     reason: str | None
+
+
+@dataclass(frozen=True)
+class SourceAudioCopySpec:
+    source_video_path: str | Path
+    clip_start_seconds: float
+    clip_duration_seconds: float
 
 
 class VideoStreamWriter:
@@ -133,7 +143,9 @@ class VideoStreamWriter:
     def write_frame_arrays(self, frames: np.ndarray) -> None:
         for frame in frames:
             if frame.shape[1] != self.width or frame.shape[0] != self.height:
-                rgb = PIL.Image.fromarray(frame, mode="RGB").resize((self.width, self.height), PIL.Image.Resampling.LANCZOS)
+                rgb = PIL.Image.fromarray(frame, mode="RGB").resize(
+                    (self.width, self.height), PIL.Image.Resampling.LANCZOS
+                )
                 frame = np.array(rgb, dtype=np.uint8)
             self._write_rgb_array(frame)
 
@@ -478,6 +490,7 @@ class VideoUtil:
         export_json_metadata: bool = False,
         overwrite: bool = True,
         validate_health: bool = True,
+        source_audio_copy: "SourceAudioCopySpec | None" = None,
     ) -> Path:
         if not frames:
             raise ValueError("Cannot save a video without frames.")
@@ -508,12 +521,16 @@ class VideoUtil:
                 strict_visual=True,
             )
 
-        if metadata is not None and validate_health:
+        if metadata is not None:
             metadata = dict(metadata)
-            metadata["video_health"] = {
-                "frames": frame_health.to_metadata(),
-                "file": file_health.to_metadata(),
-            }
+            if validate_health:
+                metadata["video_health"] = {
+                    "frames": frame_health.to_metadata(),
+                    "file": file_health.to_metadata(),
+                }
+        audio_fields = VideoUtil._apply_source_audio_copy(spec=source_audio_copy, file_path=file_path)
+        if metadata is not None and audio_fields:
+            metadata.update(audio_fields)
 
         VideoUtil._save_metadata(
             file_path=file_path,
@@ -533,6 +550,7 @@ class VideoUtil:
         export_json_metadata: bool = False,
         overwrite: bool = True,
         validate_health: bool = True,
+        source_audio_copy: "SourceAudioCopySpec | None" = None,
     ) -> Path:
         batch_iterator = iter(frame_batches)
         first_batch = next(batch_iterator, None)
@@ -554,6 +572,8 @@ class VideoUtil:
             height=height,
         )
 
+        if metadata is not None:
+            metadata = dict(metadata)
         if validate_health:
             file_health = VideoHealth.validate_file(
                 file_path,
@@ -564,10 +584,12 @@ class VideoUtil:
                 strict_visual=True,
             )
             if metadata is not None:
-                metadata = dict(metadata)
                 metadata["video_health"] = {
                     "file": file_health.to_metadata(),
                 }
+        audio_fields = VideoUtil._apply_source_audio_copy(spec=source_audio_copy, file_path=file_path)
+        if metadata is not None and audio_fields:
+            metadata.update(audio_fields)
 
         VideoUtil._save_metadata(
             file_path=file_path,
@@ -577,6 +599,45 @@ class VideoUtil:
 
         log.info(f"Video saved successfully at: {file_path}")
         return file_path
+
+    @staticmethod
+    def _apply_source_audio_copy(
+        *,
+        spec: "SourceAudioCopySpec | None",
+        file_path: Path,
+    ) -> dict:
+        if spec is None:
+            return {}
+        # Best-effort by design: a failed audio mux degrades to the previous video-only contract
+        # with a printed warning and a recorded reason; it must never fail a finished generation.
+        try:
+            result = VideoUtil.copy_source_audio_to_video(
+                source_video_path=spec.source_video_path,
+                restored_video_path=file_path,
+                clip_start_seconds=spec.clip_start_seconds,
+                clip_duration_seconds=spec.clip_duration_seconds,
+            )
+        except Exception as exc:  # noqa: BLE001
+            result = AudioCopyResult(
+                audio_present=True,
+                audio_copied=False,
+                copy_mode=None,
+                reason=f"{exc.__class__.__name__}: {exc}",
+            )
+        if result.audio_present and not result.audio_copied:
+            remux_target = file_path.with_name(f"{file_path.stem}_with_audio.mp4")
+            print(
+                f"⚠️  Source audio could not be preserved ({result.reason}); the saved video is silent. "
+                f'To remux manually: ffmpeg -i "{file_path}" -ss {spec.clip_start_seconds:.3f} '
+                f'-t {spec.clip_duration_seconds:.3f} -i "{spec.source_video_path}" '
+                f'-map 0:v -map 1:a -c:v copy -c:a aac "{remux_target}"'
+            )
+        return {
+            "audio_present": result.audio_present,
+            "audio_copied": result.audio_copied,
+            "audio_copy_mode": result.copy_mode,
+            "audio_copy_reason": result.reason,
+        }
 
     @staticmethod
     def extract_frame(path: str | Path, index: int = 0) -> PIL.Image.Image:
@@ -633,11 +694,16 @@ class VideoUtil:
         *,
         start_seconds: float = 0.0,
         max_frames: int | None = None,
+        target_fps: float | None = None,
     ) -> DecodedVideoClip:
         if start_seconds < 0:
             raise ValueError("start_seconds must be greater than or equal to zero.")
         if max_frames is not None and max_frames <= 0:
             raise ValueError("max_frames must be greater than zero when provided.")
+        if target_fps is not None and target_fps <= 0:
+            raise ValueError("target_fps must be greater than zero when provided.")
+        if target_fps is not None and start_seconds > 0:
+            raise ValueError("target_fps resampling currently requires start_seconds == 0.")
 
         file_path = Path(path)
         source_info = VideoUtil.inspect_video(file_path)
@@ -648,6 +714,15 @@ class VideoUtil:
         source_duration_seconds = source_info.source_duration_seconds
         audio_present = source_info.audio_present
 
+        resample_fps = (
+            target_fps
+            if VideoUtil._should_resample_fps(
+                source_fps=fps,
+                target_fps=target_fps,
+                max_frames=max_frames,
+            )
+            else None
+        )
         frame_arrays, clip_start_frame = VideoUtil._read_video_clip_frame_arrays(
             file_path=file_path,
             start_seconds=start_seconds,
@@ -655,6 +730,7 @@ class VideoUtil:
             fps=fps,
             width=source_width,
             height=source_height,
+            target_fps=resample_fps,
         )
         frames = [PIL.Image.fromarray(frame) for frame in frame_arrays]
 
@@ -671,7 +747,23 @@ class VideoUtil:
             audio_present=audio_present,
             clip_start_frame=clip_start_frame,
             clip_frame_count=len(frames),
+            sampled_fps=resample_fps,
         )
+
+    @staticmethod
+    def _should_resample_fps(
+        *,
+        source_fps: float,
+        target_fps: float | None,
+        max_frames: int | None,
+    ) -> bool:
+        if target_fps is None or source_fps <= 0:
+            return False
+        # Skip only when re-timing cannot move any sampled frame over the whole clip; this keeps
+        # 29.97-vs-30 style differences bit-identical while catching every real speed change.
+        drift = abs(source_fps / target_fps - 1.0)
+        frame_budget = max_frames if max_frames is not None else 1000
+        return drift >= 1.0 / (2.0 * frame_budget)
 
     @staticmethod
     def _read_video_clip_frame_arrays(
@@ -682,6 +774,7 @@ class VideoUtil:
         fps: float,
         width: int,
         height: int,
+        target_fps: float | None = None,
     ) -> tuple[list[np.ndarray], int]:
         ffmpeg_path = shutil.which("ffmpeg")
         if ffmpeg_path is None:
@@ -690,12 +783,16 @@ class VideoUtil:
                 start_seconds=start_seconds,
                 max_frames=max_frames,
                 fps=fps,
+                target_fps=target_fps,
             )
 
         command = [ffmpeg_path, "-v", "error"]
         if start_seconds > 0:
             command.extend(["-ss", f"{start_seconds:.9f}"])
         command.extend(["-i", str(file_path)])
+        if target_fps is not None:
+            # Sample frames on the output timeline so playback keeps real-time speed.
+            command.extend(["-vf", f"fps={target_fps:.6g}"])
         if max_frames is not None:
             command.extend(["-frames:v", str(max_frames)])
         command.extend(["-f", "rawvideo", "-pix_fmt", "rgb24", "pipe:1"])
@@ -717,11 +814,16 @@ class VideoUtil:
         start_seconds: float,
         max_frames: int | None,
         fps: float,
+        target_fps: float | None = None,
     ) -> tuple[list[np.ndarray], int]:
         import av
 
         frames: list[np.ndarray] = []
         clip_start_frame: int | None = None
+        # Nearest-PTS greedy resampling; matches ffmpeg's fps filter on CFR sources and is an
+        # approximation on VFR sources (acceptable for the no-ffmpeg fallback path).
+        source_period = 1.0 / fps if fps > 0 else 0.0
+        next_target_time = 0.0
         with av.open(str(file_path)) as container:
             video_stream = container.streams.video[0]
             for frame_index, frame in enumerate(container.decode(video_stream)):
@@ -732,7 +834,17 @@ class VideoUtil:
                     continue
                 if clip_start_frame is None:
                     clip_start_frame = frame_index
-                frames.append(frame.to_ndarray(format="rgb24").copy())
+                if target_fps is None:
+                    frames.append(frame.to_ndarray(format="rgb24").copy())
+                else:
+                    frame_array = None
+                    while next_target_time < frame_time + source_period / 2.0 and (
+                        max_frames is None or len(frames) < max_frames
+                    ):
+                        if frame_array is None:
+                            frame_array = frame.to_ndarray(format="rgb24").copy()
+                        frames.append(frame_array)
+                        next_target_time += 1.0 / target_fps
                 if max_frames is not None and len(frames) >= max_frames:
                     break
         return frames, clip_start_frame or 0
@@ -941,8 +1053,7 @@ class VideoUtil:
         import av
 
         absolute_windows = [
-            (start_frame + window_start, start_frame + window_end)
-            for window_start, window_end in normalized_windows
+            (start_frame + window_start, start_frame + window_end) for window_start, window_end in normalized_windows
         ]
         with av.open(str(path)) as container:
             if len(container.streams.video) == 0:
@@ -953,8 +1064,7 @@ class VideoUtil:
             next_window_index = 0
             for frame_index, frame in enumerate(container.decode(video_stream)):
                 while (
-                    next_window_index < len(absolute_windows)
-                    and absolute_windows[next_window_index][0] == frame_index
+                    next_window_index < len(absolute_windows) and absolute_windows[next_window_index][0] == frame_index
                 ):
                     absolute_start, absolute_end = absolute_windows[next_window_index]
                     relative_start, _ = normalized_windows[next_window_index]
@@ -1008,8 +1118,7 @@ class VideoUtil:
         normalized_windows: list[tuple[int, int]],
     ) -> Iterator[DecodedVideoClip]:
         absolute_windows = [
-            (start_frame + window_start, start_frame + window_end)
-            for window_start, window_end in normalized_windows
+            (start_frame + window_start, start_frame + window_end) for window_start, window_end in normalized_windows
         ]
         first_frame = absolute_windows[0][0]
         final_frame_exclusive = max(window_end for _, window_end in absolute_windows)
@@ -1051,8 +1160,7 @@ class VideoUtil:
                     raise RuntimeError(f"Decoded video frame payload from {path} has an unexpected size.")
 
                 while (
-                    next_window_index < len(absolute_windows)
-                    and absolute_windows[next_window_index][0] == frame_index
+                    next_window_index < len(absolute_windows) and absolute_windows[next_window_index][0] == frame_index
                 ):
                     absolute_start, absolute_end = absolute_windows[next_window_index]
                     relative_start, _ = normalized_windows[next_window_index]
@@ -1258,7 +1366,9 @@ class VideoUtil:
             "aresample=async=1:first_pts=0",
             "-movflags",
             "+faststart",
-            "-shortest",
+            # No -shortest: the audio input is already bounded by -ss/-t, and -shortest can
+            # truncate stream-copied video packets at audio EOF (drops trailing frames on
+            # short clips). Post-mux validation still enforces exact frame count and durations.
             str(output_path),
         ]
 
@@ -1272,7 +1382,10 @@ class VideoUtil:
         output_info = VideoUtil.inspect_video(output_path)
         if not output_info.audio_present:
             return "output_missing_audio"
-        if output_info.source_width != expected_video.source_width or output_info.source_height != expected_video.source_height:
+        if (
+            output_info.source_width != expected_video.source_width
+            or output_info.source_height != expected_video.source_height
+        ):
             return "output_video_dimensions_mismatch"
         if abs(output_info.fps - expected_video.fps) > 1e-6:
             return "output_video_fps_mismatch"
@@ -1293,7 +1406,9 @@ class VideoUtil:
         audio_duration_seconds = VideoUtil._audio_duration_seconds(output_path)
         if audio_duration_seconds is None:
             return "output_audio_duration_unknown"
-        if abs(audio_duration_seconds - expected_audio_duration_seconds) > VideoUtil._media_alignment_tolerance_seconds(expected_video.fps):
+        if abs(audio_duration_seconds - expected_audio_duration_seconds) > VideoUtil._media_alignment_tolerance_seconds(
+            expected_video.fps
+        ):
             return "output_audio_duration_mismatch"
         return None
 

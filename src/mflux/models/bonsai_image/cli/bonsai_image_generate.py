@@ -10,12 +10,17 @@ from mflux.utils.exceptions import PromptFileReadError, StopImageGenerationExcep
 from mflux.utils.prompt_util import PromptUtil
 
 
-def main():
+def _parser() -> CommandLineParser:
     parser = CommandLineParser(description="Generate an image using Bonsai Image.")
     parser.add_general_arguments()
     parser.add_model_arguments(require_model_arg=False)
     parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
     parser.add_output_arguments()
+    return parser
+
+
+def main():
+    parser = _parser()
     args = parser.parse_args()
 
     if getattr(args, "negative_prompt", ""):

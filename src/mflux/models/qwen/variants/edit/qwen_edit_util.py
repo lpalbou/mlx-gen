@@ -1,10 +1,10 @@
 import mlx.core as mx
-import numpy as np
 from PIL import Image
 
 from mflux.models.common.latent_creator.latent_creator import LatentCreator
 from mflux.models.common.vae.tiling_config import TilingConfig
 from mflux.models.qwen.latent_creator.qwen_latent_creator import QwenLatentCreator
+from mflux.utils.mask_util import MaskUtil
 
 
 class QwenEditUtil:
@@ -68,11 +68,14 @@ class QwenEditUtil:
     ) -> mx.array:
         latent_width = width // 8
         latent_height = height // 8
-        with Image.open(mask_path) as image:
-            mask_image = image.convert("L").resize((latent_width, latent_height), Image.Resampling.NEAREST)
-        mask_values = np.array(mask_image, dtype=np.float32) / 255.0
+        mask_values = MaskUtil.load_binary_mask(
+            mask_path,
+            target_width=latent_width,
+            target_height=latent_height,
+            resampling=Image.Resampling.NEAREST,
+            alpha_warning_context="Qwen inpaint mask",
+        )
         mask = mx.array(mask_values)[None, None, :, :]
-        mask = mx.where(mask < 0.5, mx.zeros_like(mask), mx.ones_like(mask))
         mask = mx.repeat(mask, repeats=num_channels_latents, axis=1)
         return QwenLatentCreator.pack_latents(
             latents=mask,

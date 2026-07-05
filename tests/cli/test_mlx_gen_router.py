@@ -3862,7 +3862,7 @@ def test_wan_cli_rejects_short_source_video_before_model_load(monkeypatch, tmp_p
     monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
     monkeypatch.setattr(
         "mflux.utils.video_util.VideoUtil.inspect_video",
-        staticmethod(lambda path: SimpleNamespace(source_frame_count=5)),
+        staticmethod(lambda path: SimpleNamespace(source_frame_count=5, source_duration_seconds=0.31, fps=16.0)),
     )
     input_path = tmp_path / "short.mp4"
     input_path.write_bytes(b"mp4")
@@ -3887,7 +3887,7 @@ def test_wan_cli_rejects_short_source_video_before_model_load(monkeypatch, tmp_p
     with pytest.raises(SystemExit):
         wan_generate.main()
 
-    assert "at least 17 source frames" in capsys.readouterr().err
+    assert "needs 1.06s of source video" in capsys.readouterr().err
     assert "init" not in observed
 
 

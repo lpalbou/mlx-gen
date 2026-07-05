@@ -70,24 +70,20 @@ repository or an MLX-Gen package today.
 
 ## Why Can q8 Show The Same Physical Peak As BF16?
 
-Because the visible peak metric may be measuring a different thing than the persistent model
-footprint.
+For Wan specifically, since the 2026-06-12 runtime-precision fix the answer is simple: Wan q8
+packages store transformer-block linears quantized on disk but dequantize all of them to BF16 at
+load to protect output quality. At runtime a Wan q8 package therefore uses BF16-class memory
+(MLX peak and physical peak match the BF16 package); q8 saves disk and download only. Plan Wan
+memory as if running BF16.
 
-`Storage` is the on-disk or Hugging Face repository size. `Wan MLX model` is the loaded Wan
-transformer plus VAE tensor footprint. `MLX active after generation` is the MLX allocator memory
-still live after `generate_video()` returns. These should drop when a q8 package actually stores
-and loads quantized transformer block linears.
-
-`Physical Peak` is a full-process Darwin high-water sample. It includes MLX/Metal allocations, the
-PyTorch UMT5 prompt encoder, activation graphs, decoded video buffers, frame conversion, save
-validation, Python objects, and native-library transients. `Max RSS` is resident set high-water
-memory and can under-report Apple unified-memory/Metal pressure. `MLX Peak` is only the MLX
-allocator high-water mark, not the whole process.
-
-So a q8 model can be clearly smaller on disk and in loaded MLX model memory while a specific
-generation profile shows a similar full-process physical peak because temporary activations or
-decode/save buffers dominate that run. See [Quantization](quantization.md) for the current Wan
-tables and definitions.
+For other families where q8 stays quantized at runtime, metric definitions still matter:
+`Physical Peak` is a full-process Darwin high-water sample that includes MLX/Metal allocations,
+any PyTorch encoders, activation graphs, decode/save buffers, and native-library transients;
+`Max RSS` can under-report Apple unified-memory/Metal pressure; `MLX Peak` is only the MLX
+allocator high-water mark. A quantized model can be much smaller on disk and in loaded model
+memory while a specific profile shows a similar full-process peak because temporary activations
+or decode buffers dominate that run. See [Quantization](quantization.md) for the current tables,
+definitions, and the dated Wan correction.
 
 ## Can I Quantize ERNIE Image Turbo?
 
@@ -728,9 +724,15 @@ recommended/native size, frame count, and step count when judging visual quality
 Yes, in a narrow public form.
 
 MLX-Gen currently supports prompt-guided video-to-video on `Wan2.2-T2V-A14B`. You pass one source
-video plus one prompt, and MLX-Gen regenerates the clip while following the source clip's overall
-motion and composition. Add `--video-mask-path` when you need preserved regions locked to the
-source.
+video plus one prompt, and MLX-Gen regenerates the clip while keeping the source clip's camera
+path and composition. Subject gestures and timing are re-synthesized at typical strengths, not
+copied - prompts like "keep the same motion" cannot force exact motion through. Add
+`--video-mask-path` when you need preserved regions locked to the source (their motion is
+preserved exactly too), or lower `--video-strength` to 0.5-0.6 at 20 steps with CFG on for
+motion-preserving restyles - the measured band where source gestures survive (gesture-timing
+correlation 0.86-0.90 vs 0.20 at the 0.8 default; see the motion-fidelity ladder in
+[Wan Video](wan-video.md#motion-fidelity-versus-strength)). The edit still landed at 0.5 in the
+measured runs, but low strength is weaker for adding brand-new objects - use a mask for those.
 
 Use this route. The sizes and counts below are bounded diagnostic settings for a quick check, not
 quality settings; for quality, use the A14B defaults (`832x480` or `1280x720`, `81` frames,
@@ -740,7 +742,7 @@ quality settings; for quality, use the A14B defaults (`832x480` or `1280x720`, `
 mlxgen generate \
   --model Wan-AI/Wan2.2-T2V-A14B-Diffusers \
   --video-path source.mp4 \
-  --prompt "Keep the same motion and setting, but redesign the main subject" \
+  --prompt "Keep the same setting and camera framing, but redesign the main subject" \
   --width 448 \
   --height 256 \
   --frames 17 \
@@ -765,17 +767,26 @@ Limits that matter:
 - this is not SeedVR2 restore or upscale;
 - plain video-to-video (no mask) re-synthesizes everything, so background text and logos drift;
   pass `--video-mask-path` to lock everything outside a mask to the source video exactly;
+- source audio is copied onto the output best-effort (trimmed to the output duration); if the
+  copy cannot complete, the output is saved silent with a printed reason and a manual remux
+  command, and metadata records `audio_copied` / `audio_copy_reason`;
+- the source is resampled onto the `--fps` timeline, so the output keeps real-time speed;
+  requesting an fps above the source duplicates frames (a warning says so); matching fps passes
+  frames through untouched, and metadata records `source_video_resampled`;
 - this does not accept extra reference images or VACE-style controls;
 - source frames are stretched to the requested canvas, so match the aspect ratio to the source;
 - TI2V-5B and I2V-A14B do not currently accept `--video-path`.
 
-## How Do I Keep The Background From Changing In Video-To-Video?
+## How Do I Change One Thing Without Changing Anything Else In Video-To-Video?
 
-Use masked video-to-video: add `--video-mask-path mask.png` to the video-to-video command. White
-regions of the mask are regenerated under your prompt; black regions are locked to the source
-video at every denoising step and match it up to VAE round-trip precision. Draw the mask over the
-union of the subject's positions if the subject moves. All-black masks are rejected (they would
-edit nothing), and an all-white mask is equivalent to plain video-to-video. See
+Use masked video-to-video: add `--video-mask-path mask.png` to the video-to-video command. This
+is the recommended tool for local add/remove/replace edits ("add a red tie", "remove the logo"):
+white regions of the mask are regenerated under your prompt; black regions - background AND
+subject, including their exact motion and gestures - are locked to the source video at every
+denoising step and match it up to VAE round-trip precision. Keep edit masks tight: motion that
+crosses into the white region is re-synthesized inside it. Draw the mask over the union of the
+edited region's positions if it moves. All-black masks are rejected (they would edit nothing),
+and an all-white mask is equivalent to plain video-to-video. See
 [Wan Video](wan-video.md#masked-video-to-video) for the full contract and a reproducible example.
 
 For a full explanation and a reproducible example with the exact accepted command, see [Wan Video](wan-video.md).

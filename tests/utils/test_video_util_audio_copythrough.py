@@ -118,3 +118,71 @@ def test_copy_source_audio_to_video_muxes_audio_onto_restored_clip(tmp_path):
     assert inspected.fps == pytest.approx(12.0, abs=1e-6)
     assert inspected.source_duration_seconds == pytest.approx(1.0, abs=0.05)
     assert VideoUtil._audio_duration_seconds(restored) == pytest.approx(1.0, abs=0.05)
+
+
+@pytest.mark.fast
+@pytest.mark.skipif(shutil.which("ffmpeg") is None, reason="ffmpeg is required for audio copy-through tests")
+def test_copy_source_audio_keeps_all_video_frames_on_short_clips(tmp_path):
+    # Regression: -shortest truncated stream-copied video packets at AAC audio EOF, dropping the
+    # trailing frames of short clips (17f @ 16fps lost 2 frames) and failing the frame-count check.
+    source = tmp_path / "source.mp4"
+    restored = tmp_path / "restored.mp4"
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-v",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "testsrc=size=64x48:rate=30",
+            "-f",
+            "lavfi",
+            "-i",
+            "sine=frequency=440:sample_rate=48000",
+            "-t",
+            "1.6",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-c:a",
+            "aac",
+            str(source),
+        ],
+        check=True,
+    )
+    subprocess.run(
+        [
+            "ffmpeg",
+            "-y",
+            "-v",
+            "error",
+            "-f",
+            "lavfi",
+            "-i",
+            "testsrc=size=64x48:rate=16",
+            "-frames:v",
+            "17",
+            "-c:v",
+            "libx264",
+            "-pix_fmt",
+            "yuv420p",
+            "-an",
+            str(restored),
+        ],
+        check=True,
+    )
+
+    result = VideoUtil.copy_source_audio_to_video(
+        source_video_path=source,
+        restored_video_path=restored,
+        clip_start_seconds=0.0,
+        clip_duration_seconds=17 / 16,
+    )
+
+    inspected = VideoUtil.inspect_video(restored)
+    assert result.audio_copied is True, result.reason
+    assert inspected.source_frame_count == 17
+    assert inspected.audio_present is True

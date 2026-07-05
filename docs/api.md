@@ -239,6 +239,12 @@ Use `--metadata` to write a `.metadata.json` sidecar. That sidecar is the defaul
 runtime-memory metadata is recorded. Use `--embed-metadata` only when you explicitly want image
 metadata embedded into the saved PNG/JPEG/TIFF artifact and accept the extra finalization work.
 
+Both the sidecar and embedded metadata carry `metadata_schema_version` (currently `1`).
+Evolution is additive-only: new optional fields may appear without a version bump; the version
+increments only if a field's meaning changes or a field is removed. Consumers should ignore
+unknown fields and check this version, not `mflux_version` (which identifies the producing
+package release, not the metadata structure).
+
 ### Image-To-Image Modes
 
 `image-to-image` is one public task with several internal modes. Use `mlxgen capabilities --model
@@ -623,9 +629,12 @@ dimensions, and the resolved output dimensions.
 
 For Wan video-to-video, saved metadata records the requested `steps` (so
 `--config-from-metadata` replays the same schedule) plus `effective_steps`, `video_strength`,
-`high_noise_stage_skipped`, and the source clip's dimensions, frame count, duration, and fps.
-The route consumes the first `--frames` source frames as-is; there is no temporal resampling, so a
-source recorded at a different fps than `--fps` changes playback speed rather than motion coverage.
+`high_noise_stage_skipped`, `source_video_resampled`, and the source clip's dimensions, frame
+count, duration, fps, and audio presence. The source is resampled onto the `--fps` timeline at
+decode (`--frames 17 --fps 16` always consumes the first 1.06 s of the source at real-time
+speed); matching fps passes frames through untouched. Source audio is copied onto the saved
+output best-effort and the outcome is recorded as `audio_copied` / `audio_copy_mode` /
+`audio_copy_reason` in the sidecar.
 
 ### Wan Video Parameters
 
@@ -648,7 +657,7 @@ At the default 24 fps, `--frames 121` produces about 5.04 seconds of video, `--f
 | `--flow-shift` | Flow-matching scheduler shift. Defaults to the selected Wan model config. TI2V-5B defaults to `5.0` for native 720p-class runs. A14B defaults to `3.0`. For new 480p-class TI2V-5B checks such as `832x480`, pass `--flow-shift 3`. Python callers use `flow_shift=...`. |
 | `--video`, `--video-path` | One source video for the public Wan video-to-video route (plain, or masked with `--video-mask-path`). Current public support is limited to `Wan2.2-T2V-A14B`; TI2V-5B and I2V-A14B still reject source-video input, and reference images and VACE-style learned controls are not part of this route. |
 | `--video-strength` | Denoising strength in `(0, 1]` for Wan video-to-video. Default: `0.8`. Higher values allow larger changes from the source clip. The run denoises `floor(steps x video_strength)` effective steps; saved metadata records the requested `steps` plus the resolved `effective_steps`, and below roughly `0.7` the A14B high-noise stage (and `--guidance`) is skipped with a printed warning. On masked runs, strength applies inside the mask. |
-| `--video-mask-path` | One static image mask for masked video-to-video. White marks the region the model may change; black regions are locked to the source video at every denoising step and match it up to VAE round-trip precision. Binarized at 50% on the latent grid. Requires `--video-path`; all-black masks are rejected before model load; strength applies inside the mask. Recorded in metadata and replayed by `--config-from-metadata`. |
+| `--video-mask-path` | One static image mask for masked video-to-video. White marks the region the model may change; black regions are locked to the source video at every denoising step and match it up to VAE round-trip precision. Binarized at 50% on the latent grid. Requires `--video-path`; all-black masks are rejected before model load; strength applies inside the mask. Recorded in metadata and replayed by `--config-from-metadata`. Mask resampling policy: surfaces ported from an upstream reference keep that reference's resampling (Qwen and Z-Image inpaint masks use NEAREST to match diffusers); in-house surfaces such as this one use BOX area averaging before the 50% threshold. Each mask surface warns once per generation when a mask has an alpha channel (alpha is ignored; luminance is used). |
 | `--solver` | Wan supports `unipc` and `euler` broadly, but public Wan video-to-video currently requires `unipc`. |
 | `--negative-prompt`, `--negative` | If omitted, Wan uses the model's official default negative prompt. Pass `--negative ""` to intentionally run without a negative prompt; this can be better for simple abstract scenes where the default negative prompt adds unwanted texture. |
 | `--seed` | Deterministic seed. Repeat with multiple values to create multiple videos. |

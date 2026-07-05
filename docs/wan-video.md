@@ -27,8 +27,115 @@ For new 480p-class TI2V-5B checks such as `832x480`, use `--flow-shift 3`.
 The public Wan video-to-video route stays intentionally narrow:
 
 Plain video-to-video means one source clip plus one text prompt. MLX-Gen uses the source clip as a
-motion and composition anchor, then regenerates the video under the prompt. It is useful for broad
-whole-scene or whole-subject changes while keeping the overall camera path and clip timing.
+composition anchor, then regenerates the video under the prompt. It is useful for broad
+whole-scene or whole-subject changes while keeping the overall camera path. Be precise about what
+survives: camera path, framing, and scene layout carry through at typical strengths, but subject
+gestures and timing are re-synthesized - the model generates plausible motion, not the source's
+exact motion. The measured motion-fidelity ladder below shows where that transition happens. For
+exact preservation of a region (including its motion), use `--video-mask-path`.
+
+### Motion Fidelity Versus Strength
+
+`--video-strength` is not linear: the flow shift warps it, so the warm start keeps far less
+source signal than the number suggests. Measured on a subject-swap edit (25 frames, 20 steps,
+CFG on, one seed; gesture-timing correlation of the subject region's motion against the source,
+where 1.0 = source motion and values below ~0.42 are statistically indistinguishable from
+zero). The Lightning row comes from the paired 17-frame control clip, not the 25-frame ladder:
+
+| `--video-strength` | Warm-start sigma (shift 3) | Source signal kept | Gesture timing r | What you get (in the measured runs) |
+| --- | --- | --- | --- | --- |
+| 0.5 | 0.75 | 25% | 0.86 | edit applied, source gestures preserved |
+| 0.6 | 0.82 | 18% | 0.90 | edit applied, source gestures preserved |
+| 0.7 | 0.88 | 12% | 0.73 | mostly preserved |
+| 0.8 (default) | 0.92 | 8% | 0.20 | gestures re-synthesized |
+| Lightning recipe (0.75 at shift 5) | 0.94 | 6% | -0.16 to 0.45 (prompt-dependent, paired control) | gestures re-synthesized |
+
+Practical guidance from the ladder (proof bundle with commands, per-run metrics, and contact
+sheets: [motion-ladder-2026-07-05](assets/validation/motion-ladder-2026-07-05/README.md)):
+
+- For "keep the motion, change the look" restyles, use `--video-strength 0.5-0.6` at 20 steps
+  with CFG on. Below 0.7 the A14B high-noise stage is skipped (`--guidance` is inert and a
+  warning prints; `--guidance-2` carries the CFG on the low-noise expert) - fine for restyling,
+  weaker for adding brand-new objects; use a mask for those.
+- The 4-step Lightning fast path cannot reach the motion-preserving band: at 4 steps, strength
+  0.5-0.65 leaves 2 effective steps and drops the high-noise LoRA entirely. Fast and
+  motion-preserving are currently mutually exclusive; pick per clip.
+- Prompt wording matters at high noise but cannot lock timing: in a paired control run at the
+  Lightning point, adding "gesturing naturally with his hands" to the prompt restored gesturing
+  where the same seed without it produced hands-on-podium - the class of motion returned, not
+  the source's exact timing.
+
+Motion-preserving restyle recipe (measured settings; adjust canvas, frames, and prompt to your
+clip):
+
+```sh
+mlxgen generate \
+  --model AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit \
+  --video-path source.mp4 \
+  --prompt "Describe the restyled subject and what must stay the same" \
+  --width 480 --height 832 --frames 25 --fps 16 \
+  --steps 20 --guidance 4 --guidance-2 3 --video-strength 0.6 \
+  --solver unipc --seed 8602 --low-ram --metadata \
+  --output restyled.mp4
+```
+
+Expect the boundary-skip warning: below strength 0.7 the high-noise stage never runs, so
+`--guidance 4` is inert and `--guidance-2 3` provides the classifier-free guidance.
+
+The measured rows are published for inspection (the exact ladder commands are in the bundle
+README; the strength-0.6 run below used the recipe above with the woman-swap prompt and its
+custom negative prompt, seed 8602):
+
+- strength 0.6 output (edit applied, gestures preserved, r 0.90): [ladder_s06.mp4](assets/validation/motion-ladder-2026-07-05/ladder_s06.mp4) + [metadata](assets/validation/motion-ladder-2026-07-05/ladder_s06.metadata.json)
+- strength 0.8 output (gestures re-synthesized, r 0.20): [ladder_s08.mp4](assets/validation/motion-ladder-2026-07-05/ladder_s08.mp4) + [metadata](assets/validation/motion-ladder-2026-07-05/ladder_s08.metadata.json)
+- paired prompt control at the Lightning point: [control_gesture_prompt.mp4](assets/validation/motion-ladder-2026-07-05/control_gesture_prompt.mp4) + [metadata](assets/validation/motion-ladder-2026-07-05/control_gesture_prompt.metadata.json)
+- edit-success face crops (source, 0.5, 0.6, 0.7, 0.8):
+
+![Face crops at frame 12 across the strength ladder](assets/validation/motion-ladder-2026-07-05/face_crops_frame12.png)
+
+Temporal and audio contract, in plain terms:
+
+- MLX-Gen resamples the source onto the `--fps` timeline at decode, so the output keeps real-time
+  speed regardless of the source frame rate: `--frames 17 --fps 16` always consumes the first
+  1.06 s of the source. Downsampling (for example 30 fps -> 16 fps) drops intermediate frames and
+  prints an informational note; upsampling above the source fps duplicates frames and prints a
+  warning, because duplicated conditioning frames reduce motion smoothness. When source and
+  requested fps already match, frames pass through untouched (bit-identical with earlier
+  releases). Metadata records `source_video_fps` and `source_video_resampled`.
+- When the source clip has an audio track, the matching audio segment is copied onto the saved
+  output (trimmed to the output duration). The copy is best-effort: if it cannot be completed
+  (for example, `ffmpeg` missing), the video is saved silent, a warning prints the reason plus a
+  manual remux command, and metadata records `audio_copied` / `audio_copy_reason`. This is
+  deliberately softer than the SeedVR2 restore contract, which fails on unpreserved audio: a
+  failed mux must not discard a finished generation.
+
+Included proof (a 30 fps source with an audio track, edited at `--fps 16`; the output keeps
+real-time speed and carries the audio - play the MP4 to hear it):
+
+- source (30 fps, 47 frames, 440 Hz tone): [conference_30fps_with_audio.mp4](assets/examples/conference-fps-audio/conference_30fps_with_audio.mp4)
+- output (16 fps, 17 frames, AAC audio, red-necktie edit): [red_tie_fps_audio.mp4](assets/examples/conference-fps-audio/red_tie_fps_audio.mp4)
+- run metadata (`source_video_resampled: true`, `audio_copied: true`): [red_tie_fps_audio.metadata.json](assets/examples/conference-fps-audio/red_tie_fps_audio.metadata.json)
+- contact sheets: [source](assets/examples/conference-fps-audio/source_contact_sheet.png) / [output](assets/examples/conference-fps-audio/output_contact_sheet.png)
+
+This exact command produced the output above (Lightning fast recipe; the source was derived
+from the seed-8601 clip in [lightning-v2v-2026-07-04](assets/validation/lightning-v2v-2026-07-04/README.md)
+via `ffmpeg -filter_complex "[0:v]fps=30[v]"` plus a `sine=frequency=440` audio track):
+
+```sh
+mlxgen generate \
+  --model AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit \
+  --video-path conference_30fps_with_audio.mp4 \
+  --prompt "A man in a dark blue suit stands at a conference speaking to the audience, wearing a bright red necktie, photorealistic, stage lighting" \
+  --negative-prompt "cartoon, illustration, low quality, blurry, distorted face" \
+  --width 480 --height 832 --frames 17 --fps 16 \
+  --steps 4 --video-strength 0.75 --guidance 1 --guidance-2 1 --flow-shift 5 --solver unipc \
+  --lora-paths "lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors" "lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors" \
+  --lora-target-roles high_noise_transformer low_noise_transformer \
+  --seed 4242 --low-ram --metadata \
+  --output red_tie_fps_audio.mp4
+```
+
+Route rules:
 
 - use `Wan-AI/Wan2.2-T2V-A14B-Diffusers` or the matching prepared A14B T2V package;
 - pass exactly one `--video` or `--video-path`;
@@ -126,8 +233,8 @@ mlxgen generate \
   --guidance-2 1 \
   --flow-shift 5 \
   --solver unipc \
-  --lora-paths <lightning>/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors \
-               <lightning>/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors \
+  --lora-paths "lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors" \
+               "lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors" \
   --lora-target-roles high_noise_transformer low_noise_transformer \
   --low-ram --metadata \
   --output edited_fast.mp4
@@ -142,12 +249,17 @@ Contract and trade-offs:
   recipe;
 - without a mask, Lightning re-synthesizes the scene more than the 20-step CFG-on baseline
   (measured background drift 26-32 vs 15-17);
+- Lightning cannot reach the motion-preserving band: strength 0.5-0.65 at 4 steps leaves 2
+  effective steps and drops the high-noise LoRA, so fast and motion-preserving are mutually
+  exclusive - see [Motion Fidelity Versus Strength](#motion-fidelity-versus-strength);
 - combine with `--video-mask-path` to remove that trade-off where it matters: the masked +
   Lightning combination measured preserved-region drift `1.9` - at the H.264 re-encode floor -
   while still applying the edit inside the mask.
 
-Proof bundle with all runs, metrics, and exact commands:
-`validation_outputs/lightning_v2v_matrix_2026_07_04/README.md`.
+Included proof: the matrix summary, metrics, and side-by-side comparison live in
+[docs/assets/validation/lightning-v2v-2026-07-04/](assets/validation/lightning-v2v-2026-07-04/README.md),
+and `mlxgen capabilities` reports this route's LoRA support as `validated` through the
+`lora_wan_a14b_q8_lightning_v2v_2026_07_04` profile.
 
 ## A14B Size Families
 

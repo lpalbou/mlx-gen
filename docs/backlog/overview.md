@@ -70,6 +70,27 @@ promote richer VACE conditioning into the public runtime yet.
    (drift 1.7 vs 14.9 unmasked on the conference proof), with UniPC scheduler-state compositing,
    fail-closed contracts, replayable metadata, and an in-repo proof bundle under
    `docs/assets/examples/conference-masked-v2v/`.
+5. Finished [Wan V2V fps resampling and audio copy-through](completed/0077_wan_v2v_fps_resampling_and_audio_copy_through.md)
+   so video-to-video keeps real-time speed on any source fps (decode-time resampling with a
+   drift-based skip tolerance that leaves matching-fps runs bit-identical) and copies source
+   audio onto the output best-effort with the outcome recorded in metadata; the proof's first
+   run exposed and fixed a `-shortest` mux bug that dropped trailing frames of short clips,
+   pinned by a regression test, with the model-backed proof under
+   `validation_outputs/fps_audio_proof_2026_07_05/`.
+6. Finished [router descriptors, Wan decomposition phase 1, MaskUtil, metadata schema version](completed/0078_router_descriptors_wan_decomposition_mask_util_schema_version.md)
+   so the `mlxgen generate` option surface is single-sourced with completeness and round-trip
+   tests (fixing the silently dropped `--debug`, late metadata `video_strength` validation, an
+   `mflux-completions` crash present at HEAD, and the empty z-image completion), the Wan
+   runtime's validation head and twin metadata blocks are deduplicated behind
+   `WanVideoRequest`/`_to_video_shared_kwargs`, user-mask loading is centralized in `MaskUtil`
+   with a reference-faithful resampling policy, and image/video metadata carries
+   `metadata_schema_version: 1`.
+7. Finished [Wan V2V motion-fidelity ladder and control run](completed/0079_wan_v2v_motion_fidelity_ladder.md)
+   so the strength-vs-gesture-preservation trade-off is measured (gesture-timing r 0.86/0.90 at
+   strength 0.5/0.6, 0.73 at 0.7, 0.20 at the 0.8 default; edit landed at every strength) and
+   documented with a copy-pasteable motion-preserving recipe in `docs/wan-video.md`, a paired
+   Lightning-point control showing prompt language recovers the class of motion but not its
+   timing, and a committed proof mirror under `docs/assets/validation/motion-ladder-2026-07-05/`.
 
 ## Completed audit hardening band
 

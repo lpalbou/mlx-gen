@@ -945,9 +945,13 @@ def test_wan_composite_masked_video_state_locks_scheduler_state():
     # Returned latents locked at the current level: sigma=0.4 -> 0.4*(-1) + 0.6*3 = 1.4
     np.testing.assert_allclose(np.array(result), np.full((1, 2, 1, 2, 2), 1.4, dtype=np.float32), rtol=1e-6)
     # Corrector anchor locked one level back: sigma=0.7 -> 0.7*(-1) + 0.3*3 = 0.2
-    np.testing.assert_allclose(np.array(scheduler.last_sample), np.full((1, 2, 1, 2, 2), 0.2, dtype=np.float32), rtol=1e-6, atol=1e-6)
+    np.testing.assert_allclose(
+        np.array(scheduler.last_sample), np.full((1, 2, 1, 2, 2), 0.2, dtype=np.float32), rtol=1e-6, atol=1e-6
+    )
     # x0 history locked to the clean source.
-    np.testing.assert_allclose(np.array(scheduler.model_outputs[-1]), np.full((1, 2, 1, 2, 2), 3.0, dtype=np.float32), rtol=1e-6)
+    np.testing.assert_allclose(
+        np.array(scheduler.model_outputs[-1]), np.full((1, 2, 1, 2, 2), 3.0, dtype=np.float32), rtol=1e-6
+    )
 
 
 def test_wan_video_mask_without_video_path_raises(monkeypatch, tmp_path):
@@ -1003,22 +1007,54 @@ def test_wan_cache_path_key_tracks_file_identity(tmp_path):
     assert Wan2_2_TI2V._cache_path_key(tmp_path / "missing.mp4") == (str(tmp_path / "missing.mp4"), 0, 0)
 
 
-def test_wan_v2v_warns_on_source_aspect_stretch(capsys):
-    clip = SimpleNamespace(
-        source_width=320,
-        source_height=240,
-        source_frame_count=40,
-        fps=30.0,
-    )
+def test_wan_v2v_warns_on_source_aspect_stretch_resampling_and_truncation(capsys):
+    source_metadata = {
+        "source_width": 320,
+        "source_height": 240,
+        "source_video_frame_count": 90,
+        "source_video_duration_seconds": 3.0,
+        "source_video_fps": 30.0,
+        "source_video_audio_present": True,
+        "source_video_resampled": True,
+    }
 
-    Wan2_2_TI2V._warn_video_to_video_source_handling(clip=clip, num_frames=17, height=256, width=448)
+    Wan2_2_TI2V._warn_video_to_video_source_handling(
+        source_metadata=source_metadata, num_frames=17, height=256, width=448, fps=16
+    )
 
     output = capsys.readouterr().out
     assert "stretches source frames" in output
-    assert "first 17 of 40 source frames" in output
+    assert "resamples the source from 30 fps to 16 fps" in output
+    assert "keeps real-time speed" in output
+    assert "uses the first 1.06s of the 3.00s source" in output
 
-    matching_clip = SimpleNamespace(source_width=448, source_height=256, source_frame_count=17, fps=10.0)
-    Wan2_2_TI2V._warn_video_to_video_source_handling(clip=matching_clip, num_frames=17, height=256, width=448)
+    upsampled_source = {
+        "source_width": 448,
+        "source_height": 256,
+        "source_video_frame_count": 11,
+        "source_video_duration_seconds": 1.1,
+        "source_video_fps": 10.0,
+        "source_video_audio_present": False,
+        "source_video_resampled": True,
+    }
+    Wan2_2_TI2V._warn_video_to_video_source_handling(
+        source_metadata=upsampled_source, num_frames=17, height=256, width=448, fps=24
+    )
+    upsample_output = capsys.readouterr().out
+    assert "up to 24 fps by duplicating frames" in upsample_output
+
+    matching = {
+        "source_width": 448,
+        "source_height": 256,
+        "source_video_frame_count": 17,
+        "source_video_duration_seconds": 1.7,
+        "source_video_fps": 10.0,
+        "source_video_audio_present": False,
+        "source_video_resampled": False,
+    }
+    Wan2_2_TI2V._warn_video_to_video_source_handling(
+        source_metadata=matching, num_frames=17, height=256, width=448, fps=10
+    )
     assert capsys.readouterr().out == ""
 
 
@@ -1559,17 +1595,22 @@ def test_wan_video_to_video_source_conditioning_uses_float32(monkeypatch):
         source_frame_count=1,
         source_duration_seconds=0.1,
         fps=10.0,
+        audio_present=False,
+        sampled_fps=None,
     )
     monkeypatch.setattr(
         "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.read_video_clip",
-        lambda video_path, max_frames: clip,
+        lambda video_path, max_frames, target_fps=None: clip,
     )
 
-    latents, metadata = model._load_video_to_video_latents(video_path="input.mp4", height=64, width=64, num_frames=1)
+    latents, metadata = model._load_video_to_video_latents(
+        video_path="input.mp4", height=64, width=64, num_frames=1, fps=10
+    )
 
     assert observed["dtype"] == mx.float32
     assert latents.dtype == mx.float32
     assert metadata["source_width"] == 64
+    assert metadata["source_video_resampled"] is False
 
 
 def test_wan_explicit_empty_negative_prompt_disables_default():

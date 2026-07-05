@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import mlx.core as mx
-import numpy as np
 from mlx import nn
 from PIL import Image
 
@@ -23,6 +22,7 @@ from mflux.utils.apple_silicon import AppleSiliconUtil
 from mflux.utils.dimension_resolver import CANVAS_POLICY_SOURCE_ASPECT
 from mflux.utils.exceptions import StopImageGenerationException
 from mflux.utils.image_util import ImageUtil
+from mflux.utils.mask_util import MaskUtil
 from mflux.utils.runtime_timer import RuntimeTimer
 from mflux.utils.scale_factor import ScaleFactor
 
@@ -69,7 +69,9 @@ class ZImage(nn.Module):
         if mask_path is not None and image_path is None:
             raise ValueError("mask_path requires image_path for native Z-Image inpaint.")
         if mask_path is not None and image_strength is not None:
-            raise ValueError("image_strength cannot be combined with mask_path; native Z-Image inpaint is a separate route.")
+            raise ValueError(
+                "image_strength cannot be combined with mask_path; native Z-Image inpaint is a separate route."
+            )
         supports_guidance = bool(self.model_config.supports_guidance)
         if not supports_guidance:
             guidance = 0.0
@@ -293,7 +295,9 @@ class ZImage(nn.Module):
             tiling_config=self.tiling_config,
         )
         image_latents = mx.stop_gradient(ZImageLatentCreator.pack_latents(encoded, height, width))
-        mask_latents = mx.stop_gradient(self._create_inpaint_mask_latents(mask_path=mask_path, height=height, width=width))
+        mask_latents = mx.stop_gradient(
+            self._create_inpaint_mask_latents(mask_path=mask_path, height=height, width=width)
+        )
         detached_noise = mx.stop_gradient(initial_noise)
         mx.eval(image_latents, mask_latents, detached_noise)
         self.inpaint_condition_cache[cache_key] = {
@@ -324,11 +328,14 @@ class ZImage(nn.Module):
     ) -> mx.array:
         latent_width = width // 8
         latent_height = height // 8
-        with Image.open(mask_path) as image:
-            mask_image = image.convert("L").resize((latent_width, latent_height), Image.Resampling.NEAREST)
-        mask_values = np.array(mask_image, dtype=np.float32) / 255.0
-        mask = mx.array(mask_values)[None, None, :, :]
-        return mx.where(mask < 0.5, mx.zeros_like(mask), mx.ones_like(mask))
+        mask_values = MaskUtil.load_binary_mask(
+            mask_path,
+            target_width=latent_width,
+            target_height=latent_height,
+            resampling=Image.Resampling.NEAREST,
+            alpha_warning_context="Z-Image inpaint mask",
+        )
+        return mx.array(mask_values)[None, None, :, :]
 
     @staticmethod
     def _blend_inpaint_latents(

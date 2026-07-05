@@ -21,6 +21,7 @@ from mflux.lora_validation_registry import (
     QWEN_Q8_LATENT_REALISM_PROFILE_ID,
     QWEN_Q8_REALISM_PROFILE_ID,
     WAN_A14B_Q8_FOLLOWCAM_T2V_PROFILE_ID,
+    WAN_A14B_Q8_LIGHTNING_V2V_PROFILE_ID,
     WAN_A14B_Q8_LIGHTX2V_4STEP_I2V_PROFILE_ID,
     WAN_A14B_Q8_LIGHTX2V_4STEP_T2V_PROFILE_ID,
     WAN_A14B_Q8_ORBIT_I2V_PROFILE_ID,
@@ -60,6 +61,7 @@ FLUX2_KLEIN_BASE_STARSHIP_SOURCE = REFRAME_OUTPAINT_SOURCE
 LORA_VALIDATION_DIR = "docs/assets/validation/lora-2026-06-11"
 WAN_LORA_VALIDATION_DIR = "docs/assets/validation/wan-lora-2026-06-11"
 LIGHTX2V_WAN_4STEP_VALIDATION_DIR = "docs/assets/validation/lightx2v-wan-4step-2026-06-12"
+LIGHTNING_V2V_VALIDATION_DIR = "docs/assets/validation/lightning-v2v-2026-07-04"
 QWEN_INPAINT_VALIDATION_DIR = "docs/assets/validation/qwen-inpaint-2026-06-15"
 QWEN_CONTROL_VALIDATION_DIR = "docs/assets/validation/qwen-control-2026-06-15"
 QWEN_CONTROL_INPAINT_VALIDATION_DIR = "docs/assets/validation/qwen-control-inpaint-2026-06-21"
@@ -472,7 +474,9 @@ def _lora_profiles() -> tuple[ValidationProfile, ...]:
                 public_task="image-to-image",
                 mode="latent-img2img",
                 artifact_path=f"{LORA_ROUTE_EXPANSION_VALIDATION_DIR}/qwen_q8_latent_studio_cfg_auto_contact_sheet.png",
-                source_images=(f"{LORA_ROUTE_EXPANSION_VALIDATION_DIR}/qwen_q8_latent_source_portrait_illustration.png",),
+                source_images=(
+                    f"{LORA_ROUTE_EXPANSION_VALIDATION_DIR}/qwen_q8_latent_source_portrait_illustration.png",
+                ),
                 prompt=(
                     "Studio Realism, photorealistic portrait of the same young woman of African descent standing "
                     "in the same sunlit park with arms crossed, the same loose shoulder-length curls, the same "
@@ -824,6 +828,33 @@ def _lora_profiles() -> tuple[ValidationProfile, ...]:
             title="Wan2.2 T2V-A14B q8 LightX2V 4-Step Validation",
             canonical_source=f"{LIGHTX2V_WAN_4STEP_VALIDATION_DIR}/a14b_t2v_lightx2v_4step_ab_contact_sheet.jpg",
             description="Exact 4-step LightX2V Lightning text-to-video proof for Wan2.2 T2V-A14B q8.",
+        ),
+        _single_record_profile(
+            _lora_record(
+                profile_id=WAN_A14B_Q8_LIGHTNING_V2V_PROFILE_ID,
+                model="AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit",
+                family="Wan2.2 T2V-A14B",
+                package_variant="q8 prepared",
+                public_task="video-to-video",
+                mode="latent-video",
+                artifact_path=f"{LIGHTNING_V2V_VALIDATION_DIR}/lightning_v2v_matrix_comparison.png",
+                source_images=(),
+                prompt=(
+                    "A realistic wide shot of a woman giving a talk on a conference stage. Keep the exact same "
+                    "stage, wooden podium with microphones, large bright presentation screen with the same logo, "
+                    "conference banner, warm stage lighting, camera framing, and natural speaking gestures."
+                ),
+                reviewer_notes=(
+                    "PASS on the bounded Lightning video-to-video matrix: Seko-V1.1 across two seeds and two "
+                    "clips (conference 480x832x25f, ship 448x256x17f), Seko-V2.0 one seed, plus the masked "
+                    "combination whose preserved regions measured 1.89 mean delta at the 1.92 H.264 re-encode "
+                    "floor. On-grid recipe: steps 4, video_strength 0.75, guidance 1/1, flow_shift 5, unipc."
+                ),
+                evidence_date="2026-07-04",
+            ),
+            title="Wan2.2 T2V-A14B q8 Lightning Video-to-Video Validation",
+            canonical_source=f"{LIGHTNING_V2V_VALIDATION_DIR}/lightning_v2v_matrix_comparison.png",
+            description="Bounded Lightning 4-step video-to-video matrix proof for Wan2.2 T2V-A14B q8.",
         ),
         _single_record_profile(
             _lora_record(

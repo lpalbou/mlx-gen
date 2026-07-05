@@ -8,6 +8,7 @@ import PIL.Image
 
 from mflux.models.common.config import ModelConfig
 from mflux.models.flux.variants.concept_attention.attention_data import ConceptHeatmap
+from mflux.utils.metadata_schema import MetadataSchema
 from mflux.utils.runtime_memory import RuntimeMemory
 from mflux.utils.version_util import VersionUtil
 
@@ -131,7 +132,11 @@ class GeneratedImage:
         if self._should_save_fibo_prompt_sidecar():
             self._save_prompt_file(final_path, overwrite=True)
 
-        metadata = self._get_metadata(include_runtime_memory=export_json_metadata) if (export_json_metadata or embed_metadata) else None
+        metadata = (
+            self._get_metadata(include_runtime_memory=export_json_metadata)
+            if (export_json_metadata or embed_metadata)
+            else None
+        )
         return ImageUtil.save_image(
             self.image,
             final_path,
@@ -156,7 +161,11 @@ class GeneratedImage:
         if self._should_save_fibo_prompt_sidecar():
             self._save_prompt_file(final_path, overwrite=True)
 
-        metadata = self._get_metadata(include_runtime_memory=export_json_metadata) if (export_json_metadata or embed_metadata) else None
+        metadata = (
+            self._get_metadata(include_runtime_memory=export_json_metadata)
+            if (export_json_metadata or embed_metadata)
+            else None
+        )
         return ImageUtil.save_image(
             pixel_image,
             final_path,
@@ -259,6 +268,7 @@ class GeneratedImage:
 
     def _get_metadata(self, *, include_runtime_memory: bool = False) -> dict:
         metadata = {
+            "metadata_schema_version": MetadataSchema.VERSION,
             "mflux_version": VersionUtil.get_mflux_version(),
             "model": self.model_config.model_name,
             "base_model": str(self.model_config.base_model),
@@ -289,7 +299,9 @@ class GeneratedImage:
             "redux_image_strengths": self._format_redux_strengths(),
             "prompt": self.prompt,
             "negative_prompt": self.negative_prompt if self.negative_prompt else None,
-            "runtime_memory": RuntimeMemory.snapshot("image-metadata").to_metadata() if include_runtime_memory else None,
+            "runtime_memory": RuntimeMemory.snapshot("image-metadata").to_metadata()
+            if include_runtime_memory
+            else None,
         }
         if self.extra_metadata:
             metadata.update(self.extra_metadata)

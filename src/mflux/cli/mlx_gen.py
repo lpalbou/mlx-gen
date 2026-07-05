@@ -8,7 +8,8 @@ from pathlib import Path
 
 from huggingface_hub import snapshot_download
 
-from mflux.cli.parser.parsers import CommandLineParser, image_strength_value
+from mflux.cli.parser.parsers import CommandLineParser
+from mflux.cli.router_options import ForwardPolicy, add_router_options, reemit_options
 from mflux.cli.runtime_events import cli_print, emit_cli_failure_event_for_argv
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.download_policy import allow_downloads, is_huggingface_repo_id
@@ -83,32 +84,38 @@ def _resolve_invocation(argv: list[str]) -> RouterInvocation:
     reframe_argv = _reframe_forwarded_argv(args=args, images=images, forwarded=forwarded)
     outpaint_argv = _outpaint_forwarded_argv(args=args, images=images, forwarded=forwarded)
 
-    forwarded_model = route.model_override or args.model
     normalized_argv = [route.target_name]
-    if forwarded_model is not None:
-        normalized_argv.extend(["--model", forwarded_model])
-    if route.control_model is not None:
-        if args.requested_controlnet_model is not None and args.requested_controlnet_model != route.control_model:
-            _parser().error(
-                "--controlnet-model conflicts with the exact ControlNet route selected by mlxgen generate. "
-                "Use the documented route, or call the backend command directly if you need a different "
-                "ControlNet package."
-            )
-        if args.requested_controlnet_model is None:
-            normalized_argv.extend(["--controlnet-model", route.control_model])
-    if args.base_model is not None and _route_accepts_base_model(route):
-        normalized_argv.extend(["--base-model", args.base_model])
-    if route.image_argument is not None and images:
-        normalized_argv.append(route.image_argument)
-    normalized_argv.extend(images)
-    if route.video_argument is not None and videos:
-        normalized_argv.append(route.video_argument)
-    normalized_argv.extend(videos)
-    # The router parser consumes --video-strength/--video-mask-path for validation, so they must be re-emitted explicitly.
-    if args.video_strength is not None:
-        normalized_argv.extend(["--video-strength", str(args.video_strength)])
-    if args.video_mask_path is not None:
-        normalized_argv.extend(["--video-mask-path", str(args.video_mask_path)])
+    # Consumed options are re-emitted from the ROUTER_OPTIONS descriptor table so a consumed flag
+    # can never be silently dropped again; the round-trip test locks each descriptor's fate.
+    for option in reemit_options():
+        value = getattr(args, option.dest)
+        if option.use_route_model_override:
+            value = route.model_override or value
+        emit_allowed = not option.route_gated or _route_accepts_base_model(route)
+        if option.policy is ForwardPolicy.REEMIT_FLAG:
+            if value and emit_allowed:
+                normalized_argv.append(option.emit_flag)
+        elif value is not None and emit_allowed:
+            normalized_argv.extend([option.emit_flag, str(value)])
+        # --controlnet-model is INJECTED (never consumed): it rides between --model and
+        # --base-model to preserve the emission order pinned by the exact-argv tests.
+        if option.dest == "model" and route.control_model is not None:
+            if args.requested_controlnet_model is not None and args.requested_controlnet_model != route.control_model:
+                _parser().error(
+                    "--controlnet-model conflicts with the exact ControlNet route selected by mlxgen generate. "
+                    "Use the documented route, or call the backend command directly if you need a different "
+                    "ControlNet package."
+                )
+            if args.requested_controlnet_model is None:
+                normalized_argv.extend(["--controlnet-model", route.control_model])
+        # Image/video path emission is route-dependent (TRANSFORMED); it rides after --base-model.
+        if option.dest == "base_model":
+            if route.image_argument is not None and images:
+                normalized_argv.append(route.image_argument)
+            normalized_argv.extend(images)
+            if route.video_argument is not None and videos:
+                normalized_argv.append(route.video_argument)
+            normalized_argv.extend(videos)
     normalized_argv.extend(forwarded)
     normalized_argv.extend(reframe_argv)
     normalized_argv.extend(outpaint_argv)
@@ -158,6 +165,10 @@ def _parse_router_args(argv: list[str]) -> tuple[argparse.Namespace, list[str]]:
         metadata,
         "video_strength",
     )
+    if args.video_strength is None and metadata.get("video_strength") is not None:
+        # Backfill + re-emit so the backend parser validates metadata-sourced strength at parse
+        # time (before the model load) exactly like an argv-sourced value.
+        args.video_strength = metadata.get("video_strength")
     if args.video_mask_path is None:
         args.video_mask_path = metadata.get("video_mask_path")
     args.has_video_mask = args.video_mask_path is not None
@@ -417,134 +428,7 @@ def _parser() -> argparse.ArgumentParser:
             "source-image editing."
         ),
     )
-    parser.add_argument("--model", "-m", type=str, help="Model alias, Hugging Face repo, or local model path.")
-    parser.add_argument(
-        "--base-model",
-        type=str,
-        default=None,
-        help="Base model hint for custom repositories or local paths.",
-    )
-    parser.add_argument(
-        "--family",
-        choices=["qwen", "flux2", "fibo", "z-image", "ernie-image", "wan", "bonsai"],
-        default=None,
-        help="Override model-family detection for local paths or custom repo names.",
-    )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable debug logging for internal generation details such as LoRA fusion targets.",
-    )
-    parser.add_argument(
-        "--task",
-        choices=[
-            "auto",
-            "text-to-image",
-            "txt2img",
-            "image-to-image",
-            "img2img",
-            "edit",
-            "text-to-video",
-            "txt2vid",
-            "t2v",
-            "image-to-video",
-            "img2vid",
-            "i2v",
-            "video-to-video",
-            "vid2vid",
-            "v2v",
-        ],
-        default="auto",
-        help="Override automatic routing. Default: auto.",
-    )
-    parser.add_argument(
-        "--i2i-mode",
-        choices=["auto", "latent", "img2img", "edit", "edit-reference", "multi", "multi-reference"],
-        default="auto",
-        help=(
-            "Internal image-to-image mode. Default: auto. Use latent/img2img for image-strength "
-            "variation, edit for instruction/reference edits, or multi-reference for two or more input images."
-        ),
-    )
-    parser.add_argument(
-        "--image",
-        "--input-image",
-        "-i",
-        dest="images",
-        action="append",
-        default=[],
-        help=(
-            "Input image. Use one image for image-to-image or Wan first-frame image-to-video. "
-            "Repeat only for multi-reference image-to-image."
-        ),
-    )
-    parser.add_argument(
-        "--images",
-        "--input-images",
-        "--image-paths",
-        dest="image_groups",
-        nargs="+",
-        action="append",
-        default=[],
-        help="One or more input images for image-to-image reference/edit modes.",
-    )
-    parser.add_argument(
-        "--image-path",
-        dest="image_path",
-        default=None,
-        help="Compatibility alias for a single input image, including Wan first-frame image-to-video.",
-    )
-    parser.add_argument(
-        "--video",
-        "--input-video",
-        dest="videos",
-        action="append",
-        default=[],
-        help="Input source video for plain prompt-guided video-to-video routes.",
-    )
-    parser.add_argument(
-        "--video-path",
-        dest="video_path",
-        default=None,
-        help="Compatibility alias for a single source video on plain video-to-video routes.",
-    )
-    parser.add_argument(
-        "--video-strength",
-        type=image_strength_value,
-        default=None,
-        help=(
-            "Denoising strength for plain video-to-video routes. Higher values allow larger appearance changes."
-        ),
-    )
-    parser.add_argument(
-        "--video-mask-path",
-        default=None,
-        help=(
-            "Static image mask for masked video-to-video. White marks the region the model may change; "
-            "black regions are preserved exactly from the source video."
-        ),
-    )
-    parser.add_argument(
-        "--reframe-padding",
-        default=None,
-        help=(
-            "Generative reframe request: CSS-style top,right,bottom,left padding such as "
-            "'0,25%%,0,25%%'. Supported edit models redraw into the larger canvas; this is not "
-            "masked outpainting and does not preserve source pixels exactly."
-        ),
-    )
-    parser.add_argument(
-        "--outpaint-padding",
-        "--image-outpaint-padding",
-        dest="outpaint_padding",
-        default=None,
-        help=(
-            "Canvas outpaint request: CSS-style top,right,bottom,left padding such as "
-            "'0,25%%,0,25%%'. Qwen Image Edit variants use generative canvas expansion with "
-            "adaptive source restoration. FLUX.2 strict outpaint requires a base Klein model "
-            "and uses source-locked denoising instead of generative reframe."
-        ),
-    )
+    add_router_options(parser)
     return parser
 
 

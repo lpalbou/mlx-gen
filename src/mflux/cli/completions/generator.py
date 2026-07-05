@@ -26,6 +26,10 @@ class CompletionGenerator:
             "mflux-generate-fibo-edit",
             "mflux-generate-z-image",
             "mflux-generate-z-image-turbo",
+            "mflux-generate-ernie-image",
+            "mflux-generate-bonsai",
+            "mflux-generate-wan",
+            "mlxgen-generate-wan",
             "mflux-refine-fibo",
             "mflux-inspire-fibo",
             "mflux-concept",
@@ -217,6 +221,15 @@ class CompletionGenerator:
             parser.add_argument("--matte-output", type=str, default=None, help="fibo-edit-rmbg only: also save the raw grayscale matte. Supports {seed} like --output.")  # fmt: skip
             parser.add_output_arguments()
 
+        elif command == "mflux-generate-z-image":
+            # Mirrors z_image_generate.main() parser construction.
+            parser.add_general_arguments()
+            parser.add_model_arguments(require_model_arg=False)
+            parser.add_lora_arguments()
+            parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
+            parser.add_image_to_image_arguments()
+            parser.add_output_arguments()
+
         elif command == "mflux-generate-z-image-turbo":
             parser.add_general_arguments()
             parser.add_model_arguments(require_model_arg=False)
@@ -224,6 +237,22 @@ class CompletionGenerator:
             parser.add_image_generator_arguments(supports_metadata_config=True)
             parser.add_image_to_image_arguments()
             parser.add_output_arguments()
+
+        elif command == "mflux-generate-ernie-image":
+            # Real entrypoint parser (importable, no side effects beyond module import).
+            from mflux.models.ernie_image.cli.ernie_image_generate import _parser as ernie_parser
+
+            return ernie_parser()
+
+        elif command == "mflux-generate-bonsai":
+            from mflux.models.bonsai_image.cli.bonsai_image_generate import _parser as bonsai_parser
+
+            return bonsai_parser()
+
+        elif command in {"mflux-generate-wan", "mlxgen-generate-wan"}:
+            from mflux.models.wan.cli.wan_generate import _parser as wan_parser
+
+            return wan_parser()
 
         elif command == "mflux-refine-fibo":
             parser.add_argument("--prompt-file", type=Path, required=True, help="Path to JSON prompt file to refine")
@@ -273,7 +302,6 @@ class CompletionGenerator:
         elif command == "mflux-upscale-controlnet":
             parser.add_general_arguments()
             parser.add_model_arguments(require_model_arg=False)
-            parser.add_lora_arguments()
             parser.add_lora_arguments()
             parser.add_image_generator_arguments(supports_metadata_config=False, supports_dimension_scale_factor=True)
             parser.add_controlnet_arguments(require_image=True)

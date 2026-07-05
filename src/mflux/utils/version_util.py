@@ -8,7 +8,7 @@ import toml
 
 
 class VersionUtil:
-    PACKAGED_RELEASE_DATE = "2026-06-30"
+    PACKAGED_RELEASE_DATE = "2026-07-06"
     _version: str | None = None
     _release_date: str | None = None
 
@@ -23,7 +23,9 @@ class VersionUtil:
         if VersionUtil._release_date is not None:
             return VersionUtil._release_date
         version = VersionUtil.get_mflux_version()
-        VersionUtil._release_date = VersionUtil._scan_changelog_release_date(version) or VersionUtil.PACKAGED_RELEASE_DATE
+        VersionUtil._release_date = (
+            VersionUtil._scan_changelog_release_date(version) or VersionUtil.PACKAGED_RELEASE_DATE
+        )
         return VersionUtil._release_date
 
     @staticmethod

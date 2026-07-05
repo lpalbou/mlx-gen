@@ -260,9 +260,19 @@ through the public `unipc` route. Bounded validation on 2026-07-04 covered
 480x832/25f and 448x256/17f, plus the `--video-mask-path` combination) and
 `...-Seko-V2.0` (one seed; slightly closer source tracking). Recipe: `--steps 4
 --video-strength 0.75 --guidance 1 --guidance-2 1 --flow-shift 5 --solver unipc`. Negative
-prompts are inert at guidance 1, and unmasked runs re-synthesize the scene more than the
-20-step CFG-on baseline; see [Wan Video](wan-video.md#fast-video-to-video-with-lightning) and
-the proof bundle `validation_outputs/lightning_v2v_matrix_2026_07_04/README.md`.
+prompts are inert at guidance 1, unmasked runs re-synthesize the scene more than the
+20-step CFG-on baseline, and the 4-step lattice cannot reach the motion-preserving strength
+band (fast and motion-preserving are mutually exclusive; see
+[Motion Fidelity Versus Strength](wan-video.md#motion-fidelity-versus-strength)); see also
+[Wan Video](wan-video.md#fast-video-to-video-with-lightning) and
+the included proof bundle [docs/assets/validation/lightning-v2v-2026-07-04/](assets/validation/lightning-v2v-2026-07-04/README.md).
+The stable copy-paste adapter form works directly from the Hugging Face cache:
+
+```sh
+--lora-paths "lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors" \
+             "lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors" \
+--lora-target-roles high_noise_transformer low_noise_transformer
+```
 
 For the current A14B fast path:
 

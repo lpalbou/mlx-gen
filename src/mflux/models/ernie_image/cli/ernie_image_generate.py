@@ -10,7 +10,7 @@ from mflux.utils.exceptions import PromptFileReadError, StopImageGenerationExcep
 from mflux.utils.prompt_util import PromptUtil
 
 
-def main():
+def _parser() -> CommandLineParser:
     parser = CommandLineParser(description="Generate an image using ERNIE-Image-Turbo.")
     parser.add_general_arguments()
     parser.add_model_arguments(require_model_arg=False)
@@ -47,6 +47,11 @@ def main():
         help="Maximum Prompt Enhancer tokens. Default is the PE tokenizer model_max_length.",
     )
     parser.add_output_arguments()
+    return parser
+
+
+def main():
+    parser = _parser()
     args = parser.parse_args()
 
     if args.guidance is None:

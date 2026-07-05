@@ -1,6 +1,7 @@
 import json
 import shutil
 import subprocess
+from pathlib import Path
 
 import mlx.core as mx
 import numpy as np
@@ -42,6 +43,7 @@ def test_generated_video_saves_mp4_and_metadata(tmp_path):
 
     assert output_path.exists()
     metadata = json.loads(output_path.with_suffix(".metadata.json").read_text())
+    assert metadata["metadata_schema_version"] == 1
     assert metadata["model"] == "Wan-AI/Wan2.2-TI2V-5B-Diffusers"
     assert metadata["task"] == "text-to-video"
     assert metadata["frames"] == 3
@@ -293,6 +295,7 @@ def test_video_util_lazy_decoded_latents_save_uses_batches(tmp_path, monkeypatch
         export_json_metadata=False,
         overwrite=True,
         validate_health=True,
+        source_audio_copy=None,
     ):
         batches = list(frame_batches)
         observed["batch_lengths"] = [len(batch) for batch in batches]
@@ -341,6 +344,219 @@ def test_video_util_reads_bounded_clip(tmp_path):
     assert clip.clip_frame_count == 2
     assert len(clip.frames) == 2
     assert abs(clip.fps - 4.0) < 0.1
+
+
+def _rainbow_clip_path(tmp_path, *, frame_count: int = 8, fps: int = 8):
+    # Distinct hues let assertions identify WHICH source frames were sampled after lossy encode.
+    palette = [
+        (255, 0, 0),
+        (0, 255, 0),
+        (0, 0, 255),
+        (255, 255, 0),
+        (255, 0, 255),
+        (0, 255, 255),
+        (255, 128, 0),
+        (128, 0, 255),
+    ]
+    output_path = tmp_path / "rainbow.mp4"
+    frames = [_solid_frame(palette[index % len(palette)]) for index in range(frame_count)]
+    VideoUtil.save_video(frames=frames, path=output_path, fps=fps)
+    return output_path, palette
+
+
+def _center_color(frame):
+    width, height = frame.size
+    return frame.getpixel((width // 2, height // 2))
+
+
+def _assert_color_close(actual, expected, tolerance=60):
+    assert all(abs(a - e) <= tolerance for a, e in zip(actual, expected)), (actual, expected)
+
+
+def test_video_util_resamples_clip_to_target_fps(tmp_path):
+    clip_path, palette = _rainbow_clip_path(tmp_path, frame_count=8, fps=8)
+
+    clip = VideoUtil.read_video_clip(clip_path, max_frames=4, target_fps=4.0)
+
+    assert clip.sampled_fps == 4.0
+    assert abs(clip.fps - 8.0) < 0.1
+    assert clip.clip_frame_count == 4
+    # 4 fps sampling of an 8 fps source picks every second source frame.
+    for output_index, source_index in enumerate([0, 2, 4, 6]):
+        _assert_color_close(_center_color(clip.frames[output_index]), palette[source_index])
+
+
+def test_video_util_resample_skips_matching_fps(tmp_path):
+    clip_path, palette = _rainbow_clip_path(tmp_path, frame_count=4, fps=4)
+
+    clip = VideoUtil.read_video_clip(clip_path, max_frames=4, target_fps=4.0)
+
+    assert clip.sampled_fps is None
+    assert clip.clip_frame_count == 4
+    for index in range(4):
+        _assert_color_close(_center_color(clip.frames[index]), palette[index])
+
+
+def test_video_util_resample_pyav_fallback_matches_ffmpeg(tmp_path, monkeypatch):
+    clip_path, palette = _rainbow_clip_path(tmp_path, frame_count=8, fps=8)
+
+    monkeypatch.setattr("mflux.utils.video_util.shutil.which", lambda name: None)
+    clip = VideoUtil.read_video_clip(clip_path, max_frames=4, target_fps=4.0)
+
+    assert clip.sampled_fps == 4.0
+    assert clip.clip_frame_count == 4
+    for output_index, source_index in enumerate([0, 2, 4, 6]):
+        _assert_color_close(_center_color(clip.frames[output_index]), palette[source_index])
+
+
+def test_video_util_resample_short_source_yields_fewer_frames(tmp_path):
+    clip_path, _ = _rainbow_clip_path(tmp_path, frame_count=4, fps=8)  # 0.5s of source
+
+    clip = VideoUtil.read_video_clip(clip_path, max_frames=4, target_fps=4.0)
+
+    assert clip.clip_frame_count < 4
+
+
+def test_save_video_copies_source_audio_and_records_fields(tmp_path, monkeypatch):
+    from mflux.utils.video_util import AudioCopyResult, SourceAudioCopySpec
+
+    observed = {}
+
+    def fake_copy(**kwargs):
+        observed.update(kwargs)
+        return AudioCopyResult(audio_present=True, audio_copied=True, copy_mode="stream_copy", reason=None)
+
+    monkeypatch.setattr(VideoUtil, "copy_source_audio_to_video", staticmethod(fake_copy))
+    output_path = tmp_path / "with_audio.mp4"
+    saved = VideoUtil.save_video(
+        frames=[_solid_frame((255, 0, 0)) for _ in range(4)],
+        path=output_path,
+        fps=4,
+        metadata={"frame_count": 4},
+        export_json_metadata=True,
+        source_audio_copy=SourceAudioCopySpec(
+            source_video_path=tmp_path / "source.mp4",
+            clip_start_seconds=0.0,
+            clip_duration_seconds=1.0,
+        ),
+    )
+
+    assert observed["clip_duration_seconds"] == 1.0
+    assert observed["restored_video_path"] == saved
+    sidecar = json.loads((tmp_path / "with_audio.metadata.json").read_text())
+    assert sidecar["audio_copied"] is True
+    assert sidecar["audio_copy_mode"] == "stream_copy"
+    assert "video_health" in sidecar
+
+
+def test_save_video_batches_copies_source_audio_and_records_fields(tmp_path, monkeypatch):
+    from mflux.utils.video_util import AudioCopyResult, SourceAudioCopySpec
+
+    def fake_copy(**kwargs):
+        return AudioCopyResult(audio_present=True, audio_copied=True, copy_mode="stream_copy", reason=None)
+
+    monkeypatch.setattr(VideoUtil, "copy_source_audio_to_video", staticmethod(fake_copy))
+    output_path = tmp_path / "batched_audio.mp4"
+    VideoUtil.save_video_batches(
+        frame_batches=[[_solid_frame((0, 255, 0)) for _ in range(4)]],
+        path=output_path,
+        fps=4,
+        metadata={"frame_count": 4},
+        export_json_metadata=True,
+        source_audio_copy=SourceAudioCopySpec(
+            source_video_path=tmp_path / "source.mp4",
+            clip_start_seconds=0.0,
+            clip_duration_seconds=1.0,
+        ),
+    )
+
+    sidecar = json.loads((tmp_path / "batched_audio.metadata.json").read_text())
+    assert sidecar["audio_copied"] is True
+    assert "video_health" in sidecar
+
+
+def test_save_video_audio_copy_is_best_effort_on_failure(tmp_path, monkeypatch, capsys):
+    from mflux.utils.video_util import SourceAudioCopySpec
+
+    def raising_copy(**kwargs):
+        raise RuntimeError("source vanished")
+
+    monkeypatch.setattr(VideoUtil, "copy_source_audio_to_video", staticmethod(raising_copy))
+    output_path = tmp_path / "silent.mp4"
+    saved = VideoUtil.save_video(
+        frames=[_solid_frame((0, 0, 255)) for _ in range(4)],
+        path=output_path,
+        fps=4,
+        metadata={"frame_count": 4},
+        export_json_metadata=True,
+        source_audio_copy=SourceAudioCopySpec(
+            source_video_path=tmp_path / "gone.mp4",
+            clip_start_seconds=0.0,
+            clip_duration_seconds=1.0,
+        ),
+    )
+
+    assert saved.exists()
+    output = capsys.readouterr().out
+    assert "Source audio could not be preserved" in output
+    assert "ffmpeg" in output
+    sidecar = json.loads((tmp_path / "silent.metadata.json").read_text())
+    assert sidecar["audio_copied"] is False
+    assert "RuntimeError" in sidecar["audio_copy_reason"]
+
+
+def test_generated_video_save_requests_audio_copy_for_v2v(tmp_path, monkeypatch):
+    observed = {}
+
+    def fake_save_video(**kwargs):
+        observed.update(kwargs)
+        return tmp_path / "out.mp4"
+
+    monkeypatch.setattr(VideoUtil, "save_video", staticmethod(fake_save_video))
+    video = GeneratedVideo(
+        frames=[_solid_frame((255, 0, 0)) for _ in range(16)],
+        model_config=ModelConfig.wan2_2_ti2v_5b(),
+        seed=1,
+        prompt="v2v audio",
+        steps=1,
+        guidance=5.0,
+        precision="bfloat16",
+        quantization=0,
+        generation_time=1.0,
+        height=24,
+        width=32,
+        fps=16,
+        task="video-to-video",
+        video_path=tmp_path / "source.mp4",
+    )
+
+    video.save(tmp_path / "out.mp4")
+
+    spec = observed["source_audio_copy"]
+    assert spec is not None
+    assert Path(spec.source_video_path) == tmp_path / "source.mp4"
+    assert spec.clip_start_seconds == 0.0
+    assert spec.clip_duration_seconds == pytest.approx(1.0)
+
+    # Non-V2V saves must not attempt audio copy.
+    observed.clear()
+    t2v = GeneratedVideo(
+        frames=[_solid_frame((255, 0, 0)) for _ in range(16)],
+        model_config=ModelConfig.wan2_2_ti2v_5b(),
+        seed=1,
+        prompt="t2v silent",
+        steps=1,
+        guidance=5.0,
+        precision="bfloat16",
+        quantization=0,
+        generation_time=1.0,
+        height=24,
+        width=32,
+        fps=16,
+        task="text-to-video",
+    )
+    t2v.save(tmp_path / "out2.mp4")
+    assert observed["source_audio_copy"] is None
 
 
 @pytest.mark.parametrize("invalid_value", [np.nan, np.inf, -np.inf])

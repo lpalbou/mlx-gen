@@ -7,6 +7,121 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.19.0] - 2026-07-06
+
+This release folds in the never-published 0.18.26 truth patch (its corrections are listed
+under Fixed below) and ships the video-to-video temporal/audio features, the router and Wan
+structural cleanup, and the measured motion-fidelity ladder.
+
+### Added
+
+- **Measured motion-fidelity ladder for Wan video-to-video** in `docs/wan-video.md`: a
+  strength-vs-gesture-preservation table backed by a same-seed 20-step proof matrix (0.5 / 0.6 /
+  0.7 / 0.8) with per-run metrics, contact sheets, and a null-row metric floor, plus a paired
+  Lightning-point control run showing prompt gesture language recovers the class of motion but
+  not its timing. Proof assets in `docs/assets/validation/motion-ladder-2026-07-05/`. The FAQ's
+  strength advice now cites the measured band (gestures survive at 0.5-0.6, r 0.86-0.90; the
+  0.8 default re-synthesizes them, r 0.20), and the docs state plainly that the 4-step Lightning
+  fast path and the motion-preserving band are mutually exclusive.
+
+- **`metadata_schema_version` in image and video metadata** (sidecar and embedded), starting at
+  `1`, with a documented additive-only evolution policy in `docs/api.md`. Consumers can now
+  detect structural metadata changes without parsing `mflux_version`.
+
+- **Wan video-to-video audio copy-through**: when the source clip has audio, the matching
+  segment (trimmed to the output duration) is copied onto the saved MP4, in both regular and
+  `--low-ram` batch save paths. Best-effort by design: on failure the video is saved silent, a
+  warning prints the reason and a manual `ffmpeg` remux command, and the sidecar records
+  `audio_present` / `audio_copied` / `audio_copy_mode` / `audio_copy_reason`. Unlike the strict
+  SeedVR2 restore contract, a failed mux never discards a finished generation (documented in the
+  README and `docs/wan-video.md`).
+
+### Changed
+
+- **Router option surface single-sourced**: the `mlxgen generate` parser and its re-emission of
+  consumed flags are now driven by one descriptor table (`router_options.py`). A completeness
+  test maps every parser action to exactly one descriptor with a declared forwarding fate, and a
+  round-trip test asserts each consumed flag reaches the backend (from argv and from metadata),
+  so a future consumed-but-unforwarded flag fails CI instead of silently running defaults.
+  Backend parsers, planner constraints, and metadata replay are not unified in this pass.
+- **Shell completions coverage tested against `pyproject` scripts**: completions now exist for
+  `mflux-generate-wan`/`mlxgen-generate-wan`, `mflux-generate-ernie-image`, and
+  `mflux-generate-bonsai` (generated from the real entrypoint parsers); a truth test fails when
+  a new console script ships without a completion or a documented exclusion. The `mlxgen`
+  router aliases are excluded until subcommand-aware completion exists.
+- **User-mask loading centralized in `MaskUtil`**: Qwen edit inpaint, Qwen control inpaint,
+  Z-Image inpaint, and Wan masked video-to-video now share one loader with an explicit,
+  documented resampling policy (reference-ported surfaces keep their reference's resampling -
+  NEAREST for the diffusers-ported paths; in-house Wan masked V2V uses BOX). Pixel behavior is
+  unchanged. Each surface now warns once per generation when a mask carries an alpha channel
+  (previously only Wan did).
+- **Wan runtime decomposition, phase 1**: the `generate_video` validation/resolution head moved
+  into `WanVideoRequest.resolve` and the twin per-branch metadata blocks collapsed into one
+  shared builder, removing the duplication where the 0.18.25 `steps` replay bug lived. No
+  behavior change; all helpers remain on the model class.
+- **Wan video-to-video temporal contract**: the source clip is now resampled onto the requested
+  `--fps` timeline at decode, so the output keeps real-time speed regardless of the source frame
+  rate (previously the first `--frames` source frames were consumed as-is and re-timed, changing
+  playback speed on fps mismatch - a limitation the truth-patch band documented and this
+  release removes). Matching source/requested fps passes frames through untouched
+  (bit-identical with the 0.18.25 decode behavior).
+  Downsampling prints an informational note; upsampling above the source fps duplicates frames
+  and prints a warning. Metadata gains `source_video_resampled`; the V2V latent cache key now
+  includes fps. Frame-exact first-N extraction is available by re-encoding the source to the
+  target fps beforehand.
+
+### Fixed
+
+- **`mlxgen generate --debug` was silently dropped**: the router consumed the flag without
+  re-emitting it, so backends never enabled debug logging (the help text claimed otherwise).
+  The flag is now re-emitted to all routes, and the Wan CLI gained `--debug` support wired to
+  LoRA debug logging. Third instance of the consumed-but-not-forwarded router bug class, now
+  structurally closed (see below).
+- **Metadata-sourced `video_strength` validated late**: a `video_strength` out of `(0, 1]`
+  inside `--config-from-metadata` used to fail only after the multi-minute Wan weight load. The
+  router now backfills and re-emits it like `video_mask_path`, so the backend parser rejects
+  invalid values at parse time.
+- **`mflux-completions` crashed on every invocation**: a duplicated `add_lora_arguments` call in
+  the `mflux-upscale-controlnet` completion branch raised `ArgumentError: conflicting option
+  string --lora-style` during generation, so completion install and `--print` both failed. The
+  duplicate is removed and a truth test now generates every command's parser in CI.
+- **`mflux-generate-z-image` shell completion was empty**: the command was listed in the
+  completions generator without a parser branch; it now completes the real z-image options.
+- **Removed the "motion anchor" overclaim from video-to-video docs**: prose that promised
+  the source clip anchors "motion" (gesture-level) is corrected across `docs/wan-video.md`,
+  `docs/getting-started.md`, and `docs/faq.md` - camera path, framing, and layout survive;
+  subject gestures and timing are re-synthesized at the default strength (the measured ladder
+  below quantifies where the transition happens), and the FAQ example prompt no longer
+  suggests "keep the same motion" can force motion through.
+- **CI test gate**: CI and the release workflow now run the full no-weights band
+  (`-m "not slow and not high_memory_requirement"`, 1244+ tests) instead of `-m fast`
+  (425 tests). 57% of tests - including every video-to-video contract test - previously ran in no
+  CI band, and v0.18.25 shipped with a statically red release-date pin test that CI never
+  executed. The red pin is also fixed (`PACKAGED_RELEASE_DATE` now matches the changelog date of the packaged version).
+- **Wan q8 memory truth**: `docs/quantization.md` now states that since the 2026-06-12
+  runtime-precision fix, Wan q8 packages (A14B and TI2V-5B) dequantize all transformer-block
+  linears to BF16 at load - q8 is a storage/download saving only, and runtime memory matches the
+  BF16 packages. The stale pre-fix rows are annotated with a dated correction and a re-measured
+  MLX-peak value at the exact documented profile (27.8 GiB q8 vs 27.7 GiB BF16); the same
+  correction propagates to README, FAQ, recommendations tiers (Wan A14B moves from the 24/32 GB
+  tiers to 64 GB), and the llms context files. Separately, runtime metadata gains a
+  `darwin_peak_physical_footprint_bytes` lifetime high-water field via `proc_pid_rusage` for
+  future runs, and the rusage helper struct was completed to the full v4 layout (the previous
+  truncated layout under-allocated the flavor-4 buffer).
+- **V2V temporal and audio truth**: removed the false claim that video-to-video keeps "clip
+  timing"; `docs/wan-video.md` and `docs/faq.md` now document the exact contract (first-N frames
+  re-timed to `--fps`, no temporal resampling, audio track dropped). The runtime now warns with
+  the exact speed factor on fps mismatch and warns when the source has an audio track; metadata
+  records `source_video_audio_present`.
+- **Lightning V2V contract**: the documented recipe now uses the copy-pasteable
+  `owner/repo:subdir/file.safetensors` adapter form; `wan.video-video` has a LoRA validation
+  registry row (`lora_wan_a14b_q8_lightning_v2v_2026_07_04`), so `mlxgen capabilities` reports the
+  documented recipe as `validated` instead of `mapped-unvalidated`; the matrix proof bundle is
+  included in-repo under `docs/assets/validation/lightning-v2v-2026-07-04/`.
+- **Doc drift**: README no longer advertises LoRA-guide artifacts that were removed in the
+  0.18.24 docs refresh; public docs no longer link proof bundles inside the git-ignored
+  `validation_outputs/` folder.
+
 ## [0.18.25] - 2026-07-05
 
 ### Added

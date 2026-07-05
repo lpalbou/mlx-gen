@@ -268,6 +268,10 @@ package:
 --width 1280 --height 704 --frames 17 --steps 20 --guidance 5 --fps 24 --seed 321
 ```
 
+> **Correction (2026-07-05):** the mixed q8/BF16 row below predates the 2026-06-12 Wan
+> runtime-precision fix. Since that fix, q8 Wan packages dequantize every transformer-block linear
+> to BF16 at load, so runtime memory matches the BF16 row; the q8 saving is storage/download only.
+
 | Layout | Package | Storage | Wan MLX model | MLX active after generation | Physical Peak | Max RSS | MLX Peak | Time | Runtime profile | MP4 | Decoded-frame comparison |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |
 | Upstream source snapshot | `Wan-AI/Wan2.2-TI2V-5B-Diffusers` | 31.9 GiB | 10.6 GiB | 10.3 GiB | 102.7 GiB | 13.7 GiB | 58.5 GiB | 216.2 s | 1280x704, 17 frames, 20 steps, 24 fps, default cache | [base-source.mp4](assets/quantization/wan-ti2v5b-clean/base-source.mp4) | Baseline. |
@@ -301,6 +305,16 @@ memory. Current CLI `--low-ram` clears cache between denoise steps, clears trans
 boundaries, releases inactive denoisers before decode, and clears cache during VAE temporal-slice
 decode.
 
+> **Correction (2026-07-05): the q8 rows below predate the 2026-06-12 runtime-precision fix and no
+> longer describe runtime memory.** Since that fix, Wan q8 packages (A14B and TI2V-5B) dequantize
+> every transformer-block linear to BF16 at load to protect output quality, so **runtime memory now
+> matches the BF16 rows; q8 remains a storage/download saving only.** Re-measured on 2026-07-05 at
+> the exact same T2V profile (384x224, 33 frames, 12 steps, low-RAM, seed 4242), the mixed q8/BF16
+> package peaks at **27.8 GiB MLX** versus the 15.5 GiB shown below - equal to the BF16 row's
+> 27.7 GiB ([post-fix metrics JSON](assets/quantization/wan-a14b-lowram/t2v_q8bf16_postfix_384x224_33f_12steps_seed4242.metrics.json)).
+> July-2026 video-to-video runs at 480x832x25f on the q8 A14B package likewise recorded
+> 31.7-33.1 GB MLX peaks in their metadata sidecars.
+
 | Model | Package | Disk | Physical Peak | Max RSS | MLX Peak | Generation Time | Benchmark Profile | Metrics |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
 | Wan2.2 T2V-A14B | BF16 | 64.1 GiB | 33.0 GiB | 31.8 GiB | 27.7 GiB | 152.7 s | 384x224, 33 frames, 12 steps, 8 fps, low-RAM | [JSON](assets/quantization/wan-a14b-lowram/t2v_bf16_384x224_33f_12steps_seed4242.metrics.json) |
@@ -308,9 +322,9 @@ decode.
 | Wan2.2 I2V-A14B | BF16 | 64.1 GiB | 33.7 GiB | 31.8 GiB | 28.2 GiB | 228.2 s | 384x384, 33 frames, 12 steps, 8 fps, low-RAM | [JSON](assets/quantization/wan-a14b-lowram/i2v_bf16_384x384_33f_12steps_seed4242.metrics.json) |
 | Wan2.2 I2V-A14B | mixed q8/BF16 | 39.5 GiB | 21.5 GiB | 19.6 GiB | 15.9 GiB | 242.2 s | 384x384, 33 frames, 12 steps, 8 fps, low-RAM | [JSON](assets/quantization/wan-a14b-lowram/i2v_q8bf16_384x384_33f_12steps_seed4242.metrics.json) |
 
-In these A14B low-RAM benchmarks, mixed q8/BF16 cuts disk usage by about 38% versus the
-BF16 MLX-Gen packages and reduces full-process physical peak memory by about 36-37%. It is not
-currently claimed as a speed improvement.
+In these A14B benchmarks, mixed q8/BF16 cuts disk usage by about 38% versus the BF16 MLX-Gen
+packages. Since 2026-06-12 it is **not** a runtime-memory or speed improvement; plan memory as if
+running the BF16 package.
 
 The 0.18.11 release also validated the published A14B q8 Hugging Face handles on a short practical
 video profile. These runs use the default generation path, not `--low-ram`, and keep tensor-health

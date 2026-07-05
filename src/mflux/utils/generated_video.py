@@ -9,6 +9,7 @@ import mlx.core as mx
 import PIL.Image
 
 from mflux.models.common.config import ModelConfig
+from mflux.utils.metadata_schema import MetadataSchema
 from mflux.utils.runtime_memory import RuntimeMemory
 from mflux.utils.version_util import VersionUtil
 
@@ -104,8 +105,15 @@ class GeneratedVideo:
         overwrite: bool = True,
         validate_health: bool = True,
     ) -> Path:
-        from mflux.utils.video_util import VideoUtil
+        from mflux.utils.video_util import SourceAudioCopySpec, VideoUtil
 
+        source_audio_copy = None
+        if self.task == "video-to-video" and self.video_path is not None:
+            source_audio_copy = SourceAudioCopySpec(
+                source_video_path=self.video_path,
+                clip_start_seconds=0.0,
+                clip_duration_seconds=self.duration_seconds,
+            )
         if self._frames is None and self._frame_batches_factory is not None:
             return VideoUtil.save_video_batches(
                 frame_batches=self._frame_batches_factory(),
@@ -115,6 +123,7 @@ class GeneratedVideo:
                 export_json_metadata=export_json_metadata,
                 overwrite=overwrite,
                 validate_health=validate_health,
+                source_audio_copy=source_audio_copy,
             )
         return VideoUtil.save_video(
             frames=self.frames,
@@ -124,6 +133,7 @@ class GeneratedVideo:
             export_json_metadata=export_json_metadata,
             overwrite=overwrite,
             validate_health=validate_health,
+            source_audio_copy=source_audio_copy,
         )
 
     def first_frame(self) -> PIL.Image.Image:
@@ -195,6 +205,7 @@ class GeneratedVideo:
         extra_metadata: dict | None = None,
     ) -> dict:
         metadata = {
+            "metadata_schema_version": MetadataSchema.VERSION,
             "mflux_version": VersionUtil.get_mflux_version(),
             "model": model_config.model_name,
             "base_model": str(model_config.base_model),

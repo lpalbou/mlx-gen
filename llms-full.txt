@@ -304,9 +304,22 @@ abstract scenes where the default negative prompt creates unwanted texture.
 
 Prompt-guided video-to-video is public on `Wan2.2-T2V-A14B` only: one source video via
 `--video-path`, one prompt, optional `--video-strength` (default `0.8`, range `(0, 1]`), and
-`--solver unipc` required. The run denoises `floor(steps x video_strength)` effective steps; saved
+`--solver unipc` required. Camera path, framing, and scene layout survive at typical strengths;
+subject gestures and timing are re-synthesized, not copied. Measured ladder (docs/wan-video.md,
+"Motion Fidelity Versus Strength"): gestures survive at strength 0.5-0.6 with 20 steps CFG-on
+(gesture-timing r 0.86-0.90), mostly at 0.7 (r 0.73), and are re-synthesized at the 0.8 default
+(r 0.20) and the 4-step Lightning point (sigma 0.94); the Lightning fast path cannot reach the
+motion-preserving band. Use `--video-mask-path` to preserve regions exactly, including their
+motion. All image and video metadata (sidecar and embedded) carries `metadata_schema_version`
+(currently 1, additive-only evolution). The run denoises `floor(steps x video_strength)` effective steps; saved
 metadata records the requested `steps` plus `effective_steps`, `video_strength`,
-`high_noise_stage_skipped`, and source-clip frame count, duration, and fps. Below roughly strength
+`high_noise_stage_skipped`, `source_video_audio_present`, `source_video_resampled`, and
+source-clip frame count, duration, and fps. The source is resampled onto the `--fps` timeline at
+decode, so the output keeps real-time speed regardless of source fps (matching fps passes frames
+through untouched; upsampling above the source fps duplicates frames with a warning). Source
+audio is copied onto the saved output best-effort, trimmed to the output duration; on failure the
+video is saved silent with a printed reason plus manual remux command, and metadata records
+`audio_copied` / `audio_copy_reason`. Below roughly strength
 `0.7` the A14B high-noise stage is skipped and `--guidance` is inactive (a warning is printed).
 Source frames are stretched to the requested canvas, so the requested aspect ratio should match the
 source. Masked video-to-video adds one static image mask via `--video-mask-path`: white marks the
@@ -383,11 +396,18 @@ because fully q4 layouts can visibly degrade generation. Bonsai uses Prism's pre
 
 Wan A14B uses a mixed q8/BF16 policy for 8-bit packages:
 
-- q8 for bulky transformer block linears;
+- q8 storage for bulky transformer block linears;
 - BF16 for the Wan VAE;
 - BF16 for sensitive conditioning/output projection paths;
 - BF16 for the UMT5 text encoder, tokenizer files, scheduler metadata, norms, convolutions, and
   non-quantizable parameters.
+
+Important correction (2026-07-05): since the 2026-06-12 runtime-precision fix, Wan q8 packages
+(A14B and TI2V-5B) dequantize all transformer-block linears to BF16 at load to protect output
+quality. Wan q8 is therefore a storage/download saving only; runtime memory matches the BF16
+package. The historical benchmark numbers below predate that fix. Re-measured on 2026-07-05 at the
+same T2V-A14B profile, the q8 package peaks at 27.8 GiB MLX versus 27.7 GiB for BF16. Plan Wan
+memory as if running BF16.
 
 For TI2V-5B, the upstream source snapshot is about 31.9 GiB and stores transformer and VAE files as
 FP32 while the UMT5 text encoder is BF16. MLX-Gen loads and converts Wan transformer/VAE weights at
@@ -406,9 +426,8 @@ metrics are linked from `docs/quantization.md`. The measured TI2V profile was:
 - TI2V-5B mixed q8/BF16: 16.9 GiB storage, 6.3 GiB Wan MLX model footprint, 6.1 GiB MLX active
   after generation, 103.7 GiB physical peak, 13.8 GiB max RSS, 54.2 GiB MLX peak, 243.4 s.
 
-For this TI2V-5B profile, q8 reduced storage, Wan MLX model bytes, active MLX model bytes, and MLX
-allocator peak. It did not reduce full-process Darwin physical peak memory because transient
-prompt/denoise/decode/save allocations dominated the sampled high-water mark.
+For this pre-fix TI2V-5B profile, q8 reduced storage and the loaded/active model bytes. Since the
+2026-06-12 fix those runtime reductions no longer apply; q8 keeps only the storage saving.
 
 On an Apple M5 Max with 128 GB unified memory, A14B measurements use short low-RAM profiles:
 
@@ -421,8 +440,8 @@ On an Apple M5 Max with 128 GB unified memory, A14B measurements use short low-R
 - I2V-A14B mixed q8/BF16: 39.5 GiB disk, 21.5 GiB physical peak, 19.6 GiB max RSS, 15.9 GiB MLX
   peak, 242.2 s on the same profile.
 
-In those benchmark runs, mixed q8/BF16 reduced disk usage by about 38% versus BF16 MLX-Gen packages
-and reduced full-process physical peak memory by about 36-37%. It is not documented as a speed
+In those pre-fix benchmark runs, mixed q8/BF16 reduced disk usage by about 38% versus BF16 MLX-Gen
+packages. Since the 2026-06-12 runtime-precision fix it is not a runtime-memory or speed
 improvement. Full-size Wan video memory and runtime vary with resolution, frame count, step count,
 task, cache settings, and prompt/image conditioning.
 

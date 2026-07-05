@@ -25,6 +25,7 @@ class RuntimeMemorySnapshot:
     process_peak_rss_bytes: int | None
     darwin_physical_footprint_bytes: int | None
     errors: dict[str, str]
+    darwin_peak_physical_footprint_bytes: int | None = None
 
     def to_metadata(self) -> dict:
         return asdict(self)
@@ -135,6 +136,7 @@ class RuntimeMemory:
             except Exception as exc:  # noqa: BLE001
                 errors["mlx_synchronize"] = f"{exc.__class__.__name__}: {exc}"
 
+        footprint = RuntimeMemory._darwin_footprint_values(errors)
         return RuntimeMemorySnapshot(
             phase=phase,
             timestamp=time.time(),
@@ -146,8 +148,9 @@ class RuntimeMemory:
             mlx_cache_memory_bytes=RuntimeMemory._mlx_memory("get_cache_memory", errors),
             process_rss_bytes=RuntimeMemory._process_rss_bytes(errors),
             process_peak_rss_bytes=RuntimeMemory._process_peak_rss_bytes(errors),
-            darwin_physical_footprint_bytes=RuntimeMemory._darwin_physical_footprint_bytes(errors),
+            darwin_physical_footprint_bytes=footprint[0] if footprint is not None else None,
             errors=errors,
+            darwin_peak_physical_footprint_bytes=footprint[1] if footprint is not None else None,
         )
 
     @staticmethod
@@ -203,7 +206,7 @@ class RuntimeMemory:
         return peak * 1024
 
     @staticmethod
-    def _darwin_physical_footprint_bytes(errors: dict[str, str]) -> int | None:
+    def _darwin_footprint_values(errors: dict[str, str]) -> tuple[int, int] | None:
         if sys.platform != "darwin":
             return None
         try:
@@ -226,7 +229,8 @@ class RuntimeMemory:
             errors["darwin_physical_footprint"] = result.stderr.strip() or f"helper returned {result.returncode}"
             return None
         try:
-            return int(result.stdout.strip())
+            current_text, peak_text = result.stdout.split()
+            return (int(current_text), int(peak_text))
         except ValueError as exc:
             errors["darwin_physical_footprint"] = f"{exc.__class__.__name__}: {result.stdout!r}"
             return None
@@ -257,6 +261,23 @@ class RUsageInfoV4(ctypes.Structure):
         ("ri_child_elapsed_abstime", ctypes.c_uint64),
         ("ri_diskio_bytesread", ctypes.c_uint64),
         ("ri_diskio_byteswritten", ctypes.c_uint64),
+        ("ri_cpu_time_qos_default", ctypes.c_uint64),
+        ("ri_cpu_time_qos_maintenance", ctypes.c_uint64),
+        ("ri_cpu_time_qos_background", ctypes.c_uint64),
+        ("ri_cpu_time_qos_utility", ctypes.c_uint64),
+        ("ri_cpu_time_qos_legacy", ctypes.c_uint64),
+        ("ri_cpu_time_qos_user_initiated", ctypes.c_uint64),
+        ("ri_cpu_time_qos_user_interactive", ctypes.c_uint64),
+        ("ri_billed_system_time", ctypes.c_uint64),
+        ("ri_serviced_system_time", ctypes.c_uint64),
+        ("ri_logical_writes", ctypes.c_uint64),
+        ("ri_lifetime_max_phys_footprint", ctypes.c_uint64),
+        ("ri_instructions", ctypes.c_uint64),
+        ("ri_cycles", ctypes.c_uint64),
+        ("ri_billed_energy", ctypes.c_uint64),
+        ("ri_serviced_energy", ctypes.c_uint64),
+        ("ri_interval_max_phys_footprint", ctypes.c_uint64),
+        ("ri_runnable_time", ctypes.c_uint64),
     ]
 
 
@@ -264,5 +285,5 @@ info = RUsageInfoV4()
 rc = ctypes.CDLL("libproc.dylib").proc_pid_rusage(int(sys.argv[1]), 4, ctypes.byref(info))
 if rc != 0:
     raise SystemExit(rc)
-print(int(info.ri_phys_footprint))
+print(int(info.ri_phys_footprint), int(info.ri_lifetime_max_phys_footprint))
 """

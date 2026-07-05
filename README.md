@@ -50,11 +50,12 @@ The main capabilities are:
   reframe/outpaint workflows where the selected model supports them;
 - Wan2.2 text-to-video, image-to-video, and prompt-guided video-to-video (plain or masked via
   `--video-mask-path`, which locks everything outside the mask to the source video), including
-  TI2V-5B BF16/q8 packages plus A14B T2V/I2V BF16 and mixed q8/BF16 packages; the current public
-  video-to-video route is limited to `Wan2.2-T2V-A14B`, uses one source video plus one prompt,
-  requires `--solver unipc`, and does not include reference images or VACE-style learned
-  conditioning; Wan I2V resolves output size from the source image aspect ratio so inputs are not
-  stretched into a mismatched canvas;
+  TI2V-5B BF16/q8 packages plus A14B T2V/I2V BF16 and mixed q8/BF16 packages; video-to-video
+  resamples the source onto the requested fps timeline (output keeps real-time speed) and copies
+  source audio onto the output best-effort; the current public video-to-video route is limited to
+  `Wan2.2-T2V-A14B`, uses one source video plus one prompt, requires `--solver unipc`, and does
+  not include reference images or VACE-style learned conditioning; Wan I2V resolves output size
+  from the source image aspect ratio so inputs are not stretched into a mismatched canvas;
 - SeedVR2 image and video restoration through `mlxgen upscale`, with official 3B/7B source
   support including the dedicated `seedvr2-7b-sharp` route, published q8/q4 packages,
   shortest-edge target sizing, explicit scale factors such as `2x` and `3x`, streamed restore for
@@ -68,12 +69,12 @@ The main capabilities are:
   Image q8 structured-control and control-inpaint rows, the exact
   `AbstractFramework/z-image-turbo-8bit` text and latent img2img rows, FLUX.2 Klein 9B edit and
   multi-reference, FLUX.2 Klein base 4B outpaint, ERNIE Image Turbo text and latent img2img, and
-  all supported Wan q8 video routes; the LoRA guide includes the
-  documented `720p` Wan q8-vs-BF16 LightX2V keyframe comparison, readable `41`-frame M5 Max
-  progress matrices, same-seed no-LoRA-versus-Lightning A/B sheets, a `240p`-versus-`480p` T2V
-  sweep, time/RSS tables for T2V and I2V, and the exact Qwen/FLUX route-completion contact
-  sheets. Those Lightning examples are documented against MLX-Gen q8 packages, not arbitrary
-  external FP8 checkpoints. Bonsai LoRA stays fail-closed;
+  all supported Wan q8 video routes including Lightning fast video-to-video; the LoRA guide
+  documents the exact validated adapters per route, strict scale matching, copy-paste
+  `owner/repo:subdir/file` adapter forms, and the validation evidence behind each proof row
+  (same-seed A/B sheets for the image and T2V/I2V rows, a bounded multi-seed matrix for the
+  video-to-video row). Those Lightning examples are documented against MLX-Gen q8 packages, not
+  arbitrary external FP8 checkpoints. Bonsai LoRA stays fail-closed;
 - shared progress events for applications embedding MLX-Gen.
 
 Use `mlxgen capabilities --model ...` before long image-edit runs. Capability output describes the
@@ -188,7 +189,9 @@ mlxgen upscale \
 For video inputs, SeedVR2 preserves the source FPS by default and preserves the matching source
 audio segment by default as well. If MLX-Gen cannot prove that copied audio is still aligned
 safely, the run fails instead of publishing a silent output unexpectedly. Use `--drop-audio` only
-when you intentionally want a silent restored MP4. The safe public video profile defaults to `1x`,
+when you intentionally want a silent restored MP4. (This is deliberately stricter than Wan
+video-to-video's best-effort audio copy: restoration is a fidelity contract, while a failed mux
+on a generative run must not discard the finished video.) The safe public video profile defaults to `1x`,
 enables `--low-ram` automatically, and rejects enlarged video output unless you explicitly pass
 `--force-unsafe-video-memory`. See
 [docs/upscaling.md](docs/upscaling.md) for the accepted five-second Eiffel quality proof bundle and
@@ -343,9 +346,10 @@ sizes, optimized package sizes, task coverage, and quantization notes.
 For Wan2.2 TI2V-5B, the published BF16 MLX-Gen package is 21.2 GiB versus 31.9 GiB for the
 upstream source snapshot. It is mainly a smaller reusable source-equivalent package because
 MLX-Gen already loads Wan transformer/VAE weights at BF16 runtime precision. The published q8
-package is 16.9 GiB. In the documented 1280x704 benchmark profile, q8 reduced logical model
-footprint and MLX allocator peak but did not reduce full-process physical peak memory. Wan TI2V-5B
-q4 or mixed q4/q8 is not published as a supported package. See the exact benchmark profile in
+package is 16.9 GiB. Since the 2026-06-12 runtime-precision fix, Wan q8 packages dequantize all
+transformer-block linears to BF16 at load, so q8 is a storage/download saving only and runtime
+memory matches the BF16 package. Wan TI2V-5B q4 or mixed q4/q8 is not published as a supported
+package. See the exact benchmark profile and the dated correction in
 [docs/quantization.md](docs/quantization.md).
 
 ## Wan A14B Measurements
@@ -355,6 +359,11 @@ uses small, repeatable low-RAM runs and records full-process Darwin physical foo
 allocator peak, and generation time. Use these values for the listed profiles; memory and runtime
 scale with resolution, frame count, step count, cache settings, and image-to-video conditioning.
 
+> Correction (2026-07-05): the q8 rows below predate the 2026-06-12 runtime-precision fix. Since
+> that fix, Wan q8 packages dequantize all transformer-block linears to BF16 at load, so runtime
+> memory matches the BF16 rows (re-measured: 27.8 GiB MLX peak at the same T2V profile). Plan
+> memory as if running the BF16 package; q8 saves disk and download only.
+
 | Model | Package | Disk | Physical Peak | Max RSS | MLX Peak | Time | Profile |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
 | Wan2.2 T2V-A14B | BF16 | 64.1 GiB | 33.0 GiB | 31.8 GiB | 27.7 GiB | 152.7 s | 384x224, 33 frames, 12 steps, 8 fps |
@@ -362,9 +371,8 @@ scale with resolution, frame count, step count, cache settings, and image-to-vid
 | Wan2.2 I2V-A14B | BF16 | 64.1 GiB | 33.7 GiB | 31.8 GiB | 28.2 GiB | 228.2 s | 384x384, 33 frames, 12 steps, 8 fps |
 | Wan2.2 I2V-A14B | mixed q8/BF16 | 39.5 GiB | 21.5 GiB | 19.6 GiB | 15.9 GiB | 242.2 s | 384x384, 33 frames, 12 steps, 8 fps |
 
-In these runs, mixed q8/BF16 reduces disk usage by about 38% versus BF16 MLX-Gen packages and
-reduces full-process physical peak memory by about 36-37%. It is not documented as a speed
-improvement. See
+In these runs, mixed q8/BF16 reduces disk usage by about 38% versus BF16 MLX-Gen packages; since
+2026-06-12 it is not a runtime-memory or speed improvement. See
 [docs/quantization.md](docs/quantization.md) for model-family quantization details and metrics JSON.
 The 0.18.11 release also validates the published A14B q8 T2V/I2V handles on a 41-frame,
 15-step, 480x240-target profile with saved MP4/contact-sheet evidence in the quantization docs.
@@ -389,7 +397,7 @@ progress callbacks make long runs observable.
 - [Getting started](docs/getting-started.md): installation, first runs, SeedVR2 upscaling, and Wan video.
 - [API and CLI](docs/api.md): command surface, router behavior, image-to-image modes, generative reframe, backend-specific outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.
 - [Image edit modes](docs/image-edit-modes.md): what latent img2img, edit-reference, multi-reference, generative reframe, and outpaint mean in practice, with examples.
-- [Wan video](docs/wan-video.md): practical Wan2.2 T2V/I2V sizing, plain and masked prompt-guided A14B video-to-video with included proof artifacts, broader A14B target size families, and 5-second M5 Max comparison clips.
+- [Wan video](docs/wan-video.md): practical Wan2.2 T2V/I2V sizing, plain and masked prompt-guided A14B video-to-video with included proof artifacts, a measured motion-fidelity ladder (strength vs gesture preservation), broader A14B target size families, and 5-second M5 Max comparison clips.
 - [Example workflow](docs/examples/spaceship-snow.md): reproducible image and video commands.
 - [Image upscaling](docs/upscaling.md): SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, published five-second Eiffel `1x` and `2x` 3B/7B validation bundles, readable tone-correction labels, and 5x source/output comparisons.
 - [Image edit capabilities](docs/edit-capabilities.md): image-edit contact sheets, exact model/package status, and command logs.
