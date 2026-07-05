@@ -982,12 +982,24 @@ def test_flux2_edit_backend_outpaint_preserves_source_region(monkeypatch, tmp_pa
 
 
 def test_flux2_edit_backend_outpaint_uses_green_border_canvas_for_exact_outpaint_lora(monkeypatch, tmp_path):
+    from mflux.cli.parser import parsers
     from mflux.models.flux2.cli import flux2_edit_generate
 
     source = tmp_path / "source.png"
     output = tmp_path / "out.png"
     Image.new("RGB", (12, 8), color=(80, 20, 10)).save(source)
     observed = {}
+
+    # The repo:file LoRA reference resolves through the local LoRA/HF caches, which fresh CI
+    # runners do not have; stub resolution so the test pins routing, not cache state. The
+    # resolved filename is preserved because the green-border detection matches on it.
+    fake_lora = tmp_path / "flux-outpaint-lora.safetensors"
+    fake_lora.write_bytes(b"stub")
+    monkeypatch.setattr(
+        parsers.LoraResolution,
+        "resolve",
+        staticmethod(lambda path: str(fake_lora)),
+    )
 
     class FakeImage:
         def __init__(self, image):
