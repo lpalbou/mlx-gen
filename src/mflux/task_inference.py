@@ -34,14 +34,8 @@ IMAGE_TASKS = {*PUBLIC_IMAGE_TASKS, EDIT}
 VIDEO_TASKS = PUBLIC_VIDEO_TASKS
 VALID_TASKS = {TASK_AUTO, EDIT, *PUBLIC_TASKS}
 CAPABILITIES_SCHEMA_VERSION = 4
-QWEN_CONTROL_UNION_MODEL = (
-    "InstantX/Qwen-Image-ControlNet-Union:"
-    "diffusion_pytorch_model.safetensors"
-)
-QWEN_CONTROL_INPAINT_MODEL = (
-    "InstantX/Qwen-Image-ControlNet-Inpainting:"
-    "diffusion_pytorch_model.safetensors"
-)
+QWEN_CONTROL_UNION_MODEL = "InstantX/Qwen-Image-ControlNet-Union:diffusion_pytorch_model.safetensors"
+QWEN_CONTROL_INPAINT_MODEL = "InstantX/Qwen-Image-ControlNet-Inpainting:diffusion_pytorch_model.safetensors"
 
 I2I_MODE_AUTO = "auto"
 MODE_TEXT_ONLY = "text-only"
@@ -289,7 +283,9 @@ def resolve_generation_plan(
     if video_count < 0:
         raise TaskInferenceError("video_count must be greater than or equal to zero.")
     if image_count > 0 and video_count > 0:
-        raise TaskInferenceError("mlxgen generate accepts either input images or input videos for one request, not both.")
+        raise TaskInferenceError(
+            "mlxgen generate accepts either input images or input videos for one request, not both."
+        )
     if has_image_strength and image_count == 0:
         raise TaskInferenceError("--image-strength requires --image or --image-path.")
     if has_video_strength and video_count == 0:
@@ -314,7 +310,9 @@ def resolve_generation_plan(
             "with --image or --image-path."
         )
     if has_control_image and video_count > 0:
-        raise TaskInferenceError("--controlnet-image-path is only supported for image generation routes, not source videos.")
+        raise TaskInferenceError(
+            "--controlnet-image-path is only supported for image generation routes, not source videos."
+        )
     if has_outpaint and image_count == 0:
         raise TaskInferenceError("--outpaint-padding requires --image or --image-path.")
     if has_outpaint and video_count > 0:
@@ -373,7 +371,11 @@ def resolve_generation_plan(
     if has_video_strength:
         candidates = [capability for capability in candidates if capability.supports_video_strength]
         if not candidates:
-            raise TaskInferenceError("--video-strength is only supported for video-to-video latent edit mode.")
+            raise TaskInferenceError(
+                "--video-strength is not supported by this model's video-to-video route. "
+                "Wan VACE models condition through --video-mask-path/--reference-image/--conditioning-scale "
+                "instead of an SDEdit strength; for strength-based edits use Wan2.2-T2V-A14B."
+            )
     if has_video_mask:
         candidates = [capability for capability in candidates if capability.supports_video_mask]
         if not candidates:
@@ -569,7 +571,9 @@ def _resolve_model_identity(
         )
 
     family_aliases = set(model_config.aliases) if model_config is not None else set()
-    family_key = _model_key(model_config.base_model if model_config is not None else None, *sorted(family_aliases), model)
+    family_key = _model_key(
+        model_config.base_model if model_config is not None else None, *sorted(family_aliases), model
+    )
     inferred_family = _infer_family(family_aliases, family_key)
     if family is not None and inferred_family is not None and family != inferred_family:
         raise TaskInferenceError(
@@ -997,6 +1001,20 @@ def _flux2_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 **i2i_canvas,
             ),
             GenerationCapability(
+                # Masked edit follows the diffusers Flux2KleinInpaintPipeline. The unified route
+                # takes one source image; extra masked-area reference images stay on the backend
+                # command and Python API, mirroring the narrow qwen.inpaint contract here.
+                id="flux2.inpaint",
+                public_task=IMAGE_TO_IMAGE,
+                mode=MODE_EDIT_REFERENCE,
+                handler_id="flux2.edit",
+                min_images=1,
+                max_images=1,
+                supports_mask=True,
+                **_lora_capability_kwargs(identity=identity, capability_id="flux2.inpaint", supports_lora=True),
+                **i2i_canvas,
+            ),
+            GenerationCapability(
                 id="flux2.outpaint" if is_base_model else "flux2.reframe",
                 public_task=IMAGE_TO_IMAGE,
                 mode=MODE_EDIT_REFERENCE,
@@ -1059,6 +1077,7 @@ def _wan_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
     declared_task = identity.model_config.transformer_overrides.get("task")
     supports_image_to_video = bool(identity.model_config.transformer_overrides.get("supports_image_to_video", True))
     supports_video_to_video = bool(identity.model_config.transformer_overrides.get("supports_video_to_video", False))
+    is_vace = bool(identity.model_config.transformer_overrides.get("supports_vace", False))
     supports_lora = True
     lora_target_roles = (
         ("high_noise_transformer", "low_noise_transformer")
@@ -1093,7 +1112,8 @@ def _wan_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                     handler_id="wan.generate",
                     min_videos=1,
                     max_videos=1,
-                    supports_video_strength=True,
+                    # VACE conditions via masks/references, not an SDEdit strength warm start.
+                    supports_video_strength=not is_vace,
                     supports_video_mask=True,
                     supports_frames=True,
                     supports_fps=True,

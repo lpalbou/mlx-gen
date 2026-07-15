@@ -9,6 +9,7 @@ from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.models.common.config import ModelConfig
 from mflux.models.flux2.latent_creator.flux2_latent_creator import Flux2LatentCreator
 from mflux.models.flux2.variants import Flux2KleinEdit
+from mflux.models.flux2.variants.edit.flux2_klein_inpaint import Flux2KleinInpaint
 from mflux.models.flux2.variants.edit.flux2_klein_outpaint import Flux2KleinOutpaint
 from mflux.utils.dimension_resolver import CANVAS_POLICY_EXACT_RESIZE
 from mflux.utils.exceptions import PromptFileReadError, StopImageGenerationException
@@ -44,6 +45,12 @@ def main():
     parser.add_model_arguments(require_model_arg=False)
     parser.add_lora_arguments()
     parser.add_argument("--image-paths", type=Path, nargs="+", required=True, help="Local paths to one or more init images. For single image editing, provide one path. For multiple image editing, provide multiple paths.")  # fmt: off
+    parser.add_mask_path_argument(
+        help_text=(
+            "Optional mask image path for localized FLUX.2 Klein masked edit. White pixels are repainted "
+            "and black pixels are preserved."
+        ),
+    )
     parser.add_argument(
         "--reframe-padding",
         default=None,
@@ -80,8 +87,10 @@ def main():
     model_config = ModelConfig.from_name(model_name=model_name, base_model=args.base_model)
 
     is_base_model = _is_flux2_base_model(model_config)
+    uses_masked_edit = args.mask_path is not None
     if args.guidance is None:
-        args.guidance = 4.0 if args.outpaint_padding is not None and is_base_model else 1.0
+        uses_source_locked_denoise = args.outpaint_padding is not None or uses_masked_edit
+        args.guidance = 4.0 if uses_source_locked_denoise and is_base_model else 1.0
     model_name_lower = model_config.model_name.lower()
     base_model_lower = (model_config.base_model or "").lower()
     is_flux2 = any(
@@ -104,23 +113,19 @@ def main():
     CallbackManager.apply_runtime_memory_options(args)
 
     uses_strict_outpaint = args.outpaint_padding is not None and is_base_model
-    model = (
-        Flux2KleinOutpaint(
-            model_config=model_config,
-            quantize=args.quantize,
-            model_path=args.model_path,
-            lora_paths=args.lora_paths,
-            lora_scales=args.lora_scales,
-        )
-        if uses_strict_outpaint
-        else Flux2KleinEdit(
-            model_config=model_config,
-            quantize=args.quantize,
-            model_path=args.model_path,
-            lora_paths=args.lora_paths,
-            lora_scales=args.lora_scales,
-        )
-    )
+    model_kwargs = {
+        "model_config": model_config,
+        "quantize": args.quantize,
+        "model_path": args.model_path,
+        "lora_paths": args.lora_paths,
+        "lora_scales": args.lora_scales,
+    }
+    if uses_masked_edit:
+        model = Flux2KleinInpaint(**model_kwargs)
+    elif uses_strict_outpaint:
+        model = Flux2KleinOutpaint(**model_kwargs)
+    else:
+        model = Flux2KleinEdit(**model_kwargs)
 
     memory_saver = CallbackManager.register_callbacks(
         args=args,
@@ -151,7 +156,21 @@ def main():
                     events.set_output_path(output_path)
                     unsubscribe = events.subscribe_model(model, map_complete_to_generated=True)
                     try:
-                        if uses_strict_outpaint:
+                        if uses_masked_edit:
+                            image = model.generate_image(
+                                seed=seed,
+                                prompt=PromptUtil.read_prompt(args),
+                                image_path=image_paths[0],
+                                mask_path=args.mask_path,
+                                reference_image_paths=image_paths[1:] or None,
+                                width=args.width,
+                                height=args.height,
+                                guidance=args.guidance,
+                                num_inference_steps=args.steps,
+                                scheduler="flow_match_euler_discrete",
+                                canvas_policy=args.canvas_policy,
+                            )
+                        elif uses_strict_outpaint:
                             image = model.generate_image(
                                 seed=seed,
                                 prompt=PromptUtil.read_prompt(args),
@@ -273,6 +292,9 @@ def _uses_green_border_outpaint_lora(lora_paths: list[str] | None) -> bool:
 
 
 def _validate_canvas_args(*, parser: CommandLineParser, args, source_image_paths: list[Path]) -> None:
+    if args.mask_path is not None:
+        if args.outpaint_padding is not None or args.reframe_padding is not None:
+            parser.error("--mask-path cannot be combined with --reframe-padding or --outpaint-padding.")
     if args.outpaint_padding is None and args.reframe_padding is None:
         return
     if args.outpaint_padding is not None and args.reframe_padding is not None:

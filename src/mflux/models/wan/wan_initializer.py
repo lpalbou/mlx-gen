@@ -249,8 +249,7 @@ class WanInitializer:
         invalid = [role for role in lora_target_roles if role not in valid_roles]
         if invalid:
             raise LoRAApplicationError(
-                "Wan A14B valid --lora-target-roles values are 'high_noise_transformer' and "
-                "'low_noise_transformer'."
+                "Wan A14B valid --lora-target-roles values are 'high_noise_transformer' and 'low_noise_transformer'."
             )
         return list(lora_target_roles)
 
@@ -267,7 +266,9 @@ class WanInitializer:
         raise LoRAApplicationError(f"Unsupported Wan LoRA target role: {role}.")
 
     @staticmethod
-    def _transform_wan_lora_state_dict(weights: dict[str, mx.array], transformer: WanTransformer) -> dict[str, mx.array]:
+    def _transform_wan_lora_state_dict(
+        weights: dict[str, mx.array], transformer: WanTransformer
+    ) -> dict[str, mx.array]:
         if not WanInitializer._transformer_uses_image_projections(transformer):
             return weights
         if WanInitializer._state_dict_has_image_projection_lora(weights):
@@ -346,7 +347,15 @@ class WanInitializer:
             ),
         ]
 
-        for prefix, ref_a_suffix, ref_b_suffix, add_k_a_suffix, add_k_b_suffix, add_v_a_suffix, add_v_b_suffix in reference_pairs:
+        for (
+            prefix,
+            ref_a_suffix,
+            ref_b_suffix,
+            add_k_a_suffix,
+            add_k_b_suffix,
+            add_v_a_suffix,
+            add_v_b_suffix,
+        ) in reference_pairs:
             WanInitializer._expand_projection_family(
                 weights,
                 prefix=prefix,
@@ -370,7 +379,11 @@ class WanInitializer:
         add_v_a_suffix: str,
         add_v_b_suffix: str,
     ) -> None:
-        prefixes = [key[: -len(ref_a_suffix)] for key in list(weights.keys()) if key.startswith(prefix) and key.endswith(ref_a_suffix)]
+        prefixes = [
+            key[: -len(ref_a_suffix)]
+            for key in list(weights.keys())
+            if key.startswith(prefix) and key.endswith(ref_a_suffix)
+        ]
         for key_prefix in prefixes:
             ref_a = f"{key_prefix}{ref_a_suffix}"
             ref_b = f"{key_prefix}{ref_b_suffix}"
@@ -421,10 +434,7 @@ class WanInitializer:
             preview = ", ".join(normalized_paths[:3])
             if len(normalized_paths) > 3:
                 preview += ", ..."
-            print(
-                "⚠️  Normalizing Wan q8 runtime-sensitive paths to BF16 at load: "
-                f"{preview}"
-            )
+            print(f"⚠️  Normalizing Wan q8 runtime-sensitive paths to BF16 at load: {preview}")
 
     @staticmethod
     def _normalize_runtime_sensitive_q8_paths_recursive(
@@ -536,6 +546,8 @@ class WanInitializer:
             "eps",
             "added_kv_proj_dim",
             "rope_max_seq_len",
+            "vace_layers",
+            "vace_in_channels",
         }
         kwargs = {key: value for key, value in model_config.transformer_overrides.items() if key in allowed}
         if "patch_size" in kwargs:

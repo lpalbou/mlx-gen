@@ -194,8 +194,16 @@ def test_mask_and_outpaint_options_are_checked_against_capabilities():
     with pytest.raises(TaskInferenceError, match="mask-path is only supported"):
         mlxgen.resolve_generation_plan(model="fibo", image_count=1, has_mask=True)
 
+    flux2_inpaint = mlxgen.resolve_generation_plan(model="flux2-klein-4b", image_count=1, has_mask=True)
+    flux2_base_inpaint = mlxgen.resolve_generation_plan(model="flux2-klein-base-9b", image_count=1, has_mask=True)
+    assert flux2_inpaint.capability_id == "flux2.inpaint"
+    assert flux2_base_inpaint.capability_id == "flux2.inpaint"
+
+    with pytest.raises(TaskInferenceError, match="cannot be combined with --mask-path"):
+        mlxgen.resolve_generation_plan(model="flux2-klein-4b", image_count=1, has_mask=True, has_image_strength=True)
+
     with pytest.raises(TaskInferenceError, match="mask-path is only supported"):
-        mlxgen.resolve_generation_plan(model="flux2-klein-4b", image_count=1, has_mask=True)
+        mlxgen.resolve_generation_plan(model="flux2-klein-4b", image_count=2, has_mask=True)
 
     qwen_inpaint = mlxgen.resolve_generation_plan(
         model="qwen-image-edit-2511",
@@ -495,6 +503,7 @@ def test_remote_looking_prepared_ids_do_not_unlock_variant_sensitive_routes():
         "flux2.text",
         "flux2.latent",
         "flux2.edit",
+        "flux2.inpaint",
         "flux2.reframe",
         "flux2.multi-reference",
     }

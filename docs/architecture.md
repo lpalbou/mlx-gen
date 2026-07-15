@@ -1,6 +1,26 @@
 # Architecture
 
-MLX-Gen is an independent package forked from mflux. It keeps the MLX-native model runtime from mflux while exposing a cleaner `mlxgen` command surface for new users and applications. The supported video paths include Wan2.2 TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, Wan2.2 A14B text-to-video, and Wan2.2 A14B image-to-video. SeedVR2 image and video restoration use `mlxgen upscale`.
+MLX-Gen is an independent package forked from mflux. It keeps the MLX-native model runtime from mflux while exposing a cleaner `mlxgen` command surface for new users and applications. The supported video paths include Wan2.2 TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, Wan2.2 A14B text-to-video, Wan2.2 A14B image-to-video and video-to-video, and the Wan2.1-VACE-1.3B conditioning route. SeedVR2 image and video restoration use `mlxgen upscale`.
+
+## System Overview
+
+```mermaid
+flowchart TD
+    U[User or application] -->|mlxgen generate / upscale / capabilities / download / prepare| R[mlxgen CLI router]
+    U -->|"load_generation_model(...) / generate_outputs(...)"| P[Python runtime helpers]
+    R --> TI[Task inference and capability planner]
+    P --> TI
+    TI -->|generation plan: task, mode, capability, handler| B[Backend command and runtime selection]
+    B --> M[Model runtime variants<br/>FLUX.2 Klein, Qwen, Z-Image, ERNIE, FIBO, Bonsai, Wan, SeedVR2]
+    M --> W[Weight loading<br/>Hugging Face cache or local MLX-Gen packages]
+    M --> CB[Progress callbacks and runtime memory telemetry]
+    M --> O[Saved images and videos with metadata]
+```
+
+The router consumes routing options such as `--model`, input images/videos, `--mask-path`, and
+strength/padding flags, resolves one generation plan through the capability planner, and forwards
+a normalized invocation to the selected backend command. The same planner powers the Python
+helpers, so embedded applications make identical routing decisions before loading any weights.
 
 ## Package Shape
 
@@ -29,6 +49,15 @@ Source model files usually come from Hugging Face. They can be used in two ways:
 
 1. Cache the source files with `mlxgen download` and run by alias or repository id.
 2. Create a reusable local MLX-Gen model package with `mlxgen prepare --model ... --path ... --quantize ...`.
+
+```mermaid
+flowchart LR
+    HF[Hugging Face source repositories] -->|mlxgen download| C[Local Hugging Face cache]
+    HF -->|mlxgen prepare --quantize| PKG[Local MLX-Gen model package<br/>optionally q4/q8 + generated model card]
+    C --> G[mlxgen generate / mlxgen upscale]
+    PKG --> G
+    G --> OUT[Images and videos with embedded or sidecar metadata]
+```
 
 MLX-Gen model packages use the MLX/mflux saved-weight layout. They may contain MLX quantization tensors and generated Hugging Face model cards. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers loading.
 

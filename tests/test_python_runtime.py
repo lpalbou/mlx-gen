@@ -67,6 +67,31 @@ def test_resolve_generation_runtime_for_plan_selects_flux2_outpaint(monkeypatch)
     assert created["kwargs"]["model_config"].model_name == runtime.model_config.model_name
 
 
+def test_resolve_generation_runtime_for_plan_selects_flux2_inpaint(monkeypatch):
+    created = {}
+    original_import = importlib.import_module
+
+    class FakeFlux2Inpaint:
+        def __init__(self, **kwargs):
+            created["kwargs"] = kwargs
+
+    def fake_import(name, package=None):
+        if name == "mflux.models.flux2.variants.edit.flux2_klein_inpaint":
+            return types.SimpleNamespace(Flux2KleinInpaint=FakeFlux2Inpaint)
+        return original_import(name, package)
+
+    monkeypatch.setattr("mflux.python_runtime.importlib.import_module", fake_import)
+
+    plan = resolve_generation_plan(model="flux2-klein-4b", image_count=1, has_mask=True)
+    runtime = resolve_generation_runtime_for_plan(plan=plan)
+    model = runtime.load()
+
+    assert isinstance(model, FakeFlux2Inpaint)
+    assert plan.capability_id == "flux2.inpaint"
+    assert runtime.runtime_id == "flux2.klein-inpaint"
+    assert created["kwargs"]["model_config"].model_name == runtime.model_config.model_name
+
+
 def test_load_generation_model_returns_runtime_metadata_for_wan(monkeypatch):
     created = {}
     original_import = importlib.import_module

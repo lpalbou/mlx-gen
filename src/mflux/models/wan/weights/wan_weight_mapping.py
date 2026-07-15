@@ -4,6 +4,50 @@ from mflux.models.common.weights.mapping.weight_transforms import WeightTransfor
 
 class WanWeightMapping:
     @staticmethod
+    def get_vace_block_mapping(num_vace_blocks: int) -> list[WeightTarget]:
+        mapping = [
+            WeightTarget(
+                to_pattern="vace_patch_embedding.weight",
+                from_pattern=["vace_patch_embedding.weight"],
+                transform=WeightTransforms.transpose_conv3d_weight,
+            ),
+            WeightTarget(to_pattern="vace_patch_embedding.bias", from_pattern=["vace_patch_embedding.bias"]),
+        ]
+        for block in range(num_vace_blocks):
+            prefix = f"vace_blocks.{block}"
+            mapping.extend(
+                [
+                    WeightTarget(
+                        to_pattern=f"{prefix}.scale_shift_table", from_pattern=[f"{prefix}.scale_shift_table"]
+                    ),
+                    *WanWeightMapping._attention_mapping(f"{prefix}.attn1"),
+                    *WanWeightMapping._attention_mapping(f"{prefix}.attn2"),
+                    WeightTarget(to_pattern=f"{prefix}.norm2.weight", from_pattern=[f"{prefix}.norm2.weight"]),
+                    WeightTarget(to_pattern=f"{prefix}.norm2.bias", from_pattern=[f"{prefix}.norm2.bias"]),
+                    WeightTarget(
+                        to_pattern=f"{prefix}.ffn.net.0.weight",
+                        from_pattern=[f"{prefix}.ffn.net.0.proj.weight"],
+                    ),
+                    WeightTarget(
+                        to_pattern=f"{prefix}.ffn.net.0.bias",
+                        from_pattern=[f"{prefix}.ffn.net.0.proj.bias"],
+                    ),
+                    WeightTarget(to_pattern=f"{prefix}.ffn.net.1.weight", from_pattern=[f"{prefix}.ffn.net.2.weight"]),
+                    WeightTarget(to_pattern=f"{prefix}.ffn.net.1.bias", from_pattern=[f"{prefix}.ffn.net.2.bias"]),
+                    WeightTarget(to_pattern=f"{prefix}.proj_out.weight", from_pattern=[f"{prefix}.proj_out.weight"]),
+                    WeightTarget(to_pattern=f"{prefix}.proj_out.bias", from_pattern=[f"{prefix}.proj_out.bias"]),
+                ]
+            )
+        # Only block 0 carries the input projection in the reference checkpoint.
+        mapping.extend(
+            [
+                WeightTarget(to_pattern="vace_blocks.0.proj_in.weight", from_pattern=["vace_blocks.0.proj_in.weight"]),
+                WeightTarget(to_pattern="vace_blocks.0.proj_in.bias", from_pattern=["vace_blocks.0.proj_in.bias"]),
+            ]
+        )
+        return mapping
+
+    @staticmethod
     def get_transformer_mapping(num_layers: int = 30) -> list[WeightTarget]:
         mapping = [
             WeightTarget(to_pattern="scale_shift_table", from_pattern=["scale_shift_table"]),
@@ -33,7 +77,9 @@ class WanWeightMapping:
                 to_pattern="condition_embedder.time_proj.weight",
                 from_pattern=["condition_embedder.time_proj.weight"],
             ),
-            WeightTarget(to_pattern="condition_embedder.time_proj.bias", from_pattern=["condition_embedder.time_proj.bias"]),
+            WeightTarget(
+                to_pattern="condition_embedder.time_proj.bias", from_pattern=["condition_embedder.time_proj.bias"]
+            ),
             WeightTarget(
                 to_pattern="condition_embedder.text_embedder.linear_1.weight",
                 from_pattern=["condition_embedder.text_embedder.linear_1.weight"],
@@ -58,7 +104,9 @@ class WanWeightMapping:
             prefix = f"blocks.{layer}"
             mapping.extend(
                 [
-                    WeightTarget(to_pattern=f"{prefix}.scale_shift_table", from_pattern=[f"{prefix}.scale_shift_table"]),
+                    WeightTarget(
+                        to_pattern=f"{prefix}.scale_shift_table", from_pattern=[f"{prefix}.scale_shift_table"]
+                    ),
                     *WanWeightMapping._attention_mapping(f"{prefix}.attn1"),
                     *WanWeightMapping._attention_mapping(f"{prefix}.attn2"),
                     WeightTarget(to_pattern=f"{prefix}.norm2.weight", from_pattern=[f"{prefix}.norm2.weight"]),
@@ -298,18 +346,22 @@ class WanWeightMapping:
 
     @staticmethod
     def _attention_mapping(prefix: str) -> list[WeightTarget]:
-        return [
-            WeightTarget(to_pattern=f"{prefix}.{name}.weight", from_pattern=[f"{prefix}.{name}.weight"])
-            for name in ("to_q", "to_k", "to_v")
-        ] + [
-            WeightTarget(to_pattern=f"{prefix}.{name}.bias", from_pattern=[f"{prefix}.{name}.bias"])
-            for name in ("to_q", "to_k", "to_v")
-        ] + [
-            WeightTarget(to_pattern=f"{prefix}.to_out.0.weight", from_pattern=[f"{prefix}.to_out.0.weight"]),
-            WeightTarget(to_pattern=f"{prefix}.to_out.0.bias", from_pattern=[f"{prefix}.to_out.0.bias"]),
-            WeightTarget(to_pattern=f"{prefix}.norm_q.weight", from_pattern=[f"{prefix}.norm_q.weight"]),
-            WeightTarget(to_pattern=f"{prefix}.norm_k.weight", from_pattern=[f"{prefix}.norm_k.weight"]),
-        ]
+        return (
+            [
+                WeightTarget(to_pattern=f"{prefix}.{name}.weight", from_pattern=[f"{prefix}.{name}.weight"])
+                for name in ("to_q", "to_k", "to_v")
+            ]
+            + [
+                WeightTarget(to_pattern=f"{prefix}.{name}.bias", from_pattern=[f"{prefix}.{name}.bias"])
+                for name in ("to_q", "to_k", "to_v")
+            ]
+            + [
+                WeightTarget(to_pattern=f"{prefix}.to_out.0.weight", from_pattern=[f"{prefix}.to_out.0.weight"]),
+                WeightTarget(to_pattern=f"{prefix}.to_out.0.bias", from_pattern=[f"{prefix}.to_out.0.bias"]),
+                WeightTarget(to_pattern=f"{prefix}.norm_q.weight", from_pattern=[f"{prefix}.norm_q.weight"]),
+                WeightTarget(to_pattern=f"{prefix}.norm_k.weight", from_pattern=[f"{prefix}.norm_k.weight"]),
+            ]
+        )
 
     @staticmethod
     def _resnet_mapping(hf_prefix: str, to_prefix: str) -> list[WeightTarget]:

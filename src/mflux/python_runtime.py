@@ -173,6 +173,7 @@ class _RuntimeGenerationExecutor:
             model_failed = False
             unsubscribe = None
             if progress_callback is not None:
+
                 def on_event(event: ProgressEvent) -> None:
                     nonlocal last_event, model_failed
                     last_event = event
@@ -382,7 +383,7 @@ def resolve_generation_runtime_for_plan(
     base_model: str | None = None,
 ) -> GenerationRuntimePlan:
     resolved_model_config = model_config or _model_config_for_plan(plan=plan, model=model, base_model=base_model)
-    definition = _runtime_definition_for_plan(plan)
+    definition = _runtime_definition_for_plan(plan, model_config=resolved_model_config)
     cache_key_base = _cache_key_base(
         runtime_id=definition.runtime_id,
         model_name=resolved_model_config.model_name,
@@ -515,7 +516,7 @@ def _cache_key_base(*, runtime_id: str, model_name: str, control_model: str | No
     return "::".join(parts)
 
 
-def _runtime_definition_for_plan(plan: GenerationPlan) -> _RuntimeDefinition:
+def _runtime_definition_for_plan(plan: GenerationPlan, model_config: ModelConfig | None = None) -> _RuntimeDefinition:
     if plan.handler_id == "bonsai.generate":
         return _RuntimeDefinition(
             runtime_id="bonsai-image",
@@ -542,6 +543,11 @@ def _runtime_definition_for_plan(plan: GenerationPlan) -> _RuntimeDefinition:
             import_path="mflux.models.fibo.variants.txt2img.fibo.FIBO",
         )
     if plan.handler_id == "wan.generate":
+        if model_config is not None and bool(model_config.transformer_overrides.get("supports_vace", False)):
+            return _RuntimeDefinition(
+                runtime_id="wan-vace",
+                import_path="mflux.models.wan.variants.wan_vace.WanVace",
+            )
         return _RuntimeDefinition(
             runtime_id="wan2.2-ti2v",
             import_path="mflux.models.wan.variants.wan2_2_ti2v.Wan2_2_TI2V",
@@ -572,6 +578,11 @@ def _runtime_definition_for_plan(plan: GenerationPlan) -> _RuntimeDefinition:
             return _RuntimeDefinition(
                 runtime_id="flux2.klein-outpaint",
                 import_path="mflux.models.flux2.variants.edit.flux2_klein_outpaint.Flux2KleinOutpaint",
+            )
+        if plan.capability_id == "flux2.inpaint":
+            return _RuntimeDefinition(
+                runtime_id="flux2.klein-inpaint",
+                import_path="mflux.models.flux2.variants.edit.flux2_klein_inpaint.Flux2KleinInpaint",
             )
         return _RuntimeDefinition(
             runtime_id="flux2.klein-edit",

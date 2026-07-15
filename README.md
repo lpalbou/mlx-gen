@@ -43,7 +43,9 @@ The main capabilities are:
 - text-to-image generation with Qwen Image, FLUX.2 Klein, Z-Image, ERNIE Image Turbo, Bonsai Image,
   FIBO, and their optimized quantized variants where available;
 - image-to-image modes, including latent img2img, instruction/reference edits, multi-reference
-  edits, masked edit/inpaint where the selected model supports `--mask-path`, base-Qwen
+  edits, masked edit/inpaint where the selected model supports `--mask-path` (Qwen edit models,
+  Z-Image Turbo, and FLUX.2 Klein distilled and base models, with optional masked-area reference
+  images on the Klein backend route), base-Qwen
   control-inpaint on the exact validated `AbstractFramework/qwen-image-8bit` row, Qwen structured
   control where the selected model supports `--controlnet-image-path`, Z-Image Turbo native
   inpaint on the exact validated `AbstractFramework/z-image-turbo-8bit` row, and route-specific
@@ -52,10 +54,14 @@ The main capabilities are:
   `--video-mask-path`, which locks everything outside the mask to the source video), including
   TI2V-5B BF16/q8 packages plus A14B T2V/I2V BF16 and mixed q8/BF16 packages; video-to-video
   resamples the source onto the requested fps timeline (output keeps real-time speed) and copies
-  source audio onto the output best-effort; the current public video-to-video route is limited to
-  `Wan2.2-T2V-A14B`, uses one source video plus one prompt, requires `--solver unipc`, and does
-  not include reference images or VACE-style learned conditioning; Wan I2V resolves output size
-  from the source image aspect ratio so inputs are not stretched into a mismatched canvas;
+  source audio onto the output best-effort; the plain/masked video-to-video route is limited to
+  `Wan2.2-T2V-A14B`, uses one source video plus one prompt, and requires `--solver unipc`; Wan
+  I2V resolves output size from the source image aspect ratio so inputs are not stretched into
+  a mismatched canvas;
+- Wan2.1-VACE-1.3B native reference-and-mask conditioning (`wan-vace`): inject a pictured
+  object into a new scene from one or more `--reference-image` inputs, or run learned masked
+  source-video edits, verified stage-by-stage against the diffusers reference with an included
+  proof bundle;
 - SeedVR2 image and video restoration through `mlxgen upscale`, with official 3B/7B source
   support including the dedicated `seedvr2-7b-sharp` route, published q8/q4 packages,
   shortest-edge target sizing, explicit scale factors such as `2x` and `3x`, streamed restore for
@@ -397,7 +403,7 @@ progress callbacks make long runs observable.
 - [Getting started](docs/getting-started.md): installation, first runs, SeedVR2 upscaling, and Wan video.
 - [API and CLI](docs/api.md): command surface, router behavior, image-to-image modes, generative reframe, backend-specific outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.
 - [Image edit modes](docs/image-edit-modes.md): what latent img2img, edit-reference, multi-reference, generative reframe, and outpaint mean in practice, with examples.
-- [Wan video](docs/wan-video.md): practical Wan2.2 T2V/I2V sizing, plain and masked prompt-guided A14B video-to-video with included proof artifacts, a measured motion-fidelity ladder (strength vs gesture preservation), broader A14B target size families, and 5-second M5 Max comparison clips.
+- [Wan video](docs/wan-video.md): practical Wan2.2 T2V/I2V sizing, plain and masked prompt-guided A14B video-to-video with included proof artifacts, the natively ported Wan2.1-VACE-1.3B route (reference-image object injection and learned mask conditioning), a measured motion-fidelity ladder (strength vs gesture preservation), broader A14B target size families, and 5-second M5 Max comparison clips.
 - [Example workflow](docs/examples/spaceship-snow.md): reproducible image and video commands.
 - [Image upscaling](docs/upscaling.md): SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, published five-second Eiffel `1x` and `2x` 3B/7B validation bundles, readable tone-correction labels, and 5x source/output comparisons.
 - [Image edit capabilities](docs/edit-capabilities.md): image-edit contact sheets, exact model/package status, and command logs.

@@ -1140,6 +1140,145 @@ def test_flux2_edit_backend_canvas_options_reject_explicit_size(monkeypatch, tmp
     assert "computes --width and --height" in capsys.readouterr().err
 
 
+def test_flux2_edit_backend_forwards_mask_path_to_masked_edit(monkeypatch, tmp_path):
+    from mflux.models.flux2.cli import flux2_edit_generate
+
+    source = tmp_path / "source.png"
+    reference = tmp_path / "reference.png"
+    mask = tmp_path / "mask.png"
+    output = tmp_path / "out.png"
+    Image.new("RGB", (12, 8), color=(20, 40, 60)).save(source)
+    Image.new("RGB", (12, 8), color=(120, 40, 60)).save(reference)
+    Image.new("L", (12, 8), color=255).save(mask)
+    observed = {}
+
+    class FakeImage:
+        def __init__(self):
+            self.image = Image.new("RGB", (12, 8), color=(0, 255, 0))
+
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+            self.image.save(kwargs["path"])
+
+    class FakeFlux2Inpaint:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_image(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeImage()
+
+    monkeypatch.setattr(flux2_edit_generate, "Flux2KleinInpaint", FakeFlux2Inpaint)
+    monkeypatch.setattr(flux2_edit_generate.CallbackManager, "register_callbacks", lambda **kwargs: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-flux2-edit",
+            "--model",
+            "flux2-klein-4b",
+            "--image-paths",
+            str(source),
+            str(reference),
+            "--mask-path",
+            str(mask),
+            "--prompt",
+            "replace the masked area with the reference object",
+            "--output",
+            str(output),
+        ],
+    )
+
+    flux2_edit_generate.main()
+
+    assert observed["generate"]["mask_path"] == mask
+    assert observed["generate"]["image_path"] == source
+    assert observed["generate"]["reference_image_paths"] == [reference]
+    assert observed["generate"]["guidance"] == 1.0
+
+
+def test_flux2_edit_backend_masked_edit_defaults_to_cfg_guidance_on_base_model(monkeypatch, tmp_path):
+    from mflux.models.flux2.cli import flux2_edit_generate
+
+    source = tmp_path / "source.png"
+    mask = tmp_path / "mask.png"
+    output = tmp_path / "out.png"
+    Image.new("RGB", (12, 8), color=(20, 40, 60)).save(source)
+    Image.new("L", (12, 8), color=255).save(mask)
+    observed = {}
+
+    class FakeImage:
+        def __init__(self):
+            self.image = Image.new("RGB", (12, 8), color=(0, 255, 0))
+
+        def save(self, **kwargs):
+            self.image.save(kwargs["path"])
+
+    class FakeFlux2Inpaint:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_image(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeImage()
+
+    monkeypatch.setattr(flux2_edit_generate, "Flux2KleinInpaint", FakeFlux2Inpaint)
+    monkeypatch.setattr(flux2_edit_generate.CallbackManager, "register_callbacks", lambda **kwargs: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-flux2-edit",
+            "--model",
+            "flux2-klein-base-9b",
+            "--image-paths",
+            str(source),
+            "--mask-path",
+            str(mask),
+            "--prompt",
+            "repair the masked area",
+            "--output",
+            str(output),
+        ],
+    )
+
+    flux2_edit_generate.main()
+
+    assert observed["generate"]["guidance"] == 4.0
+    assert observed["generate"]["reference_image_paths"] is None
+
+
+def test_flux2_edit_backend_rejects_mask_with_outpaint(monkeypatch, tmp_path, capsys):
+    from mflux.models.flux2.cli import flux2_edit_generate
+
+    source = tmp_path / "source.png"
+    mask = tmp_path / "mask.png"
+    Image.new("RGB", (12, 8), color=(20, 40, 60)).save(source)
+    Image.new("L", (12, 8), color=255).save(mask)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-flux2-edit",
+            "--model",
+            "flux2-klein-base-4b",
+            "--image-paths",
+            str(source),
+            "--mask-path",
+            str(mask),
+            "--outpaint-padding",
+            "2,4,2,4",
+            "--prompt",
+            "repair the cockpit",
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        flux2_edit_generate.main()
+
+    assert "cannot be combined" in capsys.readouterr().err
+
+
 def test_routes_flux2_explicit_edit_with_image_to_edit_generation():
     invocation = mlx_gen._resolve_invocation(
         [
@@ -1338,7 +1477,60 @@ def test_image_strength_is_rejected_for_flux2_edit_mode(capsys):
     assert "image-strength is only supported for latent image-to-image mode" in capsys.readouterr().err
 
 
-def test_mask_path_is_rejected_for_flux2_edit_mode(capsys):
+def test_mask_path_routes_flux2_klein_masked_edit():
+    for model in [
+        "AbstractFramework/flux.2-klein-4b-8bit",
+        "AbstractFramework/flux.2-klein-base-9b-8bit",
+        "flux2-klein-4b",
+    ]:
+        invocation = mlx_gen._resolve_invocation(
+            [
+                "--model",
+                model,
+                "--image",
+                "input.png",
+                "--mask-path",
+                "mask.png",
+                "--prompt",
+                "repair the hull",
+            ]
+        )
+
+        assert invocation.target_name == "mflux-generate-flux2-edit"
+        assert invocation.argv == [
+            "mflux-generate-flux2-edit",
+            "--model",
+            model,
+            "--image-paths",
+            "input.png",
+            "--mask-path",
+            "mask.png",
+            "--prompt",
+            "repair the hull",
+        ]
+
+
+def test_mask_path_with_multiple_images_is_rejected_for_flux2(capsys):
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "AbstractFramework/flux.2-klein-4b-8bit",
+                "--image",
+                "input.png",
+                "--image",
+                "reference.png",
+                "--mask-path",
+                "mask.png",
+                "--prompt",
+                "replace the masked object with the reference",
+            ]
+        )
+
+    assert "mask-path is only supported" in capsys.readouterr().err
+
+
+def test_mask_path_is_rejected_with_image_strength_for_flux2(capsys):
     with pytest.raises(SystemExit):
         mlx_gen._resolve_invocation(
             [
@@ -1348,12 +1540,14 @@ def test_mask_path_is_rejected_for_flux2_edit_mode(capsys):
                 "input.png",
                 "--mask-path",
                 "mask.png",
+                "--image-strength",
+                "0.4",
                 "--prompt",
                 "make it cinematic",
             ]
         )
 
-    assert "mask-path is only supported" in capsys.readouterr().err
+    assert "cannot be combined with --mask-path" in capsys.readouterr().err
 
 
 def test_mask_path_routes_qwen_edit_inpaint():

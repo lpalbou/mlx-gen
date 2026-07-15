@@ -10,7 +10,8 @@
 - `README.md`: project overview, install commands, mflux credit, main workflows, published model links, Wan TI2V/A14B notes, and ecosystem links.
 - `docs/README.md`: documentation tree index.
 - `docs/getting-started.md`: install, first download, model preparation, image generation, image editing, SeedVR2 image/video restoration and upscaling, and Wan video examples.
-- `docs/api.md`: public CLI, legacy-command migration boundary, router behavior, task/mode resolution, I2I mode selection and canvas policy, Qwen structured control with `--controlnet-image-path`, generative reframe, backend-specific outpaint with Qwen adaptive source restoration and FLUX.2 Klein base source-locked denoising, SeedVR2 official-source and q8/q4 package usage for 3B/7B, shortest-edge/scale-factor image sizing plus video clip controls, negative prompts including the FLUX.2 exception, Qwen edit-version routing, Wan video sizes, `mlxgen capabilities`, generated-output runtime-memory metadata, and Python routing helpers.
+- `docs/architecture.md`: system overview and model-file lifecycle diagrams, package shape, command boundaries, runtime failure contract, quantization policy, and the Python integration boundary.
+- `docs/api.md`: public CLI, legacy-command migration boundary, router behavior, task/mode resolution, I2I mode selection and canvas policy, masked edit via `--mask-path` including the FLUX.2 Klein `flux2.inpaint` route, Qwen structured control with `--controlnet-image-path`, generative reframe, backend-specific outpaint with Qwen adaptive source restoration and FLUX.2 Klein base source-locked denoising, SeedVR2 official-source and q8/q4 package usage for 3B/7B, shortest-edge/scale-factor image sizing plus video clip controls, negative prompts including the FLUX.2 exception, Qwen edit-version routing, Wan video sizes, `mlxgen capabilities`, generated-output runtime-memory metadata, and Python routing helpers.
 - `docs/image-edit-modes.md`: plain-language guide to latent img2img, edit-reference, masked edit/inpaint, structured control, multi-reference, generative reframe, and outpaint, including what each mode preserves and what to expect from the output.
 - `docs/qwen-route-matrix.md`: current MLX-Gen route truth for Qwen Image and Qwen Image Edit, mapping public `mlxgen` capability ids to the upstream Diffusers Qwen pipeline families and to the proof surfaces that already exist.
 - `docs/qwen-localized-editing.md`: plain-language guide to Qwen localized-edit routes, contrasting masked edit/inpaint, structured control, and shipped base-Qwen control-inpaint, defining ControlNet and “sidecar” in user terms, and linking the accepted proof assets.
@@ -154,6 +155,14 @@ MLX-Gen exposes one public `image-to-image` task, but models can support differe
   composition hold while changing appearance, object state, or scene treatment.
 - `multi-reference`: composition from several reference images. The first image is the geometry
   anchor and later images provide additional style, material, or lighting cues.
+- masked edit / inpaint: localized edit through `--image` plus `--mask-path` on routes that
+  advertise `supports_mask=true`. White mask pixels are repainted and black pixels are preserved.
+  Current mask-capable rows are the Qwen edit models (`qwen.inpaint`), the exact base-Qwen
+  control-inpaint row, the exact Z-Image Turbo row (`z-image.inpaint`), and FLUX.2 Klein
+  distilled and base models (`flux2.inpaint`, a diffusers `Flux2KleinInpaintPipeline` port with
+  per-step source compositing; smoke-validated, and the backend `mflux-generate-flux2-edit`
+  command additionally accepts extra images after the source as masked-area references).
+  `--image-strength` is rejected together with `--mask-path`.
 - `generative reframe`: zoom-out style edit through `--reframe-padding`. It generates a larger
   scene and may redraw subject details inside the original crop.
 - `outpaint`: canvas extension through `--outpaint-padding`. It aims to keep the source region more
@@ -326,7 +335,17 @@ source. Masked video-to-video adds one static image mask via `--video-mask-path`
 region the model may change, black regions are locked to the source video at every denoising step
 and match it up to VAE round-trip precision; masks are binarized at 50% on the latent grid,
 all-black masks fail before model load, and the mask path is recorded in metadata and replayed by
-`--config-from-metadata`. The route rejects reference images and VACE-style controls, and TI2V-5B
+`--config-from-metadata`. The A14B route rejects reference images and VACE-style controls -
+those live on the natively ported `Wan-AI/Wan2.1-VACE-1.3B-diffusers` (`wan-vace`) model:
+`--reference-image` (repeatable) injects a pictured object into a new scene with or without a
+source video (segment the subject onto a plain white background - crops that keep background
+weaken identity transfer and full-scene references lose the subject), `--video-mask-path`
+feeds learned VACE mask conditioning with `--vace-masked-region` selecting the semantics
+(`generate`, the default, gray-fills the editable region per the official VACE inpainting
+convention so the model synthesizes new structure; `repaint` keeps the source content and
+restyles in place), `--conditioning-scale` (default 1.0) controls the branch strength,
+`--video-strength`/`guidance_2` are rejected, and the port is verified stage-by-stage against
+the diffusers reference (proof in docs/assets/validation/wan-vace-2026-07-06/). TI2V-5B
 and I2V-A14B reject `--video-path`. The exact reproducible proof command and included artifacts
 live in `docs/wan-video.md` and `docs/assets/examples/spaceship-v2v/`.
 

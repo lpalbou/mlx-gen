@@ -197,8 +197,12 @@ Use `mlxgen capabilities --model <model>` to check whether a model supports late
 edit/reference image-to-image, or multi-reference image-to-image. `--image-strength` is for latent
 img2img variation only; edit/reference models do not use it.
 
-If you are choosing between latent restyle, instruction edit, multi-reference composition,
-generative reframe, and outpaint, see [Image Edit Modes](image-edit-modes.md).
+For a localized edit, add `--mask-path mask.png` on a model that supports masked edit (Qwen edit
+models, Z-Image Turbo, and FLUX.2 Klein distilled and base models): white mask pixels are
+repainted and black pixels are preserved. `--image-strength` cannot be combined with a mask.
+
+If you are choosing between latent restyle, instruction edit, masked edit, multi-reference
+composition, generative reframe, and outpaint, see [Image Edit Modes](image-edit-modes.md).
 
 LoRA support is route-specific. Use the same capabilities command before LoRA runs. LoRA adapters
 must match the selected model family and route, and a visible source/no-LoRA/with-LoRA comparison

@@ -5,7 +5,58 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.20.0] - 2026-07-15
+
+This release ships two image/video editing expansions: the natively ported Wan2.1-VACE-1.3B
+conditioning route and FLUX.2 Klein masked edit.
+
+### Added
+
+- **FLUX.2 Klein masked edit / inpaint** (`--mask-path` on all FLUX.2 Klein image-to-image
+  routes, distilled and base): localized edits that repaint white mask pixels and preserve
+  black pixels through per-step latent compositing, ported from the diffusers
+  `Flux2KleinInpaintPipeline` semantics (clean source latents ride along as conditioning
+  tokens at reserved grid coordinates; the mask is binarized at pixel resolution and then
+  bilinear-interpolated to the packed latent grid with torch-`F.interpolate` parity).
+  Unified `mlxgen generate --image ... --mask-path ...` selects the new `flux2.inpaint`
+  capability (one source image; `--image-strength` stays rejected with a mask). The backend
+  `mflux-generate-flux2-edit` command and the Python `Flux2KleinInpaint` runtime additionally
+  accept extra images as masked-area references (diffusers `image_reference` parity: source
+  conditioning at t=10, references at t=20+). Base Klein models default to guidance 4.0 with
+  true CFG on this route; distilled Klein models stay at guidance 1.0. The route is
+  smoke-validated on the exact `AbstractFramework/flux.2-klein-4b-8bit` and
+  `flux.2-klein-base-4b-8bit` packages (masked lens recolor: mean abs pixel diff 2.37/255
+  outside the mask vs 55.93/255 inside, plus a reference-conditioned fill case); a published
+  visual-QA proof row remains follow-up work, so `mlxgen validation` does not yet list
+  masked-edit rows for Klein packages.
+
+- **Native Wan2.1-VACE-1.3B port** (`Wan-AI/Wan2.1-VACE-1.3B-diffusers`, alias `wan-vace` -
+  VACE only exists as a Wan2.1 release; this is the runtime's first Wan2.1 model):
+  reference-image-guided generation (`--reference-image`, repeatable - inject a pictured
+  object/subject into a new scene) and learned masked source-video editing
+  (`--video-path` + `--video-mask-path`), with `--conditioning-scale` controlling the VACE
+  branch strength. Single-transformer Wan2.1 backbone with 15 VACE control blocks, shared
+  UMT5/wan21-VAE/UniPC runtime; `--video-strength` and `guidance_2` are rejected on VACE
+  models (no SDEdit warm start, no boundary routing), and the planner reports the
+  capability accordingly. `--vace-masked-region` selects the masked-edit semantics:
+  `generate` (default) gray-fills the editable region per the official VACE inpainting
+  convention so the model synthesizes new structure there; `repaint` keeps the source
+  content as conditioning for restyle-in-place edits (both recorded in metadata and
+  replayed). Ported stage-by-stage against the diffusers reference: mask-channel
+  preparation and the UniPC schedule are bit-exact, transformer deltas sit at the model's
+  intrinsic fp32 sensitivity floor (verified by a noise-injection probe), and the bounded
+  CFG-loop error matches the analytic guidance amplification model. Capability proof bundle
+  in `docs/assets/validation/wan-vace-2026-07-06/` with request/inputs/output panels and
+  controls: a masked object REPLACEMENT judged against strict vision criteria (generate
+  mode: silhouette IoU vs source 0.16-0.20 where repaints measure 0.73-0.88, in-mask change
+  63.8 vs a 3.8-3.9 codec-floor background; repaint mode restyles in place at IoU 0.80-0.88;
+  the upstream pipeline fed un-blanked inputs fails identically to repaint while drifting
+  the whole frame, 2161 s CPU), a reference-injection identity proof via a same-seed
+  no-reference control (segmented subject on white transfers; crops and full-scene
+  references measurably fail - documented as user guidance), a flag-free defaults run
+  (832x480x81f/30 steps: 1 h 56 min, 31.7 GiB peak), and the bf16 + fp32 parity
+  comparisons; parity tools in `tools/wan_vace_parity_export.py` /
+  `tools/wan_vace_parity_compare.py`.
 
 ## [0.19.0] - 2026-07-06
 

@@ -75,6 +75,14 @@ class CompletionGenerator:
                 help="Local paths to one or more init images. For single image editing, provide one path. For multiple image editing, provide multiple paths.",
             )
             parser.add_argument(
+                "--mask-path",
+                "--masked-image-path",
+                dest="mask_path",
+                type=Path,
+                default=None,
+                help="Optional mask image path for localized FLUX.2 Klein masked edit.",
+            )
+            parser.add_argument(
                 "--reframe-padding",
                 default=None,
                 help="CSS-style top,right,bottom,left padding for generative reframe.",

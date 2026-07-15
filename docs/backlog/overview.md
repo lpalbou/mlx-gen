@@ -13,7 +13,7 @@ outside chat history.
 | --- | ---: |
 | Planned | 15 |
 | Proposed | 16 |
-| Completed | 42 |
+| Completed | 43 |
 | Deprecated | 1 |
 | Recurrent | 1 |
 
@@ -91,6 +91,33 @@ promote richer VACE conditioning into the public runtime yet.
    documented with a copy-pasteable motion-preserving recipe in `docs/wan-video.md`, a paired
    Lightning-point control showing prompt language recovers the class of motion but not its
    timing, and a committed proof mirror under `docs/assets/validation/motion-ladder-2026-07-05/`.
+8. Finished [Wan2.1-VACE-1.3B native MLX port](completed/0080_wan_vace_1_3b_native_port.md)
+   so `wan-vace` ships reference-image object injection and learned masked source-video
+   editing natively (parity proven stage-by-stage against the diffusers reference: mask
+   preparation and UniPC bit-exact, transformer at the measured fp32 noise floor), with
+   capability proofs that carry their own controls - a masked object replacement in the
+   default generate mode (in-mask change 63.8 against a codec-floor background, 1027 s;
+   repaint mode restyles in place, 239 s; the upstream pipeline on un-blanked inputs fails
+   to replace and re-renders the whole frame, 2161 s CPU) and a reference-injection identity
+   ablation (segmented subject transfers; same seed without the reference gives an unrelated
+   ship) - in a committed proof mirror under `docs/assets/validation/wan-vace-2026-07-06/`.
+
+## Completed FLUX.2 Klein masked edit
+
+The 2026-07-15 pass ported the upstream diffusers `Flux2KleinInpaintPipeline` semantics onto
+the existing FLUX.2 Klein family so `--mask-path` works on distilled and base Klein rows
+through unified `mlxgen generate`, with optional masked-area reference images on the backend
+command and Python API.
+
+1. Finished [FLUX.2 Klein masked edit / inpaint](completed/0081_flux2_klein_masked_edit.md)
+   so the new `flux2.inpaint` capability composites unmasked latents from the re-noised
+   clean source every step while the clean source rides along as conditioning tokens
+   (t=10, references at t=20+), with torch-parity bilinear mask downsampling onto the
+   packed latent grid, adversarial-subagent review (one major guidance-default finding
+   fixed pre-smoke), and model-backed q8 smoke proofs (distilled 4-step guidance-1, base
+   8-step CFG guidance-4, and a reference-conditioned plaid-fill case) preserved locally in
+   `validation_outputs/flux2-klein-inpaint-smoke/`. Published visual-QA proof rows remain a
+   follow-up before any exact package claims a validated masked-edit row.
 
 ## Completed audit hardening band
 
@@ -377,6 +404,7 @@ memory follow-up state.
 | 0073 | [Wan VACE reference validation harness and bounded source cases](completed/0073_wan_vace_reference_validation_harness_and_bounded_source_cases.md) | Video editing, Wan VACE, reference proof, memory | 2026-07-03 | Added a repeatable upstream VACE probe with preserved artifacts and memory metrics, then proved that the bounded `Wan2.1-VACE-1.3B` MPS path runs locally but did not meet a release-quality visual bar on the portrait and ship cases. |
 | 0074 | [Wan plain generative video-to-video route](completed/0074_wan_plain_generative_video_to_video_route.md) | Video editing, public task surface, Wan runtime | 2026-07-03 | Shipped the bounded public Wan `video-to-video` route on `Wan2.2-T2V-A14B`, kept non-V2V Wan rows fail-closed, required `unipc` on the public V2V surface, aligned source-video conditioning with float32 warm-start prep, and preserved a model-backed ship-edit proof bundle. |
 | 0076 | [Wan masked video-to-video via latent compositing](completed/0076_wan_masked_video_to_video_latent_compositing.md) | Video editing, masked conditioning, Wan runtime, planner roles | 2026-07-04 | Shipped `--video-mask-path` masked video-to-video on the existing A14B route with per-step latent plus UniPC-state compositing, exact background preservation at the measured H.264 floor (drift 1.7 vs 14.9 unmasked), typed planner role, replayable metadata, and an in-repo conference proof bundle. |
+| 0081 | [FLUX.2 Klein masked edit / inpaint](completed/0081_flux2_klein_masked_edit.md) | Image edit, FLUX.2 Klein, mask-based inpaint | 2026-07-15 | Ported the diffusers `Flux2KleinInpaintPipeline` semantics onto the Klein family: new `flux2.inpaint` capability with per-step source compositing and clean-source conditioning tokens, torch-parity bilinear mask downsampling, optional masked-area reference images on the backend/Python surface, adversarial review, and local q8 smoke proofs (published visual-QA rows remain follow-up). |
 
 ## Deprecated ledger
 

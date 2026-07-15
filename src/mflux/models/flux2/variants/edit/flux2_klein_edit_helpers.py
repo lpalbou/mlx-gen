@@ -9,11 +9,32 @@ from mflux.models.flux2.latent_creator.flux2_latent_creator import Flux2LatentCr
 from mflux.models.flux2.model.flux2_text_encoder.prompt_encoder import Flux2PromptEncoder
 from mflux.models.flux2.model.flux2_text_encoder.qwen3_text_encoder import Qwen3TextEncoder
 from mflux.models.flux2.model.flux2_vae.vae import Flux2VAE
+from mflux.utils.mask_util import MaskUtil
 from mflux.utils.outpaint_util import OutpaintCanvas
 
 
 class _Flux2KleinEditHelpers:
     CONDITION_TARGET_AREA = 1024 * 1024
+
+    @staticmethod
+    def is_base_model(model_config) -> bool:
+        model_name_lower = model_config.model_name.lower()
+        base_model_lower = (model_config.base_model or "").lower()
+        return "klein-base" in model_name_lower or "klein-base" in base_model_lower
+
+    @staticmethod
+    def validate_guidance(*, model_config, guidance: float) -> None:
+        if guidance == 1.0:
+            return
+        if _Flux2KleinEditHelpers.is_base_model(model_config):
+            return
+        raise ValueError("guidance > 1.0 is only supported for FLUX.2 Klein base models.")
+
+    @staticmethod
+    def default_guidance(model_config) -> float:
+        # Base models run true CFG like the source-locked outpaint route; distilled Klein
+        # models are step-distilled and must stay at guidance 1.0.
+        return 4.0 if _Flux2KleinEditHelpers.is_base_model(model_config) else 1.0
 
     @staticmethod
     def encode_text(
@@ -41,7 +62,7 @@ class _Flux2KleinEditHelpers:
         return latent_height, latent_width
 
     @staticmethod
-    def build_latent_ids_grid(batch_size: int, latent_height: int, latent_width: int) -> mx.array:
+    def build_latent_ids_grid(batch_size: int, latent_height: int, latent_width: int, t_coord: int = 0) -> mx.array:
         h_ids = mx.arange(latent_height, dtype=mx.int32)
         w_ids = mx.arange(latent_width, dtype=mx.int32)
         h_grid = mx.broadcast_to(mx.expand_dims(h_ids, axis=1), (latent_height, latent_width))
@@ -49,7 +70,7 @@ class _Flux2KleinEditHelpers:
 
         flat_h = h_grid.reshape(-1)
         flat_w = w_grid.reshape(-1)
-        t = mx.zeros_like(flat_h)
+        t = mx.full(flat_h.shape, t_coord, dtype=mx.int32)
         layer_ids = mx.zeros_like(flat_h)
 
         coords = mx.stack([t, flat_h, flat_w, layer_ids], axis=1)
@@ -121,6 +142,7 @@ class _Flux2KleinEditHelpers:
         height: int,
         width: int,
         batch_size: int = 1,
+        t_coord_start: int = 10,
     ):
         if not image_paths:
             return None, None
@@ -143,7 +165,7 @@ class _Flux2KleinEditHelpers:
             encoded = _Flux2KleinEditHelpers.bn_normalize_vae_encoded_latents(encoded, vae=vae)
 
             packed_latents_list.append(Flux2LatentCreator.pack_latents(encoded))
-            ids_list.append(Flux2LatentCreator.prepare_grid_ids(encoded, t_coord=10 + 10 * i))
+            ids_list.append(Flux2LatentCreator.prepare_grid_ids(encoded, t_coord=t_coord_start + 10 * i))
 
         image_latents = mx.concatenate(packed_latents_list, axis=1)
         image_latent_ids = mx.concatenate(ids_list, axis=1)
@@ -156,6 +178,78 @@ class _Flux2KleinEditHelpers:
             )
 
         return image_latents, image_latent_ids
+
+    @staticmethod
+    def prepare_inpaint_source_conditioning(
+        *,
+        packed_source_latents: mx.array,
+        height: int,
+        width: int,
+        batch_size: int = 1,
+        t_coord: int = 10,
+    ) -> tuple[mx.array, mx.array]:
+        # The clean source latents double as reference conditioning tokens (diffusers Klein
+        # inpaint feeds the encoded init image as clean context at every denoising step).
+        latent_height, latent_width = _Flux2KleinEditHelpers.latent_grid_from_image_size(height, width)
+        source_ids = _Flux2KleinEditHelpers.build_latent_ids_grid(
+            batch_size=batch_size,
+            latent_height=latent_height,
+            latent_width=latent_width,
+            t_coord=t_coord,
+        )
+        source_latents = packed_source_latents
+        if source_latents.shape[0] != batch_size:
+            source_latents = mx.broadcast_to(
+                source_latents, (batch_size, source_latents.shape[1], source_latents.shape[2])
+            )
+        return source_latents, source_ids
+
+    @staticmethod
+    def prepare_inpaint_mask(
+        *,
+        mask_path: Path | str,
+        height: int,
+        width: int,
+        batch_size: int = 1,
+    ) -> mx.array:
+        # Diffusers Klein inpaint parity: resize to pixel resolution with the VaeImageProcessor
+        # default LANCZOS filter, binarize, then bilinear-interpolate directly to the packed
+        # latent grid (torch F.interpolate semantics) so most cells stay hard while true
+        # boundary cells keep soft values.
+        latent_height = height // 16
+        latent_width = width // 16
+        binary_mask = MaskUtil.load_binary_mask(
+            mask_path,
+            target_width=width,
+            target_height=height,
+            resampling=Image.Resampling.LANCZOS,
+            alpha_warning_context="FLUX.2 Klein inpaint mask",
+        )
+        latent_mask = MaskUtil.interpolate_bilinear(
+            binary_mask,
+            target_height=latent_height,
+            target_width=latent_width,
+        )
+        mask_array = mx.array(latent_mask).reshape(1, latent_height * latent_width, 1)
+        if batch_size > 1:
+            mask_array = mx.broadcast_to(mask_array, (batch_size, mask_array.shape[1], mask_array.shape[2]))
+        return mask_array
+
+    @staticmethod
+    def preserved_source_latents(
+        *,
+        clean_latents: mx.array,
+        noise_latents: mx.array,
+        sigmas: mx.array,
+        timestep: int,
+    ) -> mx.array:
+        if timestep + 1 >= len(sigmas) - 1:
+            return clean_latents
+        return LatentCreator.add_noise_by_interpolation(
+            clean=clean_latents,
+            noise=noise_latents,
+            sigma=sigmas[timestep + 1],
+        )
 
     @staticmethod
     def prepare_outpaint_edit_mask(

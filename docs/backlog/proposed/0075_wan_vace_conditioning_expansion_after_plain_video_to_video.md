@@ -28,6 +28,12 @@ role contract, stricter validation, and more memory-sensitive proof.
   video-to-video via native latent compositing (`--video-mask-path`) is shipped separately
   ([0076](../completed/0076_wan_masked_video_to_video_latent_compositing.md)). The planner has
   typed video roles (`video_count`, `has_video_strength`, `has_video_mask`).
+- Updated 2026-07-06: the Wan2.1-VACE-1.3B native port shipped
+  ([0080](../completed/0080_wan_vace_1_3b_native_port.md)): reference images
+  (`--reference-image`) and learned VACE mask conditioning are live on `wan-vace`. Remaining
+  scope for this item narrows to: control conditions (pose/depth), soft/per-frame masks,
+  multi-reference and identity proof cases, the 14B VACE checkpoint, and q8 policy for the
+  VACE projections.
 - This item now covers only the remaining VACE-specific surface: reference images, control
   conditioning, and learned (non-composite) mask conditioning via dedicated VACE weights.
 - Local reference evidence for VACE remains blocked on a trustworthy reference runtime for

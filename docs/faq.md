@@ -279,6 +279,13 @@ The current exact public proof rows are:
 - `AbstractFramework/qwen-image-8bit` on `qwen.control-inpaint`
 - `AbstractFramework/z-image-turbo-8bit` on `z-image.inpaint`
 
+FLUX.2 Klein models (distilled and base) also accept `--mask-path` through the `flux2.inpaint`
+route (diffusers `Flux2KleinInpaintPipeline` port, currently smoke-validated rather than a
+published proof row). Distilled Klein runs masked edits in 4 steps at guidance 1; base Klein
+defaults to guidance 4 with true CFG. On the backend `mflux-generate-flux2-edit` command, extra
+`--image-paths` after the source act as references for the masked area, for example "replace
+the masked object with the one in the second image".
+
 The recommended fast public Qwen masked-edit path uses the dedicated
 `lightx2v/Qwen-Image-Edit-2511-Lightning` adapter:
 
@@ -773,7 +780,9 @@ Limits that matter:
 - the source is resampled onto the `--fps` timeline, so the output keeps real-time speed;
   requesting an fps above the source duplicates frames (a warning says so); matching fps passes
   frames through untouched, and metadata records `source_video_resampled`;
-- this does not accept extra reference images or VACE-style controls;
+- the A14B route does not accept extra reference images or VACE-style controls - for
+  reference-image injection and learned mask conditioning use the natively ported
+  `wan-vace` model (see [Wan Video](wan-video.md#vace-reference-images-and-learned-mask-conditioning));
 - source frames are stretched to the requested canvas, so match the aspect ratio to the source;
 - TI2V-5B and I2V-A14B do not currently accept `--video-path`.
 

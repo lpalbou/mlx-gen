@@ -152,7 +152,8 @@ Route rules:
 - use `--video-mask-path` when you want the background locked to the source (see
   [Masked Video-To-Video](#masked-video-to-video) below);
 - do not expect reference images, control videos, SeedVR2-style restore/upscale behavior, or
-  VACE-style learned conditioning on this route;
+  VACE-style learned conditioning on this A14B route - those live on the natively ported
+  `wan-vace` model (see [VACE](#vace-reference-images-and-learned-mask-conditioning) below);
 - do not expect TI2V-5B or I2V-A14B to accept source-video input on the public CLI.
 
 ## Masked Video-To-Video
@@ -208,6 +209,123 @@ video-to-video) to `1.7` mean per-pixel delta - at the measured H.264 re-encode 
 meaning preserved regions are indistinguishable from a lossless copy of the source. The edited
 region still changed strongly (delta `23.4`), so the man -> woman edit went through. Overhead
 versus plain video-to-video is negligible (three elementwise blends per step).
+
+## VACE: Reference Images And Learned Mask Conditioning
+
+`Wan-AI/Wan2.1-VACE-1.3B-diffusers` (alias `wan-vace`) is a natively ported single-transformer
+Wan2.1 model with VACE conditioning blocks: instead of the SDEdit warm start that plain
+video-to-video uses, VACE feeds the source video, the mask, and optional reference images
+through learned control layers at every denoising step.
+
+Why a Wan2.1 model: VACE is a Wan2.1-generation release - the only official Wan-AI VACE
+checkpoints are `Wan2.1-VACE-1.3B` and `Wan2.1-VACE-14B`; there is no official Wan2.2 VACE
+(the community `alibaba-pai/Wan2.2-VACE-Fun-A14B` is a third-party fine-tune in the 64 GB
+class). The 1.3B checkpoint is the small official rung and the first Wan2.1 model in this
+runtime; it reuses the same Wan2.1 16-channel VAE and UMT5-XXL encoder the A14B route already
+ships, so the port adds the VACE control blocks rather than a new stack.
+
+VACE buys two things the A14B routes cannot do:
+
+- **Reference-image object injection**: pass `--reference-image object.png` (repeatable) with a
+  text prompt and no source video, and the model generates a new scene containing the pictured
+  subject. Reference preparation decides whether this works: SEGMENT the subject onto a plain
+  white background (the format the official VACE examples use). A rectangular crop that keeps
+  background gives only a style-level match, and a full-scene reference loses the subject
+  entirely - both failure modes are demonstrated in the proof bundle, and the identity claim
+  is backed by a same-seed no-reference control.
+- **Learned masked editing**: pass `--video-path` + `--video-mask-path` and the white region is
+  re-synthesized under prompt + reference guidance while the black region conditions the
+  result through the VACE branch (a learned preserve, unlike the exact latent lock of masked
+  A14B video-to-video; combine with the A14B masked route when you need codec-floor
+  preservation).   `--vace-masked-region` selects what the model sees inside the white region:
+  - `generate` (default): the region is gray-filled before conditioning, following the
+    official VACE inpainting convention ("gray = missing part"). The model synthesizes new
+    structure there - use this to REPLACE or substantially transform an object (measured on
+    the bundle case: silhouette IoU vs source 0.16-0.20 with in-mask change 63.8, against a
+    3.8-3.9 codec-floor background).
+  - `repaint`: the source content is kept as conditioning, so structure and motion are
+    preserved and only style/color/materials change (measured: silhouette IoU 0.80-0.88,
+    in-mask 14-17). Use this for recolor/restyle-in-place edits.
+  Keep the mask a TIGHT corridor around the object's trajectory: an over-wide mask hands the
+  model scenery it will re-render (a wide-mask iteration in the proof bundle recolored a
+  cliff top that sat inside the editable region). The mask contract is the same as
+  elsewhere: one static image, binarized at 50% - soft or per-frame masks are not part of
+  the public surface yet. Do NOT also pass the source frame as `--reference-image` when
+  asking for a change: a self-reference anchors the subject to its current appearance and
+  suppresses the edit even in repaint mode (measured: in-mask change dropped from ~15-17 to
+  ~8-11).
+
+Route contract:
+
+- `--reference-image` and `--conditioning-scale` are backend flags on `mlxgen-generate-wan`
+  (the `mlxgen generate` router forwards them unchanged);
+- `--solver unipc` only; `--video-strength` is rejected (no SDEdit warm start);
+- `--conditioning-scale` (default `1.0`) scales the VACE branch at every control layer:
+  higher values push the output harder toward the source video/mask/reference conditioning,
+  lower values give the text prompt more freedom;
+- 480p-class canvases (`832x480` / `480x832`; the 1.3B checkpoint is unstable at 720p per its
+  model card); defaults: 81 frames, 30 steps, guidance 5.0, fps 16;
+- reference images and `--conditioning-scale` are recorded in metadata and replayed by
+  `--config-from-metadata`;
+- measured cost (BF16, `--low-ram`, M-series 128 GB host): 448x256x17f/16 steps = 239 s at
+  ~11-12 GiB peak; 832x480x17-33f/20 steps = ~10-24 min at ~19-26 GiB; the flag-free
+  defaults (832x480x81f/30 steps) = 1 h 56 min at 31.7 GiB - iterate at 17-33 frames and
+  scale up when the composition is right.
+
+What reference injection looks like end to end - the reference image (subject segmented onto
+white) is the ONLY visual input, the ocean scene is invented from the text, and the control
+row shows the same seed WITHOUT the reference producing an unrelated ship - the reference
+branch, not the prompt, carries the identity:
+
+![Reference injection: segmented reference, output with reference, same-seed control without](assets/validation/wan-vace-2026-07-06/proof_reference_injection_panel.png)
+
+Reference-injection example (this exact command produced the "with reference" row above; the
+control row is the same command without `--reference-image`):
+
+```sh
+mlxgen-generate-wan --model Wan-AI/Wan2.1-VACE-1.3B-diffusers \
+  --reference-image ship_segmented_on_white.png \
+  --prompt "The starship from the reference image flying low over a calm turquoise ocean at golden sunset, side view, large in frame, cinematic tracking shot, photorealistic" \
+  --negative-prompt "duplicate ships, warped hull, washed out frame, blown highlights, tiny distant object" \
+  --width 832 --height 480 --frames 17 --fps 16 --steps 20 --guidance 5.0 \
+  --seed 4242 --low-ram --metadata --output ship_over_ocean.mp4
+```
+
+And the documented failure mode - the same request with a full-scene reference instead of a
+segmented subject loses the subject entirely (effectively a text-to-video result):
+
+![Failure mode: full-scene reference input and failed output](assets/validation/wan-vace-2026-07-06/proof_reference_failure_panel.png)
+
+What a masked edit looks like end to end - request, inputs (source video + mask), and both
+mode outputs in one panel; the red overlay marks the only region the model may change.
+GENERATE mode replaces the ship with a new vehicle; REPAINT mode restyles the existing one in
+place. Same seed and source clip; the repaint row comes from its own earlier run with the
+wider union mask (16 steps, guidance 3.5), as the panel caption states:
+
+![Masked edit: request, source video, mask, generate-mode and repaint-mode outputs](assets/validation/wan-vace-2026-07-06/proof_masked_edit_panel.png)
+
+Masked-edit example (this exact command produced the generate-mode row above; pass
+`--vace-masked-region repaint` to restyle in place instead of replacing):
+
+```sh
+mlxgen-generate-wan --model Wan-AI/Wan2.1-VACE-1.3B-diffusers \
+  --video-path source.mp4 \
+  --video-mask-path ship_trajectory_corridor_mask.png \
+  --prompt "Keep the same icy cliffs, snow haze, soft sunrise lighting, and lift-off camera motion. A massive bulky smuggler starship, wider and longer than the frame center, gritty weathered matte metal hull with a bright circular rear reactor and two side engine nacelles, rises steadily off the snow gaining altitude through the clip, photorealistic, film grain." \
+  --negative-prompt "duplicate ships, warped hull, melted nacelles, unreadable reactor, washed out frame, blown highlights, iridescent, rainbow highlights, stylized, toon, painterly" \
+  --width 448 --height 256 --fps 10 --frames 17 --steps 24 --guidance 5.0 \
+  --seed 7302 --low-ram --metadata --output edited.mp4
+```
+
+Full proof bundle (parity evidence, request/inputs/output panels with controls, the upstream
+same-inputs A/B, exact commands, timings, the flag-free defaults-run cost, and the documented
+first-attempt pitfalls - self-reference suppressing edits, unsegmented references diluting
+identity): [wan-vace-2026-07-06](assets/validation/wan-vace-2026-07-06/README.md). The port
+is verified stage-by-stage against the diffusers reference: bit-exact mask preparation and
+scheduler, transformer deltas at the model's intrinsic fp32 noise floor.
+
+Not yet demonstrated (honest gaps tracked in backlog 0080): person/identity injection and
+multi-reference generations (unit-verified only).
 
 ## Fast Video-To-Video With Lightning
 

@@ -19,7 +19,7 @@ from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.cli.seed_values import resolve_seed_values
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.lora.mapping.lora_loader import LoRALoader
-from mflux.models.wan.variants import Wan2_2_TI2V
+from mflux.models.wan.variants import Wan2_2_TI2V, WanVace
 from mflux.utils.exceptions import ModelConfigError, PromptFileReadError
 from mflux.utils.prompt_util import PromptUtil
 from mflux.utils.runtime_memory import RuntimeMemory
@@ -49,7 +49,9 @@ def main() -> None:
         _apply_model_defaults(args, model_config, provided_options)
         _validate_model_runtime_args(args=args, model_config=model_config)
         _apply_runtime_memory_options(args)
-        model = Wan2_2_TI2V(
+        is_vace = bool(model_config.transformer_overrides.get("supports_vace", False))
+        model_class = WanVace if is_vace else Wan2_2_TI2V
+        model = model_class(
             model_config=model_config,
             quantize=args.quantize,
             model_path=model_path,
@@ -75,7 +77,7 @@ def main() -> None:
             prompt = ""
             try:
                 prompt = PromptUtil.read_prompt(args)
-                video = model.generate_video(
+                generate_kwargs = dict(
                     seed=seed,
                     prompt=prompt,
                     width=args.width,
@@ -102,6 +104,13 @@ def main() -> None:
                     clear_cache_each_transformer_block=args.low_ram,
                     tensor_health_check_interval=args.tensor_health_check_interval,
                 )
+                if is_vace:
+                    generate_kwargs["reference_image_paths"] = args.reference_image_paths
+                    if args.conditioning_scale is not None:
+                        generate_kwargs["conditioning_scale"] = args.conditioning_scale
+                    if args.vace_masked_region is not None:
+                        generate_kwargs["masked_region_mode"] = args.vace_masked_region
+                video = model.generate_video(**generate_kwargs)
                 cli_print(f"Saving video to: {output_path}", json_events=bool(args.json_events))
                 events.emit_save(task=getattr(video, "task", None))
                 _emit_cli_video_progress(progress, phase="save", video=video)
@@ -224,8 +233,37 @@ def _parser() -> argparse.ArgumentParser:
         "--video-mask-path",
         default=None,
         help=(
-            "Static image mask for masked Wan video-to-video. White marks the region the model may "
-            "change; black regions are preserved exactly from the source video. Requires --video-path."
+            "Mask for masked Wan video-to-video. White marks the region the model may change; "
+            "black regions are preserved from the source video. Takes a static image, or - on Wan "
+            "VACE models - an animated mask video whose per-frame trajectory carries the object's "
+            "motion into the conditioning. Requires --video-path."
+        ),
+    )
+    parser.add_argument(
+        "--reference-image",
+        dest="reference_image_paths",
+        action="append",
+        default=None,
+        help=(
+            "Reference image for Wan VACE models: injects the pictured subject/object into the "
+            "generation. Repeatable. Only supported on VACE model configs."
+        ),
+    )
+    parser.add_argument(
+        "--conditioning-scale",
+        type=float,
+        default=None,
+        help="Wan VACE conditioning strength applied to every VACE layer. Default: 1.0.",
+    )
+    parser.add_argument(
+        "--vace-masked-region",
+        choices=["generate", "repaint"],
+        default=None,
+        help=(
+            "Wan VACE only: what the model sees inside the white mask region. 'generate' "
+            "(default) gray-fills it per the official VACE inpainting convention, freeing the "
+            "model to synthesize new structure; 'repaint' keeps the source content as "
+            "conditioning, preserving structure and changing style/color only."
         ),
     )
     parser.add_argument(
@@ -379,6 +417,15 @@ def _apply_metadata_defaults(args: argparse.Namespace) -> set[str]:
     if args.video_mask_path is None and metadata.get("video_mask_path") is not None:
         args.video_mask_path = metadata.get("video_mask_path")
         provided_options.add("--video-mask-path")
+    if args.reference_image_paths is None and metadata.get("reference_image_paths"):
+        args.reference_image_paths = list(metadata.get("reference_image_paths"))
+        provided_options.add("--reference-image")
+    if args.conditioning_scale is None and metadata.get("conditioning_scale") is not None:
+        args.conditioning_scale = float(metadata.get("conditioning_scale"))
+        provided_options.add("--conditioning-scale")
+    if args.vace_masked_region is None and metadata.get("masked_region_mode") is not None:
+        args.vace_masked_region = str(metadata.get("masked_region_mode"))
+        provided_options.add("--vace-masked-region")
     return provided_options
 
 
@@ -410,6 +457,7 @@ def _validate_args(parser: argparse.ArgumentParser, args: argparse.Namespace) ->
 
 
 def _validate_model_runtime_args(*, args: argparse.Namespace, model_config: ModelConfig) -> None:
+    is_vace = bool(model_config.transformer_overrides.get("supports_vace", False))
     if args.image_path is not None and not bool(
         model_config.transformer_overrides.get("supports_image_to_video", True)
     ):
@@ -420,16 +468,62 @@ def _validate_model_runtime_args(*, args: argparse.Namespace, model_config: Mode
         raise ValueError(f"{model_config.model_name} does not support video-to-video input.")
     if args.video_path is not None and args.solver is not None and str(args.solver).strip().lower() != "unipc":
         raise ValueError("Wan video-to-video currently requires --solver unipc.")
+    if args.reference_image_paths and not is_vace:
+        raise ValueError(
+            f"--reference-image requires a Wan VACE model config; {model_config.model_name} does not support it."
+        )
+    if args.conditioning_scale is not None and not is_vace:
+        raise ValueError(
+            f"--conditioning-scale requires a Wan VACE model config; {model_config.model_name} does not support it."
+        )
+    if args.vace_masked_region is not None and not is_vace:
+        raise ValueError(
+            f"--vace-masked-region requires a Wan VACE model config; {model_config.model_name} does not support it."
+        )
+    if is_vace and args.video_strength is not None:
+        raise ValueError(
+            "--video-strength is not supported on Wan VACE models: VACE has no SDEdit warm start. "
+            "Use --video-mask-path and --conditioning-scale to control the edit."
+        )
+    if args.reference_image_paths:
+        for path in args.reference_image_paths:
+            _probe_reference_image(image_path=path)
     if args.video_path is not None:
         _probe_source_video(video_path=args.video_path, requested_frames=args.frames, requested_fps=args.fps)
     if args.video_mask_path is not None:
-        _probe_video_mask(mask_path=args.video_mask_path)
+        _probe_video_mask(mask_path=args.video_mask_path, is_vace=is_vace)
 
 
-def _probe_video_mask(*, mask_path: str) -> None:
+def _probe_reference_image(*, image_path: str) -> None:
+    from PIL import Image
+
+    try:
+        with Image.open(image_path) as image:
+            image.verify()
+    except Exception as exc:
+        raise ValueError(f"--reference-image is not a readable image: {image_path} ({exc})") from exc
+
+
+def _probe_video_mask(*, mask_path: str, is_vace: bool = False) -> None:
     # Fail on unreadable or all-black masks before the multi-minute model weight load.
     from PIL import Image
 
+    from mflux.models.wan.variants.wan_vace import WanVace
+    from mflux.utils.video_util import VideoUtil
+
+    if WanVace._is_video_mask(mask_path):
+        if not is_vace:
+            raise ValueError(
+                "Animated video masks for --video-mask-path are only supported on Wan VACE models; "
+                "the masked A14B video-to-video route takes one static image mask."
+            )
+        try:
+            clip = VideoUtil.inspect_video(mask_path)
+        except Exception as exc:
+            raise ValueError(f"--video-mask-path is not a readable video: {mask_path} ({exc})") from exc
+        if not (clip.source_frame_count or 0):
+            raise ValueError(f"--video-mask-path has no frames: {mask_path}")
+        return
     try:
         with Image.open(mask_path) as image:
             mask = np.asarray(image.convert("L"), dtype=np.uint8)
@@ -537,7 +631,13 @@ def _apply_model_defaults(args: argparse.Namespace, model_config: ModelConfig, p
         args.guidance_2 = wan_config["default_guidance_2"]
     if "--solver" not in provided_options and args.solver is None:
         args.solver = wan_config.get("default_solver", "unipc")
-    if "--video-strength" not in provided_options and args.video_path is not None and args.video_strength is None:
+    if (
+        "--video-strength" not in provided_options
+        and args.video_path is not None
+        and args.video_strength is None
+        and not wan_config.get("supports_vace", False)
+    ):
+        # VACE has no SDEdit warm start; injecting a strength default would be false metadata.
         args.video_strength = WAN_DEFAULT_VIDEO_STRENGTH
 
 
@@ -614,6 +714,11 @@ def _write_failure_manifest(
             "video_path": str(args.video_path) if args.video_path is not None else None,
             "video_strength": args.video_strength,
             "video_mask_path": str(args.video_mask_path) if args.video_mask_path is not None else None,
+            "reference_image_paths": [str(path) for path in args.reference_image_paths]
+            if args.reference_image_paths
+            else None,
+            "conditioning_scale": args.conditioning_scale,
+            "vace_masked_region": args.vace_masked_region,
             "width": args.width,
             "height": args.height,
             "frames": args.frames,

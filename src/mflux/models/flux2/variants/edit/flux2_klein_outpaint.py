@@ -179,12 +179,11 @@ class Flux2KleinOutpaint(nn.Module):
         sigmas: mx.array,
         timestep: int,
     ) -> mx.array:
-        if timestep + 1 >= len(sigmas) - 1:
-            return clean_latents
-        return LatentCreator.add_noise_by_interpolation(
-            clean=clean_latents,
-            noise=noise_latents,
-            sigma=sigmas[timestep + 1],
+        return _Flux2KleinEditHelpers.preserved_source_latents(
+            clean_latents=clean_latents,
+            noise_latents=noise_latents,
+            sigmas=sigmas,
+            timestep=timestep,
         )
 
     def _encode_prompt_pair(

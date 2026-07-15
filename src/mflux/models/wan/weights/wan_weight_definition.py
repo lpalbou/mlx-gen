@@ -33,6 +33,10 @@ class WanWeightDefinition:
     def _vae_variant(model_config: ModelConfig) -> str:
         return str(WanWeightDefinition._transformer_config(model_config).get("vae_variant", "wan22_ti2v"))
 
+    @staticmethod
+    def _vace_layers(model_config: ModelConfig) -> list[int] | None:
+        return WanWeightDefinition._transformer_config(model_config).get("vace_layers")
+
     def get_components(self=None) -> List[ComponentDefinition]:
         if isinstance(self, WanWeightDefinition):
             return self.components()
@@ -41,8 +45,14 @@ class WanWeightDefinition:
     def components(self) -> List[ComponentDefinition]:
         num_layers = self._num_layers(self.model_config)
         vae_variant = self._vae_variant(self.model_config)
+        vace_layers = self._vace_layers(self.model_config)
         components = [
-            self._transformer_component("transformer", "transformer", num_layers),
+            self._transformer_component(
+                "transformer",
+                "transformer",
+                num_layers,
+                num_vace_blocks=len(vace_layers) if vace_layers else 0,
+            ),
         ]
         if self._has_transformer_2(self.model_config):
             components.append(self._transformer_component("transformer_2", "transformer_2", num_layers))
@@ -59,14 +69,22 @@ class WanWeightDefinition:
         return components
 
     @staticmethod
-    def _transformer_component(name: str, hf_subdir: str, num_layers: int) -> ComponentDefinition:
+    def _transformer_component(
+        name: str, hf_subdir: str, num_layers: int, num_vace_blocks: int = 0
+    ) -> ComponentDefinition:
+        def mapping_getter() -> list:
+            mapping = WanWeightMapping.get_transformer_mapping(num_layers=num_layers)
+            if num_vace_blocks:
+                mapping.extend(WanWeightMapping.get_vace_block_mapping(num_vace_blocks))
+            return mapping
+
         return ComponentDefinition(
             name=name,
             hf_subdir=hf_subdir,
             num_layers=num_layers,
             loading_mode="multi_glob",
             precision=ModelConfig.precision,
-            mapping_getter=lambda: WanWeightMapping.get_transformer_mapping(num_layers=num_layers),
+            mapping_getter=mapping_getter,
         )
 
     @staticmethod

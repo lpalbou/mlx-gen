@@ -127,6 +127,14 @@ Current exact public proof exists for:
 - `AbstractFramework/qwen-image-8bit` on `qwen.control-inpaint`
 - `AbstractFramework/z-image-turbo-8bit` on `z-image.inpaint`
 
+FLUX.2 Klein models (distilled and base) also expose masked edit through `flux2.inpaint`,
+following the diffusers `Flux2KleinInpaintPipeline` semantics. This route currently has
+model-backed smoke validation (wiring proof) rather than a published visual-QA bundle. On the
+backend `mflux-generate-flux2-edit` command and the Python API, the Klein route additionally
+accepts extra images after the source as references for the masked area, so you can say
+"replace the masked object with the one in the second image". Base Klein models default to
+guidance 4.0 with true CFG on this route; distilled Klein models stay at guidance 1.0.
+
 See [Image Edit Capabilities](edit-capabilities.md) for the accepted contact sheets and command
 logs. For a direct comparison between Qwen masked edit, Qwen structured control, and Qwen
 base control-inpaint, see [Qwen localized editing](qwen-localized-editing.md) and

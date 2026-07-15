@@ -303,16 +303,10 @@ class Flux2Klein(nn.Module):
         return mx.compile(predict)
 
     def _validate_guidance(self, guidance: float) -> None:
-        if guidance == 1.0:
-            return
-        if self._is_base_model():
-            return
-        raise ValueError("guidance > 1.0 is only supported for FLUX.2 Klein base models.")
+        _Flux2KleinEditHelpers.validate_guidance(model_config=self.model_config, guidance=guidance)
 
     def _is_base_model(self) -> bool:
-        model_name_lower = self.model_config.model_name.lower()
-        base_model_lower = (self.model_config.base_model or "").lower()
-        return "klein-base" in model_name_lower or "klein-base" in base_model_lower
+        return _Flux2KleinEditHelpers.is_base_model(self.model_config)
 
     def _configure_generation_scheduler(self, config: Config) -> None:
         del config
