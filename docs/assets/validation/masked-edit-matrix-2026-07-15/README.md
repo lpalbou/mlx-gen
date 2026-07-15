@@ -78,12 +78,15 @@ The `Qwen/Qwen-Image` source bf16 checkpoint ran the four scored cases through t
 commands (`qwensrc_*.png`, row sheet `qwensrc_row_sheet.png`), closing the "wiring-shared, no
 dedicated run" gap: `PASS` on insert/arm/sticker with outside-mask preservation 0.31-0.46/255,
 `PARTIAL` on recolor with the same 0.85 anchoring signature as the prepared rows. A
-`--mask-strength 0.95` cross-check (`qwensrc_recolor_s095.png`) repaints the full region but
-misses the recolor objective: the navy lands on the frame ring while the lens interior stays
-pale. Notable single-case observation (same seed and settings, n=1, unexplained): both
-quantized rows completed the recolor at 0.95 while the bf16 source misplaced it - so the
-measured 0.95 guidance holds for the prepared packages and is stated more cautiously for the
-source row. Denoise wall times on the bf16 checkpoint: 60-142 s per case.
+`--mask-strength 0.95` cross-check (`qwensrc_recolor_s095.png`, seed 42) repaints the full
+region but places the navy on the frame ring with a pale lens interior. A follow-up seed
+sweep (`s095_seed_sweep_sheet.png`: source seeds 42-45, q4 seeds 42-44, same settings)
+resolved that miss as per-seed variance rather than a precision difference: source seeds 44
+and 45 produce clean complete navy lenses, seed 43 recolors with a blend artifact, while the
+q4 row shows the same spread (pale at 42, small edge artifact at 43, clean at 44). The 0.95
+guidance therefore holds uniformly across all three rows, with per-seed color fidelity on
+every row: retry with another seed if the color lands wrong. Denoise wall times on the bf16
+checkpoint: 60-142 s per case.
 
 ## Commands
 

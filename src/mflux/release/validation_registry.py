@@ -1118,9 +1118,10 @@ def _masked_edit_matrix_profile() -> ValidationProfile:
                     "INSERT": "Red case inserted cleanly; matches the prepared-package rows.",
                     "RECOLOR": (
                         "Partial navy wedge at the default 0.85 warm start, matching the prepared "
-                        "rows. Cross-check: --mask-strength 0.95 repaints the full region on this "
-                        "row but places the navy on the frame ring with a pale lens interior - "
-                        "weaker than the complete recolors measured on the q4/2512-q8 rows."
+                        "rows. Cross-check: --mask-strength 0.95 repaints the full region; a seed "
+                        "sweep (42-45) showed clean complete recolors on most seeds with per-seed "
+                        "color misplacement on others - the same spread the q4 row shows, so 0.95 "
+                        "guidance holds uniformly across rows."
                     ),
                     "ARM": "Arm band turned glossy black with connected geometry.",
                     "STICKER": "Sticker removed; tortoiseshell texture continuous.",

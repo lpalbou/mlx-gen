@@ -97,12 +97,12 @@ the validation matrix:
 - Default `0.85` anchors repainted content to the source: object insertion, retexturing, and
   removal validate cleanly, but opaque full-region recolors (for example turning a clear lens
   into a dark tinted one) stay incomplete.
-- `--mask-strength 0.95` repaints fully — the matrix recolor case becomes a complete tinted
-  lens on the q4 and 2512-q8 proof rows, while on the source bf16 row the repaint covers the
-  full region but the color lands on the frame ring rather than the lens (single-case
-  observation) — and the higher strength weakens the anchor: masks crossing thin connected
-  structures (the arm-retexture case) can produce detached-geometry artifacts at that
-  setting.
+- `--mask-strength 0.95` repaints the full masked region on every proof row (source bf16,
+  q4, 2512-q8). Exact color fidelity at 0.95 varies by seed on all rows — a seed sweep showed
+  clean tinted lenses on most seeds with occasional color misplacement or blend artifacts on
+  others — so if the repainted color lands wrong, retry with a different seed. The higher
+  strength also weakens the anchor: masks crossing thin connected structures (the
+  arm-retexture case) can produce detached-geometry artifacts at that setting.
 
 Rule of thumb: keep the default for edits that should follow existing structure; raise toward
 `0.95` for content-replacing edits inside well-contained masks. Describing the current

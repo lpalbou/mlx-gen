@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Masked-edit docs: a post-release seed sweep (source bf16 seeds 42-45, q4 seeds 42-44)
+  resolved the 0.22.0 single-case source-row `--mask-strength 0.95` recolor miss as per-seed
+  variance, not a precision difference. The 0.95 guidance now reads uniformly across all
+  three `qwen.base-inpaint` proof rows, with a retry-another-seed note for per-seed color
+  fidelity (sweep sheet added to the matrix bundle).
+
 ## [0.22.0] - 2026-07-15
 
 This release grades the masked-edit routes shipped in 0.20.0/0.21.0 with a standardized

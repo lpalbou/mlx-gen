@@ -160,7 +160,7 @@ MLX-Gen exposes one public `image-to-image` task, but models can support differe
   advertise `supports_mask=true`. White mask pixels are repainted and black pixels are preserved.
   Mask-capable rows: Qwen edit models (`qwen.inpaint`), base Qwen models (`qwen.base-inpaint`
   natively with a tunable `--mask-strength` warm start - default 0.85 anchors structure, 0.95
-  repaints fully on the prepared proof rows - plus `mask_strength`/`effective_steps` metadata,
+  repaints fully with per-seed color fidelity - plus `mask_strength`/`effective_steps` metadata,
   or `qwen.control-inpaint`
   with the auto-injected InstantX sidecar on the exact `AbstractFramework/qwen-image-8bit`
   row), Z-Image Turbo (`z-image.inpaint`; non-turbo masked requests are rejected for the
