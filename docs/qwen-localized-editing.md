@@ -1,31 +1,42 @@
 # Qwen Localized Editing
 
-MLX-Gen now ships three different Qwen workflows that are easy to confuse:
+MLX-Gen now ships four different Qwen workflows that are easy to confuse:
 
 - masked edit / inpaint on the Qwen edit route;
+- native masked edit on base Qwen rows;
 - structured control on the base Qwen route;
-- base-Qwen control-inpaint on the base Qwen route.
+- base-Qwen control-inpaint on the exact validated base row.
 
 This page explains the practical difference between them.
 
 If you need the broader Qwen route surface, including `qwen.edit`, `qwen.multi-reference`,
-`qwen.reframe`, and `qwen.outpaint`, use [Qwen route matrix](qwen-route-matrix.md).
+`qwen.reframe`, and `qwen.outpaint`, use [Qwen route matrix](qwen-route-matrix.md). For the
+cross-family masked-edit matrix and contract, use [Masked editing](masked-editing.md).
 
 ## Current Status
 
 Current exact public proof rows:
 
-- `AbstractFramework/qwen-image-edit-2511-8bit` on `qwen.inpaint`
-- `AbstractFramework/qwen-image-8bit` on `qwen.control`
-- `AbstractFramework/qwen-image-8bit` on `qwen.control-inpaint`
+- `AbstractFramework/qwen-image-edit-2511-8bit` on `qwen.inpaint` (validated visual QA)
+- `AbstractFramework/qwen-image-8bit` on `qwen.control` (validated visual QA)
+- `AbstractFramework/qwen-image-8bit` on `qwen.control-inpaint` (validated visual QA)
+- `AbstractFramework/qwen-image-4bit` and `AbstractFramework/qwen-image-2512-8bit` on
+  `qwen.base-inpaint` (visual smoke, [proof bundle](assets/validation/masked-edit-2026-07-15/README.md))
 
 ## Route Matrix
 
 | Workflow | Exact public proof row | Public inputs | Best use | Published proof |
 | --- | --- | --- | --- | --- |
 | `qwen.inpaint` | `AbstractFramework/qwen-image-edit-2511-8bit` | `--image + --mask-path + --prompt` | Straightforward localized repair on the edit checkpoint | [masked-edit sheet](assets/validation/qwen-inpaint-2026-06-15/qwen2511_q8_inpaint_lightning_contact_sheet.png) |
+| `qwen.base-inpaint` | `AbstractFramework/qwen-image-4bit`, `AbstractFramework/qwen-image-2512-8bit` | `--image + --mask-path + --prompt` | Localized edits on base rows without a sidecar or edit checkpoint | [masked-edit expansion sheet](assets/validation/masked-edit-2026-07-15/masked_edit_expansion_contact_sheet.png) |
 | `qwen.control` | `AbstractFramework/qwen-image-8bit` | `--controlnet-image-path + --prompt` | Layout-first generation from canny, pose, or similar structure guides | [structured-control sheet](assets/validation/qwen-control-2026-06-15/qwen_q8_control_lightning_contact_sheet.png) |
 | `qwen.control-inpaint` | `AbstractFramework/qwen-image-8bit` | `--image + --mask-path + --prompt` | Harder localized repair where the edit route drifts too much | [control-inpaint sheet](assets/validation/qwen-control-inpaint-2026-06-21/qwen_control_inpaint_contact_sheet.png) |
+
+Each base Qwen row carries exactly one masked route: the exact `AbstractFramework/qwen-image-8bit`
+row keeps control-inpaint, every other trusted base row runs `qwen.base-inpaint` natively. The
+native route warm-starts from the re-noised source (strength `0.85`, upstream
+`QwenImageInpaintPipeline` example semantics) and records the executed `effective_steps` in
+metadata; prompt it with a caption of the target scene rather than an edit instruction.
 
 ## One-Sentence Difference
 

@@ -868,6 +868,164 @@ def test_flux2_klein_inpaint_rejects_image_strength(tmp_path, monkeypatch):
         assert "image_strength cannot be combined with mask_path" in str(exc)
 
 
+def test_qwen_base_native_inpaint_progress_and_masked_loop(tmp_path, monkeypatch):
+    from mflux.models.qwen.variants.txt2img import qwen_image as qwen_image_module
+    from mflux.models.qwen.variants.txt2img.qwen_image import QwenImage
+
+    source_path = tmp_path / "source.png"
+    mask_path = tmp_path / "mask.png"
+    Image.new("RGB", (32, 32), color=(40, 80, 120)).save(source_path)
+    mask_image = Image.new("L", (32, 32), color=0)
+    for x in range(16, 32):
+        for y in range(32):
+            mask_image.putpixel((x, y), 255)
+    mask_image.save(mask_path)
+
+    observed = {"encode_calls": 0}
+
+    def fake_init(model, *, quantize, model_path=None, lora_paths=None, lora_scales=None, model_config):
+        model.model_config = model_config
+        model.tokenizers = {"qwen": object()}
+        model.text_encoder = object()
+        model.vae = object()
+        model.transformer = lambda **kwargs: mx.zeros_like(kwargs["hidden_states"])
+        model.prompt_cache = {}
+        model.tiling_config = None
+        model.bits = quantize
+        model.lora_paths = lora_paths
+        model.lora_scales = lora_scales
+        model.callbacks = CallbackRegistry()
+
+    monkeypatch.setattr(qwen_image_module.QwenImageInitializer, "init", fake_init)
+    monkeypatch.setattr(
+        qwen_image_module.LatentCreator,
+        "encode_image",
+        staticmethod(
+            lambda **kwargs: (
+                observed.__setitem__("encode_calls", observed["encode_calls"] + 1)
+                or mx.zeros((1, 16, 4, 4), dtype=mx.float32)
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        qwen_image_module.QwenPromptEncoder,
+        "encode_prompt",
+        staticmethod(
+            lambda **kwargs: (
+                mx.zeros((1, 4, 8), dtype=mx.float32),
+                mx.ones((1, 4), dtype=mx.float32),
+                mx.zeros((1, 4, 8), dtype=mx.float32),
+                mx.ones((1, 4), dtype=mx.float32),
+            )
+        ),
+    )
+    monkeypatch.setattr(
+        qwen_image_module.VAEUtil,
+        "decode",
+        staticmethod(lambda vae, latent, tiling_config=None: mx.zeros((1, 3, 32, 32), dtype=mx.float32)),
+    )
+    monkeypatch.setattr(
+        qwen_image_module.ImageUtil,
+        "to_image",
+        staticmethod(lambda **kwargs: kwargs),
+    )
+    monkeypatch.setattr(
+        qwen_image_module.LoRALoader,
+        "extra_metadata_for_model",
+        staticmethod(lambda model: {}),
+    )
+
+    model = QwenImage(quantize=8, model_config=ModelConfig.qwen_image())
+    all_events = []
+    img2img_events = []
+    text_events = []
+    model.callbacks.subscribe_progress(all_events.append)
+    model.callbacks.subscribe_progress(img2img_events.append, task="image-to-image")
+    model.callbacks.subscribe_progress(text_events.append, task="text-to-image")
+
+    result = model.generate_image(
+        seed=99,
+        prompt="repair the masked area",
+        image_path=source_path,
+        mask_path=mask_path,
+        width=32,
+        height=32,
+        num_inference_steps=4,
+        guidance=1.0,
+    )
+
+    # Masked edit warm-starts at the upstream example strength 0.85: 4 steps -> 3 denoise iterations.
+    assert [event.phase for event in all_events] == ["start", "denoise", "denoise", "denoise", "complete"]
+    assert [event.task for event in all_events] == ["image-to-image"] * 5
+    assert img2img_events == all_events
+    assert text_events == []
+    assert observed["encode_calls"] == 1
+    assert result["masked_image_path"] == mask_path
+    # The internal warm start must not leak into public metadata as image_strength.
+    assert result["image_strength"] is None
+    # Runtime truth: the executed step count and warm-start strength are recorded.
+    assert result["extra_metadata"]["effective_steps"] == 3
+    assert result["extra_metadata"]["masked_warm_start_strength"] == 0.85
+
+
+def test_qwen_base_native_inpaint_warm_start_schedule_pin(tmp_path):
+    from mflux.models.common.config.config import Config
+    from mflux.models.qwen.variants.txt2img.qwen_image import QwenImage
+
+    source_path = tmp_path / "source.png"
+    Image.new("RGB", (32, 32), color=(40, 80, 120)).save(source_path)
+
+    assert QwenImage.MASKED_EDIT_STRENGTH == 0.85
+    config = Config(
+        model_config=ModelConfig.qwen_image(),
+        num_inference_steps=20,
+        image_path=source_path,
+        image_strength=QwenImage.MASKED_EDIT_STRENGTH,
+        canvas_policy="exact-resize",
+        height=32,
+        width=32,
+    )
+    # 0.85 strength at the shipped 20-step default: 17 executed steps, warm start at index 3.
+    assert config.init_time_step == 3
+    assert config.num_inference_steps - config.init_time_step == 17
+
+
+def test_qwen_base_native_inpaint_rejects_strength_and_missing_image(tmp_path, monkeypatch):
+    from mflux.models.qwen.variants.txt2img import qwen_image as qwen_image_module
+    from mflux.models.qwen.variants.txt2img.qwen_image import QwenImage
+
+    mask_path = tmp_path / "mask.png"
+    source_path = tmp_path / "source.png"
+    Image.new("L", (32, 32), color=255).save(mask_path)
+    Image.new("RGB", (32, 32), color=(40, 80, 120)).save(source_path)
+
+    def fake_init(model, *, quantize, model_path=None, lora_paths=None, lora_scales=None, model_config):
+        model.model_config = model_config
+        model.callbacks = CallbackRegistry()
+
+    monkeypatch.setattr(qwen_image_module.QwenImageInitializer, "init", fake_init)
+    model = QwenImage(quantize=8, model_config=ModelConfig.qwen_image())
+
+    try:
+        model.generate_image(seed=1, prompt="x", mask_path=mask_path, num_inference_steps=2)
+        raise AssertionError("mask_path without image_path must be rejected")
+    except ValueError as exc:
+        assert "mask_path requires image_path" in str(exc)
+
+    try:
+        model.generate_image(
+            seed=1,
+            prompt="x",
+            image_path=source_path,
+            mask_path=mask_path,
+            image_strength=0.5,
+            num_inference_steps=2,
+        )
+        raise AssertionError("image_strength with mask_path must be rejected")
+    except ValueError as exc:
+        assert "image_strength cannot be combined with mask_path" in str(exc)
+
+
 def test_z_image_guidance_uses_standard_cfg_formula(monkeypatch):
     monkeypatch.setattr(z_image_module.AppleSiliconUtil, "is_m1_or_m2", staticmethod(lambda: True))
 

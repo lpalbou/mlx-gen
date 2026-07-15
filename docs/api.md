@@ -321,30 +321,21 @@ or references, so `--image-strength` is rejected before loading weights.
 
 When a capability row supports masked edit or inpaint, that row accepts `--mask-path` for
 localized masked edit or inpaint. White mask pixels are repainted and black mask pixels are
-preserved. The current exact public proof rows are:
+preserved, and `--image-strength` is rejected together with `--mask-path`. Masked routes exist
+for Qwen edit models (`qwen.inpaint`), base Qwen models (`qwen.base-inpaint` natively, or
+`qwen.control-inpaint` with the auto-injected InstantX sidecar on the exact
+`AbstractFramework/qwen-image-8bit` row), Z-Image turbo and non-turbo (`z-image.inpaint`), and
+FLUX.2 Klein distilled and base (`flux2.inpaint`, with optional masked-area reference images on
+the backend command and Python API).
 
-- `AbstractFramework/qwen-image-edit-2511-8bit` on `qwen.inpaint`
-- `AbstractFramework/qwen-image-8bit` on `qwen.control-inpaint`
-- `AbstractFramework/z-image-turbo-8bit` on `z-image.inpaint`
-
-FLUX.2 Klein models (distilled and base) additionally expose `flux2.inpaint`, ported from the
-diffusers `Flux2KleinInpaintPipeline`: the clean source image rides along as conditioning
-tokens while unmasked latents are re-composited from the source at every denoising step. The
-mask is binarized at pixel resolution and then bilinear-interpolated onto the packed latent
-grid (torch `F.interpolate` parity), so mask borders keep soft transition values. This route
-currently has model-backed smoke validation rather than a published visual-QA proof row. The
-unified route takes exactly one source image; the backend `mflux-generate-flux2-edit` command
-and the Python `Flux2KleinInpaint` class also accept extra images after the source as
-references for the masked area (diffusers `image_reference` parity). On base Klein models the
-route defaults to guidance 4.0 with true CFG; distilled Klein models stay at guidance 1.0.
-
-The user request shape is the same, but the backend route is not. Use
-`mlxgen capabilities --model ...` when you need to confirm which exact masked route a selected row
-supports. Without `--mask-path`, the same route may behave like a global edit or a latent
-variation, depending on the selected capability.
-
-`z-image.inpaint` is currently a Turbo-only public route. The direct non-turbo
-`mflux-generate-z-image` command does not advertise `--mask-path`.
+The user request shape is the same, but the backend route is not: the same
+`--image + --mask-path + --prompt` request selects whichever masked route the exact row
+carries. Native base-Qwen masked edit warm-starts from the re-noised source (upstream-example
+strength `0.85`) and records the executed `effective_steps` in metadata; the other masked
+routes denoise the full schedule. Use `mlxgen capabilities --model ...` to confirm which exact
+masked route a selected row supports, and see [Masked editing](masked-editing.md) for the full
+model matrix, per-family behavior, and proof grades. Without `--mask-path`, the same route may
+behave like a global edit or a latent variation, depending on the selected capability.
 
 In `auto` mode, the selected model's default capability wins. FLUX.2 routes one image to
 `edit-reference`, supports latent I2I when `--image-strength` is supplied, and supports

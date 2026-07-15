@@ -3,8 +3,34 @@
 ## Metadata
 
 - Created: 2026-06-18
+- Updated: 2026-07-15 (upstream reference now exists; port sized)
 - Status: Proposed
 - Completed: N/A
+
+## 2026-07-15 refresh: upstream reference and port sizing
+
+Diffusers now ships first-party reference code that did not exist when this item was created:
+`ZImageControlNetModel` (`models/controlnets/controlnet_z_image.py`, ~860 lines) plus
+`ZImageControlNetPipeline` and `ZImageControlNetInpaintPipeline`. The documented weights are the
+single-file `alibaba-pai/Z-Image-Turbo-Fun-Controlnet-Union-2.0` releases (the pipeline
+hard-rejects the v1 checkpoint via a `control_in_dim` check - only Union 2.0/2.1 works). Honest
+port sizing from the reference:
+
+- control transformer blocks at configurable `control_layers_places` over the 30-layer host,
+  a separate control patch embedder, and control noise-refiner layers in three structural
+  variants keyed on `add_control_noise_refiner` (single-file config detection required);
+- `from_transformer` shares nine module groups with the base transformer (t_embedder,
+  x_embedder, cap_embedder, rope_embedder, refiners, pad tokens), so the MLX runtime needs
+  weight-sharing plumbing that does not exist today;
+- the MLX `ZImageTransformer` forward needs per-block residual injection
+  (`controlnet_block_samples`);
+- the control-inpaint input is `concat([VAE(control_image) 16ch, inverted mask 1ch,
+  VAE(source) 16ch]) = 33ch`, not a simple masked-image concat;
+- plus sidecar capability row and router injection (Qwen `control_model` pattern), CFG
+  batching of control features, a multi-GB single-file download, and a torch parity harness.
+
+Verdict recorded 2026-07-15: a full multi-day port with its own ADR-0001 proof obligations;
+kept proposed rather than bundled into the masked-edit expansion (completed item 0082).
 
 ## ADR status
 

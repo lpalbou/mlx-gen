@@ -164,11 +164,16 @@ class CompletionGenerator:
             parser.add_output_arguments()
 
         elif command == "mflux-generate-qwen":
+            # Mirrors qwen_image_generate.main() parser construction.
             parser.add_general_arguments()
             parser.add_model_arguments(require_model_arg=False)
             parser.add_lora_arguments()
-            parser.add_image_generator_arguments(supports_metadata_config=True)
+            parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
             parser.add_image_to_image_arguments()
+            parser.add_mask_path_argument(
+                help_text="Optional mask image path for base-Qwen masked edit.",
+            )
+            parser.add_controlnet_arguments()
             parser.add_output_arguments()
 
         elif command == "mflux-generate-qwen-edit":
@@ -236,14 +241,21 @@ class CompletionGenerator:
             parser.add_lora_arguments()
             parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
             parser.add_image_to_image_arguments()
+            parser.add_mask_path_argument(
+                help_text="Optional mask image path for native Z-Image inpaint.",
+            )
             parser.add_output_arguments()
 
         elif command == "mflux-generate-z-image-turbo":
+            # Mirrors z_image_turbo_generate.main() parser construction.
             parser.add_general_arguments()
             parser.add_model_arguments(require_model_arg=False)
             parser.add_lora_arguments()
-            parser.add_image_generator_arguments(supports_metadata_config=True)
+            parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
             parser.add_image_to_image_arguments()
+            parser.add_mask_path_argument(
+                help_text="Optional mask image path for native Z-Image Turbo inpaint.",
+            )
             parser.add_output_arguments()
 
         elif command == "mflux-generate-ernie-image":

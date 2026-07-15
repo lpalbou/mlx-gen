@@ -13,7 +13,7 @@ outside chat history.
 | --- | ---: |
 | Planned | 15 |
 | Proposed | 16 |
-| Completed | 43 |
+| Completed | 44 |
 | Deprecated | 1 |
 | Recurrent | 1 |
 
@@ -101,6 +101,23 @@ promote richer VACE conditioning into the public runtime yet.
    to replace and re-renders the whole frame, 2161 s CPU) and a reference-injection identity
    ablation (segmented subject transfers; same seed without the reference gives an unrelated
    ship) - in a committed proof mirror under `docs/assets/validation/wan-vace-2026-07-06/`.
+
+## Completed masked-edit expansion band
+
+The 2026-07-15 masked-edit surface audit (one adversarial subagent) identified base-Qwen native
+inpaint as the strongest unsurfaced route and the Z-Image non-turbo gate as proof-blocked.
+Both shipped the same day with a consolidated canonical docs page.
+
+1. Finished [masked edit expansion: native base-Qwen and Z-Image non-turbo](completed/0082_masked_edit_expansion_qwen_zimage.md)
+   so `--mask-path` works natively on trusted base Qwen rows (diffusers
+   `QwenImageInpaintPipeline` port with the internal 0.85 warm start and `effective_steps`
+   runtime-truth metadata; the exact validated 8bit row keeps control-inpaint) and on
+   non-turbo Z-Image rows, with one masked route per row enforced by construction, plan-time
+   maskless rejection, re-mirrored completions, the canonical `docs/masked-editing.md` page,
+   and a visual-smoke proof bundle in `docs/assets/validation/masked-edit-2026-07-15/`.
+   Control-inpaint row broadening was superseded by the native route (decision of record in
+   the item); Z-Image ControlNet-inpaint stayed proposed in item 0045, refreshed with
+   upstream sizing facts.
 
 ## Completed FLUX.2 Klein masked edit
 
@@ -405,6 +422,7 @@ memory follow-up state.
 | 0074 | [Wan plain generative video-to-video route](completed/0074_wan_plain_generative_video_to_video_route.md) | Video editing, public task surface, Wan runtime | 2026-07-03 | Shipped the bounded public Wan `video-to-video` route on `Wan2.2-T2V-A14B`, kept non-V2V Wan rows fail-closed, required `unipc` on the public V2V surface, aligned source-video conditioning with float32 warm-start prep, and preserved a model-backed ship-edit proof bundle. |
 | 0076 | [Wan masked video-to-video via latent compositing](completed/0076_wan_masked_video_to_video_latent_compositing.md) | Video editing, masked conditioning, Wan runtime, planner roles | 2026-07-04 | Shipped `--video-mask-path` masked video-to-video on the existing A14B route with per-step latent plus UniPC-state compositing, exact background preservation at the measured H.264 floor (drift 1.7 vs 14.9 unmasked), typed planner role, replayable metadata, and an in-repo conference proof bundle. |
 | 0081 | [FLUX.2 Klein masked edit / inpaint](completed/0081_flux2_klein_masked_edit.md) | Image edit, FLUX.2 Klein, mask-based inpaint | 2026-07-15 | Ported the diffusers `Flux2KleinInpaintPipeline` semantics onto the Klein family: new `flux2.inpaint` capability with per-step source compositing and clean-source conditioning tokens, torch-parity bilinear mask downsampling, optional masked-area reference images on the backend/Python surface, adversarial review, and local q8 smoke proofs (published visual-QA rows remain follow-up). |
+| 0082 | [Masked edit expansion: native base-Qwen and Z-Image non-turbo](completed/0082_masked_edit_expansion_qwen_zimage.md) | Image edit, Qwen base, Z-Image, mask routing | 2026-07-15 | Shipped native `qwen.base-inpaint` (diffusers `QwenImageInpaintPipeline` port, internal 0.85 warm start, `effective_steps` metadata, one masked route per row) and non-turbo `z-image.inpaint`, plan-time maskless rejection, the canonical `docs/masked-editing.md` page, and a published visual-smoke proof bundle with preservation measurements. |
 
 ## Deprecated ledger
 

@@ -273,18 +273,11 @@ White mask pixels are repainted and black mask pixels are preserved.
 Without `--mask-path`, the same edit route can still recompose the whole frame. The mask is what
 keeps the change local.
 
-The current exact public proof rows are:
-
-- `AbstractFramework/qwen-image-edit-2511-8bit` on `qwen.inpaint`
-- `AbstractFramework/qwen-image-8bit` on `qwen.control-inpaint`
-- `AbstractFramework/z-image-turbo-8bit` on `z-image.inpaint`
-
-FLUX.2 Klein models (distilled and base) also accept `--mask-path` through the `flux2.inpaint`
-route (diffusers `Flux2KleinInpaintPipeline` port, currently smoke-validated rather than a
-published proof row). Distilled Klein runs masked edits in 4 steps at guidance 1; base Klein
-defaults to guidance 4 with true CFG. On the backend `mflux-generate-flux2-edit` command, extra
-`--image-paths` after the source act as references for the masked area, for example "replace
-the masked object with the one in the second image".
+Masked editing is supported on Qwen edit models, base Qwen models (native `qwen.base-inpaint`,
+or the validated control-inpaint sidecar on the exact `AbstractFramework/qwen-image-8bit` row),
+Z-Image turbo and non-turbo, and FLUX.2 Klein distilled and base (with optional masked-area
+reference images on the backend route). [Masked editing](masked-editing.md) is the canonical
+page for the model matrix, per-family behavior, and proof grades.
 
 The recommended fast public Qwen masked-edit path uses the dedicated
 `lightx2v/Qwen-Image-Edit-2511-Lightning` adapter:
@@ -343,8 +336,9 @@ timings, and full example commands, see [Image Edit Capabilities](edit-capabilit
 Today, MLX-Gen ships:
 
 - Qwen masked edit / inpaint on the Qwen edit route;
-- Qwen structured control on the base Qwen route.
-- Qwen base control-inpaint on the base Qwen route.
+- Qwen native masked edit on base Qwen rows (`qwen.base-inpaint`, no sidecar);
+- Qwen structured control on the exact validated base row;
+- Qwen base control-inpaint on the exact validated `AbstractFramework/qwen-image-8bit` row.
 
 The practical difference is:
 

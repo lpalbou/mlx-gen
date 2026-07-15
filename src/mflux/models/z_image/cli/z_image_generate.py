@@ -7,6 +7,7 @@ from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.models.common.config import ModelConfig
 from mflux.models.z_image.latent_creator import ZImageLatentCreator
 from mflux.models.z_image.variants.z_image import ZImage
+from mflux.task_inference import TaskInferenceError, resolve_generation_plan
 from mflux.utils.exceptions import PromptFileReadError, StopImageGenerationException
 from mflux.utils.prompt_util import PromptUtil
 
@@ -18,15 +19,39 @@ def main():
     parser.add_model_arguments(require_model_arg=False)
     parser.add_lora_arguments()
     parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
-    parser.add_image_to_image_arguments()
+    parser.add_image_to_image_arguments(required=False)
+    parser.add_mask_path_argument(
+        help_text=(
+            "Optional mask image path for native Z-Image inpaint. White pixels are repainted and black pixels "
+            "are preserved."
+        ),
+    )
     parser.add_output_arguments()
     args = parser.parse_args()
 
     if "--scheduler" not in sys.argv:
         args.scheduler = "flow_match_euler_discrete"
 
+    if args.mask_path is not None and args.image_path is None:
+        parser.error("--mask-path requires --image-path.")
+    if args.mask_path is not None and args.image_strength is not None:
+        parser.error(
+            "--image-strength cannot be combined with --mask-path; native Z-Image inpaint is a separate route."
+        )
+
     model_name = args.model or "z-image"
     model_config = ModelConfig.from_name(model_name=model_name, base_model=args.base_model)
+    if args.mask_path is not None:
+        try:
+            resolve_generation_plan(
+                model=model_name,
+                model_config=model_config,
+                base_model=args.base_model,
+                image_count=1,
+                has_mask=True,
+            )
+        except TaskInferenceError as exc:
+            parser.error(str(exc))
 
     CallbackManager.apply_runtime_memory_options(args)
 
@@ -65,6 +90,7 @@ def main():
                     height=args.height,
                     guidance=args.guidance,
                     image_path=args.image_path,
+                    mask_path=args.mask_path,
                     num_inference_steps=args.steps,
                     image_strength=args.image_strength,
                     scheduler=args.scheduler,

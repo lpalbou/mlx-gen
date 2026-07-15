@@ -30,6 +30,7 @@ mlxgen validation --model AbstractFramework/qwen-image-edit-2511-8bit
 | `qwen.latent` | `QwenImageImg2ImgPipeline` | base Qwen Image handles | `--image + --image-strength + --prompt` | Route is shipped. An exact LoRA-backed public proof now exists for `AbstractFramework/qwen-image-8bit`; see [LoRA](lora.md). |
 | `qwen.edit` | `QwenImageEditPipeline` | `Qwen/Qwen-Image-Edit`, `Qwen/Qwen-Image-Edit-2509`, `Qwen/Qwen-Image-Edit-2511`, prepared q8/q4 variants | `--image + --prompt` | [Image edit capabilities](edit-capabilities.md) covers the source/q8/q4 edit matrices. |
 | `qwen.inpaint` | `QwenImageEditInpaintPipeline` | edit-model rows, with the current exact proof on `AbstractFramework/qwen-image-edit-2511-8bit` | `--image + --mask-path + --prompt` | [Qwen localized editing](qwen-localized-editing.md) links the accepted masked-edit proof. |
+| `qwen.base-inpaint` | `QwenImageInpaintPipeline` | base Qwen rows other than the exact control-inpaint row: `Qwen/Qwen-Image`, `AbstractFramework/qwen-image-4bit`, `AbstractFramework/qwen-image-2512-8bit` | `--image + --mask-path + --prompt` | [Masked editing](masked-editing.md) links the current visual-smoke proof rows (4bit and 2512-8bit). |
 | `qwen.multi-reference` | `QwenImageEditPlusPipeline` behavior | `Qwen/Qwen-Image-Edit-2509`, `Qwen/Qwen-Image-Edit-2511`, prepared q8/q4 variants | repeated `--image` + `--prompt` | [Image edit capabilities](edit-capabilities.md) links the accepted 2509 and 2511 multi-reference matrices, and [LoRA](lora.md) covers the exact 2511 q8 multi-angle proof row. |
 | `qwen.reframe` | MLX-Gen canvas expansion on the Qwen edit route | original/2509/2511 edit families and prepared variants | `--image + --reframe-padding + --prompt` | [Reframe and outpaint](reframe-outpaint.md) links the accepted Qwen reframe matrices, and [LoRA](lora.md) covers the exact 2511 q8 multi-angle proof row. |
 | `qwen.outpaint` | MLX-Gen canvas expansion on the Qwen edit route | original/2509/2511 edit families and prepared variants | `--image + --outpaint-padding + --prompt` | [Reframe and outpaint](reframe-outpaint.md) links the accepted Qwen outpaint matrices, and [LoRA](lora.md) covers the exact 2511 q8 multi-angle proof row. |
@@ -45,8 +46,12 @@ The current choices are:
 
 - `QwenImageEditPlusPipeline` behavior is exposed through `qwen.multi-reference`, not through a
   separate public `qwen.edit-plus` id;
-- base-Qwen masked work is exposed through `qwen.control-inpaint`, not through a separate public
-  native-base inpaint route;
+- every base Qwen row exposes exactly one masked route: the exact validated
+  `AbstractFramework/qwen-image-8bit` row keeps `qwen.control-inpaint` (its ControlNet sidecar
+  and full-schedule behavior are unchanged), and every other trusted base row exposes native
+  `qwen.base-inpaint` instead. The same `--image + --mask-path + --prompt` request selects
+  whichever masked route the row carries; see [Masked editing](masked-editing.md) for the
+  behavior differences;
 - `QwenImageLayeredPipeline` is not a shipped public MLX-Gen route today.
 
 That keeps the user-facing contract smaller while preserving honest route identity through
@@ -60,9 +65,10 @@ That keeps the user-facing contract smaller while preserving honest route identi
 | Restyle one existing image with explicit `--image-strength` | `qwen.latent` |
 | Edit one source image with an instruction | `qwen.edit` |
 | Edit only a masked part of one source image on the edit checkpoint | `qwen.inpaint` |
+| Edit only a masked part of one source image on a base checkpoint | `qwen.base-inpaint` (or `qwen.control-inpaint` on the exact 8bit row) |
 | Combine two or more reference images | `qwen.multi-reference` |
 | Generate from text while fixing layout from a control image | `qwen.control` |
-| Edit a masked source region on base Qwen with the stricter inpaint sidecar | `qwen.control-inpaint` |
+| Edit a masked source region on base Qwen with the stricter inpaint sidecar | `qwen.control-inpaint` (exact `AbstractFramework/qwen-image-8bit` row) |
 | Expand the canvas outward | `qwen.reframe` or `qwen.outpaint`, depending on whether you want zoom-out or canvas extension |
 
 ## Related Docs

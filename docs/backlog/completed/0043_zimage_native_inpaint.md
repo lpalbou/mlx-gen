@@ -36,9 +36,11 @@ MLX-Gen now:
   - mask latents are built in latent space;
   - unmasked regions are preserved through per-step latent blending;
   - `image_strength` and `mask_path` stay mutually exclusive.
-- `src/mflux/models/z_image/cli/z_image_generate.py` and
-  `src/mflux/models/z_image/cli/z_image_turbo_generate.py` now expose `--mask-path` and fail
-  closed on invalid combinations.
+- `src/mflux/models/z_image/cli/z_image_turbo_generate.py` now exposes `--mask-path` and fails
+  closed on invalid combinations. (Correction 2026-07-15: this item originally claimed both
+  Z-Image CLIs gained `--mask-path`, but only the turbo command did; the non-turbo
+  `z_image_generate.py` command gained it in completed item 0082 when the non-turbo route was
+  opened.)
 - `src/mflux/task_inference.py` now surfaces a distinct `z-image.inpaint` capability only on the
   exact Z-Image Turbo rows that were intentionally opened for this route.
 - `tests/image_generation/test_masked_generation_routes.py`,

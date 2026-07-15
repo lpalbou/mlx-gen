@@ -39,8 +39,65 @@ def test_generation_plan_requires_strength_for_qwen_base_latent_i2i():
     assert latent.mode == MODE_LATENT_IMG2IMG
     assert latent.model_override is None
 
-    with pytest.raises(TaskInferenceError, match="does not support edit-reference"):
+    # Edit-reference on base Qwen resolves to the masked route, which cannot run without a mask.
+    with pytest.raises(TaskInferenceError, match="mask-path is required"):
         mlxgen.resolve_generation_plan(model="qwen-image", image_count=1, i2i_mode="edit")
+
+
+def test_qwen_base_native_inpaint_resolves_on_trusted_rows_and_exact_2512_row():
+    for model in [
+        "qwen-image",
+        "Qwen/Qwen-Image",
+        "AbstractFramework/qwen-image-4bit",
+        "AbstractFramework/qwen-image-2512-8bit",
+    ]:
+        plan = mlxgen.resolve_generation_plan(model=model, image_count=1, has_mask=True)
+        assert plan.capability_id == "qwen.base-inpaint", model
+        assert plan.control_model is None, model
+        assert plan.handler_id == "qwen.generate", model
+
+    # The exact validated control-inpaint row keeps the sidecar route as its only masked route.
+    control_plan = mlxgen.resolve_generation_plan(
+        model="AbstractFramework/qwen-image-8bit",
+        image_count=1,
+        has_mask=True,
+    )
+    assert control_plan.capability_id == "qwen.control-inpaint"
+    assert control_plan.control_model is not None
+
+    with pytest.raises(TaskInferenceError, match="cannot be combined with --mask-path"):
+        mlxgen.resolve_generation_plan(model="qwen-image", image_count=1, has_mask=True, has_image_strength=True)
+
+    # Untrusted inferred rows without an exact proof stay fail-closed.
+    with pytest.raises(TaskInferenceError, match="mask-path is only supported"):
+        mlxgen.resolve_generation_plan(model="AbstractFramework/qwen-image-2512-4bit", image_count=1, has_mask=True)
+
+
+def test_masked_capability_requires_mask_option():
+    with pytest.raises(TaskInferenceError, match="mask-path is required"):
+        mlxgen.resolve_generation_plan(model="z-image-turbo", image_count=1, i2i_mode="edit")
+
+
+def test_every_row_exposes_at_most_one_masked_route():
+    for model in [
+        "qwen-image",
+        "Qwen/Qwen-Image",
+        "AbstractFramework/qwen-image-8bit",
+        "AbstractFramework/qwen-image-4bit",
+        "AbstractFramework/qwen-image-2512-8bit",
+        "qwen-image-edit",
+        "qwen-image-edit-2509",
+        "qwen-image-edit-2511",
+        "z-image",
+        "z-image-turbo",
+        "AbstractFramework/z-image-8bit",
+        "AbstractFramework/z-image-turbo-8bit",
+        "flux2-klein-4b",
+        "flux2-klein-base-9b",
+    ]:
+        capabilities = mlxgen.get_model_capabilities(model=model)
+        masked = [capability.id for capability in capabilities.capabilities if capability.supports_mask]
+        assert len(masked) <= 1, f"{model} exposes multiple masked routes: {masked}"
 
 
 def test_base_fibo_no_longer_advertises_unvalidated_latent_i2i():
@@ -263,9 +320,11 @@ def test_mask_and_outpaint_options_are_checked_against_capabilities():
 
     z_image_inpaint = mlxgen.resolve_generation_plan(model="z-image-turbo", image_count=1, has_mask=True)
     assert z_image_inpaint.capability_id == "z-image.inpaint"
+    assert z_image_inpaint.handler_id == "z-image-turbo.generate"
 
-    with pytest.raises(TaskInferenceError, match="mask-path is only supported"):
-        mlxgen.resolve_generation_plan(model="z-image", image_count=1, has_mask=True)
+    z_image_base_inpaint = mlxgen.resolve_generation_plan(model="z-image", image_count=1, has_mask=True)
+    assert z_image_base_inpaint.capability_id == "z-image.inpaint"
+    assert z_image_base_inpaint.handler_id == "z-image.generate"
 
     with pytest.raises(TaskInferenceError, match="cannot be combined with --mask-path"):
         mlxgen.resolve_generation_plan(model="z-image-turbo", image_count=1, has_mask=True, has_image_strength=True)
@@ -460,9 +519,23 @@ def test_explicit_base_model_prevents_local_variant_spoofing(tmp_path):
         base_model="fibo",
     )
 
-    assert {capability.id for capability in qwen_base.capabilities} == {"qwen.latent", "qwen.text"}
-    assert {capability.id for capability in qwen_edit_spoof.capabilities} == {"qwen.latent", "qwen.text"}
-    assert {capability.id for capability in z_image_base.capabilities} == {"z-image.latent", "z-image.text"}
+    # Declaring --base-model downgrades a variant-looking local path to the declared base
+    # capability set; masked edit stays available because it is a family-wide base route.
+    assert {capability.id for capability in qwen_base.capabilities} == {
+        "qwen.latent",
+        "qwen.text",
+        "qwen.base-inpaint",
+    }
+    assert {capability.id for capability in qwen_edit_spoof.capabilities} == {
+        "qwen.latent",
+        "qwen.text",
+        "qwen.base-inpaint",
+    }
+    assert {capability.id for capability in z_image_base.capabilities} == {
+        "z-image.latent",
+        "z-image.text",
+        "z-image.inpaint",
+    }
     assert {capability.id for capability in flux2_base.capabilities} == {"flux2.edit", "flux2.text"}
     assert {capability.id for capability in fibo_base.capabilities} == {"fibo.text"}
 

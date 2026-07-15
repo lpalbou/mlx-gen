@@ -5,6 +5,42 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0] - 2026-07-15
+
+This release completes the masked-edit expansion started in 0.20.0: every currently supported
+image family with a viable upstream or in-repo inpaint mechanism now accepts `--mask-path`.
+
+### Added
+
+- **Native base-Qwen masked edit** (`qwen.base-inpaint`): `--image + --mask-path` now works on
+  trusted base Qwen rows without a ControlNet sidecar (source `Qwen/Qwen-Image`,
+  `AbstractFramework/qwen-image-4bit`, and the exact proven
+  `AbstractFramework/qwen-image-2512-8bit` row), ported from the diffusers
+  `QwenImageInpaintPipeline`. The masked region warm-starts from the re-noised source
+  (upstream-example strength 0.85) so repainted content anchors to the surrounding structure;
+  output metadata records the executed `effective_steps` and `masked_warm_start_strength`.
+  The exact validated `AbstractFramework/qwen-image-8bit` row keeps control-inpaint as its
+  masked route, unchanged. Visual-smoke proof bundle with outside-mask preservation
+  measurements in `docs/assets/validation/masked-edit-2026-07-15/`.
+- **Z-Image non-turbo native inpaint**: `z-image.inpaint` now covers trusted non-turbo Z-Image
+  rows (`Tongyi-MAI/Z-Image`, `AbstractFramework/z-image-8bit`) and the
+  `mflux-generate-z-image` command accepts `--mask-path`. Pass an explicit `--guidance` on
+  non-turbo masked runs; the non-turbo default runs guidance-free.
+- **`docs/masked-editing.md`**: canonical masked-edit page consolidating the request contract,
+  the per-model route matrix with proof grades, and per-family behavior; the API, FAQ,
+  image-edit-modes, and Qwen pages now summarize and link there.
+
+### Changed
+
+- Masked-capable routes selected without `--mask-path` (for example `--i2i-mode edit` on a
+  base Qwen or Z-Image row) now fail at plan time with an actionable "mask-path is required"
+  error instead of failing after model load. Maskless single-image requests on
+  `AbstractFramework/qwen-image-8bit` now report "image-strength is required" instead of a
+  generic ambiguity error.
+- Shell completions for `mflux-generate-qwen`, `mflux-generate-z-image`, and
+  `mflux-generate-z-image-turbo` now mirror the real parsers (mask and ControlNet options were
+  missing).
+
 ## [0.20.0] - 2026-07-15
 
 This release ships two image/video editing expansions: the natively ported Wan2.1-VACE-1.3B

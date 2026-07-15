@@ -13,6 +13,7 @@
 - `docs/architecture.md`: system overview and model-file lifecycle diagrams, package shape, command boundaries, runtime failure contract, quantization policy, and the Python integration boundary.
 - `docs/api.md`: public CLI, legacy-command migration boundary, router behavior, task/mode resolution, I2I mode selection and canvas policy, masked edit via `--mask-path` including the FLUX.2 Klein `flux2.inpaint` route, Qwen structured control with `--controlnet-image-path`, generative reframe, backend-specific outpaint with Qwen adaptive source restoration and FLUX.2 Klein base source-locked denoising, SeedVR2 official-source and q8/q4 package usage for 3B/7B, shortest-edge/scale-factor image sizing plus video clip controls, negative prompts including the FLUX.2 exception, Qwen edit-version routing, Wan video sizes, `mlxgen capabilities`, generated-output runtime-memory metadata, and Python routing helpers.
 - `docs/image-edit-modes.md`: plain-language guide to latent img2img, edit-reference, masked edit/inpaint, structured control, multi-reference, generative reframe, and outpaint, including what each mode preserves and what to expect from the output.
+- `docs/masked-editing.md`: canonical masked-edit reference — request contract, per-model route matrix with proof grades (Qwen edit/base, Z-Image turbo and non-turbo, FLUX.2 Klein, video masks), per-family behavior including the base-Qwen native warm start and `effective_steps` metadata, and route selection advice.
 - `docs/qwen-route-matrix.md`: current MLX-Gen route truth for Qwen Image and Qwen Image Edit, mapping public `mlxgen` capability ids to the upstream Diffusers Qwen pipeline families and to the proof surfaces that already exist.
 - `docs/qwen-localized-editing.md`: plain-language guide to Qwen localized-edit routes, contrasting masked edit/inpaint, structured control, and shipped base-Qwen control-inpaint, defining ControlNet and “sidecar” in user terms, and linking the accepted proof assets.
 - `docs/upscaling.md`: SeedVR2 image and video restoration guide with official 3B/7B source usage, published 3B/7B q8/q4 package handles, shortest-edge and scale-factor sizing, the conservative safe-video profile, the `29/8` multi-chunk video floor, accepted five-second Eiffel `1x` and `2x` 3B/7B proof bundles with readable mode labels, reproduction commands, timings/memory data, and real 5x source/output comparisons.
@@ -157,12 +158,15 @@ MLX-Gen exposes one public `image-to-image` task, but models can support differe
   anchor and later images provide additional style, material, or lighting cues.
 - masked edit / inpaint: localized edit through `--image` plus `--mask-path` on routes that
   advertise `supports_mask=true`. White mask pixels are repainted and black pixels are preserved.
-  Current mask-capable rows are the Qwen edit models (`qwen.inpaint`), the exact base-Qwen
-  control-inpaint row, the exact Z-Image Turbo row (`z-image.inpaint`), and FLUX.2 Klein
-  distilled and base models (`flux2.inpaint`, a diffusers `Flux2KleinInpaintPipeline` port with
-  per-step source compositing; smoke-validated, and the backend `mflux-generate-flux2-edit`
-  command additionally accepts extra images after the source as masked-area references).
-  `--image-strength` is rejected together with `--mask-path`.
+  Mask-capable rows: Qwen edit models (`qwen.inpaint`), base Qwen models (`qwen.base-inpaint`
+  natively with an internal strength-0.85 warm start and `effective_steps` metadata, or
+  `qwen.control-inpaint` with the auto-injected InstantX sidecar on the exact
+  `AbstractFramework/qwen-image-8bit` row), Z-Image turbo and non-turbo (`z-image.inpaint`;
+  pass an explicit `--guidance` on non-turbo rows), and FLUX.2 Klein distilled and base models
+  (`flux2.inpaint`, a diffusers `Flux2KleinInpaintPipeline` port with per-step source
+  compositing; the backend `mflux-generate-flux2-edit` command additionally accepts extra
+  images after the source as masked-area references). `--image-strength` is rejected together
+  with `--mask-path`. `docs/masked-editing.md` is the canonical matrix and behavior page.
 - `generative reframe`: zoom-out style edit through `--reframe-padding`. It generates a larger
   scene and may redraw subject details inside the original crop.
 - `outpaint`: canvas extension through `--outpaint-padding`. It aims to keep the source region more

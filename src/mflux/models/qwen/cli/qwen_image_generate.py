@@ -24,8 +24,9 @@ def main():
     parser.add_image_to_image_arguments(required=False)
     parser.add_mask_path_argument(
         help_text=(
-            "Optional mask image path for the exact base-Qwen control-inpaint route. White pixels are repainted and "
-            "black pixels are preserved."
+            "Optional mask image path for base-Qwen masked edit. White pixels are repainted and black pixels are "
+            "preserved. The exact validated control-inpaint row uses its ControlNet sidecar; other base rows use "
+            "native masked edit."
         ),
     )
     parser.add_controlnet_arguments()
@@ -43,17 +44,17 @@ def main():
     # 1. Load the model
     model_config = ModelConfig.from_name(model_name=args.model or "qwen-image", base_model=args.base_model)
     CallbackManager.apply_runtime_memory_options(args)
+    uses_native_inpaint = False
     if args.mask_path is not None:
         if args.image_path is None:
             parser.error("--mask-path requires --image-path.")
         if args.image_strength is not None:
             parser.error(
-                "--image-strength cannot be combined with --mask-path; base-Qwen control-inpaint is a separate route."
+                "--image-strength cannot be combined with --mask-path; masked edit is a separate route "
+                "from latent image-to-image."
             )
         if args.controlnet_image_path is not None:
-            parser.error(
-                "--mask-path cannot be combined with --controlnet-image-path on the base-Qwen control-inpaint route."
-            )
+            parser.error("--mask-path cannot be combined with --controlnet-image-path on base-Qwen masked routes.")
         try:
             plan = resolve_generation_plan(
                 model=args.model,
@@ -64,19 +65,36 @@ def main():
             )
         except TaskInferenceError as exc:
             parser.error(str(exc))
-        if args.controlnet_model is not None and args.controlnet_model != plan.control_model:
-            parser.error(
-                "--controlnet-model conflicts with the exact base-Qwen control-inpaint row. "
-                "Use the documented route, or call a different backend explicitly if you need another ControlNet package."
+        uses_native_inpaint = plan.control_model is None
+        if uses_native_inpaint:
+            if args.controlnet_model is not None:
+                parser.error(
+                    "--controlnet-model is not supported on the native base-Qwen masked edit route. "
+                    "The validated control-inpaint sidecar row is AbstractFramework/qwen-image-8bit."
+                )
+            if _option_was_provided(sys.argv[1:], "--controlnet-strength"):
+                parser.error("--controlnet-strength is not supported on the native base-Qwen masked edit route.")
+            qwen = QwenImage(
+                model_config=model_config,
+                quantize=args.quantize,
+                model_path=args.model_path,
+                lora_paths=args.lora_paths,
+                lora_scales=args.lora_scales,
             )
-        qwen = QwenImageControlNet(
-            controlnet_model=args.controlnet_model or plan.control_model,
-            model_config=model_config,
-            quantize=args.quantize,
-            model_path=args.model_path,
-            lora_paths=args.lora_paths,
-            lora_scales=args.lora_scales,
-        )
+        else:
+            if args.controlnet_model is not None and args.controlnet_model != plan.control_model:
+                parser.error(
+                    "--controlnet-model conflicts with the exact base-Qwen control-inpaint row. "
+                    "Use the documented route, or call a different backend explicitly if you need another ControlNet package."
+                )
+            qwen = QwenImageControlNet(
+                controlnet_model=args.controlnet_model or plan.control_model,
+                model_config=model_config,
+                quantize=args.quantize,
+                model_path=args.model_path,
+                lora_paths=args.lora_paths,
+                lora_scales=args.lora_scales,
+            )
     elif args.controlnet_image_path is not None:
         if args.image_path is not None:
             parser.error("--controlnet-image-path cannot be combined with --image-path or latent image-to-image mode.")
@@ -131,7 +149,21 @@ def main():
             events.set_output_path(output_path)
             unsubscribe = events.subscribe_model(qwen, map_complete_to_generated=True)
             try:
-                if args.controlnet_image_path is not None or args.mask_path is not None:
+                if uses_native_inpaint:
+                    image = qwen.generate_image(
+                        seed=seed,
+                        prompt=PromptUtil.read_prompt(args),
+                        negative_prompt=_read_negative_prompt(args),
+                        width=args.width,
+                        height=args.height,
+                        guidance=args.guidance,
+                        scheduler=args.scheduler,
+                        num_inference_steps=args.steps,
+                        image_path=args.image_path,
+                        mask_path=args.mask_path,
+                        canvas_policy=args.canvas_policy,
+                    )
+                elif args.controlnet_image_path is not None or args.mask_path is not None:
                     image = qwen.generate_image(
                         seed=seed,
                         prompt=PromptUtil.read_prompt(args),

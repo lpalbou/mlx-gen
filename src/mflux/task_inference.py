@@ -36,6 +36,10 @@ VALID_TASKS = {TASK_AUTO, EDIT, *PUBLIC_TASKS}
 CAPABILITIES_SCHEMA_VERSION = 4
 QWEN_CONTROL_UNION_MODEL = "InstantX/Qwen-Image-ControlNet-Union:diffusion_pytorch_model.safetensors"
 QWEN_CONTROL_INPAINT_MODEL = "InstantX/Qwen-Image-ControlNet-Inpainting:diffusion_pytorch_model.safetensors"
+# Untrusted inferred identities that earned native masked edit through an exact smoke proof.
+QWEN_BASE_NATIVE_INPAINT_EXACT_ROWS = frozenset({
+    "AbstractFramework/qwen-image-2512-8bit",
+})
 
 I2I_MODE_AUTO = "auto"
 MODE_TEXT_ONLY = "text-only"
@@ -425,6 +429,12 @@ def resolve_generation_plan(
         and not has_image_strength
     ):
         raise TaskInferenceError("--image-strength is required for latent image-to-image mode.")
+    # Masked routes cannot run without a mask; fail here instead of after model load.
+    if capability.supports_mask and not has_mask:
+        raise TaskInferenceError(
+            f"--mask-path is required for the masked edit / inpaint route {capability.id}. "
+            "Pass --mask-path, or select a different image-to-image mode."
+        )
 
     return GenerationPlan(
         public_task=capability.public_task,
@@ -770,7 +780,10 @@ def _z_image_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
         supports_guidance=True,
         supports_lora=True,
     )
-    if not _is_z_image_turbo(identity.aliases, identity.model_key):
+    # Native inpaint covers trusted turbo and non-turbo identities; spoofed or inferred
+    # local names stay fail-closed (0070 hardening).
+    is_trusted_identity = bool(identity.aliases or identity.model_key)
+    if not is_trusted_identity:
         return base
     return ModelCapabilities(
         schema_version=base.schema_version,
@@ -912,6 +925,30 @@ def _qwen_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 if _supports_qwen_base_control(identity)
                 else ()
             ),
+            *(
+                (
+                    GenerationCapability(
+                        # Native base-Qwen masked edit (diffusers QwenImageInpaintPipeline port).
+                        # Exactly one masked route per row: the exact validated control-inpaint
+                        # row keeps its sidecar route, every other trusted base row gets native.
+                        id="qwen.base-inpaint",
+                        public_task=IMAGE_TO_IMAGE,
+                        mode=MODE_EDIT_REFERENCE,
+                        handler_id="qwen.generate",
+                        min_images=1,
+                        max_images=1,
+                        supports_mask=True,
+                        **_lora_capability_kwargs(
+                            identity=identity,
+                            capability_id="qwen.base-inpaint",
+                            supports_lora=True,
+                        ),
+                        **i2i_canvas,
+                    ),
+                )
+                if _supports_qwen_base_native_inpaint(identity)
+                else ()
+            ),
             GenerationCapability(
                 id="qwen.latent",
                 public_task=IMAGE_TO_IMAGE,
@@ -920,6 +957,7 @@ def _qwen_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 min_images=1,
                 max_images=1,
                 supports_image_strength=True,
+                default_for_task=True,
                 **_lora_capability_kwargs(identity=identity, capability_id="qwen.latent", supports_lora=True),
                 **i2i_canvas,
             ),
@@ -1379,6 +1417,19 @@ def _supports_qwen_base_control(identity: _ModelIdentity) -> bool:
     if _is_qwen_edit(identity.aliases, identity.model_key):
         return False
     return identity.model_name == "AbstractFramework/qwen-image-8bit"
+
+
+def _supports_qwen_base_native_inpaint(identity: _ModelIdentity) -> bool:
+    # Exactly one masked route per row: the exact validated control-inpaint row keeps the
+    # sidecar route; native inpaint covers the other base rows. Untrusted inferred
+    # identities stay fail-closed except exact proven rows (0070 hardening).
+    if _supports_qwen_base_control(identity):
+        return False
+    if _is_qwen_edit(identity.aliases, identity.model_key):
+        return False
+    if identity.aliases or identity.model_key:
+        return True
+    return identity.model_name in QWEN_BASE_NATIVE_INPAINT_EXACT_ROWS
 
 
 def _qwen_label(identity: _ModelIdentity) -> str:

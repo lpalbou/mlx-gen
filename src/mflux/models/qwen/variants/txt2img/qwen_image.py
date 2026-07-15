@@ -15,6 +15,7 @@ from mflux.models.qwen.model.qwen_text_encoder.qwen_text_encoder import QwenText
 from mflux.models.qwen.model.qwen_transformer.qwen_transformer import QwenTransformer
 from mflux.models.qwen.model.qwen_vae.qwen_vae import QwenVAE
 from mflux.models.qwen.qwen_initializer import QwenImageInitializer
+from mflux.models.qwen.variants.edit.qwen_edit_util import QwenEditUtil
 from mflux.models.qwen.weights.qwen_weight_definition import QwenWeightDefinition
 from mflux.utils.dimension_resolver import CANVAS_POLICY_SOURCE_ASPECT
 from mflux.utils.exceptions import StopImageGenerationException
@@ -28,6 +29,13 @@ class QwenImage(nn.Module):
     vae: QwenVAE
     transformer: QwenTransformer
     text_encoder: QwenTextEncoder
+
+    # Upstream QwenImageInpaintPipeline inpaint example strength: the masked region starts
+    # from the re-noised source so repainted content stays anchored to the surrounding
+    # structure (base Qwen is a t2i model without edit-instruction training; a pure-noise
+    # start paints unrelated content into the mask, while the signature default 0.6 barely
+    # repaints at all).
+    MASKED_EDIT_STRENGTH = 0.85
 
     def __init__(
         self,
@@ -56,20 +64,32 @@ class QwenImage(nn.Module):
         width: int | ScaleFactor | None = None,
         guidance: float = 4.0,
         image_path: Path | str | None = None,
+        mask_path: Path | str | None = None,
         image_strength: float | None = None,
         scheduler: str = "flow_match_euler_discrete",
         negative_prompt: str | None = None,
         canvas_policy: str = CANVAS_POLICY_SOURCE_ASPECT,
     ) -> GeneratedImage:
         timer = RuntimeTimer()
+        if mask_path is not None and image_path is None:
+            raise ValueError("mask_path requires image_path for native base-Qwen masked edit.")
+        if mask_path is not None and image_strength is not None:
+            raise ValueError(
+                "image_strength cannot be combined with mask_path; native masked edit is a separate route "
+                "from latent image-to-image."
+            )
         # 0. Create a new config based on the model type and input parameters
+        # Masked edit runs the upstream inpaint warm start internally; the public contract
+        # keeps --image-strength and --mask-path mutually exclusive.
+        internal_image_strength = QwenImage.MASKED_EDIT_STRENGTH if mask_path is not None else image_strength
         config = Config(
             width=width,
             height=height,
             guidance=guidance,
             scheduler=scheduler,
             image_path=image_path,
-            image_strength=image_strength,
+            image_strength=internal_image_strength,
+            masked_image_path=mask_path,
             model_config=self.model_config,
             num_inference_steps=num_inference_steps,
             canvas_policy=canvas_policy,
@@ -77,20 +97,36 @@ class QwenImage(nn.Module):
         )
 
         # 1. Create the initial latents
-        latents = LatentCreator.create_for_txt2img_or_img2img(
-            seed=seed,
-            width=config.width,
-            height=config.height,
-            img2img=Img2Img(
-                vae=self.vae,
-                latent_creator=QwenLatentCreator,
-                sigmas=config.scheduler.sigmas,
-                init_time_step=config.init_time_step,
-                image_strength=config.image_strength,
+        inpaint_latents = None
+        if mask_path is not None:
+            initial_noise = QwenLatentCreator.create_noise(seed, config.height, config.width)
+            inpaint_latents = self._create_inpaint_latents(
                 image_path=config.image_path,
-                tiling_config=self.tiling_config,
-            ),
-        )
+                mask_path=mask_path,
+                height=config.height,
+                width=config.width,
+                initial_noise=initial_noise,
+            )
+            latents = LatentCreator.add_noise_by_interpolation(
+                clean=inpaint_latents["image"],
+                noise=initial_noise,
+                sigma=config.scheduler.sigmas[config.init_time_step],
+            )
+        else:
+            latents = LatentCreator.create_for_txt2img_or_img2img(
+                seed=seed,
+                width=config.width,
+                height=config.height,
+                img2img=Img2Img(
+                    vae=self.vae,
+                    latent_creator=QwenLatentCreator,
+                    sigmas=config.scheduler.sigmas,
+                    init_time_step=config.init_time_step,
+                    image_strength=config.image_strength,
+                    image_path=config.image_path,
+                    tiling_config=self.tiling_config,
+                ),
+            )
 
         # 2. Encode the prompt (using native MLX encoding)
         negative_prompt = self._resolve_negative_prompt(guidance=guidance, negative_prompt=negative_prompt)
@@ -104,7 +140,12 @@ class QwenImage(nn.Module):
         do_true_cfg = guidance > 1.0 and negative_prompt_embeds is not None and negative_prompt_mask is not None
 
         # 3. Create callback context and call before_loop
-        ctx = self.callbacks.start(seed=seed, prompt=prompt, config=config)
+        ctx = self.callbacks.start(
+            seed=seed,
+            prompt=prompt,
+            config=config,
+            task="image-to-image" if mask_path is not None else None,
+        )
         ctx.before_loop(latents)
 
         for t in config.time_steps:
@@ -134,6 +175,15 @@ class QwenImage(nn.Module):
 
                 # 5.t Take one denoise step
                 latents = config.scheduler.step(noise=guided_noise, timestep=t, latents=latents)
+                if inpaint_latents is not None:
+                    sigma = config.scheduler.sigmas[t + 1] if t < config.num_inference_steps - 1 else 0.0
+                    latents = QwenEditUtil.blend_inpaint_latents(
+                        latents=latents,
+                        image_latents=inpaint_latents["image"],
+                        initial_noise=inpaint_latents["noise"],
+                        mask_latents=inpaint_latents["mask"],
+                        sigma=sigma,
+                    )
 
                 # 6.t Call subscribers in-loop
                 ctx.in_loop(t, latents)
@@ -163,16 +213,67 @@ class QwenImage(nn.Module):
                 lora_paths=self.lora_paths,
                 lora_scales=self.lora_scales,
                 image_path=config.image_path,
-                image_strength=config.image_strength,
+                # The masked warm start is an internal constant, not a replayable user option.
+                image_strength=image_strength,
+                masked_image_path=mask_path,
                 generation_time=timer.elapsed_seconds(),
                 negative_prompt=negative_prompt,
-                extra_metadata=LoRALoader.extra_metadata_for_model(self),
+                extra_metadata=self._masked_run_metadata(config=config, mask_path=mask_path),
             )
         except Exception:
             ctx.failed()
             raise
         ctx.complete()
         return image
+
+    def _masked_run_metadata(self, *, config: Config, mask_path: Path | str | None) -> dict | None:
+        # Runtime truth: the warm start truncates the schedule, so record the executed step
+        # count and the internal strength beside the requested steps (Wan v2v precedent).
+        extra_metadata = LoRALoader.extra_metadata_for_model(self) or {}
+        if mask_path is None:
+            return extra_metadata or None
+        return {
+            **extra_metadata,
+            "effective_steps": config.num_inference_steps - config.init_time_step,
+            "masked_warm_start_strength": QwenImage.MASKED_EDIT_STRENGTH,
+        }
+
+    def _create_inpaint_latents(
+        self,
+        *,
+        image_path: Path | str,
+        mask_path: Path | str,
+        height: int,
+        width: int,
+        initial_noise: mx.array,
+    ) -> dict[str, mx.array]:
+        # Diffusers QwenImageInpaintPipeline semantics at the repo-wide full-strength mask
+        # contract: encode the clean source once, keep unmasked latents locked to it by
+        # per-step blending against the run's own initial noise.
+        encoded = LatentCreator.encode_image(
+            vae=self.vae,
+            image_path=image_path,
+            height=height,
+            width=width,
+            tiling_config=self.tiling_config,
+        )
+        image_latents = mx.stop_gradient(
+            QwenLatentCreator.pack_latents(latents=encoded, height=height, width=width)
+        )
+        mask_latents = mx.stop_gradient(
+            QwenEditUtil.create_inpaint_mask_latents(
+                mask_path=str(mask_path),
+                height=height,
+                width=width,
+            ).astype(image_latents.dtype)
+        )
+        detached_noise = mx.stop_gradient(initial_noise)
+        mx.eval(image_latents, mask_latents, detached_noise)
+        return {
+            "image": image_latents,
+            "mask": mask_latents,
+            "noise": detached_noise,
+        }
 
     def save_model(self, base_path: str) -> None:
         ModelSaver.save_model(
