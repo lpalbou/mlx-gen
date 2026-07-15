@@ -1,0 +1,122 @@
+{
+  "klein4b_insert": {
+    "outside": 2.54,
+    "inside": 71.07
+  },
+  "klein4b_recolor": {
+    "outside": 2.0,
+    "inside": 137.78
+  },
+  "klein4b_arm": {
+    "outside": 1.54,
+    "inside": 15.19
+  },
+  "klein4b_remove": {
+    "outside": 1.4,
+    "inside": 1.56
+  },
+  "kleinb4b_insert": {
+    "outside": 1.75,
+    "inside": 44.43
+  },
+  "kleinb4b_recolor": {
+    "outside": 2.03,
+    "inside": 135.45
+  },
+  "kleinb4b_arm": {
+    "outside": 1.53,
+    "inside": 13.87
+  },
+  "kleinb4b_remove": {
+    "outside": 1.42,
+    "inside": 1.93
+  },
+  "qwen4bit_insert": {
+    "outside": 0.46,
+    "inside": 29.36
+  },
+  "qwen4bit_recolor": {
+    "outside": 0.31,
+    "inside": 15.53
+  },
+  "qwen4bit_arm": {
+    "outside": 0.4,
+    "inside": 20.62
+  },
+  "qwen4bit_remove": {
+    "outside": 0.42,
+    "inside": 9.81
+  },
+  "qwen2512_insert": {
+    "outside": 0.46,
+    "inside": 36.1
+  },
+  "qwen2512_recolor": {
+    "outside": 0.31,
+    "inside": 28.64
+  },
+  "qwen2512_arm": {
+    "outside": 0.4,
+    "inside": 26.66
+  },
+  "qwen2512_remove": {
+    "outside": 0.42,
+    "inside": 8.54
+  },
+  "zimage8_insert": {
+    "outside": 0.56,
+    "inside": 136.74
+  },
+  "zimage8_recolor": {
+    "outside": 0.41,
+    "inside": 104.25
+  },
+  "zimage8_arm": {
+    "outside": 0.56,
+    "inside": 58.65
+  },
+  "zimage8_remove": {
+    "outside": 0.55,
+    "inside": 25.71
+  },
+  "klein4b_sticker": {
+    "outside": 1.4,
+    "inside": 12.18
+  },
+  "kleinb4b_sticker": {
+    "outside": 1.42,
+    "inside": 14.36
+  },
+  "qwen4bit_sticker": {
+    "outside": 0.4,
+    "inside": 16.09
+  },
+  "qwen2512_sticker": {
+    "outside": 0.4,
+    "inside": 18.52
+  },
+  "zimage8_sticker": {
+    "outside": 0.55,
+    "inside": 30.59
+  },
+  "qwensrc_insert": {
+    "outside": 0.46,
+    "inside": 31.65
+  },
+  "qwensrc_recolor": {
+    "outside": 0.31,
+    "inside": 14.49
+  },
+  "qwensrc_arm": {
+    "outside": 0.4,
+    "inside": 19.48
+  },
+  "qwensrc_sticker": {
+    "outside": 0.4,
+    "inside": 15.24
+  },
+  "qwensrc_recolor_s095": {
+    "outside": 0.31,
+    "inside": 46.46
+  }
+}

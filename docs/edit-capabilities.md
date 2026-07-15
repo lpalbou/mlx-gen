@@ -327,6 +327,34 @@ Published artifacts:
 - [native-inpaint command log](assets/validation/zimage-inpaint-2026-06-21/zimage_inpaint_command_log.md)
 - [native-inpaint timings on M5 Max](assets/validation/zimage-inpaint-2026-06-21/zimage_inpaint_stats_m5max.json)
 
+## Masked Edit 5x5 Matrix (FLUX.2 Klein, Base Qwen, Z-Image Non-Turbo)
+
+The masked-edit routes shipped in 0.20.0/0.21.0 have a standardized multi-case matrix: one
+shared source, five masks (object insertion, lens recolor, arm retexture, sticker removal, and
+an unscored partial-object-removal limitation demonstration), same seed, five exact rows.
+
+![Masked edit 5x5 matrix](assets/validation/masked-edit-matrix-2026-07-15/masked_edit_matrix_contact_sheet.png)
+
+| Model | Route | insert | recolor | retexture | sticker removal | Aggregate |
+| --- | --- | --- | --- | --- | --- | --- |
+| `AbstractFramework/flux.2-klein-4b-8bit` | `flux2.inpaint` | `PASS` | `PASS` | `PASS` | `PASS` | `PASS` |
+| `AbstractFramework/flux.2-klein-base-4b-8bit` | `flux2.inpaint` | `PASS` | `PASS` | `PASS` | `PASS` | `PASS` |
+| `Qwen/Qwen-Image` (source bf16) | `qwen.base-inpaint` | `PASS` | `PARTIAL` | `PASS` | `PASS` | `PARTIAL` |
+| `AbstractFramework/qwen-image-4bit` | `qwen.base-inpaint` | `PASS` | `PARTIAL` | `PASS` | `PASS` | `PARTIAL` |
+| `AbstractFramework/qwen-image-2512-8bit` | `qwen.base-inpaint` | `PASS` | `PARTIAL` | `PASS` | `PASS` | `PARTIAL` |
+| `AbstractFramework/z-image-8bit` | `z-image.inpaint` | `PASS` | `PARTIAL` | `FAIL` | `PASS` | `FAIL` |
+
+The PARTIAL and FAIL cells are documented behavior, not gaps in the proof, and both led to
+shipped consequences: the base-Qwen warm start anchors masked content to the source at the
+default `--mask-strength 0.85` (the measured `0.95` setting recolors fully — s095 regression
+sheet in the bundle), and the non-turbo Z-Image geometry artifact reproduced across seeds and
+CFG settings, so non-turbo Z-Image masked editing is withdrawn from the public surface for the
+moment (the row above stays as the withdrawal evidence). See
+[Masked editing](masked-editing.md) for route-selection advice and the
+[matrix bundle](assets/validation/masked-edit-matrix-2026-07-15/README.md) for zoom sheets,
+preservation metrics, prompts, and the seed-43 reproduction of the Z-Image failure. Registry
+profile: `masked_edit_matrix_5x5_2026_07_15`.
+
 ## Exact Validation Commands
 
 The full command logs are published with the proof assets:

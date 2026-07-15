@@ -173,6 +173,9 @@ class CompletionGenerator:
             parser.add_mask_path_argument(
                 help_text="Optional mask image path for base-Qwen masked edit.",
             )
+            parser.add_mask_strength_argument(
+                help_text="Native masked edit warm-start strength in (0, 1]. Default 0.85.",
+            )
             parser.add_controlnet_arguments()
             parser.add_output_arguments()
 
@@ -242,7 +245,10 @@ class CompletionGenerator:
             parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
             parser.add_image_to_image_arguments()
             parser.add_mask_path_argument(
-                help_text="Optional mask image path for native Z-Image inpaint.",
+                help_text=(
+                    "Mask image path for native Z-Image inpaint (Turbo rows only; non-turbo masked "
+                    "requests are rejected before model load)."
+                ),
             )
             parser.add_output_arguments()
 

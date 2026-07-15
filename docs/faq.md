@@ -275,7 +275,7 @@ keeps the change local.
 
 Masked editing is supported on Qwen edit models, base Qwen models (native `qwen.base-inpaint`,
 or the validated control-inpaint sidecar on the exact `AbstractFramework/qwen-image-8bit` row),
-Z-Image turbo and non-turbo, and FLUX.2 Klein distilled and base (with optional masked-area
+Z-Image Turbo, and FLUX.2 Klein distilled and base (with optional masked-area
 reference images on the backend route). [Masked editing](masked-editing.md) is the canonical
 page for the model matrix, per-family behavior, and proof grades.
 

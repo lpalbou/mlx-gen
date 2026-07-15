@@ -20,7 +20,9 @@
 1. Runtime: `QwenImage.generate_image` gains `mask_path` - encode the clean source once,
    reuse `QwenEditUtil.create_inpaint_mask_latents`/`blend_inpaint_latents` per step, warm
    start from the re-noised source at the internal upstream-example strength 0.85
-   (`MASKED_EDIT_STRENGTH`), record `effective_steps` + `masked_warm_start_strength` in
+   (`MASKED_EDIT_STRENGTH`), record `effective_steps` + the applied warm-start strength in
+   metadata (key shipped as `masked_warm_start_strength`, renamed to `mask_strength` the same
+   day when the strength became the tunable `--mask-strength` option) in
    metadata (Wan v2v runtime-truth precedent), label progress `image-to-image`, and reject
    `image_strength`/missing-image combinations. The public `--image-strength`-with-mask
    rejection is unchanged repo-wide.
@@ -61,9 +63,12 @@
   contract. Empirical basis (2512-8bit row, same seed/case): pure-noise start paints
   unrelated content into the mask, upstream signature default 0.6 barely repaints, upstream
   docstring example 0.85 produces the correct masked object insertion.
-- `Qwen/Qwen-Image` source and prepared bf16 rows share the native-inpaint wiring without a
-  dedicated run (bf16-scale checkpoints do not fit current local disk); the docs label
-  validated-vs-wiring rows accordingly.
+- `Qwen/Qwen-Image` source and prepared bf16 rows initially shared the native-inpaint wiring
+  without a dedicated run (bf16-scale checkpoints did not fit local disk at the time). Closed
+  2026-07-15 after disk was freed: the source bf16 row ran the four scored matrix cases
+  (PARTIAL aggregate, same recolor signature as the prepared rows; source-row addendum in the
+  matrix bundle). No prepared bf16 package is published, so the source row is the only bf16
+  surface.
 
 ## Proof
 
@@ -77,6 +82,20 @@ contact sheet plus runtime-truth metadata sidecar included. Grade: visual smoke,
 ## Follow-ups
 
 - Promote the smoke rows to validated visual-QA rows (multi-case matrix) before any
-  release-notes "validated" claim.
+  release-notes "validated" claim. (Done 2026-07-15 same day: the masked-edit 5x5 matrix in
+  `docs/assets/validation/masked-edit-matrix-2026-07-15/` and registry profile
+  `masked_edit_matrix_5x5_2026_07_15` grade all four new-route rows - Klein 4B q8 rows PASS,
+  qwen.base-inpaint rows PARTIAL with the documented warm-start recolor limitation, Z-Image
+  non-turbo mixed with a seed-reproducible arm-retexture geometry failure.)
 - Z-Image ControlNet-inpaint remains [0045](../proposed/0045_zimage_controlnet_followup.md),
-  refreshed 2026-07-15 with upstream sizing facts.
+  refreshed 2026-07-15 with upstream sizing facts and a dedicated-session execution plan.
+- Post-matrix consequences (2026-07-15, same day): the non-turbo Z-Image route this item
+  opened was withdrawn after the matrix ARM failure reproduced across seeds and CFG settings
+  (`z-image.inpaint` is Turbo-only again; evidence retained in the matrix bundle and
+  registry), and `qwen.base-inpaint` gained the tunable `--mask-strength` warm start (default
+  0.85; measured 0.95 fixes the PARTIAL recolor cells).
+- Re-check trigger for the withdrawn non-turbo Z-Image route: revisit only when upstream
+  ships a non-turbo inpaint reference or demonstration (diffusers `ZImageInpaintPipeline`
+  currently documents Turbo exclusively), or when a new non-turbo checkpoint revision lands.
+  Reproduce the matrix ARM case first; do not re-open the capability on settings tweaks
+  alone (guidance and seed variations were already measured as non-fixes).

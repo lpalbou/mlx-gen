@@ -243,6 +243,15 @@ class CommandLineParser(argparse.ArgumentParser):
             help=help_text,
         )
 
+    def add_mask_strength_argument(self, help_text: str) -> None:
+        self.add_argument(
+            "--mask-strength",
+            dest="mask_strength",
+            type=image_strength_value,
+            default=None,
+            help=help_text,
+        )
+
     def add_batch_image_generator_arguments(self) -> None:
         self.add_argument("--batch-prompts-file", type=Path, required=True, default=argparse.SUPPRESS, help="Local path for a file that holds a batch of prompts.")
         self.add_argument("--global-seed", type=int, default=argparse.SUPPRESS, help="Entropy Seed (used for all prompts in the batch)")
@@ -418,6 +427,17 @@ class CommandLineParser(argparse.ArgumentParser):
                     prior_gen_metadata.get("masked_image_path", None) or prior_gen_metadata.get("mask_path", None)
                 )
 
+            if hasattr(namespace, "mask_strength") and namespace.mask_strength is None:
+                # `masked_warm_start_strength` is the 0.21.0 spelling of the same field.
+                mask_strength_from_metadata = prior_gen_metadata.get(
+                    "mask_strength", prior_gen_metadata.get("masked_warm_start_strength", None)
+                )
+                if mask_strength_from_metadata is not None:
+                    try:
+                        namespace.mask_strength = image_strength_value(str(mask_strength_from_metadata))
+                    except argparse.ArgumentTypeError as exc:
+                        self.error(f"Invalid mask_strength in metadata: {exc}")
+
             if self.supports_image_to_image:
                 img_strength_from_metadata = prior_gen_metadata.get("image_strength", None)
                 if namespace.image_strength == self.get_default("image_strength") and img_strength_from_metadata is not None:
@@ -433,7 +453,8 @@ class CommandLineParser(argparse.ArgumentParser):
                     namespace.controlnet_model = prior_gen_metadata.get("controlnet_model", None)
                 if namespace.controlnet_strength == self.get_default("controlnet_strength") and (cnet_strength_from_metadata := prior_gen_metadata.get("controlnet_strength", None)):
                     namespace.controlnet_strength = cnet_strength_from_metadata
-                if namespace.controlnet_save_canny == self.get_default("controlnet_save_canny") and (cnet_canny_from_metadata := prior_gen_metadata.get("controlnet_save_canny", None)):
+                # --controlnet-save-canny only exists on canny-mode parsers.
+                if hasattr(namespace, "controlnet_save_canny") and namespace.controlnet_save_canny == self.get_default("controlnet_save_canny") and (cnet_canny_from_metadata := prior_gen_metadata.get("controlnet_save_canny", None)):
                     namespace.controlnet_save_canny = cnet_canny_from_metadata
 
 

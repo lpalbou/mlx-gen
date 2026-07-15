@@ -1721,32 +1721,23 @@ def test_mask_path_routes_zimage_turbo_native_inpaint():
     ]
 
 
-def test_mask_path_routes_zimage_base_native_inpaint():
-    invocation = mlx_gen._resolve_invocation(
-        [
-            "--model",
-            "z-image",
-            "--image",
-            "input.png",
-            "--mask-path",
-            "mask.png",
-            "--prompt",
-            "replace the broken sign",
-        ]
-    )
+def test_mask_path_is_rejected_for_zimage_non_turbo(capsys):
+    # Non-turbo masked edit is withdrawn for the moment (matrix-measured geometry artifacts).
+    with pytest.raises(SystemExit):
+        mlx_gen._resolve_invocation(
+            [
+                "--model",
+                "z-image",
+                "--image",
+                "input.png",
+                "--mask-path",
+                "mask.png",
+                "--prompt",
+                "replace the broken sign",
+            ]
+        )
 
-    assert invocation.target_name == "mflux-generate-z-image"
-    assert invocation.argv == [
-        "mflux-generate-z-image",
-        "--model",
-        "z-image",
-        "--image-path",
-        "input.png",
-        "--mask-path",
-        "mask.png",
-        "--prompt",
-        "replace the broken sign",
-    ]
+    assert "mask-path is only supported" in capsys.readouterr().err
 
 
 def test_controlnet_image_routes_base_qwen_structured_control():
@@ -2211,8 +2202,261 @@ def test_qwen_backend_forwards_mask_path_to_native_inpaint(monkeypatch, tmp_path
 
     assert observed["generate"]["image_path"] == source
     assert observed["generate"]["mask_path"] == mask
+    assert observed["generate"]["mask_strength"] is None
     assert "controlnet_image_path" not in observed["generate"]
     assert "controlnet_strength" not in observed["generate"]
+
+
+def test_qwen_backend_forwards_mask_strength_and_rejects_it_on_sidecar_row(monkeypatch, tmp_path, capsys):
+    from mflux.models.qwen.cli import qwen_image_generate
+
+    source = tmp_path / "source.png"
+    mask = tmp_path / "mask.png"
+    output = tmp_path / "out.png"
+    Image.new("RGB", (12, 8), color=(20, 40, 60)).save(source)
+    Image.new("L", (12, 8), color=255).save(mask)
+    observed = {}
+
+    class FakeImage:
+        def __init__(self):
+            self.image = Image.new("RGB", (12, 8), color=(0, 255, 0))
+
+        def save(self, **kwargs):
+            self.image.save(kwargs["path"])
+
+    class FakeQwenImage:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_image(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeImage()
+
+    monkeypatch.setattr(qwen_image_generate, "QwenImage", FakeQwenImage)
+    monkeypatch.setattr(qwen_image_generate.CallbackManager, "register_callbacks", lambda **kwargs: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-qwen",
+            "--model",
+            "AbstractFramework/qwen-image-4bit",
+            "--image-path",
+            str(source),
+            "--mask-path",
+            str(mask),
+            "--mask-strength",
+            "0.95",
+            "--prompt",
+            "recolor the masked lens",
+            "--output",
+            str(output),
+        ],
+    )
+
+    qwen_image_generate.main()
+    assert observed["generate"]["mask_strength"] == 0.95
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-qwen",
+            "--model",
+            "AbstractFramework/qwen-image-8bit",
+            "--image-path",
+            str(source),
+            "--mask-path",
+            str(mask),
+            "--mask-strength",
+            "0.95",
+            "--prompt",
+            "recolor the masked lens",
+        ],
+    )
+    with pytest.raises(SystemExit):
+        qwen_image_generate.main()
+    assert "not supported on the control-inpaint sidecar row" in capsys.readouterr().err
+
+
+def test_qwen_backend_replays_mask_strength_from_metadata(monkeypatch, tmp_path):
+    from mflux.models.qwen.cli import qwen_image_generate
+
+    source = tmp_path / "source.png"
+    mask = tmp_path / "mask.png"
+    output = tmp_path / "out.png"
+    Image.new("RGB", (12, 8), color=(20, 40, 60)).save(source)
+    Image.new("L", (12, 8), color=255).save(mask)
+    metadata_path = tmp_path / "metadata.json"
+    metadata_path.write_text(
+        json.dumps(
+            {
+                "model": "AbstractFramework/qwen-image-4bit",
+                "image_path": str(source),
+                "masked_image_path": str(mask),
+                "mask_strength": 0.95,
+                "image_strength": None,
+                "prompt": "recolor the masked lens",
+            }
+        )
+    )
+    observed = {}
+
+    class FakeImage:
+        def __init__(self):
+            self.image = Image.new("RGB", (12, 8), color=(0, 255, 0))
+
+        def save(self, **kwargs):
+            self.image.save(kwargs["path"])
+
+    class FakeQwenImage:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_image(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeImage()
+
+    monkeypatch.setattr(qwen_image_generate, "QwenImage", FakeQwenImage)
+    monkeypatch.setattr(qwen_image_generate.CallbackManager, "register_callbacks", lambda **kwargs: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-qwen",
+            "--config-from-metadata",
+            str(metadata_path),
+            "--output",
+            str(output),
+        ],
+    )
+
+    qwen_image_generate.main()
+
+    # Metadata-backfilled paths arrive as strings; the runtime accepts Path | str.
+    assert Path(observed["generate"]["mask_path"]) == mask
+    assert observed["generate"]["mask_strength"] == 0.95
+    assert "image_strength" not in observed["generate"]
+
+
+def test_qwen_backend_replays_legacy_masked_warm_start_strength_key(monkeypatch, tmp_path):
+    # 0.21.0 sidecars recorded the warm start as `masked_warm_start_strength`; replay must
+    # honor the legacy spelling (metadata schema v2 renamed it to `mask_strength`).
+    from mflux.models.qwen.cli import qwen_image_generate
+
+    source = tmp_path / "source.png"
+    mask = tmp_path / "mask.png"
+    output = tmp_path / "out.png"
+    Image.new("RGB", (12, 8), color=(20, 40, 60)).save(source)
+    Image.new("L", (12, 8), color=255).save(mask)
+    metadata_path = tmp_path / "metadata.json"
+    metadata_path.write_text(
+        json.dumps(
+            {
+                "model": "AbstractFramework/qwen-image-4bit",
+                "image_path": str(source),
+                "masked_image_path": str(mask),
+                "masked_warm_start_strength": 0.7,
+                "prompt": "recolor the masked lens",
+            }
+        )
+    )
+    observed = {}
+
+    class FakeImage:
+        def __init__(self):
+            self.image = Image.new("RGB", (12, 8), color=(0, 255, 0))
+
+        def save(self, **kwargs):
+            self.image.save(kwargs["path"])
+
+    class FakeQwenImage:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_image(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeImage()
+
+    monkeypatch.setattr(qwen_image_generate, "QwenImage", FakeQwenImage)
+    monkeypatch.setattr(qwen_image_generate.CallbackManager, "register_callbacks", lambda **kwargs: None)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-qwen",
+            "--config-from-metadata",
+            str(metadata_path),
+            "--output",
+            str(output),
+        ],
+    )
+
+    qwen_image_generate.main()
+
+    assert observed["generate"]["mask_strength"] == 0.7
+
+
+def test_qwen_backend_rejects_metadata_mask_strength_on_sidecar_row(monkeypatch, tmp_path, capsys):
+    from mflux.models.qwen.cli import qwen_image_generate
+
+    source = tmp_path / "source.png"
+    mask = tmp_path / "mask.png"
+    Image.new("RGB", (12, 8), color=(20, 40, 60)).save(source)
+    Image.new("L", (12, 8), color=255).save(mask)
+    metadata_path = tmp_path / "metadata.json"
+    metadata_path.write_text(
+        json.dumps(
+            {
+                "model": "AbstractFramework/qwen-image-8bit",
+                "image_path": str(source),
+                "masked_image_path": str(mask),
+                "mask_strength": 0.95,
+                "prompt": "recolor the masked lens",
+            }
+        )
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-qwen",
+            "--config-from-metadata",
+            str(metadata_path),
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        qwen_image_generate.main()
+
+    assert "not supported on the control-inpaint sidecar row" in capsys.readouterr().err
+
+
+def test_qwen_backend_rejects_mask_strength_without_mask(monkeypatch, tmp_path, capsys):
+    from mflux.models.qwen.cli import qwen_image_generate
+
+    source = tmp_path / "source.png"
+    Image.new("RGB", (12, 8), color=(20, 40, 60)).save(source)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mflux-generate-qwen",
+            "--model",
+            "AbstractFramework/qwen-image-4bit",
+            "--image-path",
+            str(source),
+            "--mask-strength",
+            "0.95",
+            "--prompt",
+            "recolor the lens",
+        ],
+    )
+
+    with pytest.raises(SystemExit):
+        qwen_image_generate.main()
+
+    assert "--mask-strength requires --mask-path" in capsys.readouterr().err
 
 
 def test_qwen_backend_rejects_controlnet_model_on_native_inpaint_route(monkeypatch, tmp_path, capsys):
@@ -2246,34 +2490,20 @@ def test_qwen_backend_rejects_controlnet_model_on_native_inpaint_route(monkeypat
     assert "not supported on the native base-Qwen masked edit route" in capsys.readouterr().err
 
 
-def test_zimage_base_backend_forwards_mask_path(monkeypatch, tmp_path):
+def test_zimage_base_backend_rejects_mask_path_before_model_init(monkeypatch, tmp_path, capsys):
     from mflux.models.z_image.cli import z_image_generate
 
     source = tmp_path / "source.png"
     mask = tmp_path / "mask.png"
-    output = tmp_path / "out.png"
     Image.new("RGB", (12, 8), color=(20, 40, 60)).save(source)
     Image.new("L", (12, 8), color=255).save(mask)
     observed = {}
-
-    class FakeImage:
-        def __init__(self):
-            self.image = Image.new("RGB", (12, 8), color=(0, 255, 0))
-
-        def save(self, **kwargs):
-            observed["save"] = kwargs
-            self.image.save(kwargs["path"])
 
     class FakeZImage:
         def __init__(self, **kwargs):
             observed["init"] = kwargs
 
-        def generate_image(self, **kwargs):
-            observed["generate"] = kwargs
-            return FakeImage()
-
     monkeypatch.setattr(z_image_generate, "ZImage", FakeZImage)
-    monkeypatch.setattr(z_image_generate.CallbackManager, "register_callbacks", lambda **kwargs: None)
     monkeypatch.setattr(
         sys,
         "argv",
@@ -2287,16 +2517,14 @@ def test_zimage_base_backend_forwards_mask_path(monkeypatch, tmp_path):
             str(mask),
             "--prompt",
             "replace the broken sign",
-            "--output",
-            str(output),
         ],
     )
 
-    z_image_generate.main()
+    with pytest.raises(SystemExit):
+        z_image_generate.main()
 
-    assert observed["generate"]["mask_path"] == mask
-    assert observed["generate"]["image_path"] == source
-    assert observed["init"]["model_config"].model_name == "Tongyi-MAI/Z-Image"
+    assert "mask-path is only supported" in capsys.readouterr().err
+    assert "init" not in observed
 
 
 def test_qwen_backend_forwards_controlnet_strength_to_control_inpaint(monkeypatch, tmp_path):

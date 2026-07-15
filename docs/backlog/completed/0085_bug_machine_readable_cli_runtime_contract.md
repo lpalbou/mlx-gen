@@ -1,4 +1,16 @@
-# Bug: embedding apps still lack a machine-readable CLI runtime contract
+# 0085 - Bug: embedding apps lacked a machine-readable CLI runtime contract
+
+- Status: completed (resolved in 0.19.0; filed 2026-06-30 at the repo root, moved into the
+  backlog during the 2026-07-15 hygiene pass)
+- Resolution: `--json-events` shipped on `mlxgen generate` and `mlxgen upscale` (0.19.0
+  changelog "Machine-readable runtime events"): JSONL events on stdout with human text on
+  stderr, authoritative routed command/model identity, step-based progress, terminal
+  `complete` only after the artifact is written, `diagnostics_path` on failure manifests,
+  `remediation`/`download-required`/`cli-usage` kinds, documented in `docs/api.md`
+  ("CLI Runtime Events") and covered by focused CLI tests. All acceptance criteria from the
+  original report below are met.
+
+## Original report (2026-06-30)
 
 ## Summary
 

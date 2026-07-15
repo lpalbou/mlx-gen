@@ -234,7 +234,7 @@ def test_generated_image_metadata_records_i2i_canvas_policy():
 
     metadata = generated_image._get_metadata()
 
-    assert metadata["metadata_schema_version"] == 1
+    assert metadata["metadata_schema_version"] == 2
     assert metadata["width"] == 432
     assert metadata["height"] == 240
     assert metadata["canvas_policy"] == "source-aspect"

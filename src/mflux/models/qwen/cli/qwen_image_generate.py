@@ -29,6 +29,13 @@ def main():
             "native masked edit."
         ),
     )
+    parser.add_mask_strength_argument(
+        help_text=(
+            "Native masked edit warm-start strength in (0, 1]. Default 0.85 anchors repainted content to the "
+            "source (best for retexture and removal); raise toward 0.95 for content-replacing edits such as "
+            "opaque recolors. Not supported on the control-inpaint sidecar row."
+        ),
+    )
     parser.add_controlnet_arguments()
     parser.add_output_arguments()
     args = parser.parse_args()
@@ -45,13 +52,15 @@ def main():
     model_config = ModelConfig.from_name(model_name=args.model or "qwen-image", base_model=args.base_model)
     CallbackManager.apply_runtime_memory_options(args)
     uses_native_inpaint = False
+    if args.mask_strength is not None and args.mask_path is None:
+        parser.error("--mask-strength requires --mask-path.")
     if args.mask_path is not None:
         if args.image_path is None:
             parser.error("--mask-path requires --image-path.")
         if args.image_strength is not None:
             parser.error(
                 "--image-strength cannot be combined with --mask-path; masked edit is a separate route "
-                "from latent image-to-image."
+                "from latent image-to-image. Use --mask-strength to tune the masked warm start."
             )
         if args.controlnet_image_path is not None:
             parser.error("--mask-path cannot be combined with --controlnet-image-path on base-Qwen masked routes.")
@@ -82,6 +91,11 @@ def main():
                 lora_scales=args.lora_scales,
             )
         else:
+            if args.mask_strength is not None:
+                parser.error(
+                    "--mask-strength is not supported on the control-inpaint sidecar row; it tunes the native "
+                    "masked edit warm start."
+                )
             if args.controlnet_model is not None and args.controlnet_model != plan.control_model:
                 parser.error(
                     "--controlnet-model conflicts with the exact base-Qwen control-inpaint row. "
@@ -161,6 +175,7 @@ def main():
                         num_inference_steps=args.steps,
                         image_path=args.image_path,
                         mask_path=args.mask_path,
+                        mask_strength=args.mask_strength,
                         canvas_policy=args.canvas_policy,
                     )
                 elif args.controlnet_image_path is not None or args.mask_path is not None:

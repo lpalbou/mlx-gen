@@ -34,7 +34,10 @@ class QwenImage(nn.Module):
     # from the re-noised source so repainted content stays anchored to the surrounding
     # structure (base Qwen is a t2i model without edit-instruction training; a pure-noise
     # start paints unrelated content into the mask, while the signature default 0.6 barely
-    # repaints at all).
+    # repaints at all). Measured trade-off at the extremes: 0.85 anchors structure (best for
+    # retexture/removal but opaque recolors stay incomplete), 0.95 repaints fully (best for
+    # recolors but thin connected structures can detach). The default stays 0.85;
+    # mask_strength exposes the upstream knob for content-replacing edits.
     MASKED_EDIT_STRENGTH = 0.85
 
     def __init__(
@@ -65,6 +68,7 @@ class QwenImage(nn.Module):
         guidance: float = 4.0,
         image_path: Path | str | None = None,
         mask_path: Path | str | None = None,
+        mask_strength: float | None = None,
         image_strength: float | None = None,
         scheduler: str = "flow_match_euler_discrete",
         negative_prompt: str | None = None,
@@ -76,12 +80,18 @@ class QwenImage(nn.Module):
         if mask_path is not None and image_strength is not None:
             raise ValueError(
                 "image_strength cannot be combined with mask_path; native masked edit is a separate route "
-                "from latent image-to-image."
+                "from latent image-to-image. Use mask_strength to tune the masked warm start."
             )
+        if mask_strength is not None and mask_path is None:
+            raise ValueError("mask_strength requires mask_path.")
+        if mask_strength is not None and not 0.0 < mask_strength <= 1.0:
+            raise ValueError("mask_strength must be in (0, 1].")
         # 0. Create a new config based on the model type and input parameters
         # Masked edit runs the upstream inpaint warm start internally; the public contract
-        # keeps --image-strength and --mask-path mutually exclusive.
-        internal_image_strength = QwenImage.MASKED_EDIT_STRENGTH if mask_path is not None else image_strength
+        # keeps --image-strength and --mask-path mutually exclusive, and exposes the upstream
+        # inpaint strength as the dedicated mask_strength knob instead.
+        resolved_mask_strength = QwenImage.MASKED_EDIT_STRENGTH if mask_strength is None else mask_strength
+        internal_image_strength = resolved_mask_strength if mask_path is not None else image_strength
         config = Config(
             width=width,
             height=height,
@@ -213,12 +223,16 @@ class QwenImage(nn.Module):
                 lora_paths=self.lora_paths,
                 lora_scales=self.lora_scales,
                 image_path=config.image_path,
-                # The masked warm start is an internal constant, not a replayable user option.
+                # The masked warm start is reported as mask metadata, not as image_strength.
                 image_strength=image_strength,
                 masked_image_path=mask_path,
                 generation_time=timer.elapsed_seconds(),
                 negative_prompt=negative_prompt,
-                extra_metadata=self._masked_run_metadata(config=config, mask_path=mask_path),
+                extra_metadata=self._masked_run_metadata(
+                    config=config,
+                    mask_path=mask_path,
+                    mask_strength=resolved_mask_strength if mask_path is not None else None,
+                ),
             )
         except Exception:
             ctx.failed()
@@ -226,16 +240,22 @@ class QwenImage(nn.Module):
         ctx.complete()
         return image
 
-    def _masked_run_metadata(self, *, config: Config, mask_path: Path | str | None) -> dict | None:
+    def _masked_run_metadata(
+        self,
+        *,
+        config: Config,
+        mask_path: Path | str | None,
+        mask_strength: float | None,
+    ) -> dict | None:
         # Runtime truth: the warm start truncates the schedule, so record the executed step
-        # count and the internal strength beside the requested steps (Wan v2v precedent).
+        # count and the applied strength beside the requested steps (Wan v2v precedent).
         extra_metadata = LoRALoader.extra_metadata_for_model(self) or {}
         if mask_path is None:
             return extra_metadata or None
         return {
             **extra_metadata,
             "effective_steps": config.num_inference_steps - config.init_time_step,
-            "masked_warm_start_strength": QwenImage.MASKED_EDIT_STRENGTH,
+            "mask_strength": mask_strength,
         }
 
     def _create_inpaint_latents(

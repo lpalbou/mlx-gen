@@ -82,3 +82,10 @@ The backlog is useful only when planned work names what remains rather than what
   remaining enlarged-profile question into proposed item 0048, and later closed 0046 after the
   shared audio-copy path, fail-closed metadata, focused tests, and the published Air France
   `25s–35s` proof bundle landed.
+- 2026-07-15: Post-0.20.0/0.21.0 hygiene added the missing completed-ledger rows 0077-0080,
+  moved the three 2026-06-30 root-level `bug_*.md` reports into the backlog as completed items
+  0083-0085 with resolution headers (failure-diagnostics help scoping, image-finalization
+  memory rewrite via 0066, and the shipped `--json-events` runtime contract), recounted all
+  lifecycle folders including topic tracks (14 planned / 16 proposed / 53 completed), and
+  recorded the masked-edit validation matrix pass alongside the 0045 Z-Image ControlNet
+  refresh.

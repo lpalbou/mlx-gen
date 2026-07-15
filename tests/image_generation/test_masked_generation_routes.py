@@ -963,9 +963,9 @@ def test_qwen_base_native_inpaint_progress_and_masked_loop(tmp_path, monkeypatch
     assert result["masked_image_path"] == mask_path
     # The internal warm start must not leak into public metadata as image_strength.
     assert result["image_strength"] is None
-    # Runtime truth: the executed step count and warm-start strength are recorded.
+    # Runtime truth: the executed step count and applied mask strength are recorded.
     assert result["extra_metadata"]["effective_steps"] == 3
-    assert result["extra_metadata"]["masked_warm_start_strength"] == 0.85
+    assert result["extra_metadata"]["mask_strength"] == 0.85
 
 
 def test_qwen_base_native_inpaint_warm_start_schedule_pin(tmp_path):
@@ -1024,6 +1024,31 @@ def test_qwen_base_native_inpaint_rejects_strength_and_missing_image(tmp_path, m
         raise AssertionError("image_strength with mask_path must be rejected")
     except ValueError as exc:
         assert "image_strength cannot be combined with mask_path" in str(exc)
+
+    try:
+        model.generate_image(
+            seed=1,
+            prompt="x",
+            image_path=source_path,
+            mask_strength=0.9,
+            num_inference_steps=2,
+        )
+        raise AssertionError("mask_strength without mask_path must be rejected")
+    except ValueError as exc:
+        assert "mask_strength requires mask_path" in str(exc)
+
+    try:
+        model.generate_image(
+            seed=1,
+            prompt="x",
+            image_path=source_path,
+            mask_path=mask_path,
+            mask_strength=1.5,
+            num_inference_steps=2,
+        )
+        raise AssertionError("out-of-range mask_strength must be rejected")
+    except ValueError as exc:
+        assert "mask_strength must be in (0, 1]" in str(exc)
 
 
 def test_z_image_guidance_uses_standard_cfg_formula(monkeypatch):

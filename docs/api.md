@@ -239,11 +239,13 @@ Use `--metadata` to write a `.metadata.json` sidecar. That sidecar is the defaul
 runtime-memory metadata is recorded. Use `--embed-metadata` only when you explicitly want image
 metadata embedded into the saved PNG/JPEG/TIFF artifact and accept the extra finalization work.
 
-Both the sidecar and embedded metadata carry `metadata_schema_version` (currently `1`).
+Both the sidecar and embedded metadata carry `metadata_schema_version` (currently `2`).
 Evolution is additive-only: new optional fields may appear without a version bump; the version
-increments only if a field's meaning changes or a field is removed. Consumers should ignore
-unknown fields and check this version, not `mflux_version` (which identifies the producing
-package release, not the metadata structure).
+increments only if a field's meaning changes or a field is removed. Version `2` renamed the
+0.21.0 masked-edit key `masked_warm_start_strength` to `mask_strength`;
+`--config-from-metadata` reads both spellings. Consumers should ignore unknown fields and
+check this version, not `mflux_version` (which identifies the producing package release, not
+the metadata structure).
 
 ### Image-To-Image Modes
 
@@ -324,18 +326,21 @@ localized masked edit or inpaint. White mask pixels are repainted and black mask
 preserved, and `--image-strength` is rejected together with `--mask-path`. Masked routes exist
 for Qwen edit models (`qwen.inpaint`), base Qwen models (`qwen.base-inpaint` natively, or
 `qwen.control-inpaint` with the auto-injected InstantX sidecar on the exact
-`AbstractFramework/qwen-image-8bit` row), Z-Image turbo and non-turbo (`z-image.inpaint`), and
-FLUX.2 Klein distilled and base (`flux2.inpaint`, with optional masked-area reference images on
-the backend command and Python API).
+`AbstractFramework/qwen-image-8bit` row), Z-Image Turbo (`z-image.inpaint`; non-turbo masked
+requests are rejected for the moment after measured geometry failures), and FLUX.2 Klein
+distilled and base (`flux2.inpaint`, with optional masked-area reference images on the backend
+command and Python API).
 
 The user request shape is the same, but the backend route is not: the same
 `--image + --mask-path + --prompt` request selects whichever masked route the exact row
-carries. Native base-Qwen masked edit warm-starts from the re-noised source (upstream-example
-strength `0.85`) and records the executed `effective_steps` in metadata; the other masked
-routes denoise the full schedule. Use `mlxgen capabilities --model ...` to confirm which exact
-masked route a selected row supports, and see [Masked editing](masked-editing.md) for the full
-model matrix, per-family behavior, and proof grades. Without `--mask-path`, the same route may
-behave like a global edit or a latent variation, depending on the selected capability.
+carries. Native base-Qwen masked edit warm-starts from the re-noised source and records the
+applied `mask_strength` plus executed `effective_steps` in metadata; `--mask-strength`
+(default `0.85`, raise toward `0.95` for content-replacing edits) tunes that warm start, while
+the other masked routes denoise the full schedule. Use `mlxgen capabilities --model ...` to
+confirm which exact masked route a selected row supports, and see
+[Masked editing](masked-editing.md) for the full model matrix, per-family behavior, and proof
+grades. Without `--mask-path`, the same route may behave like a global edit or a latent
+variation, depending on the selected capability.
 
 In `auto` mode, the selected model's default capability wins. FLUX.2 routes one image to
 `edit-reference`, supports latent I2I when `--image-strength` is supplied, and supports

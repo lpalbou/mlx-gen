@@ -123,7 +123,7 @@ to recompose the frame. The mask is what turns that global edit behavior into a 
 
 Masked editing is currently supported on Qwen edit models, base Qwen models (native, or the
 validated ControlNet control-inpaint sidecar on the exact `AbstractFramework/qwen-image-8bit`
-row), Z-Image (turbo and non-turbo), and FLUX.2 Klein (distilled and base, with optional
+row), Z-Image Turbo, and FLUX.2 Klein (distilled and base, with optional
 masked-area reference images on the backend route).
 
 [Masked editing](masked-editing.md) is the canonical page for the full model matrix, per-family

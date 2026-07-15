@@ -322,9 +322,10 @@ def test_mask_and_outpaint_options_are_checked_against_capabilities():
     assert z_image_inpaint.capability_id == "z-image.inpaint"
     assert z_image_inpaint.handler_id == "z-image-turbo.generate"
 
-    z_image_base_inpaint = mlxgen.resolve_generation_plan(model="z-image", image_count=1, has_mask=True)
-    assert z_image_base_inpaint.capability_id == "z-image.inpaint"
-    assert z_image_base_inpaint.handler_id == "z-image.generate"
+    # Non-turbo masked edit is not supported for the moment: the 2026-07-15 matrix measured
+    # reproducible geometry artifacts on the non-turbo row.
+    with pytest.raises(TaskInferenceError, match="mask-path is only supported"):
+        mlxgen.resolve_generation_plan(model="z-image", image_count=1, has_mask=True)
 
     with pytest.raises(TaskInferenceError, match="cannot be combined with --mask-path"):
         mlxgen.resolve_generation_plan(model="z-image-turbo", image_count=1, has_mask=True, has_image_strength=True)
@@ -534,7 +535,6 @@ def test_explicit_base_model_prevents_local_variant_spoofing(tmp_path):
     assert {capability.id for capability in z_image_base.capabilities} == {
         "z-image.latent",
         "z-image.text",
-        "z-image.inpaint",
     }
     assert {capability.id for capability in flux2_base.capabilities} == {"flux2.edit", "flux2.text"}
     assert {capability.id for capability in fibo_base.capabilities} == {"fibo.text"}

@@ -1,4 +1,14 @@
-# Bug: `mlxgen generate` advertises `--failure-diagnostics` as common, but only Wan implements it
+# 0083 - Bug: `mlxgen generate` advertised `--failure-diagnostics` as common, but only Wan implements it
+
+- Status: completed (resolved before 0.19.0; filed 2026-06-30 at the repo root, moved into the
+  backlog during the 2026-07-15 hygiene pass)
+- Resolution: the router help now scopes the flag ("Wan video routes also accept
+  `--failure-diagnostics` for failure manifests"), `docs/api.md` states that non-Wan routes do
+  not advertise or accept it, and
+  `tests/cli/test_mlx_gen_router.py::test_generate_help_scopes_failure_diagnostics_to_wan_only`
+  pins the scoped help text.
+
+## Original report (2026-06-30)
 
 ## Summary
 

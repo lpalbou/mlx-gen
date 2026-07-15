@@ -5,6 +5,52 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.22.0] - 2026-07-15
+
+This release grades the masked-edit routes shipped in 0.20.0/0.21.0 with a standardized
+multi-case visual-QA matrix, makes the base-Qwen warm start user-tunable, and withdraws the
+one route the matrix measured as failing.
+
+### Added
+
+- **Masked-edit 5x5 validation matrix**: standardized multi-case visual QA (object insertion,
+  lens recolor, arm retexture, sticker removal, plus an unscored partial-object-removal
+  limitation demonstration; one source, same seed) for the masked-edit routes shipped in
+  0.20.0/0.21.0. Results: both FLUX.2 Klein 4B q8 rows `PASS` all scored cases; the
+  `qwen.base-inpaint` q4/2512-q8 rows are `PARTIAL` at default settings (warm-start anchoring
+  keeps opaque full-region recolors incomplete). New registry profile
+  `masked_edit_matrix_5x5_2026_07_15` for `mlxgen validation`, published bundle in
+  `docs/assets/validation/masked-edit-matrix-2026-07-15/`, proof-grade updates across
+  `docs/masked-editing.md` and `docs/edit-capabilities.md`, and the documented mask-design
+  rule that removals need full-object masks. The source `Qwen/Qwen-Image` bf16 checkpoint ran
+  the same four scored cases (`PARTIAL` aggregate with the identical recolor signature),
+  closing the last wiring-shared gap on the `qwen.base-inpaint` matrix.
+- **`--mask-strength` for native base-Qwen masked edit** (`qwen.base-inpaint` only): exposes
+  the upstream `QwenImageInpaintPipeline` inpaint strength scoped to masked runs. The default
+  `0.85` anchors repainted content to the source (best for retexture/removal); the measured
+  `0.95` setting turns the matrix recolor cells from `PARTIAL` into complete recolors on both
+  prepared rows (q4 and 2512-q8), at the measured cost of a weaker structural anchor (masks
+  crossing thin connected structures detached on both prepared rows at `0.95` - s095
+  regression sheet in the matrix bundle). On the source bf16 row the same setting repaints the
+  full region but misplaces the color (single-case observation; stated in the bundle). The
+  metadata key for the applied warm start is now `mask_strength` (was
+  `masked_warm_start_strength` in 0.21.0; `metadata_schema_version` bumped to `2` for the
+  rename, and `--config-from-metadata` reads both spellings); `mask_strength` and executed
+  `effective_steps` are recorded in metadata; the option is rejected without a mask and on
+  the control-inpaint sidecar row.
+
+### Changed
+
+- **Non-turbo Z-Image masked editing withdrawn for the moment**: the matrix measured a
+  reproducible geometry artifact (across seeds and with CFG on or off) when masks cross thin
+  connected structures on `AbstractFramework/z-image-8bit`, while Z-Image Turbo renders the
+  same case cleanly. `z-image.inpaint` is Turbo-only again; non-turbo masked requests fail
+  before model load with an actionable error, and the withdrawal evidence stays published in
+  the matrix bundle and registry.
+- Backlog hygiene: the three 2026-06-30 root-level `bug_*.md` reports moved into the backlog as
+  completed items 0083-0085 with resolution records; completed-ledger rows 0077-0080 added and
+  lifecycle counts recounted.
+
 ## [0.21.0] - 2026-07-15
 
 This release completes the masked-edit expansion started in 0.20.0: every currently supported
@@ -18,14 +64,18 @@ image family with a viable upstream or in-repo inpaint mechanism now accepts `--
   `AbstractFramework/qwen-image-2512-8bit` row), ported from the diffusers
   `QwenImageInpaintPipeline`. The masked region warm-starts from the re-noised source
   (upstream-example strength 0.85) so repainted content anchors to the surrounding structure;
-  output metadata records the executed `effective_steps` and `masked_warm_start_strength`.
+  output metadata records the executed `effective_steps` and `masked_warm_start_strength`
+  (metadata key renamed to `mask_strength` in the next release when the strength became the
+  tunable `--mask-strength` option).
   The exact validated `AbstractFramework/qwen-image-8bit` row keeps control-inpaint as its
   masked route, unchanged. Visual-smoke proof bundle with outside-mask preservation
   measurements in `docs/assets/validation/masked-edit-2026-07-15/`.
 - **Z-Image non-turbo native inpaint**: `z-image.inpaint` now covers trusted non-turbo Z-Image
   rows (`Tongyi-MAI/Z-Image`, `AbstractFramework/z-image-8bit`) and the
   `mflux-generate-z-image` command accepts `--mask-path`. Pass an explicit `--guidance` on
-  non-turbo masked runs; the non-turbo default runs guidance-free.
+  non-turbo masked runs; the non-turbo default runs guidance-free. (Withdrawn in the next
+  release after the validation matrix measured reproducible geometry artifacts on the
+  non-turbo row; see the Unreleased section.)
 - **`docs/masked-editing.md`**: canonical masked-edit page consolidating the request contract,
   the per-model route matrix with proof grades, and per-family behavior; the API, FAQ,
   image-edit-modes, and Qwen pages now summarize and link there.

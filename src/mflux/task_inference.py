@@ -780,10 +780,14 @@ def _z_image_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
         supports_guidance=True,
         supports_lora=True,
     )
-    # Native inpaint covers trusted turbo and non-turbo identities; spoofed or inferred
-    # local names stay fail-closed (0070 hardening).
-    is_trusted_identity = bool(identity.aliases or identity.model_key)
-    if not is_trusted_identity:
+    # Native inpaint is Turbo-only: the 2026-07-15 masked matrix measured reproducible
+    # geometry artifacts on non-turbo rows (docs/assets/validation/masked-edit-matrix-2026-07-15),
+    # so non-turbo masked edit is not supported for the moment. Spoofed or inferred local
+    # names stay fail-closed (0070 hardening).
+    is_trusted_turbo = bool(identity.aliases or identity.model_key) and _is_z_image_turbo(
+        identity.aliases, identity.model_key
+    )
+    if not is_trusted_turbo:
         return base
     return ModelCapabilities(
         schema_version=base.schema_version,

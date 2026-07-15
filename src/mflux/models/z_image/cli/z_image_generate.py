@@ -22,8 +22,8 @@ def main():
     parser.add_image_to_image_arguments(required=False)
     parser.add_mask_path_argument(
         help_text=(
-            "Optional mask image path for native Z-Image inpaint. White pixels are repainted and black pixels "
-            "are preserved."
+            "Mask image path for native Z-Image inpaint. Masked edit is currently supported on Z-Image Turbo "
+            "rows only; non-turbo masked requests are rejected before model load."
         ),
     )
     parser.add_output_arguments()

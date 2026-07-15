@@ -1,4 +1,8 @@
-# Bug: image finalization still causes an avoidable end-of-run memory spike
+# 0084 - Bug: image finalization caused an avoidable end-of-run memory spike
+
+- Status: completed (resolved 2026-06-30; filed at the repo root, moved into the backlog during
+  the 2026-07-15 hygiene pass). Authoritative completion record:
+  [0066 image finalization memory peak and metadata rewrite](0066_image_finalization_memory_peak_and_metadata_rewrite.md).
 
 ## Status on 2026-06-30
 

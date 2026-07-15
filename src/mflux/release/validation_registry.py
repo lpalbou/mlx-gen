@@ -67,6 +67,8 @@ QWEN_CONTROL_VALIDATION_DIR = "docs/assets/validation/qwen-control-2026-06-15"
 QWEN_CONTROL_INPAINT_VALIDATION_DIR = "docs/assets/validation/qwen-control-inpaint-2026-06-21"
 ZIMAGE_INPAINT_VALIDATION_DIR = "docs/assets/validation/zimage-inpaint-2026-06-21"
 ZIMAGE_INPAINT_PROFILE_ID = "zimage_inpaint_2026_06_21"
+MASKED_EDIT_MATRIX_VALIDATION_DIR = "docs/assets/validation/masked-edit-matrix-2026-07-15"
+MASKED_EDIT_MATRIX_PROFILE_ID = "masked_edit_matrix_5x5_2026_07_15"
 ZIMAGE_LATENT_LORA_VALIDATION_DIR = "docs/assets/validation/zimage-latent-lora-2026-06-24"
 LORA_ROUTE_EXPANSION_VALIDATION_DIR = "docs/assets/validation/lora-route-expansion-2026-06-22"
 
@@ -184,6 +186,7 @@ def list_validation_profiles() -> tuple[ValidationProfile, ...]:
         _reframe_outpaint_profile(),
         _flux2_klein_base_starship_profile(),
         _zimage_inpaint_profile(),
+        _masked_edit_matrix_profile(),
         *_lora_profiles(),
     )
 
@@ -210,6 +213,13 @@ def get_model_validation(model: str, profile_id: str = I2I_EDIT_5X4_PROFILE_ID) 
 
 
 def default_validation_profile_id_for_model(model: str) -> str:
+    # Prefer profiles holding evidence for this exact row; only fall back to base-model
+    # inherited records when no profile has exact evidence, so a package row never defaults
+    # to another checkpoint's records.
+    exact_keys, _ = _candidate_model_keys(model)
+    for profile in list_validation_profiles():
+        if any(_normalize_model_key(record.model) in exact_keys for record in profile.records):
+            return profile.id
     for profile in list_validation_profiles():
         if get_model_validation(model, profile_id=profile.id).records:
             return profile.id
@@ -984,6 +994,195 @@ def _zimage_inpaint_profile() -> ValidationProfile:
                     "same-prompt same-seed latent baseline and a masked-area crop sheet."
                 ),
                 evidence_date="2026-06-21",
+            ),
+        ),
+    )
+
+
+_MASKED_MATRIX_PROMPTS = {
+    "INSERT": (
+        "Product photo of tortoiseshell reading glasses on a white background, with a small red "
+        "glasses case sitting behind them on the right side."
+    ),
+    "RECOLOR": (
+        "A pair of tortoiseshell reading glasses on a white background. The right lens is a dark "
+        "navy blue tinted sunglass lens, deeply saturated and opaque. The left lens is clear."
+    ),
+    "ARM": (
+        "A pair of reading glasses on a white background. The temple arm at the top is glossy "
+        "solid black plastic with no pattern."
+    ),
+    "STICKER": (
+        "A pair of tortoiseshell reading glasses on a white background. The upper temple arm is "
+        "plain glossy tortoiseshell with no sticker or label on it."
+    ),
+}
+
+_MASKED_MATRIX_STEP_LABELS = {
+    "INSERT": "insert object into masked background",
+    "RECOLOR": "recolor masked lens",
+    "ARM": "retexture masked arm segment",
+    "STICKER": "remove sticker fully inside mask",
+}
+
+
+def _masked_edit_matrix_records(
+    *,
+    model: str,
+    family: str,
+    package_variant: str,
+    slug: str,
+    settings: str,
+    statuses: dict[str, str],
+    notes: dict[str, str],
+) -> tuple[ValidationRecord, ...]:
+    return tuple(
+        ValidationRecord(
+            profile_id=MASKED_EDIT_MATRIX_PROFILE_ID,
+            model=model,
+            family=family,
+            package_variant=package_variant,
+            step=step,
+            step_label=_MASKED_MATRIX_STEP_LABELS[step],
+            public_task="image-to-image",
+            mode="edit-reference",
+            status=statuses[step],
+            artifact_path=f"{MASKED_EDIT_MATRIX_VALIDATION_DIR}/{slug}_{step.lower()}.png",
+            source_images=("tests/resources/glasses.jpg",),
+            prompt=_MASKED_MATRIX_PROMPTS[step],
+            reviewer_notes=f"{notes[step]} Settings: {settings}, seed 42.",
+            evidence_date="2026-07-15",
+        )
+        for step in ("INSERT", "RECOLOR", "ARM", "STICKER")
+    )
+
+
+def _masked_edit_matrix_profile() -> ValidationProfile:
+    all_pass = {"INSERT": STATUS_PASS, "RECOLOR": STATUS_PASS, "ARM": STATUS_PASS, "STICKER": STATUS_PASS}
+    return ValidationProfile(
+        id=MASKED_EDIT_MATRIX_PROFILE_ID,
+        title="Masked Edit 5x5 Glasses Matrix Validation",
+        canonical_source="tests/resources/glasses.jpg",
+        description=(
+            "Manual visual QA for the masked-edit routes shipped in 0.20.0/0.21.0: one shared source, "
+            "five masks, same seed across six model rows (FLUX.2 Klein 4B q8 and base 4B q8 on "
+            "flux2.inpaint; source Qwen/Qwen-Image bf16, Qwen-Image q4, and 2512 q8 on "
+            "qwen.base-inpaint; Z-Image non-turbo q8 on z-image.inpaint). Four well-posed cases are "
+            "scored per row; the published bundle also "
+            "includes an unscored partial-object removal case as a documented limitation demonstration "
+            "(the mask covers only part of an object that continues outside it, so caption prompting "
+            "regenerates the object instead of removing it - use full-object masks like the sticker "
+            "case for removals). Outside-mask preservation measured at 0.31-2.54/255 mean abs diff "
+            "across all runs. Post-matrix outcomes: the qwen.base-inpaint PARTIAL recolor cells pass "
+            "at --mask-strength 0.95 (shipped tunable warm start; default stays 0.85), and non-turbo "
+            "Z-Image masked editing was withdrawn from the public surface after the ARM failure "
+            "reproduced across seeds and CFG settings."
+        ),
+        records=(
+            *_masked_edit_matrix_records(
+                model="AbstractFramework/flux.2-klein-4b-8bit",
+                family="FLUX.2 Klein 4B",
+                package_variant="q8 prepared",
+                slug="klein4b",
+                settings="4 steps, guidance 1",
+                statuses=all_pass,
+                notes={
+                    "INSERT": "Red case inserted resting on the arm; composition plausible.",
+                    "RECOLOR": "Full opaque navy lens; frame preserved.",
+                    "ARM": "Arm band turned glossy black with clean transitions.",
+                    "STICKER": "Sticker removed; tortoiseshell texture continuous.",
+                },
+            ),
+            *_masked_edit_matrix_records(
+                model="AbstractFramework/flux.2-klein-base-4b-8bit",
+                family="FLUX.2 Klein base 4B",
+                package_variant="q8 prepared",
+                slug="kleinb4b",
+                settings="20 steps, guidance 4 (true CFG)",
+                statuses=all_pass,
+                notes={
+                    "INSERT": "Red case inserted leaning on the arm; clean blend.",
+                    "RECOLOR": "Full opaque navy lens; frame preserved.",
+                    "ARM": "Arm band turned glossy black with clean transitions.",
+                    "STICKER": "Sticker removed; texture continuous.",
+                },
+            ),
+            *_masked_edit_matrix_records(
+                model="Qwen/Qwen-Image",
+                family="Qwen Image",
+                package_variant="source bf16",
+                slug="qwensrc",
+                settings="20 steps, guidance 4",
+                statuses={**all_pass, "RECOLOR": STATUS_PARTIAL},
+                notes={
+                    "INSERT": "Red case inserted cleanly; matches the prepared-package rows.",
+                    "RECOLOR": (
+                        "Partial navy wedge at the default 0.85 warm start, matching the prepared "
+                        "rows. Cross-check: --mask-strength 0.95 repaints the full region on this "
+                        "row but places the navy on the frame ring with a pale lens interior - "
+                        "weaker than the complete recolors measured on the q4/2512-q8 rows."
+                    ),
+                    "ARM": "Arm band turned glossy black with connected geometry.",
+                    "STICKER": "Sticker removed; tortoiseshell texture continuous.",
+                },
+            ),
+            *_masked_edit_matrix_records(
+                model="AbstractFramework/qwen-image-4bit",
+                family="Qwen Image",
+                package_variant="q4 prepared",
+                slug="qwen4bit",
+                settings="20 steps, guidance 4",
+                statuses={**all_pass, "RECOLOR": STATUS_PARTIAL},
+                notes={
+                    "INSERT": "Red case inserted; clean composition.",
+                    "RECOLOR": (
+                        "Only a partial navy wedge appears at the default 0.85 warm start, which "
+                        "anchors the masked region to the clear source lens. Measured fix: "
+                        "--mask-strength 0.95 produces a complete (paler blue-gray) recolor on this "
+                        "row, at the cost of arm-case detachment at that strength on both rows "
+                        "(s095 regression sheet in the proof bundle)."
+                    ),
+                    "ARM": "Arm band turned black; soft edge blend.",
+                    "STICKER": "Sticker removed; arm smooth and continuous.",
+                },
+            ),
+            *_masked_edit_matrix_records(
+                model="AbstractFramework/qwen-image-2512-8bit",
+                family="Qwen Image 2512",
+                package_variant="q8 prepared",
+                slug="qwen2512",
+                settings="20 steps, guidance 4",
+                statuses={**all_pass, "RECOLOR": STATUS_PARTIAL},
+                notes={
+                    "INSERT": "Red case inserted; clean composition.",
+                    "RECOLOR": (
+                        "Pale blue wash over part of the lens only at the default 0.85 warm start; "
+                        "same anchoring limitation as the q4 row. Measured fix: --mask-strength 0.95 "
+                        "recolors the lens fully in deep navy on this row, at the cost of arm-case "
+                        "detachment at that strength on both rows."
+                    ),
+                    "ARM": "Arm band turned black.",
+                    "STICKER": "Sticker removed; slight darkening of the repainted band.",
+                },
+            ),
+            *_masked_edit_matrix_records(
+                model="AbstractFramework/z-image-8bit",
+                family="Z-Image",
+                package_variant="q8 prepared",
+                slug="zimage8",
+                settings="30 steps, guidance 4 (explicit; non-turbo default is guidance-free)",
+                statuses={**all_pass, "RECOLOR": STATUS_PARTIAL, "ARM": STATUS_FAIL},
+                notes={
+                    "INSERT": "Large red leather case inserted; strong composition.",
+                    "RECOLOR": "Navy blob covers most of the lens but does not follow the lens shape.",
+                    "ARM": (
+                        "Geometry artifact: the repainted arm detaches from the hinge with a floating "
+                        "black segment and a hanging brown flap. Reproduced with seed 43 and with CFG "
+                        "off, while Z-Image Turbo renders the same case cleanly. Consequence: non-turbo "
+                        "Z-Image masked editing is withdrawn from the public surface for the moment."
+                    ),
+                    "STICKER": "Sticker removed; arm continuous.",
+                },
             ),
         ),
     )

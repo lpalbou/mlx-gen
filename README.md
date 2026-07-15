@@ -44,9 +44,10 @@ The main capabilities are:
   FIBO, and their optimized quantized variants where available;
 - image-to-image modes, including latent img2img, instruction/reference edits, multi-reference
   edits, masked edit/inpaint where the selected model supports `--mask-path` (Qwen edit models,
-  base Qwen models natively or through the validated control-inpaint sidecar row, Z-Image turbo
-  and non-turbo, and FLUX.2 Klein distilled and base models, with optional masked-area reference
-  images on the Klein backend route — see `docs/masked-editing.md`), Qwen structured
+  base Qwen models natively with a tunable `--mask-strength` warm start or through the validated
+  control-inpaint sidecar row, Z-Image Turbo, and FLUX.2 Klein distilled and base models, with
+  optional masked-area reference images on the Klein backend route — see
+  `docs/masked-editing.md`), Qwen structured
   control where the selected model supports `--controlnet-image-path`, and route-specific
   reframe/outpaint workflows where the selected model supports them;
 - Wan2.2 text-to-video, image-to-video, and prompt-guided video-to-video (plain or masked via

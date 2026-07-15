@@ -43,7 +43,7 @@ def test_generated_video_saves_mp4_and_metadata(tmp_path):
 
     assert output_path.exists()
     metadata = json.loads(output_path.with_suffix(".metadata.json").read_text())
-    assert metadata["metadata_schema_version"] == 1
+    assert metadata["metadata_schema_version"] == 2
     assert metadata["model"] == "Wan-AI/Wan2.2-TI2V-5B-Diffusers"
     assert metadata["task"] == "text-to-video"
     assert metadata["frames"] == 3

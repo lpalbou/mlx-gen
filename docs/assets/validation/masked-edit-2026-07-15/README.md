@@ -35,8 +35,10 @@ runs guidance-free).
 
 The native base-Qwen route runs the upstream-example warm start (strength 0.85), so 20
 requested steps execute 17 denoise iterations; the sidecar metadata records
-`effective_steps` and `masked_warm_start_strength`
-(`qwen2512_q8_native_inpaint_object_seed42.metadata.json`).
+`effective_steps` and the applied warm-start strength
+(`qwen2512_q8_native_inpaint_object_seed42.metadata.json`, recorded here under the original
+`masked_warm_start_strength` key; the key shipped as `mask_strength` when the strength became
+the tunable `--mask-strength` option the same day).
 
 Proof grade: model-backed visual smoke on the exact rows above (single case, same seed).
 Machine: M5 Max. Working copies in `validation_outputs/masked-edit-expansion-2026-07-15/`.
