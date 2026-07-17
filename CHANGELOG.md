@@ -5,27 +5,37 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.23.0] - 2026-07-17
+
+Performance release: three fixes from a structured adversarial audit, each independently
+re-verified on a clean checkout before release (deterministic memory numbers reproduced
+exactly; timing ratios confirmed; quality parity confirmed metric-by-metric and visually).
 
 ### Changed
 
 - **Denoise-loop dtype fix**: masked-edit and warm-start latent blends no longer let float32
   scheduler sigmas (and float32 latent masks) promote bf16 latents, so the Z-Image and
   FLUX.2 Klein masked loops now run at bf16 like their txt2img paths. Measured on the
-  Z-Image Turbo q8 masked route: MLX peak memory 21.8 GB -> 13.1 GB (-40%); Klein 4B q8
-  masked 11.4 GB -> 10.4 GB; wall-clock neutral-to-slightly-positive (weight-streaming
-  bound). Same-seed outputs stay visually identical (mean abs diff <= 0.31/255, outside-mask
-  preservation unchanged); Qwen routes and training numerics are bit-identical (training
-  pins its historical float32 forward pass explicitly). Dtype contracts pinned by new tests.
+  Z-Image Turbo q8 masked route: MLX peak memory 21.8 GB -> 13.1 GB (-40%) and the published
+  native-inpaint recommendation profile (768x432, 9 steps) drops from 18.11 GiB to
+  10.57 GiB peak RSS; Klein 4B q8 masked 11.4 GB -> 10.4 GB. Wall-clock is neutral to
+  slightly positive (q8 inference is weight-streaming bound). Reproducibility note:
+  same-seed outputs on the Z-Image and Klein masked routes change imperceptibly (measured
+  mean abs diff 0.19-0.30/255 with outside-mask preservation unchanged); Qwen routes,
+  Z-Image latent img2img, and training numerics are bit-identical (training pins its
+  historical float32 forward pass explicitly). Dtype contracts are pinned by new tests.
 - **Video save speedup**: frame conversion now uses buffer-protocol `np.asarray` instead of
   per-pixel `getdata()` in the encoder and health validator: 33-frame 1280x704 save
-  7.75 s -> 0.86 s measured (the old path also relied on an API removed in Pillow 14).
-  Byte-parity with the old conversion is test-pinned across image modes.
+  7.75 s -> 0.86 s measured, ~9-12x independently confirmed (the old path also relied on an
+  API removed in Pillow 14). Byte-parity with the old conversion is test-pinned across
+  image modes.
 - **CLI startup speedup**: transformers/torch no longer import at module scope on any of the
   22 console-script paths (annotation-only imports deferred via TYPE_CHECKING; tokenizer
   class lookup deferred to first use): importing the qwen backend CLI drops from ~1.4 s to
-  ~0.3 s. A new test imports every `[project.scripts]` module and asserts the heavy
-  libraries stay unloaded.
+  ~0.3 s (~4x, independently confirmed). A new test imports every `[project.scripts]`
+  module and asserts the heavy libraries stay unloaded.
+- Model recommendations page: the Z-Image Turbo native-inpaint benchmark row reflects the
+  new post-fix measurement with the pre-fix value retained for context.
 
 ## [0.22.1] - 2026-07-15
 

@@ -8,7 +8,7 @@ import toml
 
 
 class VersionUtil:
-    PACKAGED_RELEASE_DATE = "2026-07-15"
+    PACKAGED_RELEASE_DATE = "2026-07-17"
     _version: str | None = None
     _release_date: str | None = None
 

@@ -37,7 +37,7 @@ Use the linked topic pages for the full command surface and benchmark details:
 | T2I | `AbstractFramework/fibo-8bit` | `512px`, `8` steps | `15.89 GB` max RSS |
 | T2I | `AbstractFramework/qwen-image-2512-8bit` | `768x336`, `4` steps | `10.73 GiB` peak RSS |
 | Latent I2I | `AbstractFramework/z-image-turbo-8bit` | `768x432`, `9` steps | `11.49 GiB` peak RSS |
-| Native inpaint | `AbstractFramework/z-image-turbo-8bit` | `768x432`, `9` steps | `18.11 GiB` peak RSS |
+| Native inpaint | `AbstractFramework/z-image-turbo-8bit` | `768x432`, `9` steps | `10.57 GiB` peak RSS (improved by the 0.23.0 denoise dtype fix; pre-fix value was `18.11 GiB`) |
 | Edit/reference I2I | `AbstractFramework/qwen-image-edit-2511-8bit` | `768x432`, `4` steps | `30.91 GiB` peak RSS |
 | Control-inpaint | `AbstractFramework/qwen-image-8bit` | `768x432`, `4` steps | `34.94 GiB` peak RSS |
 | Image upscale | `AbstractFramework/seedvr2-3b-8bit` | `5x` from `133x113` source | `4.73 GiB` max RSS |
