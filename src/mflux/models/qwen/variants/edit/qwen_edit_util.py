@@ -98,7 +98,8 @@ class QwenEditUtil:
             noise=initial_noise,
             sigma=sigma,
         )
-        return (1 - mask_latents) * init_latents + mask_latents * latents
+        # The float32 mask would otherwise promote the composite (and every later step) to f32.
+        return ((1 - mask_latents) * init_latents + mask_latents * latents).astype(latents.dtype)
 
     @staticmethod
     def _conditioning_vae_size(image_path: str, width: int | None = None, height: int | None = None) -> tuple[int, int]:

@@ -1,9 +1,17 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import mlx.core as mx
 import numpy as np
 from PIL import Image
-from transformers import PreTrainedTokenizer
 
 from mflux.models.common.tokenizer import BaseTokenizer, TokenizerOutput
+
+if TYPE_CHECKING:
+    # Annotation-only: an eager transformers import would put torch+transformers (~0.6 s)
+    # on the startup path of the ernie CLI and mflux-save.
+    from transformers import PreTrainedTokenizer
 
 
 class ErnieImageTokenizer(BaseTokenizer):

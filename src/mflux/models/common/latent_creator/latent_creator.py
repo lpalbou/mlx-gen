@@ -99,4 +99,7 @@ class LatentCreator:
 
     @staticmethod
     def add_noise_by_interpolation(clean: mx.array, noise: mx.array, sigma: float) -> mx.array:
-        return (1 - sigma) * clean + sigma * noise
+        # Scheduler sigmas arrive as 0-d float32 arrays; without the cast MLX promotes bf16
+        # latents to float32 here and the entire downstream denoise loop silently runs at f32
+        # (measured 1.5-2.5x slower per step). Blend in f32, return in the latent dtype.
+        return ((1 - sigma) * clean + sigma * noise).astype(clean.dtype)

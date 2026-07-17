@@ -347,4 +347,5 @@ class ZImage(nn.Module):
         sigma: mx.array | float,
     ) -> mx.array:
         init_latents = LatentCreator.add_noise_by_interpolation(clean=image_latents, noise=initial_noise, sigma=sigma)
-        return (1 - mask_latents) * init_latents + mask_latents * latents
+        # The float32 mask would otherwise promote the composite (and every later step) to f32.
+        return ((1 - mask_latents) * init_latents + mask_latents * latents).astype(latents.dtype)

@@ -1,7 +1,6 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-import transformers
 from huggingface_hub import snapshot_download
 from huggingface_hub.utils import LocalEntryNotFoundError
 
@@ -381,6 +380,10 @@ class TokenizerLoader:
 
     @staticmethod
     def _get_tokenizer_class(tokenizer_class: str):
+        # Deferred: transformers pulls in torch (~0.6 s) and is only needed once a
+        # tokenizer is actually loaded, never on the CLI startup path.
+        import transformers
+
         if hasattr(transformers, tokenizer_class):
             return getattr(transformers, tokenizer_class)
         raise ValueError(f"Unknown tokenizer class: {tokenizer_class}")

@@ -6,13 +6,16 @@ import mlx.core as mx
 from mlx import nn
 from mlx.utils import tree_flatten
 from tqdm import tqdm
-from transformers import PreTrainedTokenizer
 
 from mflux.models.common.lora.mapping.lora_saver import LoRASaver
 from mflux.models.common.weights.saving.model_card_saver import ModelCardSaver
 from mflux.utils.version_util import VersionUtil
 
 if TYPE_CHECKING:
+    # Annotation-only: importing transformers eagerly costs ~0.6 s of torch+transformers
+    # startup on every CLI invocation that reaches a model variant module.
+    from transformers import PreTrainedTokenizer
+
     from mflux.models.common.weights.loading.weight_definition import WeightDefinitionType
 
 
@@ -46,7 +49,7 @@ class ModelSaver:
         ModelCardSaver.save_model_card(base_path, model, bits)
 
     @staticmethod
-    def _save_tokenizer(base_path: str, tokenizer: PreTrainedTokenizer, subdir: str) -> None:
+    def _save_tokenizer(base_path: str, tokenizer: "PreTrainedTokenizer", subdir: str) -> None:
         path = Path(base_path) / subdir
         path.mkdir(parents=True, exist_ok=True)
         tokenizer.save_pretrained(path)

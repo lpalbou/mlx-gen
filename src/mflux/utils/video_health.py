@@ -200,8 +200,10 @@ class VideoHealth:
 
     @staticmethod
     def _luma_array(frame: PIL.Image.Image) -> np.ndarray:
+        # Buffer-protocol conversion; getdata() would build ~1M Python tuples per frame
+        # (measured ~350x slower) and is removed in Pillow 14.
         rgb_image = frame.convert("RGB")
-        rgb = np.asarray(rgb_image.getdata(), dtype=np.float32).reshape(rgb_image.height, rgb_image.width, 3)
+        rgb = np.asarray(rgb_image, dtype=np.float32)
         return VideoHealth._luma_rgb_array(rgb)
 
     @staticmethod

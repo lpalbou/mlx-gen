@@ -1,12 +1,18 @@
+from __future__ import annotations
+
 from abc import ABC, abstractmethod
-from typing import Protocol, runtime_checkable
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 import mlx.core as mx
 import numpy as np
 from PIL import Image
-from transformers import PreTrainedTokenizer
 
 from mflux.models.common.tokenizer.tokenizer_output import TokenizerOutput
+
+if TYPE_CHECKING:
+    # Annotation-only: an eager transformers import here would put torch+transformers
+    # (~0.6 s) on the startup path of every CLI entrypoint that touches a model package.
+    from transformers import PreTrainedTokenizer
 
 
 @runtime_checkable

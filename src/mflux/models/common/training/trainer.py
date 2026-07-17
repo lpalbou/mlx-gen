@@ -81,9 +81,12 @@ class TrainingTrainer:
             key=mx.random.key(noise_seed),
         )
 
+        # Training has always run its forward pass and loss in float32 (historically via
+        # implicit sigma promotion). Cast the inputs up front so inference-side dtype fixes
+        # never silently change training numerics; bf16 training is a separate decision.
         latents_t = LatentCreator.add_noise_by_interpolation(
-            clean=clean_image,
-            noise=pure_noise,
+            clean=clean_image.astype(mx.float32),
+            noise=pure_noise.astype(mx.float32),
             sigma=config.scheduler.sigmas[t],
         )
 

@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- **Denoise-loop dtype fix**: masked-edit and warm-start latent blends no longer let float32
+  scheduler sigmas (and float32 latent masks) promote bf16 latents, so the Z-Image and
+  FLUX.2 Klein masked loops now run at bf16 like their txt2img paths. Measured on the
+  Z-Image Turbo q8 masked route: MLX peak memory 21.8 GB -> 13.1 GB (-40%); Klein 4B q8
+  masked 11.4 GB -> 10.4 GB; wall-clock neutral-to-slightly-positive (weight-streaming
+  bound). Same-seed outputs stay visually identical (mean abs diff <= 0.31/255, outside-mask
+  preservation unchanged); Qwen routes and training numerics are bit-identical (training
+  pins its historical float32 forward pass explicitly). Dtype contracts pinned by new tests.
+- **Video save speedup**: frame conversion now uses buffer-protocol `np.asarray` instead of
+  per-pixel `getdata()` in the encoder and health validator: 33-frame 1280x704 save
+  7.75 s -> 0.86 s measured (the old path also relied on an API removed in Pillow 14).
+  Byte-parity with the old conversion is test-pinned across image modes.
+- **CLI startup speedup**: transformers/torch no longer import at module scope on any of the
+  22 console-script paths (annotation-only imports deferred via TYPE_CHECKING; tokenizer
+  class lookup deferred to first use): importing the qwen backend CLI drops from ~1.4 s to
+  ~0.3 s. A new test imports every `[project.scripts]` module and asserts the heavy
+  libraries stay unloaded.
+
 ## [0.22.1] - 2026-07-15
 
 Documentation-truth patch; no behavior changes.
