@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.23.1] - 2026-07-18
+
+Documentation and verification patch; no behavior changes.
+
+### Changed
+
+- Wan2.2 A14B video-to-video: re-verified the documented proof command end to end on 0.23.0
+  (bit-identical output to the archived 0.18.24 clip across all 17 frames - the route is
+  seed-stable across releases). New proof card at
+  `docs/assets/examples/spaceship-v2v/README.md` with the cross-release verification record;
+  the Wan video page now cites the measured runtime (`298.7 s`, `13.8 GiB` peak RSS with
+  `--low-ram`) instead of a stale 90-second estimate.
+
 ## [0.23.0] - 2026-07-17
 
 Performance release: three fixes from a structured adversarial audit, each independently

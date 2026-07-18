@@ -527,7 +527,8 @@ mlxgen generate \
 Use A14B T2V for the current plain public video-to-video route. This is the exact command that
 produced the included proof artifacts. It uses bounded diagnostic settings (`448x256`, `17` frames,
 `5` requested steps, which resolve to `3` effective steps at `--video-strength 0.7`) so it runs in
-about 90 seconds; it is a route and behavior proof, not a quality setting:
+about 4-5 minutes end to end (measured `298.7 s` on 0.23.0, `13.8 GiB` peak RSS with `--low-ram`);
+it is a route and behavior proof, not a quality setting:
 
 ```sh
 mlxgen generate \
@@ -558,7 +559,9 @@ settings; see the timing profiles above.
 The proof used this source clip:
 [06_i2v_a14b_spaceship_takeoff_from_source.mp4](assets/examples/spaceship-snow/06_i2v_a14b_spaceship_takeoff_from_source.mp4)
 
-Included proof artifacts:
+Included proof artifacts (see the
+[proof card](assets/examples/spaceship-v2v/README.md) for the cross-release verification
+record — the 0.23.0 rerun reproduced the archived clip bit-identically):
 
 - output video: [starship_v2v_a14b.mp4](assets/examples/spaceship-v2v/starship_v2v_a14b.mp4)
 - run metadata: [starship_v2v_a14b.metadata.json](assets/examples/spaceship-v2v/starship_v2v_a14b.metadata.json)
