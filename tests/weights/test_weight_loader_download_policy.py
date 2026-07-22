@@ -13,7 +13,7 @@ def test_load_single_requires_explicit_download_when_not_cached(monkeypatch):
     def fake_snapshot_download(**_kwargs):
         raise LocalEntryNotFoundError("not cached")
 
-    monkeypatch.setattr("mflux.models.common.weights.loading.weight_loader.snapshot_download", fake_snapshot_download)
+    monkeypatch.setattr("huggingface_hub.snapshot_download", fake_snapshot_download)
 
     with pytest.raises(FileNotFoundError) as exc_info:
         WeightLoader.load_single(ComponentDefinition(name="transformer", hf_subdir="transformer"), "org/model")
@@ -34,7 +34,7 @@ def test_load_single_downloads_when_explicitly_enabled(monkeypatch, tmp_path):
             raise LocalEntryNotFoundError("not cached")
         return str(tmp_path)
 
-    monkeypatch.setattr("mflux.models.common.weights.loading.weight_loader.snapshot_download", fake_snapshot_download)
+    monkeypatch.setattr("huggingface_hub.snapshot_download", fake_snapshot_download)
     monkeypatch.setattr(WeightLoader, "_load_component", lambda root, component: ({}, None, None))
 
     with allow_downloads():

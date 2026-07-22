@@ -62,10 +62,20 @@ def main() -> None:
             prompt_embed_disk_cache=not args.no_prompt_cache,
         )
         single_seed = len(args.seed) == 1
-        release_inactive_denoiser = single_seed and bool(
-            model_config.transformer_overrides.get("has_transformer_2", False)
-        )
         release_denoisers_before_decode = args.low_ram and single_seed
+        # Single-seed CLI runs keep the pre-0089 rule: release the inactive
+        # expert regardless of quantization — the process exits after one
+        # item, so no reload can ever be paid and bf16 checkpoints lose
+        # nothing (cycle-2 review: the model's reload-gated auto default
+        # silently dropped this release for bf16/runtime-quantized runs).
+        # Multi-seed and Python-API callers use the model-owned default.
+        release_inactive_denoiser_arg = args.release_inactive_denoiser
+        if (
+            release_inactive_denoiser_arg is None
+            and single_seed
+            and bool(model_config.transformer_overrides.get("has_transformer_2", False))
+        ):
+            release_inactive_denoiser_arg = True
         for seed in args.seed:
             progress = _WanCliProgress(enabled=args.progress and not args.json_events)
             output_path = resolve_output_path(args.output, overwrite=args.replace, seed=seed)
@@ -100,11 +110,14 @@ def main() -> None:
                     progress_callback=events.handle_progress
                     if events.enabled
                     else (progress if args.progress else None),
-                    release_inactive_denoiser=release_inactive_denoiser,
+                    # Explicit user intent > single-seed CLI rule > None
+                    # (= model-owned auto default, 0089 e4).
+                    release_inactive_denoiser=release_inactive_denoiser_arg,
                     release_denoisers_before_decode=release_denoisers_before_decode,
                     clear_cache_each_step=args.low_ram,
                     clear_cache_each_transformer_block=args.low_ram,
                     tensor_health_check_interval=args.tensor_health_check_interval,
+                    compile_transformer=args.compile_transformer,
                 )
                 if is_vace:
                     generate_kwargs["reference_image_paths"] = args.reference_image_paths
@@ -384,6 +397,35 @@ def _parser() -> argparse.ArgumentParser:
             "Disable the exact disk cache for UMT5 prompt embeds. By default, identical "
             "(model, tokenizer, prompt, length, precision) encodes are served from a small "
             "safetensors cache instead of reloading the text encoder."
+        ),
+    )
+    parser.add_argument(
+        "--release-inactive-denoiser",
+        dest="release_inactive_denoiser",
+        action="store_true",
+        default=None,
+        help=(
+            "Force releasing the Wan A14B high-noise transformer (~14 GB) after its per-item "
+            "denoise phase and reloading it for the next item. The default is automatic: on for "
+            "dual-transformer models loaded from disk-prequantized packages (reload is a cheap "
+            "mmap read), off when quantizing at load time (each reload would re-quantize 14B)."
+        ),
+    )
+    parser.add_argument(
+        "--no-release-inactive-denoiser",
+        dest="release_inactive_denoiser",
+        action="store_false",
+        default=None,
+        help="Keep both Wan A14B transformers resident for the whole run (~28 GB).",
+    )
+    parser.add_argument(
+        "--compile-transformer",
+        action="store_true",
+        help=(
+            "Opt-in: run the Wan denoiser(s) as compiled MLX graphs (~2-6%% per step). "
+            "Output is NOT bit-identical to the eager default (compiled kernels differ by ~5e-4). "
+            "Ignored with a printed notice when --low-ram, --tensor-health-check-interval, or "
+            "MFLUX_WAN_BLOCK_HEALTH require the eager path."
         ),
     )
     parser.add_argument(

@@ -3,7 +3,6 @@ import pytest
 import torch
 from mlx.utils import tree_flatten, tree_unflatten
 
-import mflux.models.common.resolution.path_resolution as path_resolution
 from mflux.models.common.config.model_config import ModelConfig
 from mflux.models.common.download_policy import DownloadRequiredError
 from mflux.models.common.weights.loading.loaded_weights import LoadedWeights, MetaData
@@ -334,7 +333,7 @@ def test_seedvr2_missing_abstractframework_package_does_not_fallback_to_source(m
 
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
-    monkeypatch.setattr(path_resolution, "HF_HUB_CACHE", str(tmp_path / "hf-cache"))
+    monkeypatch.setattr("huggingface_hub.constants.HF_HUB_CACHE", str(tmp_path / "hf-cache"))
 
     with pytest.raises(DownloadRequiredError) as exc_info:
         SeedVR2Initializer._resolve_weight_root(repo_id, runtime_config)

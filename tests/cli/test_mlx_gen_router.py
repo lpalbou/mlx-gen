@@ -4227,10 +4227,17 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
     assert observed["generate"]["seed"] == 123
     assert observed["generate"]["image_path"] == str(image_path)
     assert callable(observed["generate"]["progress_callback"])
+    # None = model-owned auto release default (0089 e4); the CLI forwards
+    # explicit user intent only via --release-inactive-denoiser/--no-....
+    # Single-seed dual-expert CLI runs forward True (pre-0089 rule restored
+    # by the cycle-2 review: the process exits after one item, so releasing
+    # costs nothing regardless of checkpoint quantization).
     assert observed["generate"]["release_inactive_denoiser"] is True
     assert observed["generate"]["clear_cache_each_step"] is False
     assert observed["generate"]["clear_cache_each_transformer_block"] is False
     assert observed["generate"]["tensor_health_check_interval"] is None
+    # Compiled denoisers are opt-in and non-bitwise; default stays eager (0090 d12).
+    assert observed["generate"]["compile_transformer"] is False
     assert observed["save"]["path"] == tmp_path / "out_1.mp4"
     assert observed["save"]["overwrite"] is True
     # The post-save health re-decode stays ON by default (0087).
@@ -4238,6 +4245,63 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
     # Prompt-encoding cost controls default to per-encode release + disk cache ON (0086).
     assert observed["init"]["keep_text_encoder_resident"] is False
     assert observed["init"]["prompt_embed_disk_cache"] is True
+
+
+def test_wan_cli_kwargs_bind_to_both_variant_signatures(monkeypatch, tmp_path):
+    # The CLI passes ONE kwarg set unconditionally to whichever variant it
+    # instantiates; a kwarg missing from either signature TypeErrors AFTER
+    # the full weight load (cycle-2 critical: compile_transformer was absent
+    # from WanVace). Capture the kwargs the REAL wan_generate.main() builds
+    # (drift-proof — a newly added CLI kwarg is captured automatically) and
+    # bind them against both real variant signatures.
+    import inspect
+
+    from mflux.models.wan.cli import wan_generate
+    from mflux.models.wan.variants.wan2_2_ti2v import Wan2_2_TI2V
+    from mflux.models.wan.variants.wan_vace import WanVace
+
+    captured = {}
+    image_path = tmp_path / "input.png"
+    image_path.write_bytes(b"fake")
+
+    class FakeVideo:
+        def save(self, **kwargs):
+            return tmp_path / "out_1.mp4"
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            pass
+
+        def generate_video(self, **kwargs):
+            captured["generate"] = kwargs
+            return FakeVideo()
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model", "Wan-AI/Wan2.2-I2V-A14B-Diffusers",
+            "--prompt", "a city timelapse",
+            "--width", "128", "--height", "128", "--frames", "5",
+            "--steps", "2", "--seed", "123",
+            "--image-path", str(image_path),
+            "--output", str(tmp_path / "out.mp4"),
+            "--no-progress",
+        ],
+    )
+    wan_generate.main()
+    cli_kwargs = captured["generate"]
+
+    # The is_vace branch adds these on top of the same base dict.
+    vace_extras = {
+        "reference_image_paths": [], "conditioning_scale": 1.0,
+        "masked_region_mode": "generate",
+    }
+
+    inspect.signature(Wan2_2_TI2V.generate_video).bind(object(), **cli_kwargs)
+    inspect.signature(WanVace.generate_video).bind(object(), **cli_kwargs, **vace_extras)
 
 
 def test_wan_cli_prompt_encoder_flags_reach_model_constructor(monkeypatch, tmp_path):
@@ -5036,6 +5100,10 @@ def test_wan_cli_low_ram_releases_denoisers_before_decode_and_sets_cache_limit(m
     assert observed["cache_limit"] == int(2.5 * (1000**3))
     assert observed["cache_cleared"] is True
     assert observed["peak_reset"] is True
+    # Mid-run release is model-owned (0089 e4): --low-ram no longer implies it.
+    # Single-seed dual-expert CLI runs forward True (pre-0089 rule restored
+    # by the cycle-2 review: the process exits after one item, so releasing
+    # costs nothing regardless of checkpoint quantization).
     assert observed["generate"]["release_inactive_denoiser"] is True
     assert observed["generate"]["release_denoisers_before_decode"] is True
     assert observed["generate"]["clear_cache_each_step"] is True
@@ -5085,10 +5153,54 @@ def test_wan_cli_cache_limit_without_low_ram_sets_allocator_only(monkeypatch):
     assert observed["cache_limit"] == int(2.5 * (1000**3))
     assert observed["cache_cleared"] is True
     assert observed["peak_reset"] is True
+    # None = model-owned auto release default (0089 e4).
+    # Single-seed dual-expert CLI runs forward True (pre-0089 rule restored
+    # by the cycle-2 review: the process exits after one item, so releasing
+    # costs nothing regardless of checkpoint quantization).
     assert observed["generate"]["release_inactive_denoiser"] is True
     assert observed["generate"]["release_denoisers_before_decode"] is False
     assert observed["generate"]["clear_cache_each_step"] is False
     assert observed["generate"]["clear_cache_each_transformer_block"] is False
+
+
+def test_wan_cli_compile_transformer_flag_reaches_generate_video(monkeypatch):
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {}
+
+    class FakeVideo:
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_video(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeVideo()
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--seed",
+            "123",
+            "--compile-transformer",
+            "--no-progress",
+        ],
+    )
+
+    wan_generate.main()
+
+    # Opt-in only (0090 d12): the flag must reach generate_video verbatim.
+    assert observed["generate"]["compile_transformer"] is True
 
 
 def test_wan_cli_low_ram_defaults_cache_limit(monkeypatch):
@@ -5136,7 +5248,10 @@ def test_wan_cli_low_ram_defaults_cache_limit(monkeypatch):
     assert observed["cache_limit"] == 1000**3
 
 
-def test_wan_cli_multiple_seeds_keep_denoisers_for_reuse(monkeypatch):
+def test_wan_cli_multiple_seeds_forward_model_owned_release_default(monkeypatch):
+    # Multi-seed batches no longer pin both A14B experts from the CLI (0089 e4):
+    # each item forwards None, and the model releases/reloads the high expert
+    # per item when the checkpoint is disk-prequantized.
     from mflux.models.wan.cli import wan_generate
 
     observed = {"generate": []}
@@ -5176,9 +5291,52 @@ def test_wan_cli_multiple_seeds_keep_denoisers_for_reuse(monkeypatch):
     wan_generate.main()
 
     assert len(observed["generate"]) == 2
-    assert all(call["release_inactive_denoiser"] is False for call in observed["generate"])
+    assert all(call["release_inactive_denoiser"] is None for call in observed["generate"])
     assert all(call["release_denoisers_before_decode"] is False for call in observed["generate"])
     assert all(call["clear_cache_each_transformer_block"] is False for call in observed["generate"])
+
+
+def test_wan_cli_release_inactive_denoiser_flags_forward_explicit_intent(monkeypatch):
+    from mflux.models.wan.cli import wan_generate
+
+    def run_with(extra_flag: str | None):
+        observed = {}
+
+        class FakeVideo:
+            def save(self, **kwargs):
+                observed["save"] = kwargs
+
+        class FakeWan:
+            def __init__(self, **kwargs):
+                observed["init"] = kwargs
+
+            def generate_video(self, **kwargs):
+                observed["generate"] = kwargs
+                return FakeVideo()
+
+        monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+        argv = [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--seed",
+            "123",
+            "--no-progress",
+        ]
+        if extra_flag is not None:
+            argv.append(extra_flag)
+        monkeypatch.setattr(sys, "argv", argv)
+        wan_generate.main()
+        return observed["generate"]["release_inactive_denoiser"]
+
+    # Default on a SINGLE-seed dual-expert run is the restored pre-0089 CLI
+    # rule (True — release costs nothing when the process exits after one
+    # item); explicit flags always win.
+    assert run_with(None) is True
+    assert run_with("--release-inactive-denoiser") is True
+    assert run_with("--no-release-inactive-denoiser") is False
 
 
 def test_wan_cli_progress_advances_by_denoise_steps(monkeypatch):
@@ -5582,7 +5740,7 @@ def test_download_command_enables_downloads_temporarily(monkeypatch, capsys):
         calls.append((repo_id, allow_patterns, downloads_enabled()))
         return "/tmp/hf-cache/snapshot"
 
-    monkeypatch.setattr(mlx_gen, "snapshot_download", fake_snapshot_download)
+    monkeypatch.setattr("huggingface_hub.snapshot_download", fake_snapshot_download)
 
     mlx_gen._download_model(["--model", "Qwen/Qwen-Image"])
 
@@ -5601,7 +5759,7 @@ def test_download_command_uses_ernie_source_patterns(monkeypatch):
         calls.append((repo_id, allow_patterns, downloads_enabled()))
         return "/tmp/hf-cache/ernie"
 
-    monkeypatch.setattr(mlx_gen, "snapshot_download", fake_snapshot_download)
+    monkeypatch.setattr("huggingface_hub.snapshot_download", fake_snapshot_download)
 
     mlx_gen._download_model(["--model", "baidu/ERNIE-Image-Turbo"])
 
@@ -5624,7 +5782,7 @@ def test_download_command_uses_a14b_wan_patterns(monkeypatch):
         calls.append((repo_id, allow_patterns, downloads_enabled()))
         return "/tmp/hf-cache/wan-a14b"
 
-    monkeypatch.setattr(mlx_gen, "snapshot_download", fake_snapshot_download)
+    monkeypatch.setattr("huggingface_hub.snapshot_download", fake_snapshot_download)
 
     mlx_gen._download_model(["--model", "Wan-AI/Wan2.2-T2V-A14B-Diffusers"])
 

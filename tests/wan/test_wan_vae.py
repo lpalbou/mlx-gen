@@ -49,6 +49,27 @@ def test_wan_vae_decode_low_ram_clears_cache_after_each_latent_slice(monkeypatch
     assert clear_calls == [True, True]
 
 
+def test_wan_vae_streamed_slice_decode_is_bitwise_identical_to_full_decode():
+    # 0089 e3 parity pin: Wan2_2_TI2V now decodes exclusively through
+    # iter_decode_normalized_latent_slices. decode_normalized_latents is the
+    # still-shipped non-streamed path (WanVace uses it), so comparing against it
+    # is an honest same-code-generation comparison, not a test-only copy.
+    # Both paths share post_quant_conv + the causal per-frame decoder with the
+    # same feat_cache handoff; the streamed path just unpatchifies/clips per
+    # slice, which is frame-independent - hence BITWISE equality is required.
+    mx.random.seed(7)
+    vae = Wan2_2_VAE()
+    latents = mx.random.normal((1, 48, 3, 4, 4), dtype=mx.float32)
+
+    full = vae.decode_normalized_latents(latents)
+    mx.eval(full)
+    streamed = mx.concatenate(list(vae.iter_decode_normalized_latent_slices(latents)), axis=2)
+    mx.eval(streamed)
+
+    assert streamed.shape == full.shape == (1, 3, 9, 64, 64)
+    np.testing.assert_array_equal(np.array(streamed), np.array(full))
+
+
 def test_wan_vae_encode_normalized_first_frame_matches_i2v_condition_shape():
     vae = Wan2_2_VAE()
     image = mx.zeros((1, 3, 64, 64), dtype=mx.float32)

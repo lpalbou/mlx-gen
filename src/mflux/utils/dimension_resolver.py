@@ -2,10 +2,12 @@ import math
 from dataclasses import dataclass
 from pathlib import Path
 
-import PIL.Image
-
 from mflux.cli.defaults import defaults as ui_defaults
 from mflux.utils.scale_factor import ScaleFactor
+
+# PIL.Image is imported inside the methods that open a reference image: this
+# module sits on the task_inference import chain and must not pull the image
+# stack (~0.2 s) at import time (0088).
 
 CANVAS_POLICY_SOURCE_ASPECT = "source-aspect"
 CANVAS_POLICY_EXACT_RESIZE = "exact-resize"
@@ -52,6 +54,8 @@ class DimensionResolver:
             resolved_height = ui_defaults.HEIGHT if height_is_scale else int(height)
             return resolved_width, resolved_height
 
+        import PIL.Image
+
         # Open image lazily - PIL.Image.open only reads metadata, not pixel data
         with PIL.Image.open(reference_image_path) as orig_image:
             orig_width, orig_height = orig_image.size
@@ -92,6 +96,8 @@ class DimensionResolver:
             source_width = None
             source_height = None
             if reference_image_path is not None:
+                import PIL.Image
+
                 with PIL.Image.open(reference_image_path) as orig_image:
                     source_width, source_height = orig_image.size
             resolved_width, resolved_height = DimensionResolver.resolve(
@@ -108,6 +114,8 @@ class DimensionResolver:
                 source_height=source_height,
                 canvas_policy=CANVAS_POLICY_EXACT_RESIZE,
             )
+
+        import PIL.Image
 
         with PIL.Image.open(reference_image_path) as orig_image:
             source_width, source_height = orig_image.size

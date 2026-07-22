@@ -49,11 +49,12 @@ class WanVace(Wan2_2_TI2V):
         conditioning_scale: float = 1.0,
         max_sequence_length: int = 512,
         progress_callback=None,
-        release_inactive_denoiser: bool = False,
+        release_inactive_denoiser: bool | None = None,
         release_denoisers_before_decode: bool = False,
         clear_cache_each_step: bool = False,
         clear_cache_each_transformer_block: bool = False,
         tensor_health_check_interval: int | None = None,
+        compile_transformer: bool = False,
     ) -> GeneratedVideo:
         start_time = time.time()
         if guidance_2 is not None:
@@ -81,6 +82,12 @@ class WanVace(Wan2_2_TI2V):
             )
         self._validate_tensor_health_check_interval(tensor_health_check_interval)
         del release_inactive_denoiser  # single transformer: nothing to release mid-loop
+        if compile_transformer:
+            # Announced, never silent: the flag is accepted (the CLI passes it
+            # unconditionally) but VACE stays eager — the conditioning branch
+            # is untraced.
+            print("compile_transformer is not supported on Wan VACE; running eager.")
+        del compile_transformer
         height, width = self._validated_vace_spatial_size(height=height, width=width)
         num_frames = self._validated_vace_frame_count(num_frames)
         guidance = float(guidance) if guidance is not None else float(self._wan_config("default_guidance", 5.0))
@@ -204,6 +211,7 @@ class WanVace(Wan2_2_TI2V):
             gc.collect()
         mx.synchronize()
         mx.clear_cache()
+        # VACE keeps its all-at-once decode; the 0089 streamed-decode default covers Wan2_2_TI2V only.
         decoded = self.vae.decode_normalized_latents(latents, clear_cache_each_slice=False)
         mx.eval(decoded)
         self._require_tensor_health(decoded, phase="vae-decode", name="decoded")

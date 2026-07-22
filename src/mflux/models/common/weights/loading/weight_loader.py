@@ -7,8 +7,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import mlx.core as mx
-from huggingface_hub import snapshot_download
-from huggingface_hub.utils import LocalEntryNotFoundError
 from mlx.utils import tree_unflatten
 from safetensors import safe_open
 
@@ -36,6 +34,11 @@ class WeightLoader:
         repo_id: str,
         file_pattern: str = "*.safetensors",
     ) -> LoadedWeights:
+        # Deferred: huggingface_hub pulls httpx+rich (~0.5 s) and is only needed
+        # once weights actually resolve, never on the import path (0088).
+        from huggingface_hub import snapshot_download
+        from huggingface_hub.utils import LocalEntryNotFoundError
+
         patterns = [file_pattern, "config.json"]
         try:
             root_path = Path(snapshot_download(repo_id=repo_id, allow_patterns=patterns, local_files_only=True))

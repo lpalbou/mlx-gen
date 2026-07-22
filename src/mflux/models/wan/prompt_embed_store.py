@@ -85,7 +85,7 @@ class WanPromptEmbedStore:
             embeds = mx.load(str(path))["embeds"]
             path.touch()  # LRU recency
             return embeds
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
             # Corrupt entries fail loud, then heal by re-encoding.
             print(f"WanPromptEmbedStore: dropping corrupt cache entry {path.name}: {exc}", file=sys.stderr)
             try:
@@ -106,7 +106,8 @@ class WanPromptEmbedStore:
             mx.save_safetensors(str(temp_path), {"embeds": embeds})
             os.replace(temp_path, path)
             self._prune()
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001
+            # Best-effort persistence: a failed cache write must never fail the generation.
             print(f"WanPromptEmbedStore: failed to persist prompt embeds: {exc}", file=sys.stderr)
 
     def _entry_path(self, key: str) -> Path:

@@ -1,5 +1,6 @@
 import json
 import os
+from pathlib import Path
 from types import SimpleNamespace
 
 import mlx.core as mx
@@ -321,7 +322,7 @@ def test_wan_generate_releases_high_noise_transformer_before_low_noise_call(monk
         FakeScheduler,
     )
     monkeypatch.setattr(
-        "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video",
+        "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video_from_frame_batches",
         lambda **kwargs: SimpleNamespace(),
     )
     monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
@@ -426,32 +427,37 @@ def test_wan_generate_fails_on_non_finite_scheduler_latents(monkeypatch):
     assert calls == {"scheduler_steps": 1, "to_video": 0, "scheduler_flow_shift": 3.0}
 
 
-def test_wan_generate_fails_on_non_finite_vae_decode(monkeypatch):
+def test_wan_generate_surfaces_non_finite_vae_decode_at_frame_materialization(monkeypatch):
+    # Streamed decode (0089) runs at save/first_frame, so a NaN decode surfaces
+    # through the per-frame finite checks when frames materialize - generate_video
+    # itself returns a factory-backed artifact.
     model = _fake_t2v_a14b_model()
     decoded = np.zeros((1, 3, 1, 8, 8), dtype=np.float32)
     decoded[0, 0, 0, 0, 0] = np.nan
-    model.vae.decode_normalized_latents = lambda latents, **kwargs: mx.array(decoded)
+    model.vae = _fake_wan_vae(decoded_slice=mx.array(decoded))
     events = []
-    calls = _patch_fake_wan_generation(monkeypatch, model, patch_to_video=False)
+    _patch_fake_wan_generation(monkeypatch, model, patch_to_video=False)
+
+    video = model.generate_video(
+        seed=1,
+        prompt="a slow wave",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        guidance_2=1,
+        progress_callback=events.append,
+    )
+
+    assert [event.phase for event in events] == ["start", "denoise", "denoise", "decode", "convert", "generated"]
 
     with pytest.raises(ValueError) as exc_info:
-        model.generate_video(
-            seed=1,
-            prompt="a slow wave",
-            width=64,
-            height=64,
-            num_frames=1,
-            num_inference_steps=2,
-            guidance=1,
-            guidance_2=1,
-            progress_callback=events.append,
-        )
+        video.first_frame()
 
     message = str(exc_info.value)
-    assert "wan-vae-decode" in message
-    assert "tensor=decoded" in message
-    assert [event.phase for event in events] == ["start", "denoise", "denoise", "decode"]
-    assert calls == {"scheduler_steps": 2, "to_video": 0, "scheduler_flow_shift": 3.0}
+    assert "video-frame-conversion" in message
+    assert "tensor=decoded_video_frame" in message
 
 
 def test_wan_generate_fails_on_non_finite_i2v_condition(monkeypatch):
@@ -553,7 +559,9 @@ def test_wan_generate_rejects_non_finite_latents_during_denoise(monkeypatch):
         "mflux.models.wan.variants.wan2_2_ti2v.WanEulerScheduler",
         FakeScheduler,
     )
-    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", fail_video_conversion)
+    monkeypatch.setattr(
+        "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video_from_frame_batches", fail_video_conversion
+    )
     monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
     monkeypatch.setattr(
         model,
@@ -695,7 +703,7 @@ def test_wan_video_to_video_uses_scalar_timesteps_when_route_enabled(monkeypatch
         FakeScheduler,
     )
     monkeypatch.setattr(
-        "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video",
+        "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video_from_frame_batches",
         lambda **kwargs: SimpleNamespace(**kwargs),
     )
     monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
@@ -745,7 +753,7 @@ def test_wan_v2v_metadata_records_requested_and_effective_steps(monkeypatch):
         observed["to_video"] = kwargs
         return SimpleNamespace()
 
-    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", to_video)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video_from_frame_batches", to_video)
     monkeypatch.setattr(
         model,
         "_prepare_video_to_video_latents",
@@ -785,19 +793,6 @@ def _run_masked_v2v_with_real_scheduler(monkeypatch, tmp_path, *, mask_color: in
     source_latents = mx.arange(16 * 8 * 8, dtype=mx.float32).reshape(1, 16, 1, 8, 8) / 100.0
     noise = mx.ones((1, 16, 1, 8, 8), dtype=mx.float32) * 0.5
     warm_start = 0.9 * noise + 0.1 * source_latents
-    observed = {}
-
-    def decode(latents, **kwargs):
-        observed["decode_latents"] = latents
-        return mx.zeros((1, 3, 1, 8, 8), dtype=mx.float32)
-
-    model.vae = SimpleNamespace(
-        z_dim=16,
-        temporal_scale=4,
-        spatial_scale=8,
-        decode_normalized_latents=decode,
-    )
-    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", lambda **kwargs: SimpleNamespace())
     monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
     monkeypatch.setattr(
         model,
@@ -819,7 +814,7 @@ def _run_masked_v2v_with_real_scheduler(monkeypatch, tmp_path, *, mask_color: in
         Image.new("L", (64, 64), mask_color).save(mask_file)
         mask_path = str(mask_file)
 
-    model.generate_video(
+    video = model.generate_video(
         seed=seed,
         prompt="replace the speaker",
         width=64,
@@ -832,7 +827,9 @@ def _run_masked_v2v_with_real_scheduler(monkeypatch, tmp_path, *, mask_color: in
         video_strength=0.75,
         video_mask_path=mask_path,
     )
-    return observed["decode_latents"], source_latents
+    # Decode runs when frames materialize (0089); the fake VAE records the latents then.
+    video.first_frame()
+    return model.vae.decode_calls[0]["latents"], source_latents
 
 
 def test_wan_masked_v2v_all_black_mask_returns_exact_source_roundtrip(monkeypatch, tmp_path, capsys):
@@ -865,14 +862,6 @@ def test_wan_masked_v2v_partial_mask_locks_background_and_edits_foreground(monke
     model = _fake_t2v_a14b_model()
     source_latents = mx.arange(16 * 8 * 8, dtype=mx.float32).reshape(1, 16, 1, 8, 8) / 100.0
     noise = mx.ones((1, 16, 1, 8, 8), dtype=mx.float32) * 0.5
-    observed = {}
-
-    def decode(latents, **kwargs):
-        observed["decode_latents"] = latents
-        return mx.zeros((1, 3, 1, 8, 8), dtype=mx.float32)
-
-    model.vae = SimpleNamespace(z_dim=16, temporal_scale=4, spatial_scale=8, decode_normalized_latents=decode)
-    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", lambda **kwargs: SimpleNamespace())
     monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
     monkeypatch.setattr(
         model,
@@ -884,7 +873,7 @@ def test_wan_masked_v2v_partial_mask_locks_background_and_edits_foreground(monke
     monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.synchronize", lambda: None)
     monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.mx.clear_cache", lambda: None)
 
-    model.generate_video(
+    video = model.generate_video(
         seed=1,
         prompt="replace the right half",
         width=64,
@@ -897,8 +886,10 @@ def test_wan_masked_v2v_partial_mask_locks_background_and_edits_foreground(monke
         video_strength=0.75,
         video_mask_path=str(mask_file),
     )
+    # Decode runs when frames materialize (0089); the fake VAE records the latents then.
+    video.first_frame()
 
-    result = np.array(observed["decode_latents"].astype(mx.float32))
+    result = np.array(model.vae.decode_calls[0]["latents"].astype(mx.float32))
     expected_background = np.array(source_latents.astype(ModelConfig.precision).astype(mx.float32))
     # Preserved (black, left) columns are exactly the source; edited (white, right) columns differ.
     assert np.array_equal(result[..., :4], expected_background[..., :4])
@@ -1108,7 +1099,9 @@ def test_wan_generate_materializes_cfg_predictions_without_tensor_health(monkeyp
 
 def test_wan_generate_releases_denoisers_before_decode(monkeypatch):
     model = _fake_t2v_a14b_model()
-    _patch_fake_wan_generation(monkeypatch, model)
+    # patch_to_video=False: the real factory-backed artifact is needed so
+    # first_frame() can drive the deferred decode below.
+    _patch_fake_wan_generation(monkeypatch, model, patch_to_video=False)
     observed = {}
 
     def decode(latents, *, clear_cache_each_slice=False):
@@ -1128,6 +1121,8 @@ def test_wan_generate_releases_denoisers_before_decode(monkeypatch):
         num_inference_steps=2,
         guidance=1,
         release_denoisers_before_decode=True,
+        # The CLI couples per-slice flushes to --low-ram via clear_cache_each_step (0089).
+        clear_cache_each_step=True,
     )
     video.first_frame()
 
@@ -1136,6 +1131,312 @@ def test_wan_generate_releases_denoisers_before_decode(monkeypatch):
         "transformer_2": None,
         "clear_cache_each_slice": True,
     }
+
+
+def test_wan_generate_default_run_returns_streamed_factory_backed_artifact(monkeypatch):
+    # 0089 e3 contract: the DEFAULT run (no low-ram flags) defers decode into a
+    # frame-batches factory, keeps denoisers resident, and skips per-slice flushes.
+    model = _fake_t2v_a14b_model()
+    _patch_fake_wan_generation(monkeypatch, model, patch_to_video=False)
+
+    video = model.generate_video(
+        seed=1,
+        prompt="a slow wave",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        guidance_2=1,
+    )
+
+    assert video._frames is None
+    assert video._frame_batches_factory is not None
+    assert model.vae.decode_calls == []  # decode fully deferred out of generate_video
+    assert model.transformer is not None and model.transformer_2 is not None
+    assert video.extra_metadata["wan_decode_mode"] == "streamed_vae_slices"
+    assert video.extra_metadata["generation_time_scope"] == "pre-save"
+
+    frame = video.first_frame()
+
+    assert frame.size == (8, 8)
+    assert len(model.vae.decode_calls) == 1
+    assert model.vae.decode_calls[0]["clear_cache_each_slice"] is False
+    assert model.vae.decode_calls[0]["latents"].dtype == ModelConfig.precision
+
+
+def test_wan_generate_compile_transformer_falls_back_to_eager_with_notice_under_low_ram(monkeypatch, capsys):
+    # 0090 d12 eligibility: low-ram's per-block cache flushes cannot run inside
+    # a compiled graph, so the request runs eager and says so once - not silently.
+    model = _fake_t2v_a14b_model()
+    _patch_fake_wan_generation(monkeypatch, model, patch_to_video=False)
+
+    video = model.generate_video(
+        seed=1,
+        prompt="a slow wave",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        guidance_2=1,
+        compile_transformer=True,
+        clear_cache_each_transformer_block=True,
+    )
+
+    output = capsys.readouterr().out
+    assert output.count("compile_transformer requested but running eager") == 1
+    assert "clear_cache_each_transformer_block" in output
+    # Eager marker: the per-call kwargs (block health context) are still threaded.
+    eager_calls = model.transformer.calls + model.transformer_2.calls
+    assert eager_calls and all("block_health_context" in call for call in eager_calls)
+    assert video.extra_metadata.get("compile_transformer") is None
+
+
+def test_wan_generate_compile_transformer_uses_compiled_denoisers_and_records_metadata(monkeypatch):
+    model = _fake_t2v_a14b_model()
+    _patch_fake_wan_generation(monkeypatch, model, patch_to_video=False)
+
+    video = model.generate_video(
+        seed=1,
+        prompt="a slow wave",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        guidance_2=1,
+        compile_transformer=True,
+    )
+
+    # Constant shapes within the run: the used expert traces exactly once for
+    # 2 denoise steps, and the compiled lambda passes no eager-only kwargs.
+    traced_calls = model.transformer.calls + model.transformer_2.calls
+    assert len(traced_calls) == 1
+    assert all("block_health_context" not in call for call in traced_calls)
+    assert video.extra_metadata["compile_transformer"] is True
+
+
+def _attach_reload_spec(model, stored_q_level=8):
+    # Reload spec attrs (0089 e4) as WanInitializer would leave them on a real
+    # instance loaded from a disk-prequantized package.
+    model.root_path = Path("/fake-wan-a14b")
+    model.weight_definition = SimpleNamespace()
+    model.quantize_arg = None
+    model.transformer_stored_q_level = stored_q_level
+    model.lora_paths = []
+    model.lora_scales = []
+    model.lora_target_roles = []
+    return model
+
+
+def _patch_two_phase_scheduler(monkeypatch):
+    # timesteps [900, 800] with the t2v boundary 875: step 1 is high-noise,
+    # step 2 is low-noise, so the per-item release actually fires.
+    class TwoPhaseScheduler:
+        num_train_timesteps = 1000
+
+        def __init__(self, flow_shift):
+            self.flow_shift = flow_shift
+            self.timesteps = mx.array([], dtype=mx.int64)
+
+        def set_timesteps(self, num_inference_steps):
+            del num_inference_steps
+            self.timesteps = mx.array([900, 800], dtype=mx.int64)
+
+        def step(self, model_output, timestep, sample, return_dict):
+            del model_output, timestep, return_dict
+            return (sample,)
+
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.WanUniPCMultistepScheduler", TwoPhaseScheduler)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.WanEulerScheduler", TwoPhaseScheduler)
+
+
+def _install_fake_high_reload(monkeypatch):
+    reloads = []
+
+    def fake_reload(model):
+        assert model.transformer is None, "reload must only run while the high expert is released"
+        model.transformer = _FakeWanTransformer()
+        reloads.append(model.transformer)
+
+    monkeypatch.setattr(WanInitializer, "reload_high_noise_transformer", fake_reload)
+    return reloads
+
+
+def _two_seed_generate_kwargs(seed, progress_callback=None, **extra):
+    return dict(
+        seed=seed,
+        prompt="a slow wave",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        guidance_2=1,
+        progress_callback=progress_callback,
+        **extra,
+    )
+
+
+def test_wan_two_seed_batch_releases_and_reloads_high_expert_per_item(monkeypatch):
+    # 0089 e4 contract: with a disk-prequantized dual-expert model, the release
+    # default is ON per item; the high expert releases after its boundary within
+    # EACH item and reloads exactly once at the start of the next item's high
+    # phase. The low expert is never reloaded.
+    model = _attach_reload_spec(_fake_t2v_a14b_model())
+    original_high = model.transformer
+    original_low = model.transformer_2
+    reloads = _install_fake_high_reload(monkeypatch)
+    _patch_fake_wan_generation(monkeypatch, model)
+    _patch_two_phase_scheduler(monkeypatch)
+
+    first_events, second_events = [], []
+    model.generate_video(**_two_seed_generate_kwargs(1, progress_callback=first_events.append))
+
+    assert model.transformer is None  # released after item 1's boundary
+    assert reloads == []
+    assert len(original_high.calls) == 1
+
+    model.generate_video(**_two_seed_generate_kwargs(2, progress_callback=second_events.append))
+
+    assert len(reloads) == 1  # reloaded exactly once, at item 2's high phase
+    assert len(reloads[0].calls) == 1  # the reloaded expert served item 2's high step
+    assert len(original_high.calls) == 1  # the released module is never reused
+    assert model.transformer is None  # item 2 released it again after its boundary
+    assert model.transformer_2 is original_low
+    assert len(original_low.calls) == 2  # one low step per item, same resident module
+    # Progress/event stream is unaffected by release/reload.
+    assert [event.phase for event in first_events] == [event.phase for event in second_events]
+
+
+def test_wan_single_seed_release_behavior_unchanged(monkeypatch):
+    # Single-seed prequantized runs still release after the boundary (previously
+    # the CLI computed this; the model now owns the same default).
+    model = _attach_reload_spec(_fake_t2v_a14b_model())
+    reloads = _install_fake_high_reload(monkeypatch)
+    _patch_fake_wan_generation(monkeypatch, model)
+    _patch_two_phase_scheduler(monkeypatch)
+
+    model.generate_video(**_two_seed_generate_kwargs(1))
+
+    assert model.transformer is None
+    assert model.transformer_2 is not None
+    assert reloads == []
+
+
+def test_wan_release_default_resolution_gates():
+    model = _fake_t2v_a14b_model()
+    # No reload spec on the plain fake: auto stays OFF (matches every
+    # pre-existing harness test in this file).
+    assert model._resolve_release_inactive_denoiser(None) is False
+
+    _attach_reload_spec(model, stored_q_level=8)
+    assert model._resolve_release_inactive_denoiser(None) is True
+
+    # Runtime-quantize-over-bf16 (no stored q level) is gated OUT of
+    # auto-release: each reload would re-quantize 14B parameters.
+    model.transformer_stored_q_level = None
+    assert model._resolve_release_inactive_denoiser(None) is False
+
+    # Explicit user intent always wins over the auto default.
+    assert model._resolve_release_inactive_denoiser(True) is True
+    model.transformer_stored_q_level = 8
+    assert model._resolve_release_inactive_denoiser(False) is False
+
+    # Single-transformer configs have nothing to release.
+    model.model_config = ModelConfig.wan2_2_ti2v_5b()
+    assert model._resolve_release_inactive_denoiser(None) is False
+
+
+def test_wan_released_high_expert_passes_validation_only_with_reload_spec():
+    model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
+    model.model_config = ModelConfig.wan2_2_t2v_a14b()
+    model.transformer = None
+    model.transformer_2 = SimpleNamespace()
+
+    # Released high expert WITHOUT a reload spec stays fatal (pre-e4 contract).
+    with pytest.raises(ValueError, match="denoisers have been released"):
+        model._validate_denoisers_available()
+
+    # With the reload spec, a missing high expert is a legal per-item state.
+    _attach_reload_spec(model)
+    model._validate_denoisers_available()
+
+    # release_denoisers_before_decode (both experts gone) stays fatal: the low
+    # expert is never reloadable.
+    model.transformer_2 = None
+    with pytest.raises(ValueError, match="denoisers have been released"):
+        model._validate_denoisers_available()
+
+
+def test_wan_release_reload_metadata_records_truthful_extras(monkeypatch):
+    model = _attach_reload_spec(_fake_t2v_a14b_model())
+    _install_fake_high_reload(monkeypatch)
+    _patch_fake_wan_generation(monkeypatch, model, patch_to_video=False)
+    _patch_two_phase_scheduler(monkeypatch)
+    observed = []
+
+    def to_video(**kwargs):
+        observed.append(kwargs)
+        return SimpleNamespace()
+
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video_from_frame_batches", to_video)
+
+    model.generate_video(**_two_seed_generate_kwargs(1))
+    model.generate_video(**_two_seed_generate_kwargs(2))
+
+    first_extras = observed[0]["extra_metadata"]
+    second_extras = observed[1]["extra_metadata"]
+    # Item 1: released after its boundary, no reload was needed yet.
+    assert first_extras["released_inactive_denoiser"] is True
+    assert "high_noise_reloads" not in first_extras
+    # Item 2: reloaded once for its high phase, then released again.
+    assert second_extras["released_inactive_denoiser"] is True
+    assert second_extras["high_noise_reloads"] == 1
+
+
+def test_wan_release_metadata_absent_when_release_never_fired(monkeypatch):
+    model = _fake_t2v_a14b_model()  # no reload spec -> auto release OFF
+    _patch_fake_wan_generation(monkeypatch, model, patch_to_video=False)
+    _patch_two_phase_scheduler(monkeypatch)
+    observed = []
+
+    def to_video(**kwargs):
+        observed.append(kwargs)
+        return SimpleNamespace()
+
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video_from_frame_batches", to_video)
+
+    model.generate_video(**_two_seed_generate_kwargs(1))
+
+    extras = observed[0]["extra_metadata"]
+    assert "released_inactive_denoiser" not in extras
+    assert "high_noise_reloads" not in extras
+    assert model.transformer is not None
+
+
+def test_wan_compile_transformer_release_pops_and_reload_rebuilds_compiled_entry(monkeypatch):
+    # 0090 d12 x 0089 e4 interaction: release pops the high expert's compiled
+    # entry; after the per-item reload the loop must trace a FRESH callable
+    # against the reloaded module - never reuse one closing over freed weights.
+    model = _attach_reload_spec(_fake_t2v_a14b_model())
+    original_high = model.transformer
+    original_low = model.transformer_2
+    reloads = _install_fake_high_reload(monkeypatch)
+    _patch_fake_wan_generation(monkeypatch, model)
+    _patch_two_phase_scheduler(monkeypatch)
+
+    model.generate_video(**_two_seed_generate_kwargs(1, compile_transformer=True))
+    model.generate_video(**_two_seed_generate_kwargs(2, compile_transformer=True))
+
+    assert len(reloads) == 1
+    # Compiled callables trace each module exactly once per compile: the
+    # reloaded expert was traced (and used) by item 2's high step.
+    assert len(reloads[0].calls) == 1
+    assert len(original_high.calls) == 1  # item 1's trace only - no stale reuse
+    # The resident low expert is re-traced once per item (fresh per-run cache).
+    assert len(original_low.calls) == 2
 
 
 @pytest.mark.parametrize("guidance", [np.nan, np.inf, -np.inf])
@@ -1194,18 +1495,30 @@ def _fake_t2v_a14b_model():
     model = Wan2_2_TI2V.__new__(Wan2_2_TI2V)
     model.model_config = ModelConfig.wan2_2_t2v_a14b()
     model.bits = None
-    model.vae = SimpleNamespace(
-        z_dim=16,
-        temporal_scale=4,
-        spatial_scale=8,
-        decode_normalized_latents=lambda latents, **kwargs: mx.zeros((1, 3, 1, 8, 8), dtype=mx.float32),
-    )
+    model.vae = _fake_wan_vae()
     model.transformer = _FakeWanTransformer()
     model.transformer_2 = _FakeWanTransformer()
     return model
 
 
+def _fake_wan_vae(decoded_slice=None):
+    # Streamed slice decode is the only decode path (0089): the fake VAE
+    # records the latents/kwargs it is asked to decode when the artifact's
+    # frame factory is consumed (save/first_frame), not during generate_video.
+    vae = SimpleNamespace(z_dim=16, temporal_scale=4, spatial_scale=8)
+    vae.decode_calls = []
+
+    def iter_decode(latents, *, clear_cache_each_slice=False):
+        vae.decode_calls.append({"latents": latents, "clear_cache_each_slice": clear_cache_each_slice})
+        return iter([decoded_slice if decoded_slice is not None else mx.zeros((1, 3, 1, 8, 8), dtype=mx.float32)])
+
+    vae.iter_decode_normalized_latent_slices = iter_decode
+    return vae
+
+
 def _patch_fake_wan_generation(monkeypatch, model, scheduler_output=None, patch_to_video=True):
+    # "to_video" counts artifact constructions via to_video_from_frame_batches
+    # (the only construction path since 0089 made streamed decode the default).
     calls = {"scheduler_steps": 0, "to_video": 0}
 
     class FakeScheduler:
@@ -1237,7 +1550,7 @@ def _patch_fake_wan_generation(monkeypatch, model, scheduler_output=None, patch_
     )
     if patch_to_video:
         monkeypatch.setattr(
-            "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video",
+            "mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video_from_frame_batches",
             fake_to_video,
         )
     monkeypatch.setattr(model, "encode_prompt", lambda **kwargs: (mx.zeros((1, 1, 4096)), None))
@@ -1491,7 +1804,7 @@ def test_wan_generate_i2v_uses_resolved_source_ratio_size_for_a14b_condition(mon
     monkeypatch.setattr(model, "_resolve_video_spatial_size", resolved_spatial_size)
     monkeypatch.setattr(model, "prepare_latents", prepare_latents)
     monkeypatch.setattr(model, "_encode_video_condition", encode_video_condition)
-    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", to_video)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video_from_frame_batches", to_video)
 
     model.generate_video(
         seed=1,
@@ -1553,7 +1866,7 @@ def test_wan_generate_i2v_uses_resolved_source_ratio_size_for_ti2v_condition(mon
     monkeypatch.setattr(model, "_resolve_video_spatial_size", resolved_spatial_size)
     monkeypatch.setattr(model, "prepare_latents", prepare_latents)
     monkeypatch.setattr(model, "_encode_first_frame_condition", encode_first_frame_condition)
-    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", to_video)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video_from_frame_batches", to_video)
 
     model.generate_video(
         seed=1,
@@ -1631,7 +1944,7 @@ def test_wan_generate_passes_explicit_flow_shift_to_scheduler_and_metadata(monke
         observed["to_video"] = kwargs
         return SimpleNamespace()
 
-    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", to_video)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video_from_frame_batches", to_video)
 
     model.generate_video(
         seed=1,
@@ -1675,7 +1988,7 @@ def test_wan_generate_can_select_euler_solver(monkeypatch):
         observed["to_video"] = kwargs
         return SimpleNamespace()
 
-    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video", to_video)
+    monkeypatch.setattr("mflux.models.wan.variants.wan2_2_ti2v.VideoUtil.to_video_from_frame_batches", to_video)
 
     model.generate_video(
         seed=1,

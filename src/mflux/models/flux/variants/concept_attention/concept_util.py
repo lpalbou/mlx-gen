@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import mlx.core as mx
 import numpy as np
 import PIL.Image
@@ -41,6 +40,7 @@ class ConceptUtil:
 
     @staticmethod
     def _to_heatmap_image(heatmap: mx.array, height: int, width: int) -> PIL.Image.Image:
+        plt = ConceptUtil._matplotlib_pyplot()
         concept_heatmaps_min = heatmap.min()
         concept_heatmaps_max = heatmap.max()
         colored_heatmaps = []
@@ -88,3 +88,15 @@ class ConceptUtil:
         heatmaps = mx.reshape(heatmaps, (batch_dim, concept_dim, height // 16, width // 16))
         heatmap = np.array(heatmaps)[0]
         return heatmap
+
+    @staticmethod
+    def _matplotlib_pyplot():
+        # matplotlib is the optional 'concept' extra (0088): heatmap colorization
+        # is its only use in the runtime, so a missing install fails loudly here.
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as exc:
+            raise RuntimeError(
+                "Concept-attention heatmaps require the 'concept' extra: pip install mlx-gen[concept]"
+            ) from exc
+        return plt

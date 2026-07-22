@@ -1,8 +1,10 @@
 import mlx.core as mx
 import numpy as np
+import pytest
 
 from mflux.models.wan.model.wan_transformer import WanTransformer
 from mflux.models.wan.model.wan_transformer.wan_embedding import WanRotaryPosEmbed
+from mflux.models.wan.variants import Wan2_2_TI2V
 
 
 def _tiny_transformer(num_layers: int = 1) -> WanTransformer:
@@ -55,6 +57,37 @@ def test_wan_transformer_tiny_forward_supports_expanded_timesteps():
     mx.eval(output)
 
     assert output.shape == hidden_states.shape
+
+
+@pytest.mark.parametrize(
+    "timestep_factory",
+    [
+        # Scalar convention (A14B experts): one timestep per batch item.
+        lambda: mx.array([999.0], dtype=mx.float32),
+        # Expanded convention (TI2V-5B): per-patch-token timesteps.
+        lambda: mx.full((1, 8), 999.0, dtype=mx.float32),
+    ],
+    ids=["scalar_a14b", "expanded_5b"],
+)
+def test_wan_transformer_compiled_matches_eager_within_kernel_tolerance(timestep_factory):
+    # 0090 d12 parity pin: compiled output is NOT bitwise-identical to eager
+    # (kernel fusion reorders float ops, measured ~5e-4 on real weights), so
+    # --compile-transformer stays opt-in. This bounds the divergence.
+    mx.random.seed(11)
+    model = _tiny_transformer(num_layers=2)
+    hidden_states = mx.random.normal((1, 4, 2, 4, 4), dtype=mx.float32)
+    timestep = timestep_factory()
+    encoder_hidden_states = mx.random.normal((1, 5, 12), dtype=mx.float32)
+
+    eager = model(hidden_states, timestep, encoder_hidden_states)
+    mx.eval(eager)
+    compiled_fn = Wan2_2_TI2V._compile_denoiser(model)
+    compiled = compiled_fn(hidden_states, timestep, encoder_hidden_states)
+    mx.eval(compiled)
+
+    assert compiled.shape == eager.shape
+    max_delta = float(mx.max(mx.abs(compiled - eager)).item())
+    assert max_delta < 5e-3, f"compiled-vs-eager divergence too large: {max_delta}"
 
 
 def test_wan_transformer_can_clear_cache_after_each_block(monkeypatch):

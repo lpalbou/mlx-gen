@@ -37,7 +37,7 @@ class TestLoraResolutionRegistry:
 
 class TestLoraResolutionHuggingFace:
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.lora_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_huggingface_repo_downloads_when_explicitly_enabled(self, mock_download, tmp_path):
         lora_file = tmp_path / "lora.safetensors"
         lora_file.touch()
@@ -58,7 +58,7 @@ class TestLoraResolutionHuggingFace:
         assert result == str(lora_file)
 
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.lora_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_huggingface_repo_requires_explicit_download_when_not_cached(self, mock_download):
         mock_download.side_effect = LocalEntryNotFoundError("Not cached")
 
@@ -73,7 +73,7 @@ class TestLoraResolutionHuggingFace:
         assert mock_download.call_args_list[1].kwargs["local_files_only"] is True
 
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.lora_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_huggingface_repo_uses_cache_when_available(self, mock_download, tmp_path):
         lora_file = tmp_path / "lora.safetensors"
         lora_file.touch()
@@ -96,7 +96,7 @@ class TestLoraResolutionHuggingFace:
         assert not LoraResolution._is_collection_format("local:file")
 
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.lora_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_multiple_safetensors_in_repo_raises_error(self, mock_download, tmp_path):
         # Create multiple .safetensors files in the directory
         (tmp_path / "lora_v1.safetensors").touch()
@@ -118,7 +118,7 @@ class TestLoraResolutionHuggingFace:
         assert "org/multi-lora-repo:lora_v2.safetensors" in error_msg
 
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.lora_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_multiple_safetensors_cached_raises_error(self, mock_download, tmp_path):
         # Create multiple .safetensors files in the directory
         (tmp_path / "lora_a.safetensors").touch()
@@ -133,7 +133,7 @@ class TestLoraResolutionHuggingFace:
         assert "Multiple .safetensors files found" in str(exc_info.value)
 
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.lora_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_single_safetensor_in_repo_succeeds(self, mock_download, tmp_path):
         # Create only one .safetensors file
         lora_file = tmp_path / "single-lora.safetensors"
@@ -151,7 +151,7 @@ class TestLoraResolutionHuggingFace:
         assert result == str(lora_file)
 
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.lora_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_collection_with_nested_filename_creates_cache_subdirectories(self, mock_download, tmp_path, monkeypatch):
         nested_file = tmp_path / "Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1" / "high_noise_model.safetensors"
         nested_file.parent.mkdir(parents=True)

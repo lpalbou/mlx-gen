@@ -40,6 +40,10 @@ class WanInitializer:
         root_path = PathResolution.resolve(path=path, patterns=weight_definition.get_download_patterns())
         WanInitializer._validate_source_config(root_path, model_config)
         WanInitializer._init_config(model, model_config, root_path, weight_definition)
+        # Reload spec (0089 e4): keep the ORIGINAL quantize request so a released
+        # high-noise expert can be rebuilt exactly as at init (model.bits only
+        # records the resolved level, which loses the stored-vs-requested source).
+        model.quantize_arg = quantize
         WanInitializer._init_tokenizers(model, str(root_path), weight_definition)
         WanInitializer._init_models(model, model_config)
         WanInitializer._load_and_apply_weights(model, root_path, quantize, weight_definition)
@@ -49,6 +53,56 @@ class WanInitializer:
             lora_scales=lora_scales,
             lora_target_roles=lora_target_roles,
         )
+
+    @staticmethod
+    def reload_high_noise_transformer(model) -> None:
+        # Per-item A14B reload (0089 e4): rebuild ONLY the high-noise expert from
+        # the same checkpoint and quantize request captured at init, then re-fuse
+        # its role's LoRAs on the fresh module in the original order. The q8
+        # normalization notice below may print once per reload (= once per batch
+        # item) - accepted as truthful load output.
+        weight_definition = model.weight_definition
+        component = next(
+            (candidate for candidate in weight_definition.get_components() if candidate.name == "transformer"),
+            None,
+        )
+        if component is None:
+            raise ValueError("Wan weight definition has no 'transformer' component to reload.")
+        print("Reloading Wan high-noise transformer for the next high-noise phase...")
+        transformer = WanTransformer(**WanInitializer._transformer_kwargs(model.model_config))
+        component_weights, q_level, version = WeightLoader._load_component(
+            root_path=model.root_path,
+            component=component,
+        )
+        WanInitializer._normalize_runtime_sensitive_q8_paths(
+            component_name=component.name,
+            component_weights=component_weights,
+            q_level=q_level,
+        )
+        WanInitializer._validate_component_quantization_layout(component.name, component_weights, q_level)
+        loaded_weights = LoadedWeights(
+            components={component.name: component_weights},
+            meta_data=MetaData(quantization_level=q_level, mflux_version=version),
+        )
+        bits = WeightApplier.apply_and_quantize_single(
+            weights=loaded_weights,
+            model=transformer,
+            component=component,
+            quantize_arg=getattr(model, "quantize_arg", None),
+            quantization_predicate=weight_definition.quantization_predicate,
+        )
+        if bits != model.bits:
+            raise ValueError(
+                f"Wan high-noise reload resolved quantization {bits}, but the model was loaded at {model.bits}. "
+                "The checkpoint appears to have changed on disk; construct a fresh Wan model instance."
+            )
+        del loaded_weights
+        del component_weights
+        gc.collect()
+        mx.synchronize()
+        mx.clear_cache()
+        WanInitializer._reapply_high_noise_loras(model, transformer)
+        model.transformer = transformer
 
     @staticmethod
     def _init_config(model, model_config: ModelConfig, root_path: Path, weight_definition: WanWeightDefinition) -> None:
@@ -124,6 +178,11 @@ class WanInitializer:
                 root_path=root_path,
                 component=component,
             )
+            if component.name == "transformer":
+                # Reload spec (0089 e4): the auto-release default keys on whether
+                # the high expert came from a disk-prequantized package (reload =
+                # mmap read) versus runtime quantization (reload re-quantizes 14B).
+                model.transformer_stored_q_level = q_level
             WanInitializer._normalize_runtime_sensitive_q8_paths(
                 component_name=component.name,
                 component_weights=component_weights,
@@ -210,6 +269,26 @@ class WanInitializer:
         model.lora_paths = model.lora_application_result.resolved_paths
         model.lora_scales = model.lora_application_result.resolved_scales
         model.lora_target_roles = resolved_roles
+
+    @staticmethod
+    def _reapply_high_noise_loras(model, transformer: WanTransformer) -> None:
+        # Deterministic re-fusion (0089 e4): iterate the resolved paths/scales/roles
+        # exactly as stored at init so the fused stack order (and any FusedLoRALinear
+        # layering) reproduces the original weights bit for bit.
+        lora_paths = getattr(model, "lora_paths", None) or []
+        lora_scales = getattr(model, "lora_scales", None) or []
+        lora_roles = getattr(model, "lora_target_roles", None) or []
+        for lora_path, lora_scale, role in zip(lora_paths, lora_scales, lora_roles):
+            if role not in ("transformer", "high_noise_transformer"):
+                continue
+            LoRALoader.load_and_apply_lora_detailed(
+                lora_mapping=WanLoRAMapping.get_mapping(),
+                transformer=transformer,
+                lora_paths=[lora_path],
+                lora_scales=[lora_scale],
+                role=role,
+                state_dict_transform=WanInitializer._transform_wan_lora_state_dict,
+            )
 
     @staticmethod
     def _resolve_lora_roles(

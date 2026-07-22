@@ -4,12 +4,10 @@ from pathlib import Path
 
 import mlx.core as mx
 import numpy as np
-import piexif
 import PIL.Image
-import PIL.ImageDraw
-import PIL.ImageOps
 from PIL._typing import StrOrBytesPath
 
+from mflux.cli.output_paths import resolve_collision_free_path
 from mflux.models.common.config.config import Config
 from mflux.models.flux.variants.concept_attention.attention_data import ConceptHeatmap
 from mflux.utils.box_values import AbsoluteBoxValues, BoxValues
@@ -17,25 +15,20 @@ from mflux.utils.generated_image import GeneratedImage
 from mflux.utils.metadata_builder import MetadataBuilder
 from mflux.utils.tensor_health import TensorHealth
 
+# No module-scope PIL.Image.init(): PIL registers format plugins itself on the
+# first open()/save(), and eagerly initializing all plugins costs ~0.2 s on
+# every import of this module (0088). PIL.ImageDraw/ImageOps/piexif are
+# imported inside the few methods that use them for the same reason.
+
 log = logging.getLogger(__name__)
-PIL.Image.init()
 
 
 class ImageUtil:
     @staticmethod
     def resolve_output_path(path: str | Path, overwrite: bool = True) -> Path:
-        file_path = Path(path)
-        if overwrite:
-            return file_path
-
-        file_name = file_path.stem
-        file_extension = file_path.suffix
-        counter = 1
-        while file_path.exists():
-            new_name = f"{file_name}_{counter}{file_extension}"
-            file_path = file_path.with_name(new_name)
-            counter += 1
-        return file_path
+        # Public surface kept: the pure path logic lives in cli/output_paths so
+        # path-only callers do not import the image stack (0088).
+        return resolve_collision_free_path(path=path, overwrite=overwrite)
 
     @staticmethod
     def to_image(
@@ -218,8 +211,11 @@ class ImageUtil:
         new_width = orig_width + box_values.right + box_values.left
         new_height = orig_height + box_values.top + box_values.bottom
 
+        # `from PIL import ...` avoids rebinding the module-scope `PIL` name locally.
+        from PIL import ImageDraw
+
         result = PIL.Image.new("RGB", (new_width, new_height), border_color)
-        draw = PIL.ImageDraw.Draw(result)
+        draw = ImageDraw.Draw(result)
 
         # Draw black rectangle in the center
         draw.rectangle(
@@ -241,7 +237,10 @@ class ImageUtil:
         if resize_mode == "resize":
             return image.resize((target_width, target_height), PIL.Image.LANCZOS)
         if resize_mode == "crop":
-            return PIL.ImageOps.fit(
+            # `from PIL import ...` avoids rebinding the module-scope `PIL` name locally.
+            from PIL import ImageOps
+
+            return ImageOps.fit(
                 image,
                 (target_width, target_height),
                 method=PIL.Image.Resampling.LANCZOS,
@@ -314,6 +313,8 @@ class ImageUtil:
 
     @staticmethod
     def _build_exif_bytes(metadata: dict) -> bytes:
+        import piexif
+
         try:
             # Convert metadata dictionary to a string
             metadata_str = json.dumps(metadata)

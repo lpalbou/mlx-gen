@@ -6,8 +6,6 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
-from huggingface_hub import snapshot_download
-
 from mflux.cli.parser.parsers import CommandLineParser
 from mflux.cli.router_options import ForwardPolicy, add_router_options, reemit_options
 from mflux.cli.runtime_events import cli_print, emit_cli_failure_event_for_argv
@@ -419,7 +417,9 @@ def _parser() -> argparse.ArgumentParser:
             "--config-from-metadata/-C, --output, --replace, --frames, --fps, --guidance-2, "
             "--flow-shift, --video-strength, --video-mask-path, --reframe-padding, --outpaint-padding, --low-ram, --debug, "
             "--tensor-health-check-interval, --json-events, --embed-metadata, --no-validate-health (video routes), "
-            "--keep-text-encoder and --no-prompt-cache (Wan routes), and --progress/--no-progress.\n"
+            "--keep-text-encoder, --no-prompt-cache, --compile-transformer, and "
+            "--release-inactive-denoiser/--no-release-inactive-denoiser (Wan routes), "
+            "and --progress/--no-progress.\n"
             "Restore or upscale an existing source video with `mlxgen upscale --video-path ...`.\n"
             "Plain prompt-guided video-to-video is available on exact Wan video-to-video routes such as "
             "`Wan2.2-T2V-A14B`; keep `--solver unipc` for that public path.\n"
@@ -541,6 +541,10 @@ def _show_validation(argv: list[str]) -> None:
 
 
 def _download_model(argv: list[str]) -> None:
+    # Deferred: huggingface_hub pulls httpx+rich (~0.5 s); only the explicit
+    # download command needs it, never router dispatch (0088).
+    from huggingface_hub import snapshot_download
+
     parser = argparse.ArgumentParser(
         prog="mlxgen download",
         description="Explicitly download a Hugging Face model snapshot into the local cache.",

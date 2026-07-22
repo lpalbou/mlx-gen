@@ -3,9 +3,6 @@ import logging
 import os
 from pathlib import Path
 
-from huggingface_hub import snapshot_download
-from huggingface_hub.constants import HF_HUB_CACHE
-
 from mflux.models.common.download_policy import downloads_enabled, raise_download_required
 from mflux.models.common.resolution.actions import PathAction, Rule
 
@@ -76,6 +73,10 @@ class PathResolution:
 
     @staticmethod
     def _execute(action: PathAction, path: str | None, patterns: list[str]) -> Path | None:
+        # Deferred: huggingface_hub pulls httpx+rich (~0.5 s); model path
+        # resolution runs well after CLI dispatch, so keep it off import (0088).
+        from huggingface_hub import snapshot_download
+
         if action == PathAction.LOCAL:
             return Path(path).expanduser() if path else None
         if action == PathAction.LOCAL_PREPARED:
@@ -125,6 +126,8 @@ class PathResolution:
 
     @staticmethod
     def _find_complete_cached_snapshot(repo_id: str | None, patterns: list[str]) -> Path | None:
+        from huggingface_hub.constants import HF_HUB_CACHE
+
         if repo_id is None:
             return None
 

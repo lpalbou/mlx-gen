@@ -66,6 +66,64 @@ def test_generated_video_saves_mp4_and_metadata(tmp_path):
     assert _video_codec_name(output_path) in (None, "h264")
 
 
+@pytest.mark.skipif(shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None, reason="requires ffmpeg")
+def test_video_writer_tags_truthful_color_metadata(tmp_path):
+    # Cross-repo bug measured 2026-07-22: the writer emitted UNTAGGED yuv420p
+    # that ffmpeg had 601-coded, so players assuming BT.709 for >=720p shifted
+    # colors on HD clips. The fix pins the (already applied) BT.601 matrix and
+    # tags it, with bt709 primaries/transfer for the sRGB-origin RGB frames.
+    # Pixel data stays bitwise identical (verified against the untagged writer).
+    output_path = tmp_path / "color_tags.mp4"
+    frames = [Image.new("RGB", (64, 64), (255, 32 * index, 0)) for index in range(8)]
+
+    VideoUtil.save_video(frames=frames, path=output_path, fps=8)
+
+    probe = subprocess.run(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=color_space,color_primaries,color_transfer",
+            "-of",
+            "json",
+            str(output_path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    stream = json.loads(probe.stdout)["streams"][0]
+    assert stream["color_space"] == "smpte170m"  # the matrix the pipeline actually applies
+    assert stream["color_primaries"] == "bt709"
+    assert stream["color_transfer"] == "bt709"
+
+    # The tags must describe the encode, not change it: decoded luma of pure red
+    # must match the BT.601 coding (~81), not BT.709 (~63).
+    decode = subprocess.run(
+        [
+            "ffmpeg",
+            "-v",
+            "error",
+            "-i",
+            str(output_path),
+            "-frames:v",
+            "1",
+            "-f",
+            "rawvideo",
+            "-pix_fmt",
+            "yuv420p",
+            "pipe:1",
+        ],
+        check=True,
+        capture_output=True,
+    )
+    first_luma = decode.stdout[0]
+    assert abs(first_luma - 81) <= 2, f"expected BT.601-coded red luma ~81, got {first_luma}"
+
+
 def test_generated_video_metadata_records_i2v_source_and_requested_dimensions():
     video = GeneratedVideo(
         frames=[_solid_frame((255, 0, 0))],

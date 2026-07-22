@@ -1,9 +1,6 @@
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from huggingface_hub import snapshot_download
-from huggingface_hub.utils import LocalEntryNotFoundError
-
 from mflux.models.common.download_policy import DownloadRequiredError, downloads_enabled, explicit_download_hint
 from mflux.models.common.tokenizer.tokenizer import (
     BaseTokenizer,
@@ -178,6 +175,11 @@ class TokenizerLoader:
         model_path: str,
         patterns: list[str],
     ) -> tuple[Path | None, bool, Exception | None]:
+        # Deferred: huggingface_hub pulls httpx+rich (~0.5 s); only tokenizer
+        # resolution needs it, never the import path (0088).
+        from huggingface_hub import snapshot_download
+        from huggingface_hub.utils import LocalEntryNotFoundError
+
         try:
             root_path = Path(
                 snapshot_download(
@@ -202,6 +204,8 @@ class TokenizerLoader:
         model_path: str,
         patterns: list[str],
     ) -> tuple[Path | None, Exception | None]:
+        from huggingface_hub import snapshot_download
+
         try:
             root_path = Path(
                 snapshot_download(

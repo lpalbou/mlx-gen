@@ -673,6 +673,11 @@ At the default 24 fps, `--frames 121` produces about 5.04 seconds of video, `--f
 | `--seed` | Deterministic seed. Repeat with multiple values to create multiple videos. |
 | `--progress`, `--no-progress` | Show or disable the CLI video progress bar. The bar advances by denoising step and keeps the requested frame count as context. Default: `--progress true`. |
 | `--low-ram` | For Wan CLI runs, clear MLX cache between transformer blocks and denoise steps, release denoisers before decode when the model instance will not be reused for another seed, and clear cache between VAE temporal decode slices. This is intended for memory pressure, not speed. |
+| `--keep-text-encoder` | Keep the UMT5 text encoder resident between generations in one process (~11 GB resident RAM) instead of reloading it per prompt encode — for hosts that chain scene generations. Default: load-and-release. |
+| `--no-prompt-cache` | Disable the exact on-disk prompt-embed cache. By default, identical (encoder snapshot, tokenized prompt, length, precision) encodes are served from a small safetensors cache instead of reloading the text encoder. |
+| `--no-validate-health` | Skip the post-save full-file health re-decode (~0.3-0.8 s at storyboard sizes) for hosts that probe the saved file themselves. The skip is recorded as `health_check: "skipped"` in metadata and the save event. Default: validation ON. |
+| `--compile-transformer` | Opt-in `mx.compile` of the Wan denoiser(s) (~2-6% per step, output differs from eager by ~5e-4 — never a silent default). Ineligible with `--low-ram` per-block clearing or block-health diagnostics; those runs print a notice and stay eager. |
+| `--release-inactive-denoiser`, `--no-release-inactive-denoiser` | Explicit control of the A14B dual-expert release. Default: single-seed CLI runs release the inactive expert (the process exits after one item); multi-seed and Python-API runs use the model-owned default — auto-release with lazy reload (~0.3-0.7 s warm) on disk-prequantized checkpoints, resident otherwise. |
 
 Common Wan video sizes:
 

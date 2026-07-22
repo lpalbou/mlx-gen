@@ -5,6 +5,7 @@ import math
 import re
 import shutil
 import time
+from collections.abc import Callable
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
@@ -20,8 +21,8 @@ from mflux.models.common.lora.mapping.lora_loader import LoRALoader
 from mflux.models.common.weights.saving.model_saver import ModelSaver
 from mflux.models.wan.latent_creator import WanTimestepPolicy
 from mflux.models.wan.model.wan_transformer import WanBlockHealthContext, WanTransformer
-from mflux.models.wan.prompt_embed_store import WanPromptEmbedStore
 from mflux.models.wan.model.wan_vae import Wan2_2_VAE
+from mflux.models.wan.prompt_embed_store import WanPromptEmbedStore
 from mflux.models.wan.scheduler import WanEulerScheduler, WanUniPCMultistepScheduler
 from mflux.models.wan.variants.wan_video_request import WanVideoRequest
 from mflux.models.wan.wan_initializer import WanInitializer
@@ -81,6 +82,9 @@ class Wan2_2_TI2V(nn.Module):
         self._resident_text_encoder = None
         self._prompt_embed_store = WanPromptEmbedStore(enabled=prompt_embed_disk_cache)
         self._prompt_embed_fingerprint = None
+        # Lifetime count of per-item high-noise expert reloads (0089 e4);
+        # generate_video diffs it per run for truthful metadata.
+        self._high_noise_reload_count = 0
 
     def generate_video(
         self,
@@ -102,11 +106,12 @@ class Wan2_2_TI2V(nn.Module):
         video_mask_path: Path | str | None = None,
         max_sequence_length: int = 512,
         progress_callback: ProgressCallback | None = None,
-        release_inactive_denoiser: bool = False,
+        release_inactive_denoiser: bool | None = None,
         release_denoisers_before_decode: bool = False,
         clear_cache_each_step: bool = False,
         clear_cache_each_transformer_block: bool = False,
         tensor_health_check_interval: int | None = None,
+        compile_transformer: bool = False,
     ) -> GeneratedVideo:
         start_time = time.time()
         request = WanVideoRequest.resolve(
@@ -126,6 +131,10 @@ class Wan2_2_TI2V(nn.Module):
             negative_prompt=negative_prompt,
             tensor_health_check_interval=tensor_health_check_interval,
         )
+        # The model owns the release default (0089 e4): None = auto, so the
+        # Python API and the CLI resolve identically; True/False is user intent.
+        release_inactive_denoiser = self._resolve_release_inactive_denoiser(release_inactive_denoiser)
+        high_noise_reloads_before = getattr(self, "_high_noise_reload_count", 0)
         health_check_interval = request.health_check_interval
         is_image_to_video = request.is_image_to_video
         is_video_to_video = request.is_video_to_video
@@ -244,6 +253,18 @@ class Wan2_2_TI2V(nn.Module):
                 )
                 self._require_tensor_health(condition, phase="image-conditioning", name="condition")
 
+        # Opt-in compiled denoisers (0090 d12): per-expert compiled callables,
+        # ~2-6%/step, output within ~5e-4 of eager (NON-bitwise: compiled kernel
+        # fusion differs) - never a silent default. Eager modes that need
+        # per-block introspection or mid-graph cache flushes stay eager, with
+        # one printed notice documenting the choice.
+        compiled_denoisers = self._build_compiled_denoisers(
+            compile_transformer=compile_transformer,
+            health_check_interval=health_check_interval,
+            clear_cache_each_transformer_block=clear_cache_each_transformer_block,
+        )
+        compile_transformer_active = bool(compiled_denoisers)
+
         total_steps = effective_steps
         high_noise_denoiser_released = False
         for step_index, timestep in enumerate(timesteps):
@@ -254,6 +275,7 @@ class Wan2_2_TI2V(nn.Module):
                 boundary_timestep=boundary_timestep,
                 release_inactive_denoiser=release_inactive_denoiser,
                 already_released=high_noise_denoiser_released,
+                compiled_denoisers=compiled_denoisers,
             )
             current_transformer, current_guidance = self._select_transformer_and_guidance(
                 timestep=timestep,
@@ -297,13 +319,23 @@ class Wan2_2_TI2V(nn.Module):
                     )
                 else:
                     expanded_timestep = self._batch_timestep(batch_size=batch_size, timestep=timestep)
-            noise_pred = current_transformer(
-                hidden_states=latent_model_input,
-                timestep=expanded_timestep,
-                encoder_hidden_states=prompt_embeds,
-                clear_cache_each_block=clear_cache_each_transformer_block,
-                block_health_context=block_health_context,
-            )
+            compiled_denoiser = compiled_denoisers.get(denoiser_name)
+            if compile_transformer_active and compiled_denoiser is None:
+                # A reloaded expert has no compiled entry: its callable was popped
+                # at release (0090 d12), so trace a fresh one against the reloaded
+                # module instead of reusing a callable closing over freed weights.
+                compiled_denoiser = self._compile_denoiser(current_transformer)
+                compiled_denoisers[denoiser_name] = compiled_denoiser
+            if compiled_denoiser is not None:
+                noise_pred = compiled_denoiser(latent_model_input, expanded_timestep, prompt_embeds)
+            else:
+                noise_pred = current_transformer(
+                    hidden_states=latent_model_input,
+                    timestep=expanded_timestep,
+                    encoder_hidden_states=prompt_embeds,
+                    clear_cache_each_block=clear_cache_each_transformer_block,
+                    block_health_context=block_health_context,
+                )
             if should_check_tensors or clear_cache_each_transformer_block:
                 self._materialize_denoise_prediction(
                     noise_pred,
@@ -321,13 +353,16 @@ class Wan2_2_TI2V(nn.Module):
                     guidance=current_guidance,
                 )
             if negative_prompt_embeds is not None:
-                noise_uncond = current_transformer(
-                    hidden_states=latent_model_input,
-                    timestep=expanded_timestep,
-                    encoder_hidden_states=negative_prompt_embeds,
-                    clear_cache_each_block=clear_cache_each_transformer_block,
-                    block_health_context=block_health_context,
-                )
+                if compiled_denoiser is not None:
+                    noise_uncond = compiled_denoiser(latent_model_input, expanded_timestep, negative_prompt_embeds)
+                else:
+                    noise_uncond = current_transformer(
+                        hidden_states=latent_model_input,
+                        timestep=expanded_timestep,
+                        encoder_hidden_states=negative_prompt_embeds,
+                        clear_cache_each_block=clear_cache_each_transformer_block,
+                        block_health_context=block_health_context,
+                    )
                 if should_check_tensors or clear_cache_each_transformer_block:
                     self._materialize_denoise_prediction(
                         noise_uncond,
@@ -439,96 +474,72 @@ class Wan2_2_TI2V(nn.Module):
             registry=progress_registry,
         )
         decode_latents = RuntimeMemory.materialize_inference_tree(latents.astype(ModelConfig.precision))
+        # Release/reload truth for debugging (0089 e4): recorded only when the
+        # behavior actually happened this run, matching the compile_transformer style.
+        high_noise_reloads = getattr(self, "_high_noise_reload_count", 0) - high_noise_reloads_before
         extra_metadata = {
             **(LoRALoader.extra_metadata_for_model(self) or {}),
             "lora_target_roles": getattr(self, "lora_target_roles", None) or None,
+            **({"released_inactive_denoiser": True} if high_noise_denoiser_released else {}),
+            **({"high_noise_reloads": high_noise_reloads} if high_noise_reloads else {}),
         }
-        if release_denoisers_before_decode:
-            del latents
-            gc.collect()
-            mx.synchronize()
-            mx.clear_cache()
+        del latents
+        gc.collect()
+        mx.synchronize()
+        mx.clear_cache()
 
-            def frame_batches_factory():
-                decoded_slices = self.vae.iter_decode_normalized_latent_slices(
-                    decode_latents,
-                    clear_cache_each_slice=True,
-                )
-                return VideoUtil.decoded_latent_slices_to_frame_batches(
-                    decoded_slices,
-                    batch_size=8,
-                    total_frames=num_frames,
-                )
-
-            video = VideoUtil.to_video_from_frame_batches(
-                frame_batches_factory=frame_batches_factory,
-                height=height,
-                width=width,
-                frame_count=num_frames,
-                # generation_time must be evaluated here (pre-decode for the streamed branch).
-                generation_time=time.time() - start_time,
-                **self._to_video_shared_kwargs(
-                    seed=seed,
-                    prompt=prompt,
-                    num_inference_steps=num_inference_steps,
-                    fps=fps,
-                    guidance=guidance,
-                    guidance_2=guidance_2,
-                    flow_shift=flow_shift,
-                    solver=solver,
-                    task=task,
-                    image_path=image_path,
-                    video_path=video_path,
-                    negative_prompt=negative_prompt,
-                    spatial_metadata=spatial_metadata,
-                    extra_metadata=extra_metadata,
-                    is_video_to_video=is_video_to_video,
-                    video_strength=video_strength,
-                    video_mask_path=video_mask_path,
-                    effective_steps=effective_steps,
-                    high_noise_stage_skipped=v2v_high_noise_stage_skipped,
-                    decode_extras={
-                        "wan_decode_mode": "streamed_vae_slices",
-                        "generation_time_scope": "pre-save",
-                    },
-                ),
-            )
-        else:
-            decoded = self.vae.decode_normalized_latents(
+        # Streamed slice decode is the ONLY decode path (0089 e3): the artifact
+        # holds latents (~MBs) plus a factory instead of the fully decoded
+        # tensor (~650 MB bf16 at 121f@1280x704). Output frames are bitwise
+        # identical to the removed full-tensor decode (test-pinned); per-frame
+        # finite checks cover decode health when frames materialize at save.
+        # Only low-ram runs pay per-slice cache flushes.
+        def frame_batches_factory():
+            decoded_slices = self.vae.iter_decode_normalized_latent_slices(
                 decode_latents,
-                clear_cache_each_slice=False,
+                clear_cache_each_slice=clear_cache_each_step,
             )
-            mx.eval(decoded)
-            mx.synchronize()
-            mx.clear_cache()
-            self._require_tensor_health(decoded, phase="vae-decode", name="decoded")
-            video = VideoUtil.to_video(
-                decoded_latents=decoded,
-                materialize_frames=False,
-                # generation_time must be evaluated here (post-decode for this branch).
-                generation_time=time.time() - start_time,
-                **self._to_video_shared_kwargs(
-                    seed=seed,
-                    prompt=prompt,
-                    num_inference_steps=num_inference_steps,
-                    fps=fps,
-                    guidance=guidance,
-                    guidance_2=guidance_2,
-                    flow_shift=flow_shift,
-                    solver=solver,
-                    task=task,
-                    image_path=image_path,
-                    video_path=video_path,
-                    negative_prompt=negative_prompt,
-                    spatial_metadata=spatial_metadata,
-                    extra_metadata=extra_metadata,
-                    is_video_to_video=is_video_to_video,
-                    video_strength=video_strength,
-                    video_mask_path=video_mask_path,
-                    effective_steps=effective_steps,
-                    high_noise_stage_skipped=v2v_high_noise_stage_skipped,
-                ),
+            return VideoUtil.decoded_latent_slices_to_frame_batches(
+                decoded_slices,
+                batch_size=8,
+                total_frames=num_frames,
             )
+
+        video = VideoUtil.to_video_from_frame_batches(
+            frame_batches_factory=frame_batches_factory,
+            height=height,
+            width=width,
+            frame_count=num_frames,
+            # generation_time must be evaluated here (pre-decode; decode runs at save).
+            generation_time=time.time() - start_time,
+            **self._to_video_shared_kwargs(
+                seed=seed,
+                prompt=prompt,
+                num_inference_steps=num_inference_steps,
+                fps=fps,
+                guidance=guidance,
+                guidance_2=guidance_2,
+                flow_shift=flow_shift,
+                solver=solver,
+                task=task,
+                image_path=image_path,
+                video_path=video_path,
+                negative_prompt=negative_prompt,
+                spatial_metadata=spatial_metadata,
+                extra_metadata=extra_metadata,
+                is_video_to_video=is_video_to_video,
+                video_strength=video_strength,
+                video_mask_path=video_mask_path,
+                effective_steps=effective_steps,
+                high_noise_stage_skipped=v2v_high_noise_stage_skipped,
+                decode_extras={
+                    "wan_decode_mode": "streamed_vae_slices",
+                    "generation_time_scope": "pre-save",
+                    # Compiled runs are NON-bitwise vs eager (~5e-4); record the mode (0090 d12).
+                    **({"compile_transformer": True} if compile_transformer_active else {}),
+                },
+            ),
+        )
         self._emit_progress(
             progress_callback,
             phase="convert",
@@ -1049,8 +1060,9 @@ class Wan2_2_TI2V(nn.Module):
             shutil.copy2(model_index, target / "model_index.json")
 
     def _validated_spatial_size(self, height: int, width: int) -> tuple[int, int]:
-        multiple_h = self.vae.spatial_scale * self.transformer.patch_size[1]
-        multiple_w = self.vae.spatial_scale * self.transformer.patch_size[2]
+        patch_size = self._reference_denoiser().patch_size
+        multiple_h = self.vae.spatial_scale * patch_size[1]
+        multiple_w = self.vae.spatial_scale * patch_size[2]
         if height <= 0 or width <= 0:
             raise ValueError(f"Wan height and width must be at least ({multiple_h}, {multiple_w})px.")
         calc_height = math.ceil(height / multiple_h) * multiple_h
@@ -1136,8 +1148,9 @@ class Wan2_2_TI2V(nn.Module):
         source_width: int,
         source_label: str,
     ) -> tuple[int, int]:
-        multiple_h = self.vae.spatial_scale * self.transformer.patch_size[1]
-        multiple_w = self.vae.spatial_scale * self.transformer.patch_size[2]
+        patch_size = self._reference_denoiser().patch_size
+        multiple_h = self.vae.spatial_scale * patch_size[1]
+        multiple_w = self.vae.spatial_scale * patch_size[2]
         if height <= 0 or width <= 0:
             raise ValueError(f"Wan height and width must be at least ({multiple_h}, {multiple_w})px.")
         if source_height <= 0 or source_width <= 0:
@@ -1218,23 +1231,26 @@ class Wan2_2_TI2V(nn.Module):
         if task == "image-to-video" and not is_image_to_video:
             raise ValueError(f"{self.model_config.model_name} requires image-to-video input.")
 
+        # A released high expert (per-item release, 0089 e4) is validated through
+        # the resident low expert: both are constructed from identical kwargs.
+        reference_denoiser = self._reference_denoiser()
         expected_config = self.model_config.transformer_overrides
         expected_vae_config = expected_config.get("vae_config", {})
-        expected_transformer_channels = int(expected_config.get("in_channels", self.transformer.in_channels))
-        expected_output_channels = int(expected_config.get("out_channels", self.transformer.out_channels))
+        expected_transformer_channels = int(expected_config.get("in_channels", reference_denoiser.in_channels))
+        expected_output_channels = int(expected_config.get("out_channels", reference_denoiser.out_channels))
         expected_vae_channels = int(expected_vae_config.get("z_dim", self.vae.z_dim))
         expected_transformer_2 = bool(expected_config.get("has_transformer_2", False))
 
-        if int(self.transformer.in_channels) != expected_transformer_channels:
+        if int(reference_denoiser.in_channels) != expected_transformer_channels:
             self._raise_runtime_contract_mismatch(
                 "transformer.in_channels",
-                actual=int(self.transformer.in_channels),
+                actual=int(reference_denoiser.in_channels),
                 expected=expected_transformer_channels,
             )
-        if int(self.transformer.out_channels) != expected_output_channels:
+        if int(reference_denoiser.out_channels) != expected_output_channels:
             self._raise_runtime_contract_mismatch(
                 "transformer.out_channels",
-                actual=int(self.transformer.out_channels),
+                actual=int(reference_denoiser.out_channels),
                 expected=expected_output_channels,
             )
         if int(self.vae.z_dim) != expected_vae_channels:
@@ -1250,7 +1266,7 @@ class Wan2_2_TI2V(nn.Module):
                 expected="present" if expected_transformer_2 else "absent",
             )
 
-        transformer_channels = int(self.transformer.in_channels)
+        transformer_channels = int(reference_denoiser.in_channels)
         expected_channels = int(self.vae.z_dim)
         if is_image_to_video and not self._uses_expanded_timesteps():
             expected_channels += 20
@@ -1264,11 +1280,20 @@ class Wan2_2_TI2V(nn.Module):
 
     def _validate_denoisers_available(self) -> None:
         expected_transformer_2 = bool(self._wan_config("has_transformer_2", False))
-        if self.transformer is None or (expected_transformer_2 and self.transformer_2 is None):
-            raise ValueError(
-                "Wan denoisers have been released after a previous low-memory generation. "
-                "Create a new Wan2_2_TI2V instance to generate another video."
-            )
+        # The low-noise expert is never reloadable: release_denoisers_before_decode
+        # (both experts gone) and a missing transformer_2 stay fatal. A missing
+        # HIGH expert is fine when the reload spec can rebuild it (0089 e4).
+        if expected_transformer_2 and self.transformer_2 is None:
+            self._raise_denoisers_released()
+        if self.transformer is None and not self._can_reload_high_noise_denoiser():
+            self._raise_denoisers_released()
+
+    @staticmethod
+    def _raise_denoisers_released() -> None:
+        raise ValueError(
+            "Wan denoisers have been released after a previous low-memory generation. "
+            "Create a new Wan2_2_TI2V instance to generate another video."
+        )
 
     @staticmethod
     def _resolve_model_config(model_path: str | None, model_config: ModelConfig | None) -> ModelConfig:
@@ -1374,7 +1399,10 @@ class Wan2_2_TI2V(nn.Module):
     ) -> tuple[WanTransformer, float]:
         if boundary_timestep is None or timestep >= boundary_timestep:
             if self.transformer is None:
-                raise ValueError("Wan high-noise transformer was released before a high-noise timestep.")
+                # Lazy per-item reload (0089 e4): only pay the 14 GB rebuild when
+                # the schedule actually enters the high-noise phase (V2V runs
+                # that start below the boundary never trigger it).
+                self._ensure_high_noise_denoiser()
             return self.transformer, guidance
         if self.transformer_2 is None:
             raise ValueError("Wan model config requested low-noise routing but transformer_2 is missing.")
@@ -1488,8 +1516,8 @@ class Wan2_2_TI2V(nn.Module):
         high_noise_stage_skipped: bool,
         decode_extras: dict | None = None,
     ) -> dict:
-        # Shared kwargs for both save branches. Branch-specific payload, generation_time (its
-        # evaluation point differs per branch), and callee-specific kwargs stay at the call sites.
+        # Shared artifact kwargs; generation_time and factory wiring stay at the call site.
+        # WanVace builds its own to_video call and keeps decode_extras=None there.
         return {
             "fps": fps,
             "model_config": self.model_config,
@@ -1606,6 +1634,7 @@ class Wan2_2_TI2V(nn.Module):
         boundary_timestep: float | None,
         release_inactive_denoiser: bool,
         already_released: bool,
+        compiled_denoisers: dict | None = None,
     ) -> bool:
         if (
             already_released
@@ -1613,10 +1642,105 @@ class Wan2_2_TI2V(nn.Module):
             or boundary_timestep is None
             or timestep >= boundary_timestep
             or self.transformer_2 is None
+            # Already absent (released in a previous batch item and never needed
+            # this run): nothing was released HERE, so metadata stays truthful.
+            or self.transformer is None
         ):
             return already_released
+        # The compiled callable closes over the transformer; drop it first so
+        # the release below actually frees the weights (0090 d12).
+        if compiled_denoisers:
+            compiled_denoisers.pop("high", None)
         self._release_high_noise_denoiser()
         return True
+
+    def _build_compiled_denoisers(
+        self,
+        *,
+        compile_transformer: bool,
+        health_check_interval: int | None,
+        clear_cache_each_transformer_block: bool,
+    ) -> dict[str, Callable]:
+        if not compile_transformer:
+            return {}
+        # Eligibility (0090 d12): modes that need per-block introspection or
+        # mid-graph cache flushes cannot run inside a compiled graph. Running
+        # eager here is a documented mode choice, announced once - never silent.
+        blockers = []
+        if health_check_interval is not None:
+            blockers.append("tensor_health_check_interval is set")
+        if clear_cache_each_transformer_block:
+            blockers.append("clear_cache_each_transformer_block (--low-ram) is set")
+        if WanTransformer._block_health_enabled():
+            blockers.append("MFLUX_WAN_BLOCK_HEALTH is enabled")
+        if blockers:
+            print(
+                "compile_transformer requested but running eager: "
+                + "; ".join(blockers)
+                + ". These modes need per-block checks or cache flushes that cannot run inside a compiled graph."
+            )
+            return {}
+        # One compiled callable per expert, closing over block_health_context=None
+        # and no per-block cache clearing (guaranteed by the eligibility gate).
+        # Shapes are constant within a run, so each expert traces exactly once.
+        # A released high expert (per-item release, 0089 e4) has no entry here;
+        # the denoise loop traces one lazily after the reload.
+        compiled = {}
+        if self.transformer is not None:
+            compiled["high"] = self._compile_denoiser(self.transformer)
+        if self.transformer_2 is not None:
+            compiled["low"] = self._compile_denoiser(self.transformer_2)
+        return compiled
+
+    @staticmethod
+    def _compile_denoiser(transformer: WanTransformer) -> Callable:
+        return mx.compile(
+            lambda hidden_states, timestep, encoder_hidden_states: transformer(
+                hidden_states=hidden_states,
+                timestep=timestep,
+                encoder_hidden_states=encoder_hidden_states,
+            )
+        )
+
+    def _resolve_release_inactive_denoiser(self, requested: bool | None) -> bool:
+        if requested is not None:
+            return bool(requested)
+        # Auto-release (0089 e4) only when the freed 14 GB expert reloads cheaply:
+        # dual-expert config with a DISK-prequantized checkpoint (reload is an
+        # mmap read + LoRA re-fusion) and a captured reload spec. Runtime
+        # quantization over bf16 stays opt-in because each reload would
+        # re-quantize 14B parameters (tens of seconds per batch item).
+        if not bool(self._wan_config("has_transformer_2", False)):
+            return False
+        if getattr(self, "transformer_stored_q_level", None) is None:
+            return False
+        return self._can_reload_high_noise_denoiser()
+
+    def _can_reload_high_noise_denoiser(self) -> bool:
+        # Reload spec presence (0089 e4): checkpoint identity and weight layout
+        # are retained at init; LoRA paths/scales/roles stay resolved on the
+        # model. A missing low expert means release_denoisers_before_decode ran,
+        # which stays a terminal state.
+        return (
+            getattr(self, "root_path", None) is not None
+            and getattr(self, "weight_definition", None) is not None
+            and getattr(self, "transformer_2", None) is not None
+        )
+
+    def _ensure_high_noise_denoiser(self) -> None:
+        if not self._can_reload_high_noise_denoiser():
+            raise ValueError("Wan high-noise transformer was released before a high-noise timestep.")
+        WanInitializer.reload_high_noise_transformer(self)
+        self._high_noise_reload_count = getattr(self, "_high_noise_reload_count", 0) + 1
+
+    def _reference_denoiser(self) -> WanTransformer:
+        # Config probes (patch multiples, channel contract) while the high expert
+        # is released per item (0089 e4): both A14B experts are built from
+        # identical transformer kwargs, so the resident one is an exact proxy.
+        denoiser = self.transformer if self.transformer is not None else self.transformer_2
+        if denoiser is None:
+            self._raise_denoisers_released()
+        return denoiser
 
     def _release_high_noise_denoiser(self) -> None:
         self.transformer = None

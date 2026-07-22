@@ -63,7 +63,7 @@ class TestTokenizerResolution:
 
     @pytest.mark.fast
     @patch.object(TokenizerLoader, "_load_qwen2_tokenizer_workaround", return_value=object())
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_hf_root_qwen2_tokenizer_layout_resolves(self, mock_download, _mock_qwen2_load, tmp_path):
         cached_root = tmp_path / "cached"
         _write_minimal_qwen2_tokenizer_files(cached_root)
@@ -82,7 +82,7 @@ class TestTokenizerResolution:
         assert mock_download.call_args_list[0].kwargs["local_files_only"] is True
 
     @pytest.mark.fast
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_hf_refresh_can_use_real_fallback_tokenizer_layout(self, mock_download, tmp_path):
         partial_root = tmp_path / "partial"
         refreshed_root = tmp_path / "refreshed"
@@ -105,7 +105,7 @@ class TestTokenizerResolution:
 
     @pytest.mark.fast
     @patch.object(TokenizerLoader, "_probe_tokenizer_path")
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_full_cache_uses_primary_without_redownload(self, mock_download, mock_probe_path, tmp_path):
         cached_root = tmp_path / "cached"
         (cached_root / "tokenizer").mkdir(parents=True)
@@ -126,7 +126,7 @@ class TestTokenizerResolution:
 
     @pytest.mark.fast
     @patch.object(TokenizerLoader, "_probe_tokenizer_path")
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_partial_cache_redownloads_missing_primary_tokenizer(
         self,
         mock_download,
@@ -156,7 +156,7 @@ class TestTokenizerResolution:
 
     @pytest.mark.fast
     @patch.object(TokenizerLoader, "_probe_tokenizer_path")
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_no_cache_downloads_tokenizer_when_explicitly_enabled(self, mock_download, mock_probe_path, tmp_path):
         downloaded_root = tmp_path / "downloaded"
         (downloaded_root / "tokenizer").mkdir(parents=True)
@@ -178,7 +178,7 @@ class TestTokenizerResolution:
         assert "local_files_only" not in mock_download.call_args_list[1].kwargs
 
     @pytest.mark.fast
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_no_cache_requires_explicit_tokenizer_download(self, mock_download):
         mock_download.side_effect = LocalEntryNotFoundError("no cache")
 
@@ -285,7 +285,7 @@ class TestTokenizerResolution:
 
     @pytest.mark.fast
     @patch.object(TokenizerLoader, "_is_tokenizer_loadable")
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_offline_partial_cache_raises_targeted_error(self, mock_download, mock_is_loadable, tmp_path):
         partial_root = tmp_path / "partial"
         (partial_root / "text_encoder").mkdir(parents=True)
@@ -306,7 +306,7 @@ class TestTokenizerResolution:
         assert isinstance(exc_info.value.__cause__, OSError)
 
     @pytest.mark.fast
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_refresh_without_any_usable_tokenizer_raises_clear_hf_error(self, mock_download, tmp_path):
         partial_root = tmp_path / "partial"
         refreshed_root = tmp_path / "refreshed"
@@ -332,7 +332,7 @@ class TestTokenizerResolution:
 
     @pytest.mark.fast
     @patch.object(TokenizerLoader, "_is_tokenizer_loadable")
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_offline_cached_fallback_layout_still_uses_fallback(self, mock_download, mock_is_loadable, tmp_path):
         cached_root = tmp_path / "cached"
         (cached_root / "text_encoder").mkdir(parents=True)
@@ -352,7 +352,7 @@ class TestTokenizerResolution:
         assert mock_download.call_args_list[0].kwargs["local_files_only"] is True
 
     @pytest.mark.fast
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_offline_partial_primary_artifacts_still_use_cached_fallback(self, mock_download, tmp_path):
         cached_root = tmp_path / "cached"
         _touch(cached_root / "tokenizer" / "tokenizer_config.json")
@@ -373,7 +373,7 @@ class TestTokenizerResolution:
 
     @pytest.mark.fast
     @patch.object(TokenizerLoader, "_load_raw_tokenizer", side_effect=RuntimeError("bad tokenizer"))
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_offline_cached_primary_load_error_raises_targeted_error(
         self,
         mock_download,
@@ -411,7 +411,7 @@ class TestTokenizerResolution:
         )
 
     @pytest.mark.fast
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_first_download_failure_is_not_reported_as_incomplete_cache(self, mock_download):
         mock_download.side_effect = [LocalEntryNotFoundError("no cache"), RuntimeError("repo missing")]
 
@@ -448,7 +448,7 @@ class TestTokenizerResolution:
 
     @pytest.mark.fast
     @patch.object(TokenizerLoader, "_load_raw_tokenizer")
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_cached_hf_primary_load_error_redownloads_once_and_recovers(
         self,
         mock_download,
@@ -484,7 +484,7 @@ class TestTokenizerResolution:
 
     @pytest.mark.fast
     @patch.object(TokenizerLoader, "_load_raw_tokenizer", side_effect=RuntimeError("bad tokenizer"))
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_cached_hf_primary_load_error_is_preserved_after_refresh(
         self,
         mock_download,
@@ -526,7 +526,7 @@ class TestTokenizerResolution:
         assert "Model not found" in str(exc_info.value)
 
     @pytest.mark.fast
-    @patch("mflux.models.common.tokenizer.tokenizer_loader.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_missing_relative_path_is_not_treated_as_hf_repo(self, mock_download):
         with pytest.raises(FileNotFoundError) as exc_info:
             TokenizerLoader._resolve_path(

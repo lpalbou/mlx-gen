@@ -3,9 +3,6 @@ import os
 import shutil
 from pathlib import Path
 
-from huggingface_hub import snapshot_download
-from huggingface_hub.utils import LocalEntryNotFoundError
-
 from mflux.cli.defaults.defaults import MFLUX_LORA_CACHE_DIR
 from mflux.models.common.download_policy import DownloadRequiredError, downloads_enabled
 from mflux.models.common.resolution.actions import LoraAction, Rule
@@ -175,6 +172,8 @@ class LoraResolution:
 
     @staticmethod
     def _download_repo(repo_id: str) -> str:
+        from huggingface_hub import snapshot_download
+
         cache_path = MFLUX_LORA_CACHE_DIR
         cache_path.mkdir(parents=True, exist_ok=True)
 
@@ -222,6 +221,8 @@ class LoraResolution:
 
     @staticmethod
     def _download_collection(repo_id: str, filename: str) -> str:
+        from huggingface_hub import snapshot_download
+
         cache_path = MFLUX_LORA_CACHE_DIR
         cache_path.mkdir(parents=True, exist_ok=True)
 
@@ -260,6 +261,8 @@ class LoraResolution:
 
     @staticmethod
     def _load_cached_snapshot(repo_id: str, allow_patterns: list[str], cache_path: Path) -> Path:
+        from huggingface_hub.utils import LocalEntryNotFoundError
+
         for kwargs in LoraResolution._cache_kwargs(cache_path):
             snapshot = LoraResolution._try_load_cached_snapshot(repo_id, allow_patterns, kwargs)
             if snapshot is not None:
@@ -272,6 +275,11 @@ class LoraResolution:
 
     @staticmethod
     def _try_load_cached_snapshot(repo_id: str, allow_patterns: list[str], kwargs: dict) -> Path | None:
+        # Deferred: huggingface_hub pulls httpx+rich (~0.5 s); LoRA path checks
+        # sit on the CLI dispatch chain and must not pay it at import (0088).
+        from huggingface_hub import snapshot_download
+        from huggingface_hub.utils import LocalEntryNotFoundError
+
         try:
             return Path(
                 snapshot_download(

@@ -574,3 +574,87 @@ def test_loaded_generation_model_preserves_existing_video_output_when_overwrite_
     assert result.saved_path == tmp_path / "video_1.mp4"
     assert result.saved_path.read_text() == "new-video"
     assert (tmp_path / "video_1.metadata.json").read_text() == '{"seed": 505}'
+
+
+def _loaded_wan_a14b_generation_model(model):
+    from mflux.python_runtime import LoadedGenerationModel
+
+    runtime = resolve_generation_runtime(model="Wan-AI/Wan2.2-T2V-A14B-Diffusers")
+    return LoadedGenerationModel(
+        plan=runtime.plan,
+        model_config=runtime.model_config,
+        runtime_id=runtime.runtime_id,
+        cache_key_base=runtime.cache_key_base,
+        cache_key="test-wan-a14b",
+        model=model,
+    )
+
+
+def test_generate_outputs_gets_wan_release_default_when_prequantized(monkeypatch):
+    # 0089 e4: the Python API sets no release kwarg, so embedding hosts must get
+    # the model-owned default - per-item high-expert release with reload -
+    # whenever the checkpoint is disk-prequantized.
+    from tests.wan.test_wan_a14b_config import (
+        _attach_reload_spec,
+        _fake_t2v_a14b_model,
+        _install_fake_high_reload,
+        _patch_fake_wan_generation,
+        _patch_two_phase_scheduler,
+    )
+
+    model = _attach_reload_spec(_fake_t2v_a14b_model(), stored_q_level=8)
+    original_low = model.transformer_2
+    reloads = _install_fake_high_reload(monkeypatch)
+    _patch_fake_wan_generation(monkeypatch, model)
+    _patch_two_phase_scheduler(monkeypatch)
+    loaded = _loaded_wan_a14b_generation_model(model)
+
+    results = loaded.generate_outputs(
+        seeds=[1, 2],
+        prompt="a slow wave",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        guidance_2=1,
+    )
+
+    assert [result.seed for result in results] == [1, 2]
+    assert model.transformer is None  # each item released the high expert
+    assert len(reloads) == 1  # item 2 reloaded it exactly once
+    assert model.transformer_2 is original_low  # the low expert stays resident
+
+
+def test_generate_outputs_gets_no_wan_auto_release_for_runtime_quantize(monkeypatch):
+    # Runtime quantization over bf16 (no stored q level) is gated OUT of the
+    # auto-release default: each reload would re-quantize 14B parameters.
+    from tests.wan.test_wan_a14b_config import (
+        _attach_reload_spec,
+        _fake_t2v_a14b_model,
+        _install_fake_high_reload,
+        _patch_fake_wan_generation,
+        _patch_two_phase_scheduler,
+    )
+
+    model = _attach_reload_spec(_fake_t2v_a14b_model(), stored_q_level=None)
+    model.quantize_arg = 8
+    original_high = model.transformer
+    reloads = _install_fake_high_reload(monkeypatch)
+    _patch_fake_wan_generation(monkeypatch, model)
+    _patch_two_phase_scheduler(monkeypatch)
+    loaded = _loaded_wan_a14b_generation_model(model)
+
+    loaded.generate_outputs(
+        seeds=[1, 2],
+        prompt="a slow wave",
+        width=64,
+        height=64,
+        num_frames=1,
+        num_inference_steps=2,
+        guidance=1,
+        guidance_2=1,
+    )
+
+    assert model.transformer is original_high  # both experts stayed resident
+    assert reloads == []

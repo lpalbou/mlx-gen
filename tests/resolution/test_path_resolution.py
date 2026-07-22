@@ -77,7 +77,7 @@ class TestPathResolutionLocal:
 
 class TestPathResolutionHuggingFace:
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.path_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_huggingface_format_requires_explicit_download_when_not_cached(self, mock_download):
         with pytest.raises(FileNotFoundError) as exc_info:
             PathResolution.resolve(path="org/model")
@@ -87,7 +87,7 @@ class TestPathResolutionHuggingFace:
         mock_download.assert_not_called()
 
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.path_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_bonsai_missing_cache_does_not_suggest_prepare(self, mock_download):
         with pytest.raises(FileNotFoundError) as exc_info:
             PathResolution.resolve(path="prism-ml/bonsai-image-ternary-4B-mlx-2bit")
@@ -99,7 +99,7 @@ class TestPathResolutionHuggingFace:
         mock_download.assert_not_called()
 
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.path_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_ambient_env_does_not_enable_runtime_downloads(self, mock_download, monkeypatch):
         monkeypatch.setenv("MLX_GEN_ALLOW_DOWNLOAD", "1")
 
@@ -110,7 +110,7 @@ class TestPathResolutionHuggingFace:
         mock_download.assert_not_called()
 
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.path_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_huggingface_format_downloads_when_explicitly_enabled(self, mock_download, tmp_path):
         mock_download.return_value = str(tmp_path / "cached")
 
@@ -129,7 +129,7 @@ class TestPathResolutionHuggingFace:
         repo_cache.mkdir(parents=True)
         (repo_cache / "model.safetensors").touch()
 
-        with patch("mflux.models.common.resolution.path_resolution.HF_HUB_CACHE", str(tmp_path)):
+        with patch("huggingface_hub.constants.HF_HUB_CACHE", str(tmp_path)):
             result = PathResolution.resolve(path="org/model")
 
         # Should return the cached path without calling snapshot_download
@@ -183,7 +183,7 @@ class TestPathResolutionHuggingFace:
             )
         )
 
-        with patch("mflux.models.common.resolution.path_resolution.HF_HUB_CACHE", str(tmp_path)):
+        with patch("huggingface_hub.constants.HF_HUB_CACHE", str(tmp_path)):
             with pytest.raises(FileNotFoundError) as exc_info:
                 PathResolution.resolve(path="org/model", patterns=["transformer/*.safetensors", "transformer/*.json"])
 
@@ -207,7 +207,7 @@ class TestPathResolutionHuggingFace:
             )
         )
 
-        with patch("mflux.models.common.resolution.path_resolution.HF_HUB_CACHE", str(tmp_path)):
+        with patch("huggingface_hub.constants.HF_HUB_CACHE", str(tmp_path)):
             result = PathResolution.resolve(path="org/model", patterns=["transformer/*.safetensors", "transformer/*.json"])
 
         assert result == repo_cache
@@ -228,7 +228,7 @@ class TestPathResolutionHuggingFace:
         (tokenizer_dir / "tokenizer.json").touch()
         (tokenizer_dir / "chat_template.jinja").touch()
 
-        with patch("mflux.models.common.resolution.path_resolution.HF_HUB_CACHE", str(tmp_path)):
+        with patch("huggingface_hub.constants.HF_HUB_CACHE", str(tmp_path)):
             result = PathResolution.resolve(
                 path="org/flux.2-klein-9b-8bit",
                 patterns=Flux2KleinWeightDefinition.get_download_patterns(),
@@ -237,7 +237,7 @@ class TestPathResolutionHuggingFace:
         assert result == repo_cache
 
     @pytest.mark.fast
-    @patch("mflux.models.common.resolution.path_resolution.snapshot_download")
+    @patch("huggingface_hub.snapshot_download")
     def test_huggingface_passes_patterns(self, mock_download, tmp_path):
         mock_download.return_value = str(tmp_path / "cached")
 

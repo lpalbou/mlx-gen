@@ -93,6 +93,21 @@ class VideoStreamWriter:
 
         ffmpeg_path = shutil.which("ffmpeg")
         if ffmpeg_path is not None:
+            # Color pipeline (measured 2026-07-22, ffmpeg 8.1): we pipe sRGB-family
+            # RGB24 and ffmpeg's auto-inserted swscale converts to yuv420p with the
+            # BT.601 (SMPTE 170M) matrix at EVERY resolution - but used to leave the
+            # stream untagged, so players (AVFoundation) assumed BT.709 for >=720p
+            # and shifted colors on HD clips. Fix is metadata-only and seed-stable:
+            # pin the conversion matrix to what ffmpeg already applies
+            # (scale=out_color_matrix=bt601 - YUV bytes verified bitwise identical)
+            # and tag the truth: matrix=smpte170m for the coding matrix, with
+            # bt709 primaries/transfer since sRGB-origin RGB shares Rec.709
+            # primaries/white point (tagging smpte170m primaries would falsely
+            # claim SMPTE-C phosphors). setparams is used because the plain
+            # -color_primaries/-color_trc output options do not survive into the
+            # x264 VUI in this pipeline (verified with ffprobe).
+            # Switching HD output to a real BT.709 encode would change pixel data
+            # (non-bitwise) and needs a visual A/B first - tracked next to 0089.
             command = [
                 ffmpeg_path,
                 "-y",
@@ -109,6 +124,8 @@ class VideoStreamWriter:
                 "-i",
                 "pipe:0",
                 "-an",
+                "-vf",
+                "scale=out_color_matrix=bt601,setparams=color_primaries=bt709:color_trc=bt709:colorspace=smpte170m",
                 "-c:v",
                 "libx264",
                 "-pix_fmt",
@@ -125,6 +142,9 @@ class VideoStreamWriter:
         else:
             import av
 
+            # The pyav fallback also converts RGB->YUV with the 601 default but
+            # cannot reliably set VUI color tags across pyav versions; tagging
+            # that path is a 0089-adjacent follow-up.
             self.container = av.open(str(self.temp_path), mode="w", options={"movflags": "+faststart"})
             self.stream = self.container.add_stream("libx264", rate=VideoUtil._fps_to_rate(fps))
             self.stream.width = width

@@ -37,6 +37,94 @@ the per-prompt UMT5 text-encoder load and the post-save health re-decode.
   event now carries `fps`, `width`, `height`, and `total_frames` of the saved
   output, so hosts can build artifact metadata with zero probe decodes.
 
+### 0.25-track (import diet, Wan streamed decode, opt-in Wan compile, video color tags)
+
+Second wave of the same audit cycle: three verdicts from the adversarial
+prioritization review of backlog 0088/0089/0090 plus one cross-repo color bug
+the review measured.
+
+#### Changed
+
+- **Import-graph diet (0088)**: `import mflux` no longer pulls huggingface_hub
+  (with httpx+rich, ~0.4-0.6 s), PIL (~0.2 s of eager plugin registration via a
+  module-scope `PIL.Image.init()` that is now deleted - PIL self-registers on
+  first open/save, test-verified), or numpy. Measured on M5 Max: warm
+  `import mflux` 237-274 ms -> 57-60 ms wall (cold-ish shell measurements were
+  1.34-1.62 s before); the remaining cost is `mlx.core` (~28 ms). The pure
+  output-path logic moved from `ImageUtil` into `cli/output_paths.py` (public
+  `ImageUtil.resolve_output_path` delegates, surface unchanged), huggingface_hub
+  imports became function-local at all six module-scope sites, and
+  `tests/test_import_hygiene.py` now gates dependency creep in CI
+  (torch/transformers/tokenizers/matplotlib/httpx/huggingface_hub/cv2/av/rich/PIL
+  must stay off the import). Note: the 0088 document's "module-scope mx.compile
+  ~1.7 s" claim was re-measured as wrong (~0.2 ms; compilation happens on first
+  call) and corrected in place.
+- **matplotlib is now the `concept` extra (0088)**: it was a hard install
+  dependency used only for concept-attention heatmaps. Heatmap rendering
+  without it now fails loudly with `pip install mlx-gen[concept]`; the dev
+  extra still includes it. `uv.lock` regenerated.
+- **Wan streamed VAE decode is the default (0089 e3)**: `Wan2_2_TI2V` now always
+  decodes through the per-slice streaming path behind a frame-batches factory;
+  the full-tensor decode branch is gone. Frames are BITWISE identical
+  (test-pinned against the non-streamed decoder, which WanVace still uses), and
+  the default 121f@1280x704 bf16 run no longer materializes a ~650 MB decoded
+  tensor - `python_runtime.generate_outputs` results now retain only latents
+  (~3.5 MB) per item until save. `release_denoisers_before_decode` semantics are
+  unchanged; per-slice cache flushes follow `--low-ram`. All runs now carry the
+  `wan_decode_mode: streamed_vae_slices` / `generation_time_scope: pre-save`
+  metadata extras (generation_time is recorded before the decode, which runs at
+  save), and a non-finite decode surfaces at frame materialization through the
+  per-frame finite checks.
+- **Video writer color metadata (cross-repo bug)**: the ffmpeg writer emitted
+  untagged yuv420p that ffmpeg had coded with the BT.601 matrix at every
+  resolution (probed: pure-red luma 81 at 64p/720p/1080p), so players assuming
+  BT.709 for >=720p (AVFoundation/Quick Look) visibly shifted colors on HD
+  clips while in-app chains stayed consistent. The writer now pins the
+  conversion it already performs (`scale=out_color_matrix=bt601`) and tags the
+  stream truthfully (`colorspace=smpte170m`, primaries/transfer `bt709` for the
+  sRGB-origin frames). Pixel data verified bitwise identical at 64x64 and
+  1280x720; seed stability preserved. Switching HD to a real BT.709 encode is
+  recorded as a non-bitwise follow-up in backlog 0089.
+- **Wan A14B per-item transformer release + reload (0089 e4)**: the release
+  default now lives in the model. `generate_video(release_inactive_denoiser=None)`
+  auto-releases the ~14 GB high-noise expert after its per-item denoise phase
+  whenever the model is dual-expert AND loaded from a disk-prequantized package,
+  and lazily REBUILDS it at the next item's first high-noise timestep
+  (per-component weight reload + deterministic LoRA re-fusion, pinned bitwise by
+  tiny-weights tests). This closes two gaps at once: the Python API
+  (`generate_outputs`) previously set no release at all - embedding hosts kept
+  both experts resident even single-seed - and multi-seed CLI batches pinned
+  ~28 GB for the whole run. Runtime quantization over bf16 (and bf16-on-disk)
+  is gated OUT of the auto default because each reload would re-quantize or
+  re-read 14B parameters; explicit intent via `--release-inactive-denoiser` /
+  `--no-release-inactive-denoiser` (or the kwarg) always wins. Compiled runs
+  (`--compile-transformer`) re-trace the reloaded expert instead of reusing the
+  popped callable. Metadata records `released_inactive_denoiser: true` and
+  `high_noise_reloads: N` when the behavior actually fired.
+  `release_denoisers_before_decode` stays terminal (the low expert is never
+  reloaded). Real-checkpoint validation (multi-seed peak-RSS, Lightning-LoRA
+  storyboard re-fusion identity) is queued in backlog 0089.
+  Cycle-2 review correction: SINGLE-seed CLI runs keep the pre-0089 rule and
+  release the inactive expert regardless of checkpoint quantization — the
+  process exits after one item, so no reload is ever paid and bf16
+  checkpoints lose nothing (the first cut had silently dropped that release
+  for bf16/runtime-quantized single-seed runs).
+
+#### Added
+
+- **`--compile-transformer` for Wan (0090 d12, opt-in)**: runs each Wan
+  denoiser as a compiled MLX graph (`compile_transformer=True` on the Python
+  API), with an honest expected gain of ~2-6% per step. Output is NOT
+  bit-identical to eager (compiled kernel fusion differs by ~5e-4), so it will
+  never become a silent default. Runs that need per-block introspection or
+  mid-graph cache flushes (`--low-ram`, `--tensor-health-check-interval`,
+  `MFLUX_WAN_BLOCK_HEALTH`) stay eager and print one notice naming the blocker.
+  Compiled runs record `compile_transformer: true` in metadata, and the
+  compiled callable for the A14B high-noise expert is dropped before
+  `release_inactive_denoiser` frees it so weight memory is actually released.
+  Compiled-vs-eager parity (both timestep conventions), eligibility notice, and
+  CLI wiring are test-pinned.
+
 ## [0.23.1] - 2026-07-18
 
 Documentation and verification patch; no behavior changes.

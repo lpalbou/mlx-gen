@@ -1,7 +1,5 @@
 from pathlib import Path
 
-from huggingface_hub.utils import LocalEntryNotFoundError
-
 from mflux.cli.defaults.defaults import MFLUX_LORA_CACHE_DIR
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.lora.mapping.lora_loader import LoRAApplicationError
@@ -100,6 +98,10 @@ class LoRACompatibility:
 
     @staticmethod
     def _cached_base_models(repo_id: str) -> tuple[str, ...]:
+        # Deferred: huggingface_hub pulls httpx+rich (~0.5 s); this module sits
+        # on the router import chain and must stay light (0088).
+        from huggingface_hub.utils import LocalEntryNotFoundError
+
         try:
             snapshot = LoraResolution._load_cached_snapshot(repo_id, ["README.md"], MFLUX_LORA_CACHE_DIR)
         except LocalEntryNotFoundError:
