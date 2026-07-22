@@ -58,6 +58,8 @@ def main() -> None:
             lora_paths=args.lora_paths,
             lora_scales=args.lora_scales,
             lora_target_roles=args.lora_target_roles,
+            keep_text_encoder_resident=args.keep_text_encoder,
+            prompt_embed_disk_cache=not args.no_prompt_cache,
         )
         single_seed = len(args.seed) == 1
         release_inactive_denoiser = single_seed and bool(
@@ -112,12 +114,22 @@ def main() -> None:
                         generate_kwargs["masked_region_mode"] = args.vace_masked_region
                 video = model.generate_video(**generate_kwargs)
                 cli_print(f"Saving video to: {output_path}", json_events=bool(args.json_events))
-                events.emit_save(task=getattr(video, "task", None))
+                # The save event carries the output's own fps/frames/dimensions
+                # so hosts can skip a metadata probe decode entirely (0087).
+                events.emit_save(
+                    task=getattr(video, "task", None),
+                    health_check="skipped" if args.no_validate_health else None,
+                    fps=getattr(video, "fps", None),
+                    width=getattr(video, "width", None),
+                    height=getattr(video, "height", None),
+                    total_frames=getattr(video, "num_frames", None),
+                )
                 _emit_cli_video_progress(progress, phase="save", video=video)
                 saved_path = video.save(
                     path=output_path,
                     export_json_metadata=args.metadata,
                     overwrite=True,
+                    validate_health=not args.no_validate_health,
                 )
                 events.set_output_path(saved_path or output_path)
                 _emit_cli_video_progress(progress, phase="complete", video=video)
@@ -346,6 +358,32 @@ def _parser() -> argparse.ArgumentParser:
         help=(
             "Reduce peak memory by clearing MLX cache between transformer blocks and denoise steps, "
             "then releasing denoisers before decode. May reduce throughput."
+        ),
+    )
+    parser.add_argument(
+        "--no-validate-health",
+        action="store_true",
+        help=(
+            "Skip the post-save full-file health re-decode. For embedded hosts that probe the saved "
+            "file themselves; the skip is recorded as health_check=skipped in metadata and the save event."
+        ),
+    )
+    parser.add_argument(
+        "--keep-text-encoder",
+        action="store_true",
+        help=(
+            "Keep the UMT5 text encoder resident between generations in this process instead of "
+            "loading and releasing it per prompt encode. Trades ~11 GB resident RAM for skipping "
+            "the reload on every new prompt (useful for hosts that chain scene generations)."
+        ),
+    )
+    parser.add_argument(
+        "--no-prompt-cache",
+        action="store_true",
+        help=(
+            "Disable the exact disk cache for UMT5 prompt embeds. By default, identical "
+            "(model, tokenizer, prompt, length, precision) encodes are served from a small "
+            "safetensors cache instead of reloading the text encoder."
         ),
     )
     parser.add_argument(

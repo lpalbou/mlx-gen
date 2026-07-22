@@ -89,6 +89,7 @@ class GenerationRuntimePlan:
         lora_paths: list[str] | None = None,
         lora_scales: list[float] | None = None,
         lora_target_roles: list[str] | None = None,
+        model_kwargs: dict[str, Any] | None = None,
     ) -> str:
         parts = {
             "base": self.cache_key_base,
@@ -98,6 +99,10 @@ class GenerationRuntimePlan:
             "lora_scales": lora_scales or [],
             "lora_target_roles": lora_target_roles or [],
         }
+        if model_kwargs:
+            # Constructor extras change the loaded model's behavior, so hosts
+            # that dedupe by cache_key must see them in the identity.
+            parts["model_kwargs"] = {key: repr(value) for key, value in sorted(model_kwargs.items())}
         return json.dumps(parts, sort_keys=True, separators=(",", ":"))
 
     def load(
@@ -108,6 +113,7 @@ class GenerationRuntimePlan:
         lora_paths: list[str] | None = None,
         lora_scales: list[float] | None = None,
         lora_target_roles: list[str] | None = None,
+        model_kwargs: dict[str, Any] | None = None,
     ) -> Any:
         if lora_target_roles is not None and self.plan.family != "wan":
             raise ValueError("lora_target_roles is only supported for Wan runtimes.")
@@ -122,6 +128,12 @@ class GenerationRuntimePlan:
         }
         if self.plan.family == "wan":
             kwargs["lora_target_roles"] = lora_target_roles
+        # Host-provided constructor extras (for example Wan
+        # keep_text_encoder_resident / prompt_embed_disk_cache) come last so
+        # embedding apps can reach model-specific controls through the
+        # public wrapper without bespoke construction code.
+        if model_kwargs:
+            kwargs.update(model_kwargs)
         return model_class(**kwargs)
 
 
@@ -421,6 +433,7 @@ def load_generation_model(
     lora_paths: list[str] | None = None,
     lora_scales: list[float] | None = None,
     lora_target_roles: list[str] | None = None,
+    model_kwargs: dict[str, Any] | None = None,
 ) -> LoadedGenerationModel:
     runtime = resolve_generation_runtime(
         model=model,
@@ -450,6 +463,7 @@ def load_generation_model(
         lora_paths=lora_paths,
         lora_scales=lora_scales,
         lora_target_roles=lora_target_roles,
+        model_kwargs=model_kwargs,
     )
 
 
@@ -464,6 +478,7 @@ def load_generation_model_for_plan(
     lora_paths: list[str] | None = None,
     lora_scales: list[float] | None = None,
     lora_target_roles: list[str] | None = None,
+    model_kwargs: dict[str, Any] | None = None,
 ) -> LoadedGenerationModel:
     runtime = resolve_generation_runtime_for_plan(
         plan=plan,
@@ -477,6 +492,7 @@ def load_generation_model_for_plan(
         lora_paths=lora_paths,
         lora_scales=lora_scales,
         lora_target_roles=lora_target_roles,
+        model_kwargs=model_kwargs,
     )
     model_instance = runtime.load(
         quantize=quantize,
@@ -484,6 +500,7 @@ def load_generation_model_for_plan(
         lora_paths=lora_paths,
         lora_scales=lora_scales,
         lora_target_roles=lora_target_roles,
+        model_kwargs=model_kwargs,
     )
     return LoadedGenerationModel(
         plan=runtime.plan,

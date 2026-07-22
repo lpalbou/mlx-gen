@@ -4233,6 +4233,145 @@ def test_wan_cli_generates_video_and_respects_replace(monkeypatch, tmp_path):
     assert observed["generate"]["tensor_health_check_interval"] is None
     assert observed["save"]["path"] == tmp_path / "out_1.mp4"
     assert observed["save"]["overwrite"] is True
+    # The post-save health re-decode stays ON by default (0087).
+    assert observed["save"]["validate_health"] is True
+    # Prompt-encoding cost controls default to per-encode release + disk cache ON (0086).
+    assert observed["init"]["keep_text_encoder_resident"] is False
+    assert observed["init"]["prompt_embed_disk_cache"] is True
+
+
+def test_wan_cli_prompt_encoder_flags_reach_model_constructor(monkeypatch, tmp_path):
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {}
+    image_path = tmp_path / "input.png"
+    image_path.write_bytes(b"fake")
+
+    class FakeVideo:
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_video(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeVideo()
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-I2V-A14B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--width",
+            "128",
+            "--height",
+            "128",
+            "--frames",
+            "5",
+            "--steps",
+            "2",
+            "--seed",
+            "123",
+            "--image-path",
+            str(image_path),
+            "--output",
+            str(tmp_path / "out.mp4"),
+            "--keep-text-encoder",
+            "--no-prompt-cache",
+            "--no-progress",
+        ],
+    )
+
+    wan_generate.main()
+
+    assert observed["init"]["keep_text_encoder_resident"] is True
+    assert observed["init"]["prompt_embed_disk_cache"] is False
+
+
+def test_wan_cli_no_validate_health_skips_recheck_and_marks_save_event(monkeypatch, tmp_path, capsys):
+    from mflux.models.wan.cli import wan_generate
+
+    observed = {}
+    image_path = tmp_path / "input.png"
+    image_path.write_bytes(b"fake")
+
+    class FakeVideo:
+        task = "image-to-video"
+        fps = 8
+        width = 128
+        height = 128
+        num_frames = 5
+
+        def save(self, **kwargs):
+            observed["save"] = kwargs
+            return tmp_path / "out_1.mp4"
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            observed["init"] = kwargs
+
+        def generate_video(self, **kwargs):
+            observed["generate"] = kwargs
+            return FakeVideo()
+
+    monkeypatch.setattr(wan_generate, "Wan2_2_TI2V", FakeWan)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "mlxgen-generate-wan",
+            "--model",
+            "Wan-AI/Wan2.2-I2V-A14B-Diffusers",
+            "--prompt",
+            "a city timelapse",
+            "--width",
+            "128",
+            "--height",
+            "128",
+            "--frames",
+            "5",
+            "--fps",
+            "8",
+            "--steps",
+            "2",
+            "--seed",
+            "123",
+            "--image-path",
+            str(image_path),
+            "--output",
+            str(tmp_path / "out.mp4"),
+            "--json-events",
+            "--no-validate-health",
+            "--no-progress",
+        ],
+    )
+
+    wan_generate.main()
+
+    assert observed["save"]["validate_health"] is False
+
+    captured = capsys.readouterr()
+    save_events = [
+        json.loads(line)
+        for line in captured.out.splitlines()
+        if line.strip().startswith("{") and '"phase": "save"' in line
+    ]
+    assert len(save_events) == 1
+    save_event = save_events[0]
+    # The skip is visible to subscribers, and the save event carries the
+    # output facts hosts previously had to re-decode the file for.
+    assert save_event["health_check"] == "skipped"
+    assert save_event["fps"] == 8
+    assert save_event["width"] == 128
+    assert save_event["height"] == 128
+    assert save_event["total_frames"] == 5
 
 
 def test_wan_cli_rejects_video_to_video_without_explicit_model_support(monkeypatch, tmp_path, capsys):

@@ -168,6 +168,27 @@ to `generated`, then emits `save`, then emits final `complete` only after the fi
 When `output` is omitted, the wrapper returns the in-memory artifacts and preserves the model's
 original `complete` event.
 
+For video artifacts, `save_kwargs` also accepts `validate_health=False` to skip the post-save
+full-file health re-decode (for hosts that probe the saved file themselves; the skip is recorded
+as `health_check: "skipped"` in the video metadata) and `export_json_metadata=True` to write the
+`.metadata.json` sidecar carrying the resolved seed and parameters.
+
+`load_generation_model(...)` also accepts `model_kwargs={...}`: host-provided constructor extras
+forwarded to the resolved model class (merged last, and reflected in the returned `cache_key` so
+hosts that dedupe loaded models see them as part of the identity). The current Wan options are
+`keep_text_encoder_resident=True` (keep the UMT5 text encoder resident between generations in one
+process, ~11 GB resident RAM for skipping the per-prompt reload — built for hosts that chain
+scene generations) and `prompt_embed_disk_cache=False` (opt out of the exact on-disk prompt-embed
+cache). Passing a kwarg the resolved model class does not accept raises `TypeError` at load time.
+
+```python
+loaded = load_generation_model(
+    model="wan2.2-i2v-a14b",
+    image_count=1,
+    model_kwargs={"keep_text_encoder_resident": True},
+)
+```
+
 Published reuse-vs-reload validation covers Qwen masked edit, FLUX.2 multi-reference edit, Wan
 A14B image-to-video on a recurring short profile, and a `1024x1024` Z-Image Turbo image
 generation case. See

@@ -663,6 +663,10 @@ class SeedVR2(nn.Module):
                         expected_fps=clip_probe.fps,
                     )
                     metadata["video_health"] = {"file": file_health.to_metadata()}
+                else:
+                    # Recorded so downstream tooling can tell an unvalidated
+                    # save from a validated one (0087).
+                    metadata["health_check"] = "skipped"
                 if export_json_metadata:
                     GeneratedVideo.save_metadata(file_path, metadata)
             finally:

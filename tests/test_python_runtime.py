@@ -121,6 +121,39 @@ def test_load_generation_model_returns_runtime_metadata_for_wan(monkeypatch):
     assert "prepared/wan-a14b" in loaded.cache_key
 
 
+def test_load_generation_model_forwards_model_kwargs(monkeypatch):
+    # Embedding hosts reach model-specific constructor controls (for example
+    # Wan keep_text_encoder_resident, 0086) through the public wrapper.
+    created = {}
+    original_import = importlib.import_module
+
+    class FakeWan:
+        def __init__(self, **kwargs):
+            created["kwargs"] = kwargs
+
+    def fake_import(name, package=None):
+        if name == "mflux.models.wan.variants.wan2_2_ti2v":
+            return types.SimpleNamespace(Wan2_2_TI2V=FakeWan)
+        return original_import(name, package)
+
+    monkeypatch.setattr("mflux.python_runtime.importlib.import_module", fake_import)
+
+    loaded = load_generation_model(
+        model="wan2.2-i2v-a14b",
+        image_count=1,
+        model_kwargs={"keep_text_encoder_resident": True, "prompt_embed_disk_cache": False},
+    )
+
+    assert isinstance(loaded.model, FakeWan)
+    assert created["kwargs"]["keep_text_encoder_resident"] is True
+    assert created["kwargs"]["prompt_embed_disk_cache"] is False
+    # Constructor extras are part of the loaded-model identity: hosts that
+    # dedupe by cache_key must not conflate kwarg-variant loads.
+    assert "keep_text_encoder_resident" in loaded.cache_key
+    plain = load_generation_model(model="wan2.2-i2v-a14b", image_count=1)
+    assert plain.cache_key != loaded.cache_key
+
+
 def test_resolve_generation_runtime_loads_z_image_turbo_from_package_alias(monkeypatch):
     created = {}
     original_import = importlib.import_module

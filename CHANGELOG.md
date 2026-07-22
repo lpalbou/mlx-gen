@@ -5,6 +5,38 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+Embedded-host performance pass (backlog 0086/0087), driven by an end-to-end
+adversarial audit of the BlackPixel host: the dominant per-video fixed costs are
+the per-prompt UMT5 text-encoder load and the post-save health re-decode.
+
+### Added
+
+- **Wan UMT5 prompt-embed disk cache (0086)**: identical
+  (encoder snapshot, tokenized prompt, sequence length, precision) encodes are now
+  served from a small exact safetensors cache under the user cache dir
+  (LRU-bounded, 64 entries) instead of reloading the ~11 GB torch text encoder.
+  A cache hit does not import torch at all (tokenization moved to numpy tensors).
+  Corrupt entries are dropped loudly and re-encoded. Opt out with
+  `--no-prompt-cache` (CLI) or `prompt_embed_disk_cache=False` (constructor).
+- **Wan resident text encoder (0086)**: `--keep-text-encoder` /
+  `keep_text_encoder_resident=True` keeps the UMT5 encoder alive between
+  generations in one process, for hosts that chain new-prompt scene generations.
+  Default remains load-and-release.
+- **`load_generation_model(..., model_kwargs={...})`**: the Python runtime
+  wrapper now forwards host-provided constructor extras to the resolved model
+  class, so embedding apps can reach model-specific controls (such as the two
+  options above) through the public wrapper.
+- **`--no-validate-health` (0087)** on Wan video generation and SeedVR2 video
+  restore: skips the post-save full-file health re-decode for embedded hosts
+  that probe the saved file themselves. Default stays ON. The skip is recorded
+  as `health_check: "skipped"` in the video metadata and the `save` runtime
+  event.
+- **Save-event metadata completeness (0087)**: the Wan `--json-events` `save`
+  event now carries `fps`, `width`, `height`, and `total_frames` of the saved
+  output, so hosts can build artifact metadata with zero probe decodes.
+
 ## [0.23.1] - 2026-07-18
 
 Documentation and verification patch; no behavior changes.

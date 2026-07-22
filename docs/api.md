@@ -838,8 +838,11 @@ responsibility.
 
 Wan video generation uses the same event type and also accepts a direct `progress_callback`
 argument on `generate_video()`: model generation emits `start`, `denoise`, `decode`, `convert`,
-and `generated`; the Wan CLI then emits `save` and `complete` only after MP4 save and video-health
-validation succeed, and emits `failed` instead when save/finalization fails after progress starts.
+and `generated`; the Wan CLI then emits `save` when it begins persisting the MP4 (the save event
+carries the output's `fps`, `width`, `height`, and `total_frames`, plus `health_check: "skipped"`
+when `--no-validate-health` was requested), emits `complete` only after MP4 save and any
+video-health validation succeed, and emits `failed` instead when save/finalization fails after
+progress starts.
 SeedVR2 streamed restore uses the same terminal rule on `restore_video_to_path(...)` and the
 `mlxgen upscale --video-path ...` CLI path: `task="video-to-video"` and `complete` means the
 restored MP4, metadata, and optional post-write validation steps all succeeded.

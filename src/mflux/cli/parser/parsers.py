@@ -185,6 +185,14 @@ class CommandLineParser(argparse.ArgumentParser):
             action="store_true",
             help="Bypass SeedVR2 video memory safety checks. Use only when you are intentionally accepting the risk of machine instability or process failure.",
         )
+        seedvr2_group.add_argument(
+            "--no-validate-health",
+            action="store_true",
+            help=(
+                "For video inputs, skip the post-save full-file health re-decode. For embedded hosts that "
+                "probe the saved file themselves; the skip is recorded as health_check=skipped."
+            ),
+        )
 
     def add_model_arguments(self, path_type: t.Literal["load", "save"] = "load", require_model_arg: bool = True) -> None:
         self.require_model_arg = require_model_arg

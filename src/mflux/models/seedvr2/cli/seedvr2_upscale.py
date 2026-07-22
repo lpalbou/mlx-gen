@@ -754,6 +754,7 @@ def _run_seedvr2_video_restore(
                 drop_audio=args.drop_audio,
                 restore_metadata=runtime_metadata,
                 enforce_memory_budget=plan.route_reason != "unsafe_override",
+                validate_health=not args.no_validate_health,
             )
         except Exception as exc:
             failure_path = _write_seedvr2_failure_manifest(

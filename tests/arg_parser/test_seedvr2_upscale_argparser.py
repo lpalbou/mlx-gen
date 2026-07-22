@@ -338,6 +338,7 @@ def test_seedvr2_main_routes_video_inputs_to_restore_video_to_path(monkeypatch, 
             drop_audio,
             restore_metadata,
             enforce_memory_budget,
+            validate_health=True,
         ):
             saved["seed"] = seed
             saved["video_path"] = video_path
@@ -353,6 +354,7 @@ def test_seedvr2_main_routes_video_inputs_to_restore_video_to_path(monkeypatch, 
             saved["color_correction_mode"] = color_correction_mode
             saved["drop_audio"] = drop_audio
             saved["restore_metadata"] = restore_metadata
+            saved["validate_health"] = validate_health
             return output_path
 
     monkeypatch.setattr(seedvr2_upscale, "SeedVR2", FakeSeedVR2)
@@ -406,6 +408,8 @@ def test_seedvr2_main_routes_video_inputs_to_restore_video_to_path(monkeypatch, 
     assert saved["temporal_chunk_size"] == 49
     assert saved["temporal_chunk_overlap"] == 16
     assert saved["color_correction_mode"] == "off"
+    # The post-save health re-decode stays ON by default (0087).
+    assert saved["validate_health"] is True
 
 
 @pytest.mark.fast
@@ -438,6 +442,7 @@ def test_seedvr2_main_routes_small_video_inputs_to_restore_video_to_path(monkeyp
             drop_audio,
             restore_metadata,
             enforce_memory_budget,
+            validate_health=True,
         ):
             saved["seed"] = seed
             saved["video_path"] = video_path
@@ -531,6 +536,7 @@ def test_seedvr2_main_routes_drop_audio_opt_out(monkeypatch, tmp_path):
             drop_audio,
             restore_metadata,
             enforce_memory_budget,
+            validate_health=True,
         ):
             saved["drop_audio"] = drop_audio
             saved["restore_metadata"] = restore_metadata
@@ -603,6 +609,7 @@ def test_seedvr2_main_disables_runtime_budget_enforcement_for_unsafe_video_overr
             drop_audio,
             restore_metadata,
             enforce_memory_budget,
+            validate_health=True,
         ):
             saved["enforce_memory_budget"] = enforce_memory_budget
             saved["temporal_chunk_size"] = temporal_chunk_size
@@ -685,6 +692,7 @@ def test_seedvr2_main_preserves_zero_effective_overlap(monkeypatch, tmp_path):
             drop_audio,
             restore_metadata,
             enforce_memory_budget,
+            validate_health=True,
         ):
             saved["temporal_chunk_size"] = temporal_chunk_size
             saved["temporal_chunk_overlap"] = temporal_chunk_overlap
@@ -883,6 +891,7 @@ def test_seedvr2_main_preserves_explicit_streaming_overlap(monkeypatch, tmp_path
             drop_audio,
             restore_metadata,
             enforce_memory_budget,
+            validate_health=True,
         ):
             saved["temporal_chunk_size"] = temporal_chunk_size
             saved["temporal_chunk_overlap"] = temporal_chunk_overlap
@@ -978,6 +987,7 @@ def test_seedvr2_main_keeps_transformer_in_low_ram_for_video_input(monkeypatch, 
             drop_audio,
             restore_metadata,
             enforce_memory_budget,
+            validate_health=True,
         ):
             assert drop_audio is False
             return output_path
@@ -1049,6 +1059,7 @@ def test_seedvr2_main_writes_failure_manifest_for_video_errors(monkeypatch, tmp_
             drop_audio,
             restore_metadata,
             enforce_memory_budget,
+            validate_health=True,
         ):
             raise RuntimeError("boom")
 
@@ -1526,6 +1537,7 @@ def test_seedvr2_main_reloads_model_per_video_seed(monkeypatch, tmp_path):
             drop_audio,
             restore_metadata,
             enforce_memory_budget,
+            validate_health=True,
         ):
             assert drop_audio is False
             return output_path

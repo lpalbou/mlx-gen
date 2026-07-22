@@ -114,12 +114,18 @@ class GeneratedVideo:
                 clip_start_seconds=0.0,
                 clip_duration_seconds=self.duration_seconds,
             )
+        metadata = self._get_metadata()
+        if not validate_health:
+            # Embedded hosts that probe the file themselves can skip the
+            # post-save re-decode; the skip is recorded so downstream tooling
+            # can tell an unvalidated save from a validated one.
+            metadata["health_check"] = "skipped"
         if self._frames is None and self._frame_batches_factory is not None:
             return VideoUtil.save_video_batches(
                 frame_batches=self._frame_batches_factory(),
                 path=path,
                 fps=self.fps,
-                metadata=self._get_metadata(),
+                metadata=metadata,
                 export_json_metadata=export_json_metadata,
                 overwrite=overwrite,
                 validate_health=validate_health,
@@ -129,7 +135,7 @@ class GeneratedVideo:
             frames=self.frames,
             path=path,
             fps=self.fps,
-            metadata=self._get_metadata(),
+            metadata=metadata,
             export_json_metadata=export_json_metadata,
             overwrite=overwrite,
             validate_health=validate_health,

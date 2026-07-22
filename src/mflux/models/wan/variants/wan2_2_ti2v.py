@@ -20,6 +20,7 @@ from mflux.models.common.lora.mapping.lora_loader import LoRALoader
 from mflux.models.common.weights.saving.model_saver import ModelSaver
 from mflux.models.wan.latent_creator import WanTimestepPolicy
 from mflux.models.wan.model.wan_transformer import WanBlockHealthContext, WanTransformer
+from mflux.models.wan.prompt_embed_store import WanPromptEmbedStore
 from mflux.models.wan.model.wan_vae import Wan2_2_VAE
 from mflux.models.wan.scheduler import WanEulerScheduler, WanUniPCMultistepScheduler
 from mflux.models.wan.variants.wan_video_request import WanVideoRequest
@@ -58,6 +59,8 @@ class Wan2_2_TI2V(nn.Module):
         lora_paths: list[str] | None = None,
         lora_scales: list[float] | None = None,
         lora_target_roles: list[str] | None = None,
+        keep_text_encoder_resident: bool = False,
+        prompt_embed_disk_cache: bool = True,
     ):
         super().__init__()
         model_config = self._resolve_model_config(model_path=model_path, model_config=model_config)
@@ -70,6 +73,14 @@ class Wan2_2_TI2V(nn.Module):
             lora_scales=lora_scales,
             lora_target_roles=lora_target_roles,
         )
+        # Prompt-encoding cost controls (0086). The UMT5 text encoder is an
+        # ~11 GB torch load per encode: hosts that chain generations with new
+        # prompts (scene-by-scene video) can keep it resident, and identical
+        # re-encodes are served from an exact disk cache.
+        self._keep_text_encoder_resident = keep_text_encoder_resident
+        self._resident_text_encoder = None
+        self._prompt_embed_store = WanPromptEmbedStore(enabled=prompt_embed_disk_cache)
+        self._prompt_embed_fingerprint = None
 
     def generate_video(
         self,
@@ -809,10 +820,49 @@ class Wan2_2_TI2V(nn.Module):
         cached = self._cached_tensor(cache_name="prompt_embed_cache", key=cache_key)
         if cached is not None:
             return cached
-        embeds = self._load_t5_prompt_embeds(cleaned=cleaned, max_sequence_length=max_sequence_length)
+        # Tokenize with numpy tensors: the tokenized ids feed BOTH the exact
+        # disk-cache key and the encoder, and a disk hit must not import torch.
+        text_inputs = self._tokenize_prompts(cleaned=cleaned, max_sequence_length=max_sequence_length)
+        disk_key = self._prompt_embed_disk_key(text_inputs=text_inputs, max_sequence_length=max_sequence_length)
+        embeds = self._prompt_embed_store.load(disk_key) if disk_key is not None else None
+        if embeds is not None:
+            embeds = embeds.astype(ModelConfig.precision)
+        else:
+            embeds = self._load_t5_prompt_embeds(text_inputs=text_inputs, max_sequence_length=max_sequence_length)
+            if disk_key is not None:
+                self._prompt_embed_store.store(disk_key, embeds)
         return self._store_cached_tensor(cache_name="prompt_embed_cache", key=cache_key, value=embeds)
 
-    def _load_t5_prompt_embeds(self, *, cleaned: list[str], max_sequence_length: int) -> mx.array:
+    def _tokenize_prompts(self, *, cleaned: list[str], max_sequence_length: int):
+        tokenizer = self.tokenizers["wan"].tokenizer
+        return tokenizer(
+            cleaned,
+            padding="max_length",
+            max_length=max_sequence_length,
+            truncation=True,
+            add_special_tokens=True,
+            return_attention_mask=True,
+            return_tensors="np",
+        )
+
+    def _prompt_embed_disk_key(self, *, text_inputs, max_sequence_length: int) -> str | None:
+        if not self._prompt_embed_store.enabled:
+            return None
+        if self._prompt_embed_fingerprint is None:
+            self._prompt_embed_fingerprint = WanPromptEmbedStore.compute_text_encoder_fingerprint(
+                self.root_path / "text_encoder"
+            )
+        input_ids = np.ascontiguousarray(text_inputs["input_ids"])
+        attention_mask = np.ascontiguousarray(text_inputs["attention_mask"])
+        return WanPromptEmbedStore.compute_key(
+            encoder_fingerprint=self._prompt_embed_fingerprint,
+            input_ids_bytes=str(input_ids.shape).encode("utf-8") + input_ids.tobytes(),
+            attention_mask_bytes=str(attention_mask.shape).encode("utf-8") + attention_mask.tobytes(),
+            max_sequence_length=max_sequence_length,
+            precision=str(ModelConfig.precision),
+        )
+
+    def _load_t5_prompt_embeds(self, *, text_inputs, max_sequence_length: int) -> mx.array:
         try:
             import torch
             from transformers import UMT5EncoderModel
@@ -827,37 +877,32 @@ class Wan2_2_TI2V(nn.Module):
                 f"Run `mlxgen download --model {self.model_config.model_name}` first."
             )
 
-        tokenizer = self.tokenizers["wan"].tokenizer
-        text_inputs = tokenizer(
-            cleaned,
-            padding="max_length",
-            max_length=max_sequence_length,
-            truncation=True,
-            add_special_tokens=True,
-            return_attention_mask=True,
-            return_tensors="pt",
-        )
-        transformers_verbosity = transformers_logging.get_verbosity()
-        try:
-            transformers_logging.set_verbosity_error()
-            with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
-                text_encoder = UMT5EncoderModel.from_pretrained(
-                    text_encoder_path,
-                    torch_dtype=torch.bfloat16,
-                    local_files_only=True,
-                )
-        finally:
-            transformers_logging.set_verbosity(transformers_verbosity)
-        text_encoder.eval()
-        if hasattr(text_encoder, "shared") and hasattr(text_encoder, "encoder"):
-            text_encoder.encoder.embed_tokens = text_encoder.shared
+        input_ids = torch.from_numpy(np.ascontiguousarray(text_inputs["input_ids"]))
+        attention_mask = torch.from_numpy(np.ascontiguousarray(text_inputs["attention_mask"]))
+
+        text_encoder = self._resident_text_encoder
+        if text_encoder is None:
+            transformers_verbosity = transformers_logging.get_verbosity()
+            try:
+                transformers_logging.set_verbosity_error()
+                with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+                    text_encoder = UMT5EncoderModel.from_pretrained(
+                        text_encoder_path,
+                        torch_dtype=torch.bfloat16,
+                        local_files_only=True,
+                    )
+            finally:
+                transformers_logging.set_verbosity(transformers_verbosity)
+            text_encoder.eval()
+            if hasattr(text_encoder, "shared") and hasattr(text_encoder, "encoder"):
+                text_encoder.encoder.embed_tokens = text_encoder.shared
 
         with torch.no_grad():
             output = text_encoder(
-                text_inputs.input_ids,
-                text_inputs.attention_mask,
+                input_ids,
+                attention_mask,
             ).last_hidden_state
-        seq_lens = text_inputs.attention_mask.gt(0).sum(dim=1).long()
+        seq_lens = attention_mask.gt(0).sum(dim=1).long()
         padded = torch.stack(
             [
                 torch.cat(
@@ -872,8 +917,13 @@ class Wan2_2_TI2V(nn.Module):
             dim=0,
         )
         embeds = mx.array(padded.float().cpu().numpy()).astype(ModelConfig.precision)
-        del text_encoder
-        gc.collect()
+        if self._keep_text_encoder_resident:
+            # Opt-in residency for hosts that chain new-prompt generations:
+            # trades ~11 GB resident RAM for skipping a per-prompt reload.
+            self._resident_text_encoder = text_encoder
+        else:
+            del text_encoder
+            gc.collect()
         return embeds
 
     def _encode_first_frame_condition(self, image_path: Path | str | None, height: int, width: int) -> mx.array:

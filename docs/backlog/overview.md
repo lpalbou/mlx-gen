@@ -11,14 +11,16 @@ outside chat history.
 
 | State | Count |
 | --- | ---: |
-| Planned | 14 |
-| Proposed | 16 |
+| Planned | 17 |
+| Proposed | 19 |
 | Completed | 53 |
 | Deprecated | 1 |
 | Recurrent | 1 |
 
-Counts are item files (recounted 2026-07-15), including topic-track items under
+Counts are item files (recounted 2026-07-22), including topic-track items under
 `planned/memory/`; the completed `planned/runtime_contracts/` track holds only its index.
+Items 0086-0090 came from a 2026-07-22 adversarial performance audit of the
+BlackPixel embedding host traced end-to-end against the 0.23.1 release.
 
 ## Completed runtime contract hardening band
 
@@ -362,6 +364,9 @@ memory follow-up state.
 | 0062 | [SeedVR2 chunk-bounded video noise](planned/memory/0062_seedvr2_chunk_bounded_noise.md) | Video restoration, SeedVR2, memory | P0 | Reopened; exact-quality memory reduction pending |
 | 0063 | [Component-wise model loading memory policy](planned/memory/0063_componentwise_model_loading_memory_policy.md) | Memory, CLI, model loading | P0 | Quantitative validation pending |
 | 0064 | [Generation retention cleanup](planned/memory/0064_generation_retention_cleanup.md) | Memory, hidden states, stepwise output | P0 | Quantitative validation pending |
+| 0086 | [Wan UMT5 prompt-embed residency and disk cache](planned/0086_wan_umt5_prompt_embed_cache.md) | Video, memory, prompt encoding, embedding hosts | P0 | Planned |
+| 0087 | [Post-save video health-check opt-out for embedded hosts](planned/0087_video_health_check_opt_out.md) | Video, save path, embedding hosts | P1 | Planned |
+| 0091 | [Release 0.24.0 (prompt-embed cache, residency, health-check opt-out)](planned/0091_release_0_24_0.md) | Release execution, smoke evidence | P0 | Planned |
 
 ## Proposed ledger
 
@@ -383,6 +388,9 @@ memory follow-up state.
 | 0058 | [Model profile registry authority](proposed/0058_model_profile_registry_authority.md) | Architecture, model identity, defaults, loader policy | Promote after an ADR spike proves one lightweight registry can own model family identity/defaults without import-cycle or startup-cost regressions. |
 | 0065 | [Component-wise weight streaming migration](proposed/0065_componentwise_weight_streaming_migration.md) | Memory, startup, weight loading | Promote when profiling shows startup peak remains a practical blocker after remaining item 0063, or when one specific family needs the reduction for a supported profile. |
 | 0075 | [Wan VACE conditioning expansion after plain video-to-video](proposed/0075_wan_vace_conditioning_expansion_after_plain_video_to_video.md) | Video editing, Wan, richer conditioning | Promote only after the plain public `video-to-video` route is shipped or strongly proven and a new exact VACE proof beats the bounded July 3 `1.3B` MPS results. |
+| 0088 | [Import-graph diet for cold CLI dispatch](proposed/0088_import_graph_diet.md) | Startup latency, packaging, embedding hosts | Promote when an embedding host measurably depends on cold-dispatch latency; capability probes keep paying today. |
+| 0089 | [Wan memory defaults: streamed decode, per-item transformer release](proposed/0089_wan_memory_defaults.md) | Video, memory, defaults | Promote when A14B batch usage is real or a smaller-RAM user reports pressure; needs the AGENTS.md whole-process RSS harness. |
+| 0090 | [Step-loop performance experiments (batched CFG, Wan compile, step caching)](proposed/0090_step_loop_performance_experiments.md) | Performance, step loop, quality gates | Promote per-experiment once a reproducible benchmark harness exists and quality-mode workloads are demonstrated. |
 ## Completed ledger
 
 | ID | Item | Area | Completed | Outcome |

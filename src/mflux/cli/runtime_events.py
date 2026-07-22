@@ -100,8 +100,29 @@ class CliRuntimeEventStream:
             output_path=self._output_path if phase in {"save", "complete", "failed"} else None,
         )
 
-    def emit_save(self, *, task: str | None = None) -> None:
-        self._emit_terminal_event(phase="save", task=task)
+    def emit_save(
+        self,
+        *,
+        task: str | None = None,
+        health_check: str | None = None,
+        fps: int | float | None = None,
+        width: int | None = None,
+        height: int | None = None,
+        total_frames: int | None = None,
+    ) -> None:
+        # Save events optionally carry the output's fps/frame/dimension facts
+        # so embedded hosts can build artifact metadata without re-decoding
+        # the file, plus a `health_check: "skipped"` marker when the caller
+        # opted out of the post-save validation decode.
+        self._emit_terminal_event(
+            phase="save",
+            task=task,
+            health_check=health_check,
+            fps=fps,
+            width=width,
+            height=height,
+            total_frames_override=total_frames,
+        )
 
     def emit_complete(self, *, task: str | None = None) -> None:
         self._emit_terminal_event(phase="complete", task=task)
@@ -134,7 +155,17 @@ class CliRuntimeEventStream:
             remediation=_remediation_for_error(error),
         )
 
-    def _emit_terminal_event(self, *, phase: str, task: str | None) -> None:
+    def _emit_terminal_event(
+        self,
+        *,
+        phase: str,
+        task: str | None,
+        health_check: str | None = None,
+        fps: int | float | None = None,
+        width: int | None = None,
+        height: int | None = None,
+        total_frames_override: int | None = None,
+    ) -> None:
         if not self.enabled or self._sink is None:
             return
         event = self._last_event
@@ -143,6 +174,8 @@ class CliRuntimeEventStream:
         total_steps = event.total_steps if event is not None else 0
         frame = event.frame if event is not None else None
         total_frames = event.total_frames if event is not None else None
+        if total_frames_override is not None:
+            total_frames = total_frames_override
         frame_progress = event.frame_progress if event is not None else None
         timestep = event.timestep if event is not None else None
         progress = 1.0 if total_steps <= 0 else min(1.0, max(0.0, step / total_steps))
@@ -156,6 +189,10 @@ class CliRuntimeEventStream:
             total_frames=total_frames,
             frame_progress=frame_progress,
             timestep=timestep,
+            health_check=health_check,
+            fps=fps,
+            width=width,
+            height=height,
             output_path=self._output_path,
         )
 
@@ -195,6 +232,10 @@ class _JsonlEventSink:
         error: str | None = None,
         error_type: str | None = None,
         remediation: dict[str, object] | None = None,
+        health_check: str | None = None,
+        fps: int | float | None = None,
+        width: int | None = None,
+        height: int | None = None,
     ) -> None:
         payload = {
             "type": "runtime",
@@ -215,6 +256,10 @@ class _JsonlEventSink:
             "error": error,
             "error_type": error_type,
             "remediation": remediation,
+            "health_check": health_check,
+            "fps": fps,
+            "width": width,
+            "height": height,
         }
         compact = {key: value for key, value in payload.items() if value is not None}
         self._stream.write(json.dumps(compact) + "\n")
