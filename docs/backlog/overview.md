@@ -12,7 +12,7 @@ outside chat history.
 | State | Count |
 | --- | ---: |
 | Planned | 14 |
-| Proposed | 23 |
+| Proposed | 24 |
 | Completed | 56 |
 | Deprecated | 1 |
 | Recurrent | 1 |
@@ -394,6 +394,7 @@ memory follow-up state.
 | 0093 | [Sequential weight prefetch at model load](proposed/0093_weight_prefetch_at_load.md) | Cold-start latency, weight loading, embedding hosts | Promote when a bounded prototype shows the predicted page-cold win (~100 s at q8, more at bf16) on one q8 and one bf16 family without warm/low-RAM regressions. |
 | 0094 | [Default MLX buffer-cache limit for Python API and CLI](proposed/0094_default_mlx_cache_limit.md) | Memory defaults, embedding hosts, system health | Promote when a benchmark shows same-shape repeats are not slowed by a machine-size-derived cap and the documented default satisfies ADR 0002. |
 | 0095 | [Wire flux2 prompt_cache + compiled-predict reuse](proposed/0095_flux2_prompt_cache_and_compile_reuse.md) | Fixed per-call costs, flux2, resident hosts | Promote the cache wiring opportunistically with any flux2 touch; promote compile reuse only with a 0090-harness measurement. |
+| 0096 | [Outpaint capability expansion beyond Qwen edit and Klein Base](proposed/0096_outpaint_capability_expansion.md) | Image edit, outpaint, capability registry, embedding hosts | Owner-requested (2026-07-23): survey which families can truthfully outpaint (existing mask routes + source-locked denoising math); evidence-gated per ADR 0001. |
 ## Completed ledger
 
 | ID | Item | Area | Completed | Outcome |
