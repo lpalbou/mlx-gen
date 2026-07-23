@@ -1,10 +1,10 @@
-# Planned: Post-save video health-check opt-out for embedded hosts
+# Completed: Post-save video health-check opt-out for embedded hosts
 
 ## Metadata
 
 - Created: 2026-07-22
-- Status: Planned
-- Completed: N/A
+- Status: Completed
+- Completed: 2026-07-23 (released in 0.24.0; health_check "skipped" marker verified live — evidence in 0091)
 
 ## ADR status
 

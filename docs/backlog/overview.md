@@ -11,9 +11,9 @@ outside chat history.
 
 | State | Count |
 | --- | ---: |
-| Planned | 17 |
+| Planned | 14 |
 | Proposed | 20 |
-| Completed | 53 |
+| Completed | 56 |
 | Deprecated | 1 |
 | Recurrent | 1 |
 
@@ -364,9 +364,6 @@ memory follow-up state.
 | 0062 | [SeedVR2 chunk-bounded video noise](planned/memory/0062_seedvr2_chunk_bounded_noise.md) | Video restoration, SeedVR2, memory | P0 | Reopened; exact-quality memory reduction pending |
 | 0063 | [Component-wise model loading memory policy](planned/memory/0063_componentwise_model_loading_memory_policy.md) | Memory, CLI, model loading | P0 | Quantitative validation pending |
 | 0064 | [Generation retention cleanup](planned/memory/0064_generation_retention_cleanup.md) | Memory, hidden states, stepwise output | P0 | Quantitative validation pending |
-| 0086 | [Wan UMT5 prompt-embed residency and disk cache](planned/0086_wan_umt5_prompt_embed_cache.md) | Video, memory, prompt encoding, embedding hosts | P0 | Planned |
-| 0087 | [Post-save video health-check opt-out for embedded hosts](planned/0087_video_health_check_opt_out.md) | Video, save path, embedding hosts | P1 | Planned |
-| 0091 | [Release 0.24.0 (prompt-embed cache, residency, health-check opt-out)](planned/0091_release_0_24_0.md) | Release execution, smoke evidence | P0 | Planned |
 
 ## Proposed ledger
 
@@ -447,6 +444,9 @@ memory follow-up state.
 | 0083 | [Bug: --failure-diagnostics advertised as common](completed/0083_bug_declared_cli_option_coverage_failure_diagnostics.md) | CLI help contract, router | 2026-07-15 (resolved pre-0.19.0) | Root-level 2026-06-30 bug report moved into the backlog; the router help now scopes the flag to Wan routes, docs state the boundary, and a focused test pins the scoped help text. |
 | 0084 | [Bug: image finalization memory spike](completed/0084_bug_image_finalization_memory_contract.md) | Memory, image save path | 2026-07-15 (resolved 2026-06-30) | Root-level bug report moved into the backlog; authoritative completion record is item 0066 (one-pass metadata-light default save, measured -51%/-54% save-phase peaks). |
 | 0085 | [Bug: machine-readable CLI runtime contract](completed/0085_bug_machine_readable_cli_runtime_contract.md) | CLI events, embedding apps | 2026-07-15 (resolved in 0.19.0) | Root-level bug report moved into the backlog; `--json-events` shipped the JSONL runtime stream with authoritative identity, artifact-ready terminal semantics, diagnostics paths, and documented schema. |
+| 0086 | [Wan UMT5 prompt-embed residency and disk cache](completed/0086_wan_umt5_prompt_embed_cache.md) | Video, memory, prompt encoding, embedding hosts | 2026-07-23 (released in 0.24.0) | Exact on-disk prompt-embed cache (default on, LRU-bounded, torch-free hits), opt-in resident UMT5 encoder, and `model_kwargs` passthrough; smoke evidence recorded in 0091 (cache-hit runs bitwise identical, ~4 min miss vs ~27 s hit end to end). |
+| 0087 | [Post-save video health-check opt-out for embedded hosts](completed/0087_video_health_check_opt_out.md) | Video, save path, embedding hosts | 2026-07-23 (released in 0.24.0) | `--no-validate-health` on Wan generation and SeedVR2 video restore plus enriched `save` events (fps/width/height/total_frames/health_check); skip marker verified live in the 0091 smoke run. |
+| 0091 | [Release 0.24.0 (both 2026-07-22/23 waves)](completed/0091_release_0_24_0.md) | Release execution, smoke evidence | 2026-07-23 | v0.24.0 published to PyPI + GitHub Release from `2b496bf` (workflow 29977218806); ships 0086/0087 AND the geometry/perf wave (resize_mode, Wan canvas-policy, import diet, streamed decode, bf16 condition, RoPE cache); full smoke evidence incl. same-env bitwise output identity vs 0.23.1. |
 | 0081 | [FLUX.2 Klein masked edit / inpaint](completed/0081_flux2_klein_masked_edit.md) | Image edit, FLUX.2 Klein, mask-based inpaint | 2026-07-15 | Ported the diffusers `Flux2KleinInpaintPipeline` semantics onto the Klein family: new `flux2.inpaint` capability with per-step source compositing and clean-source conditioning tokens, torch-parity bilinear mask downsampling, optional masked-area reference images on the backend/Python surface, adversarial review, and local q8 smoke proofs (published visual-QA rows remain follow-up). |
 | 0082 | [Masked edit expansion: native base-Qwen and Z-Image non-turbo](completed/0082_masked_edit_expansion_qwen_zimage.md) | Image edit, Qwen base, Z-Image, mask routing | 2026-07-15 | Shipped native `qwen.base-inpaint` (diffusers `QwenImageInpaintPipeline` port, internal 0.85 warm start, `effective_steps` metadata, one masked route per row) and non-turbo `z-image.inpaint`, plan-time maskless rejection, the canonical `docs/masked-editing.md` page, and a published visual-smoke proof bundle with preservation measurements. |
 

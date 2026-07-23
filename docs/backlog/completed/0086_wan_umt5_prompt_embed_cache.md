@@ -1,10 +1,10 @@
-# Planned: Wan UMT5 prompt-embed residency and disk cache
+# Completed: Wan UMT5 prompt-embed residency and disk cache
 
 ## Metadata
 
 - Created: 2026-07-22
-- Status: Planned
-- Completed: N/A
+- Status: Completed
+- Completed: 2026-07-23 (released in 0.24.0; smoke evidence in 0091)
 
 ## ADR status
 
