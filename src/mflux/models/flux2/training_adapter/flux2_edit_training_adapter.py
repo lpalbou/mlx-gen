@@ -88,6 +88,9 @@ class Flux2EditTrainingAdapter(Flux2BaseTrainingAdapter):
     ):
         if not image_paths:
             raise ValueError("Edit training preview requires data/preview.*.")
+        # Training mutated the transformer weights since the last preview; a cached
+        # compiled predict would replay stale baked constants (0095).
+        self._flux2.compiled_predict_cache.clear()
         with self._assistant_disabled():
             image = self._flux2.generate_image(
                 seed=seed,

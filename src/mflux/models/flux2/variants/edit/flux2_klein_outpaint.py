@@ -114,7 +114,12 @@ class Flux2KleinOutpaint(nn.Module):
 
         ctx = self.callbacks.start(seed=seed, prompt=prompt, config=config, task="image-to-image")
         ctx.before_loop(latents)
-        predict = Flux2KleinEdit._predict(self.transformer)
+        # Reuse the compiled predict across calls on a resident instance (0095).
+        predict = self.compiled_predict_cache.get_or_build(
+            key=("edit", negative_prompt_embeds is not None),
+            weights_token=self.transformer,
+            build=lambda: Flux2KleinEdit._predict(self.transformer),
+        )
         for t in config.time_steps:
             try:
                 noise = predict(

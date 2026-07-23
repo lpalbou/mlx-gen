@@ -907,7 +907,11 @@ def main():
         if video_paths:
             if args.mlx_cache_limit_gb is None:
                 args.mlx_cache_limit_gb = DEFAULT_SEEDVR2_VIDEO_CACHE_LIMIT_GB
-            elif safe_video_mode and args.mlx_cache_limit_gb > DEFAULT_SEEDVR2_VIDEO_CACHE_LIMIT_GB:
+            elif safe_video_mode and (
+                # -1 (explicit unlimited, 0094) also exceeds the certified safe
+                # profile bound; the clamp notice below keeps the override visible.
+                args.mlx_cache_limit_gb < 0 or args.mlx_cache_limit_gb > DEFAULT_SEEDVR2_VIDEO_CACHE_LIMIT_GB
+            ):
                 cli_print(
                     "SeedVR2 safe video mode: clamping --mlx-cache-limit-gb to "
                     f"{DEFAULT_SEEDVR2_VIDEO_CACHE_LIMIT_GB:g}.",

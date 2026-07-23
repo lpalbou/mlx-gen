@@ -19,7 +19,9 @@ from mflux.models.common.download_policy import (
 from mflux.models.common.resolution.path_resolution import PathResolution
 from mflux.models.common.weights.loading.loaded_weights import LoadedWeights, MetaData
 from mflux.models.common.weights.loading.weight_definition import ComponentDefinition
+from mflux.models.common.weights.loading.weight_prefetcher import WeightPrefetcher
 from mflux.models.common.weights.mapping.weight_mapper import WeightMapper
+from mflux.utils.runtime_memory import RuntimeMemory
 
 if TYPE_CHECKING:
     from mflux.models.common.weights.loading.weight_definition import WeightDefinitionType
@@ -34,6 +36,9 @@ class WeightLoader:
         repo_id: str,
         file_pattern: str = "*.safetensors",
     ) -> LoadedWeights:
+        # Bare Python-API loads never pass through the CLI's runtime-memory setup,
+        # so the machine-derived MLX cache-limit default applies here (0094).
+        RuntimeMemory.apply_default_cache_limit_once()
         # Deferred: huggingface_hub pulls httpx+rich (~0.5 s) and is only needed
         # once weights actually resolve, never on the import path (0088).
         from huggingface_hub import snapshot_download
@@ -57,6 +62,9 @@ class WeightLoader:
         weight_definition: "WeightDefinitionType",
         model_path: str | None = None,
     ) -> LoadedWeights:
+        # Bare Python-API loads never pass through the CLI's runtime-memory setup,
+        # so the machine-derived MLX cache-limit default applies here (0094).
+        RuntimeMemory.apply_default_cache_limit_once()
         root_path = PathResolution.resolve(
             path=model_path,
             patterns=weight_definition.get_download_patterns(),
@@ -170,7 +178,13 @@ class WeightLoader:
         else:
             quantization_level = int(quantization_level_str)
 
-        # Load all shards
+        # No prefetch here: prepared packages are written by ModelSaver in
+        # module-tree order (tree_flatten), so first materialization walks the
+        # file near-sequentially and OS readahead already runs at SSD speed.
+        # Measured on the Klein 9B q8 package (page-cold, residency 0.000):
+        # prefetch cost +1.7-2.1 s end-to-end with zero first-generate benefit
+        # (0093 cycle-2 ruling). HF-repo paths below keep the prefetch — their
+        # file layout diverges from apply/quantize order.
         all_weights: dict[str, mx.array] = {}
         for shard in shard_files:
             all_weights.update(mx.load(str(shard)))
@@ -223,6 +237,7 @@ class WeightLoader:
 
     @staticmethod
     def _load_weights_file(file_path: Path, loading_mode: str) -> dict[str, mx.array]:
+        WeightPrefetcher.prefetch([file_path])
         if loading_mode == "torch_checkpoint":
             return WeightLoader._load_torch_checkpoint(file_path)
         elif loading_mode in ("mlx_native", "single"):
@@ -275,6 +290,7 @@ class WeightLoader:
     @staticmethod
     def _load_torch_checkpoint_directory(path: Path, weight_files: list[str] | None = None) -> dict[str, mx.array]:
         shard_files = WeightLoader._resolve_weight_files(path, weight_files, "*.pth")
+        WeightPrefetcher.prefetch(shard_files)
         all_weights: dict[str, mx.array] = {}
         for shard in shard_files:
             all_weights.update(WeightLoader._load_torch_checkpoint(shard))
@@ -285,6 +301,7 @@ class WeightLoader:
         shard_files = WeightLoader._resolve_weight_files(path, weight_files, "*.pt")
         if len(shard_files) != 1:
             raise ValueError(f"Expected exactly one tensor file in {path}, found {len(shard_files)}.")
+        WeightPrefetcher.prefetch(shard_files)
         loaded = WeightLoader._load_torch_checkpoint(shard_files[0])
         if len(loaded) == 1:
             return loaded
@@ -352,6 +369,7 @@ class WeightLoader:
             if not shard_files:
                 raise FileNotFoundError(f"No safetensors files found in {path}")
 
+        WeightPrefetcher.prefetch(shard_files)
         all_weights: dict[str, mx.array] = {}
         for shard in shard_files:
             weights = mx.load(str(shard))
@@ -373,6 +391,7 @@ class WeightLoader:
             if not shard_files:
                 raise FileNotFoundError(f"No safetensors files found in {path}")
 
+        WeightPrefetcher.prefetch(shard_files)
         all_weights: dict[str, mx.array] = {}
         for shard in shard_files:
             torch_weights = WeightLoader._torch_load_file(str(shard))
@@ -394,6 +413,7 @@ class WeightLoader:
                 files_to_load[file_name] = []
             files_to_load[file_name].append(param_name)
 
+        WeightPrefetcher.prefetch([path / file_name for file_name in files_to_load])
         all_weights: dict[str, mx.array] = {}
         for file_name, param_names in files_to_load.items():
             file_path = path / file_name
@@ -415,6 +435,7 @@ class WeightLoader:
 
         weight_files = sorted(set(index["weight_map"].values()))
 
+        WeightPrefetcher.prefetch([path / wf for wf in weight_files])
         all_weights: dict[str, mx.array] = {}
         for wf in weight_files:
             file_path = path / wf
@@ -431,6 +452,7 @@ class WeightLoader:
             raise FileNotFoundError(f"No safetensors files found in {path}")
 
         weights_file = safetensors_files[0]
+        WeightPrefetcher.prefetch([weights_file])
         data = mx.load(str(weights_file), return_metadata=True)
         return dict(data[0].items())
 
@@ -440,6 +462,7 @@ class WeightLoader:
         if not shard_files:
             raise FileNotFoundError(f"No safetensors files found in {path}")
 
+        WeightPrefetcher.prefetch(shard_files)
         all_weights: dict[str, mx.array] = {}
         for shard in shard_files:
             data, _ = mx.load(str(shard), return_metadata=True)

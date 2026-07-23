@@ -57,6 +57,20 @@ def positive_float(value: str) -> float:
     return parsed
 
 
+def cache_limit_gb_value(value: str) -> float:
+    # Positive GB values cap the MLX free cache; -1 is the explicit unlimited
+    # opt-out for the machine-derived default (0094, ADR 0002).
+    try:
+        parsed = float(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"'{value}' is not a valid number")
+    if parsed == -1:
+        return parsed
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError(f"'{value}' must be > 0, or exactly -1 for unlimited")
+    return parsed
+
+
 def boolean_flag_value(value: str) -> bool:
     normalized = value.lower()
     if normalized in {"1", "true", "yes", "y", "on"}:
@@ -131,7 +145,7 @@ class CommandLineParser(argparse.ArgumentParser):
     def add_general_arguments(self) -> None:
         self.add_argument("--battery-percentage-stop-limit", "-B", type=lambda v: max(min(int(v), 99), 1), default=ui_defaults.BATTERY_PERCENTAGE_STOP_LIMIT, help=f"On Macs powered by battery, stop image generation when battery reaches this percentage. Default: {ui_defaults.BATTERY_PERCENTAGE_STOP_LIMIT}")
         self.add_argument("--low-ram", action="store_true", help="Enable low-RAM mode to reduce memory usage (may impact performance).")
-        self.add_argument("--mlx-cache-limit-gb", type=positive_float, default=None, help="Limit MLX cache size in GB without enabling full low-RAM mode (e.g. 8 or 16).")
+        self.add_argument("--mlx-cache-limit-gb", type=cache_limit_gb_value, default=None, help="Limit MLX cache size in GB without enabling full low-RAM mode (e.g. 8 or 16). Unset applies a machine-derived default (total RAM / 8, clamped to 1-8 GiB); pass -1 for unlimited.")
         self.add_argument("--debug", action="store_true", help="Enable debug logging for internal generation details such as LoRA fusion targets.")
         self.add_argument("--json-events", action="store_true", help="Emit machine-readable JSONL runtime events to stdout and move human CLI text to stderr.")
         self.add_argument("--progress", action="store_true", default=True, help="Show CLI progress when the selected backend supports it. Default is true.")

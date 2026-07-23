@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Callable
 
@@ -108,6 +109,9 @@ class Flux2BaseTrainingAdapter(TrainingAdapter):
             lora_scales=[1.0],
             role="train",
         )
+        # LoRA application mutates the transformer in place; cached compiled
+        # predicts would replay stale baked constants (0095).
+        self._flux2.compiled_predict_cache.clear()
 
     def load_training_adapter(self, *, path: str | Path, scale: float = 1.0) -> None:
         LoRALoader.load_and_apply_lora(
@@ -117,9 +121,20 @@ class Flux2BaseTrainingAdapter(TrainingAdapter):
             lora_scales=[float(scale)],
             role="assistant",
         )
+        self._flux2.compiled_predict_cache.clear()
 
+    @contextmanager
     def _assistant_disabled(self):
-        return TrainingUtil.assistant_disabled(self._flux2.transformer)
+        # Toggling assistant LoRA scales mutates the transformer in place; a
+        # compiled predict traced inside this context bakes scale=0 as a graph
+        # constant. Clearing on exit keeps the invariant local — no caller may
+        # observe a cached predict that disagrees with the live scales (0095
+        # cycle-2 hardening; entry is covered by the preview-site clears).
+        try:
+            with TrainingUtil.assistant_disabled(self._flux2.transformer):
+                yield
+        finally:
+            self._flux2.compiled_predict_cache.clear()
 
     @staticmethod
     def _append_train_lora_weights(weights: dict[str, mx.array], transformer, module_path: str) -> None:

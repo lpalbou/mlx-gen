@@ -98,7 +98,13 @@ class Flux2Klein(nn.Module):
         # 3. Denoising loop
         ctx = self.callbacks.start(seed=seed, prompt=prompt, config=config)
         ctx.before_loop(latents)
-        predict = self._predict(self.transformer)
+        # Reuse the compiled predict across calls on a resident instance (0095);
+        # the key covers the CFG branch structure, mx.compile handles shape changes.
+        predict = self.compiled_predict_cache.get_or_build(
+            key=("txt2img", negative_prompt_embeds is not None),
+            weights_token=self.transformer,
+            build=lambda: Flux2Klein._predict(self.transformer),
+        )
         for t in config.time_steps:
             try:
                 # 3.t Predict the noise
@@ -166,6 +172,7 @@ class Flux2Klein(nn.Module):
             num_images_per_prompt=1,
             max_sequence_length=512,
             text_encoder_out_layers=(9, 18, 27),
+            prompt_cache=self.prompt_cache,
         )
         negative_prompt_embeds = None
         negative_text_ids = None
@@ -177,6 +184,7 @@ class Flux2Klein(nn.Module):
                 num_images_per_prompt=1,
                 max_sequence_length=512,
                 text_encoder_out_layers=(9, 18, 27),
+                prompt_cache=self.prompt_cache,
             )
         return prompt_embeds, text_ids, negative_prompt_embeds, negative_text_ids
 
@@ -268,6 +276,9 @@ class Flux2Klein(nn.Module):
             base_path=base_path,
             weight_definition=Flux2KleinWeightDefinition,
         )
+        # save_model bakes and strips LoRA wrappers in place; any cached compiled
+        # predict now closes over stale arrays (0095).
+        self.compiled_predict_cache.clear()
 
     @staticmethod
     def _predict(transformer):

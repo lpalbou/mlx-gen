@@ -111,7 +111,13 @@ class Flux2KleinEdit(nn.Module):
         # 4. Denoising loop
         ctx = self.callbacks.start(seed=seed, prompt=prompt, config=config, task="image-to-image")
         ctx.before_loop(latents)
-        predict = self._predict(self.transformer)
+        # Reuse the compiled predict across calls on a resident instance (0095);
+        # the key covers the CFG branch structure, mx.compile handles shape changes.
+        predict = self.compiled_predict_cache.get_or_build(
+            key=("edit", negative_prompt_embeds is not None),
+            weights_token=self.transformer,
+            build=lambda: Flux2KleinEdit._predict(self.transformer),
+        )
         for t in config.time_steps:
             try:
                 # 4.t Predict the noise
@@ -178,6 +184,7 @@ class Flux2KleinEdit(nn.Module):
             prompt,
             tokenizer=self.tokenizers["qwen3"],
             text_encoder=self.text_encoder,
+            prompt_cache=self.prompt_cache,
         )
         negative_prompt_embeds = None
         negative_text_ids = None
@@ -186,6 +193,7 @@ class Flux2KleinEdit(nn.Module):
                 negative_prompt,
                 tokenizer=self.tokenizers["qwen3"],
                 text_encoder=self.text_encoder,
+                prompt_cache=self.prompt_cache,
             )
         return prompt_embeds, text_ids, negative_prompt_embeds, negative_text_ids
 

@@ -20,6 +20,7 @@ from mflux.models.qwen.variants.controlnet.qwen_controlnet_util import QwenContr
 from mflux.models.qwen.variants.controlnet.qwen_image_controlnet import QwenImageControlNet
 from mflux.models.z_image.variants import z_image as z_image_module
 from mflux.models.z_image.variants.z_image import ZImage
+from mflux.utils.compiled_predict_cache import CompiledPredictCache
 
 
 def test_qwen_control_inpaint_condition_packs_masked_latents(tmp_path, monkeypatch):
@@ -761,6 +762,8 @@ def test_flux2_klein_inpaint_progress_and_masked_loop(tmp_path, monkeypatch):
         model.lora_scales = lora_scales
         model.tiling_config = None
         model.callbacks = CallbackRegistry()
+        model.prompt_cache = {}
+        model.compiled_predict_cache = CompiledPredictCache()
 
         class FakeVAE:
             def decode_packed_latents(self, packed_latents):

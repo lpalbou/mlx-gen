@@ -42,6 +42,7 @@ class _Flux2KleinEditHelpers:
         *,
         tokenizer,
         text_encoder: Qwen3TextEncoder,
+        prompt_cache: dict | None = None,
     ) -> tuple[mx.array, mx.array]:
         return Flux2PromptEncoder.encode_prompt(
             prompt=prompt,
@@ -50,6 +51,7 @@ class _Flux2KleinEditHelpers:
             num_images_per_prompt=1,
             max_sequence_length=512,
             text_encoder_out_layers=(9, 18, 27),
+            prompt_cache=prompt_cache,
         )
 
     @staticmethod

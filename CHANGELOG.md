@@ -7,6 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Sequential weight prefetch at load (0093)**: weight files selected for a load from
+  HF-repo layouts are sequentially read into the OS page cache before first use, so
+  page-cold weights fault in at sequential SSD speed instead of random-access speed
+  (measured mechanism: an 8 GB page-cold component served random-order access at
+  ~157 MB/s effective; after a 0.9 s sequential prefetch at ~8.8 GB/s the same access
+  pattern ran ~12x faster, bytes identical). Prepared MLX-Gen packages are deliberately
+  NOT prefetched: they are written in module-tree order, materialize near-sequentially
+  on their own, and the prefetch measurably regressed their cold loads (+1.7-2.1 s
+  end-to-end on the Klein 9B q8 package, reproduced twice against page-cold verified
+  0.000 residency). Already-resident files are detected via `mincore` and skipped
+  (~0.03 s/GB probe cost on warm reloads, zero bytes re-read), and the prefetch is
+  skipped when the selected files exceed half of physical RAM (low-RAM protection) or
+  when `MFLUX_NO_WEIGHT_PREFETCH=1` is set.
+- **Default MLX buffer-cache limit (0094)**: when no cache limit is set, model load now
+  applies a machine-derived default — `total RAM / 8`, clamped to `[1 GiB, 8 GiB]`
+  (the ceiling matches the 8 GiB cap validated for Wan A14B transient buffers in the
+  embedding-host precedent; the floor matches the long-standing low-RAM default) —
+  exactly once per process, announced with one stderr line. Previously a bare Python-API
+  session ran uncapped (measured 32.9 GB MLX free cache after two Klein 9B q8
+  generations, evicting page cache system-wide). `--mlx-cache-limit-gb` and low-RAM
+  behavior are unchanged and win over the default; `MFLUX_MLX_CACHE_LIMIT_GB` serves
+  Python-API hosts; `-1` (flag or env) is the explicit unlimited opt-out. Hosts that
+  cap the cache directly through `mx.set_cache_limit` before loading are detected
+  (a pre-existing limit at or below half of physical RAM is treated as deliberate,
+  preserved, and announced) — the default never overrides a host-managed limit.
+- **FLUX.2 prompt cache and compiled-predict reuse (0095)**: the flux2 family now
+  actually reads its `prompt_cache` (it was write-only) — identical prompts on a
+  resident instance skip the ~1 s Qwen3 re-encode across txt2img, edit, inpaint, and
+  outpaint, with a bounded 8-entry LRU (~100 MB worst case at Klein 9B embeds). The
+  per-call `mx.compile` of the denoise predict is now cached per instance and reused
+  across same-structure calls, and invalidated on transformer replacement, LoRA
+  application, training preview, assistant LoRA scale toggling (training preview
+  context exit), LoRA bake at `save_model`, and low-RAM transformer release (compiled
+  callables must not keep freed weights alive or replay stale baked constants).
+
 - Backlog: filed the 2026-07-23 image-to-image latency audit follow-ups as
   proposed items 0093 (sequential weight prefetch at load — ~100 s of a
   165 s page-cold q8 Klein 9B generation is lazy-mmap fault-in at

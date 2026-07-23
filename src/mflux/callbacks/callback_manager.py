@@ -99,6 +99,8 @@ class CallbackManager:
 
     @staticmethod
     def _resolve_cache_limit_bytes(mlx_cache_limit_gb: float | None) -> int | None:
-        if mlx_cache_limit_gb is None:
+        # Negative means "explicitly unlimited" (0094); never hand a negative
+        # byte count to mx.set_cache_limit.
+        if mlx_cache_limit_gb is None or mlx_cache_limit_gb < 0:
             return None
         return int(mlx_cache_limit_gb * (1000**3))

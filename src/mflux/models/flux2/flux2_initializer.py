@@ -11,6 +11,7 @@ from mflux.models.flux2.model.flux2_transformer.transformer import Flux2Transfor
 from mflux.models.flux2.model.flux2_vae.vae import Flux2VAE
 from mflux.models.flux2.weights.flux2_lora_mapping import Flux2LoRAMapping
 from mflux.models.flux2.weights.flux2_weight_definition import Flux2KleinWeightDefinition
+from mflux.utils.compiled_predict_cache import CompiledPredictCache
 
 
 class Flux2Initializer:
@@ -39,6 +40,7 @@ class Flux2Initializer:
     @staticmethod
     def _init_config(model, model_config: ModelConfig) -> None:
         model.prompt_cache = {}
+        model.compiled_predict_cache = CompiledPredictCache()
         model.model_config = model_config
         model.callbacks = CallbackRegistry()
         model.tiling_config = None

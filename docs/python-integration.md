@@ -192,6 +192,17 @@ loaded = load_generation_model(
 )
 ```
 
+Runtime memory defaults for Python hosts: the first weight load in a process applies a
+machine-derived MLX buffer-cache limit (`total RAM / 8`, clamped to `[1 GiB, 8 GiB]`) unless a
+limit was already applied, and announces it on stderr. Hosts that call `mx.set_cache_limit`
+directly are safe: a pre-existing limit at or below half of physical RAM is recognized as
+host-managed, preserved, and announced instead of overridden. Export
+`MFLUX_MLX_CACHE_LIMIT_GB=<gb>` to pick the cap yourself, or `-1` to keep the cache
+unlimited. Weight files loaded from HF-repo layouts are sequentially prefetched into the page
+cache at load (prepared MLX-Gen packages materialize near-sequentially on their own and are
+not prefetched; already-resident files are skipped, as is everything on machines where the
+files exceed half of physical RAM); set `MFLUX_NO_WEIGHT_PREFETCH=1` to opt out.
+
 Published reuse-vs-reload validation covers Qwen masked edit, FLUX.2 multi-reference edit, Wan
 A14B image-to-video on a recurring short profile, and a `1024x1024` Z-Image Turbo image
 generation case. See

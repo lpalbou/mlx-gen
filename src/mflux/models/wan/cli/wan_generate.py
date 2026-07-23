@@ -14,7 +14,7 @@ from tqdm import tqdm
 from mflux.callbacks import ProgressEvent
 from mflux.cli.defaults import defaults as ui_defaults
 from mflux.cli.output_paths import normalize_output_template, resolve_output_path
-from mflux.cli.parser.parsers import boolean_flag_value, image_strength_value, positive_float
+from mflux.cli.parser.parsers import boolean_flag_value, cache_limit_gb_value, image_strength_value, positive_float
 from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.cli.seed_values import resolve_seed_values
 from mflux.models.common.config import ModelConfig
@@ -454,9 +454,13 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--mlx-cache-limit-gb",
-        type=positive_float,
+        type=cache_limit_gb_value,
         default=None,
-        help="Limit MLX cache size in GB. With --low-ram, defaults to 1 GB when omitted.",
+        help=(
+            "Limit MLX cache size in GB. With --low-ram, defaults to 1 GB when omitted; "
+            "otherwise a machine-derived default applies (total RAM / 8, clamped to 1-8 GiB). "
+            "Pass -1 for unlimited."
+        ),
     )
     parser.add_argument(
         "--tensor-health-check-interval",

@@ -77,6 +77,11 @@ class MemorySaver(BeforeLoopCallback, InLoopCallback, AfterLoopCallback):
         mx.clear_cache()
 
     def _delete_transformer(self) -> None:
+        # Compiled predicts close over the transformer; drop them first so the
+        # release below actually frees the weights (wan 0090 d12 discipline).
+        compiled_cache = getattr(self.model, "compiled_predict_cache", None)
+        if compiled_cache is not None:
+            compiled_cache.clear()
         self.model.transformer = None
         if hasattr(self.model, "transformer_controlnet"):
             self.model.transformer_controlnet = None

@@ -55,6 +55,9 @@ class Flux2TrainingAdapter(Flux2BaseTrainingAdapter):
         steps: int,
         image_paths: list[Path | str] | None = None,
     ):
+        # Training mutated the transformer weights since the last preview; a cached
+        # compiled predict would replay stale baked constants (0095).
+        self._flux2.compiled_predict_cache.clear()
         with self._assistant_disabled():
             image = self._flux2.generate_image(
                 seed=seed,

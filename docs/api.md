@@ -144,6 +144,22 @@ mlxgen validation \
   --profile lora_qwen_edit_q8_ghibli_edit_2026_06_11
 ```
 
+### Runtime Memory Defaults
+
+MLX-Gen applies two machine-derived runtime-memory behaviors by default. Both are visible,
+bounded, and overridable.
+
+| Behavior | Default | Override |
+| --- | --- | --- |
+| MLX buffer-cache limit | When no limit is set, model load applies `total RAM / 8`, clamped to `[1 GiB, 8 GiB]`, once per process. One stderr line names the applied cap. Low-RAM mode keeps its 1 GB default. A pre-existing limit at or below half of physical RAM (set by a host through `mx.set_cache_limit`) is treated as deliberate, preserved, and announced instead. | `--mlx-cache-limit-gb <gb>` on CLIs, `MFLUX_MLX_CACHE_LIMIT_GB=<gb>` for Python-API hosts. Pass `-1` for explicitly unlimited. Precedence: CLI flag > env var > low-RAM default > machine ladder. |
+| Weight prefetch at load | Weight files loaded from HF-repo layouts are sequentially read into the OS page cache before use, so page-cold weights fault in at sequential SSD speed instead of random-access speed. Prepared MLX-Gen packages are not prefetched — they are written in module-tree order and materialize near-sequentially on their own (a prefetch measurably slowed their cold loads). Already-resident files are detected (`mincore`) and skipped; the prefetch is skipped entirely when the files exceed half of physical RAM (protects low-RAM machines from page-cache thrash). | `MFLUX_NO_WEIGHT_PREFETCH=1` disables it. |
+
+The buffer-cache limit bounds only the FREE cache (reclaim happens at the next allocation);
+resident weights and in-flight activations are unaffected. Hosts that manage
+`mx.set_cache_limit` themselves are detected and left alone (see table); exporting
+`MFLUX_MLX_CACHE_LIMIT_GB=-1` (or their own value) remains the explicit way to pin the
+behavior.
+
 ### CLI Runtime Events
 
 Use `--json-events` on `mlxgen generate` and `mlxgen upscale` when an application needs a
