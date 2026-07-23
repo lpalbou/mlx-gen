@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- Backlog: filed the 2026-07-23 image-to-image latency audit follow-ups as
+  proposed items 0093 (sequential weight prefetch at load — ~100 s of a
+  165 s page-cold q8 Klein 9B generation is lazy-mmap fault-in at
+  120-320 MB/s vs ~12.6 GB/s sequential SSD), 0094 (default MLX buffer-cache
+  limit — the Python API applies no cap and the cache grew to 32.9 GB after
+  two generations), and 0095 (wire the write-only flux2 `prompt_cache` and
+  reuse the compiled predict per resident instance). No runtime behavior
+  changes in this entry; measurements and the reconciliation model live in
+  the BlackPixel repo's backlog item 0069.
+
 ## [0.24.0] - 2026-07-23
 
 Embedded-host performance and generation-geometry release. The first wave
@@ -113,7 +125,7 @@ cross-repo color bug the audit measured.
   `release_denoisers_before_decode` stays terminal (the low expert is never
   reloaded). Real-checkpoint validation (multi-seed peak-RSS, Lightning-LoRA
   storyboard re-fusion identity) is queued in backlog 0089.
-  Cycle-2 review correction: SINGLE-seed CLI runs keep the pre-0089 rule and
+  Correction: SINGLE-seed CLI runs keep the pre-0089 rule and
   release the inactive expert regardless of checkpoint quantization — the
   process exits after one item, so no reload is ever paid and bf16
   checkpoints lose nothing (the first cut had silently dropped that release

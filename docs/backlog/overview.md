@@ -12,7 +12,7 @@ outside chat history.
 | State | Count |
 | --- | ---: |
 | Planned | 14 |
-| Proposed | 20 |
+| Proposed | 23 |
 | Completed | 56 |
 | Deprecated | 1 |
 | Recurrent | 1 |
@@ -21,6 +21,8 @@ Counts are item files (recounted 2026-07-23), including topic-track items under
 `planned/memory/`; the completed `planned/runtime_contracts/` track holds only its index.
 Items 0086-0090 came from a 2026-07-22 adversarial performance audit of the
 BlackPixel embedding host traced end-to-end against the 0.23.1 release.
+Items 0093-0095 came from the 2026-07-23 follow-up audit of image-to-image
+latency in the same host (BlackPixel backlog 0069 holds the full record).
 
 ## Completed runtime contract hardening band
 
@@ -389,6 +391,9 @@ memory follow-up state.
 | 0089 | [Wan memory defaults: streamed decode, per-item transformer release](proposed/0089_wan_memory_defaults.md) | Video, memory, defaults | Promote when A14B batch usage is real or a smaller-RAM user reports pressure; needs the AGENTS.md whole-process RSS harness. |
 | 0090 | [Step-loop performance experiments (batched CFG, Wan compile, step caching)](proposed/0090_step_loop_performance_experiments.md) | Performance, step loop, quality gates | Promote per-experiment once a reproducible benchmark harness exists and quality-mode workloads are demonstrated. |
 | 0092 | [Rename the Python module from `mflux` to `mlxgen`](proposed/0092_mflux_to_mlxgen_module_rename.md) | Packaging, public API naming, embedding hosts | Promote when a release window can absorb the breaking import path (with shim), an ADR fixes the deprecation policy, and the 0.25-track wave has shipped. |
+| 0093 | [Sequential weight prefetch at model load](proposed/0093_weight_prefetch_at_load.md) | Cold-start latency, weight loading, embedding hosts | Promote when a bounded prototype shows the predicted page-cold win (~100 s at q8, more at bf16) on one q8 and one bf16 family without warm/low-RAM regressions. |
+| 0094 | [Default MLX buffer-cache limit for Python API and CLI](proposed/0094_default_mlx_cache_limit.md) | Memory defaults, embedding hosts, system health | Promote when a benchmark shows same-shape repeats are not slowed by a machine-size-derived cap and the documented default satisfies ADR 0002. |
+| 0095 | [Wire flux2 prompt_cache + compiled-predict reuse](proposed/0095_flux2_prompt_cache_and_compile_reuse.md) | Fixed per-call costs, flux2, resident hosts | Promote the cache wiring opportunistically with any flux2 touch; promote compile reuse only with a 0090-harness measurement. |
 ## Completed ledger
 
 | ID | Item | Area | Completed | Outcome |
@@ -561,6 +566,18 @@ memory follow-up state.
 - Added 2026-06-12 post-0.18.17 hygiene: the release succeeded, LightX2V/Wan proof assets and
   public LoRA docs were refreshed, and planned item 0042 now tracks the GitHub Actions Node 20
   deprecation warning observed in release run `27440684820` before the Node 24 default switch.
+- Added 2026-07-23 i2i latency audit follow-ups (items 0093-0095) after the
+  three-agent BlackPixel image-to-image audit reconciled the owner's
+  minutes-per-image report: the flux2 path itself was healthy (no Wan-style
+  per-prompt TE reload; the Klein Qwen3 TE loads once and stays resident),
+  but page-cold lazy-mmap fault-in cost ~100 s of a 165 s cold q8 run
+  (0093), the MLX buffer cache grew unbounded to 32.9 GB in two Python-API
+  generations (0094), and flux2's prompt_cache is written but never read
+  while 4-seed host clicks re-encode the same prompt 4x (0095). Measured
+  verification: 54.1 s/step at the owner's real 944x1680 edit geometry with
+  two rank-64 LoRAs (q8, idle machine), vs the 10.5 s/step 1024x768 no-LoRA
+  baseline — LoRA wrappers add runtime matmuls per step (not load-time
+  fusion), bounded 1.4-2.3x pending a clean isolation run.
 - Completed 2026-06-12 GitHub Actions Node 24 migration: PR `#4` upgraded the affected actions,
   release rehearsal `27443742691` passed without the earlier Node 20 deprecation warnings, and PR
   CI run `27443720109` exposed only pre-existing repository lint drift unrelated to the migration.
