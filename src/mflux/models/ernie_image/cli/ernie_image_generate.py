@@ -16,6 +16,7 @@ def _parser() -> CommandLineParser:
     parser.add_model_arguments(require_model_arg=False)
     parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
     parser.add_image_to_image_arguments(required=False)
+    parser.add_resize_mode_argument()
     parser.add_lora_arguments()
     parser.add_argument(
         "--use-prompt-enhancer",
@@ -109,6 +110,7 @@ def main():
                     pe_top_p=args.prompt_enhancer_top_p,
                     pe_max_new_tokens=args.prompt_enhancer_max_new_tokens,
                     canvas_policy=args.canvas_policy,
+                    resize_mode=args.resize_mode,
                     lora_paths=getattr(model, "lora_paths", None),
                     lora_scales=getattr(model, "lora_scales", None),
                     extra_metadata=LoRALoader.extra_metadata_for_model(model),

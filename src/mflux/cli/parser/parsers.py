@@ -14,7 +14,12 @@ from mflux.models.common.lora.mapping.lora_loader import LoRALoader
 from mflux.models.common.resolution.lora_resolution import LoraResolution
 from mflux.models.flux.variants.in_context.utils.in_context_loras import LORA_NAME_MAP
 from mflux.utils import box_values, scale_factor
-from mflux.utils.dimension_resolver import CANVAS_POLICY_CHOICES, CANVAS_POLICY_SOURCE_ASPECT
+from mflux.utils.dimension_resolver import (
+    CANVAS_POLICY_CHOICES,
+    CANVAS_POLICY_SOURCE_ASPECT,
+    RESIZE_MODE_CHOICES,
+    RESIZE_MODE_RESIZE,
+)
 from mflux.utils.exceptions import ModelConfigError
 
 
@@ -222,6 +227,12 @@ class CommandLineParser(argparse.ArgumentParser):
         self.add_argument("--steps", type=int, default=None, help="Inference Steps")
         self.add_argument("--guidance", type=float, default=None, help=f"Guidance Scale (Default varies by tool: {ui_defaults.GUIDANCE_SCALE} for most, {ui_defaults.DEFAULT_DEV_FILL_GUIDANCE} for fill tools, {ui_defaults.DEFAULT_DEPTH_GUIDANCE} for depth)")
         self.add_argument("--canvas-policy", choices=CANVAS_POLICY_CHOICES, default=CANVAS_POLICY_SOURCE_ASPECT, help="For ordinary image-to-image, resolve the output canvas from the source aspect ratio by default. Use exact-resize only when intentionally resizing/recomposing the source into the exact requested width and height.")
+
+    def add_resize_mode_argument(self) -> None:
+        # Deliberately NOT in the common image-generator group: routes whose source/mask
+        # geometry is reference-pinned (edit/reference, controlnet, outpaint) never define
+        # the flag, so argparse rejects --resize-mode there loudly instead of ignoring it.
+        self.add_argument("--resize-mode", choices=RESIZE_MODE_CHOICES, default=RESIZE_MODE_RESIZE, help="How source pixels map onto the output canvas (orthogonal to --canvas-policy): resize stretches to fill (default), crop center-crops to fill without distortion, pad letterboxes the full source onto the canvas without distortion.")
 
     def add_image_generator_arguments(self, supports_metadata_config=False, require_prompt=True, supports_dimension_scale_factor=False) -> None:
         prompt_group = self.add_mutually_exclusive_group(required=(require_prompt and not supports_metadata_config))
@@ -453,6 +464,19 @@ class CommandLineParser(argparse.ArgumentParser):
                         namespace.image_strength = image_strength_value(str(img_strength_from_metadata))
                     except argparse.ArgumentTypeError as exc:
                         self.error(f"Invalid image_strength in metadata: {exc}")
+
+            # Canvas/mapping contract replay (cycle-3 review): metadata records
+            # canvas_policy and resize_mode, and a faithful -C replay must reproduce
+            # the same geometry (crop vs resize produces different pixels). Only
+            # parsers that define the flags participate; explicit args still win.
+            for canvas_field in ("canvas_policy", "resize_mode"):
+                value_from_metadata = prior_gen_metadata.get(canvas_field)
+                if (
+                    hasattr(namespace, canvas_field)
+                    and value_from_metadata is not None
+                    and getattr(namespace, canvas_field) == self.get_default(canvas_field)
+                ):
+                    setattr(namespace, canvas_field, value_from_metadata)
 
             if self.supports_controlnet:
                 if namespace.controlnet_image_path is None:

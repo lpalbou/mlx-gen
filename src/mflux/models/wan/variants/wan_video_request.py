@@ -3,6 +3,8 @@ from pathlib import Path
 
 import mlx.core as mx
 
+from mflux.utils.dimension_resolver import DimensionResolver
+
 
 # eq=False: fields include an mx.array and a dict, so generated equality/hash would raise.
 @dataclass(frozen=True, eq=False)
@@ -24,6 +26,8 @@ class WanVideoRequest:
     video_mask: mx.array | None
     health_check_interval: int | None
     batch_size: int
+    canvas_policy: str | None = None
+    resize_mode: str = "resize"
 
     # Executes the generate_video validation/resolution head in its original order, through the
     # model's helpers so existing instance monkeypatches keep working. Must be called at the top
@@ -46,6 +50,8 @@ class WanVideoRequest:
         solver: str | None,
         negative_prompt: str | None,
         tensor_health_check_interval: int | None,
+        canvas_policy: str | None = None,
+        resize_mode: str = "resize",
     ) -> "WanVideoRequest":
         health_check_interval = model._validate_tensor_health_check_interval(tensor_health_check_interval)
         if (
@@ -63,12 +69,18 @@ class WanVideoRequest:
             raise ValueError(f"{model.model_config.model_name} does not support image-to-video input.")
         if video_path is not None and not model._supports_video_to_video():
             raise ValueError(f"{model.model_config.model_name} does not support video-to-video input.")
+        # Validate the mapping mode up front, before any model work.
+        resize_mode = DimensionResolver.normalize_resize_mode(resize_mode)
+        resolved_canvas_policy = (
+            DimensionResolver.normalize_canvas_policy(canvas_policy) if (image_path or video_path) else None
+        )
         model._validate_denoisers_available()
         height, width, spatial_metadata = model._resolve_video_spatial_size(
             height=height,
             width=width,
             image_path=image_path,
             video_path=video_path,
+            canvas_policy=canvas_policy,
         )
         num_frames = model._validated_frame_count(num_frames)
         if video_strength is not None and not is_video_to_video:
@@ -77,7 +89,7 @@ class WanVideoRequest:
             raise ValueError("video_mask_path requires video_path.")
         video_strength = model._resolve_video_strength(video_strength) if is_video_to_video else None
         video_mask = (
-            model._prepare_video_mask(video_mask_path, height=height, width=width)
+            model._prepare_video_mask(video_mask_path, height=height, width=width, resize_mode=resize_mode)
             if video_mask_path is not None
             else None
         )
@@ -105,4 +117,6 @@ class WanVideoRequest:
             video_mask=video_mask,
             health_check_interval=health_check_interval,
             batch_size=1,
+            canvas_policy=resolved_canvas_policy,
+            resize_mode=resize_mode,
         )

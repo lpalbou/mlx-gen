@@ -70,6 +70,28 @@ probe, not from a full-quality run in this change.
 Experiments 1 (batched CFG, review d11) and 3 (step caching, review d14) stay
 deferred; their rationale above is unchanged.
 
+## Implementation record (2026-07-23): RoPE per-shape cache (review item F7)
+
+`WanRotaryPosEmbed.__call__` rebuilt the rotary embeds on every forward (~33 ms
+at A14B-121f token counts, ~11 ms TI2V, x2 with CFG) although the token grid is
+constant within a run. The embeds now cache per `(frames, height, width)` token
+grid on the embed instance in `_freqs_cache` (underscore prefix keeps the dict
+out of nn.Module parameter/quantization traversal, pinned via `tree_flatten`).
+Entries are `mx.eval`-materialized so hits return ready tensors; MLX arrays are
+immutable and consumers only slice (`wan_attention` `0::2`/`1::2`), so sharing
+is seed-safe. Cached-vs-fresh embeds are bitwise identical (test-pinned), and a
+compiled-fn probe confirmed eager/compiled parity across shape changes (the
+cache populates at trace time; replays never re-enter Python).
+
+Memory accounting (cycle-3 adversarial review): one grid pair is ~114 MB f32 at
+A14B 121f@1280x720 (111,600 tokens x 128 dims x cos+sin), and A14B holds one
+embed instance PER expert, so the per-run working set is ~229 MB that was
+previously transient. The eviction bound was reduced from 4 to 2 grids in that
+review: one run uses one grid, two cover alternating host presets, and a third
+resolution merely recomputes (~33 ms), so idle retention stays ~457 MB worst
+case across both experts instead of ~914 MB. Eviction is FIFO by insertion
+(hits do not refresh) - adequate at this size and access pattern.
+
 ## Why it might matter
 
 The quality-mode (non-Lightning) paths are where users still wait minutes; these are

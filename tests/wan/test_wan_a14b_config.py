@@ -1818,7 +1818,13 @@ def test_wan_generate_i2v_uses_resolved_source_ratio_size_for_a14b_condition(mon
         image_path="input.png",
     )
 
-    assert observed["resolve"] == {"height": 288, "width": 512, "image_path": "input.png", "video_path": None}
+    assert observed["resolve"] == {
+        "height": 288,
+        "width": 512,
+        "image_path": "input.png",
+        "video_path": None,
+        "canvas_policy": None,
+    }
     assert observed["prepare"]["height"] == 336
     assert observed["prepare"]["width"] == 448
     assert observed["condition"]["height"] == 336
@@ -1879,7 +1885,13 @@ def test_wan_generate_i2v_uses_resolved_source_ratio_size_for_ti2v_condition(mon
         image_path="input.png",
     )
 
-    assert observed["resolve"] == {"height": 240, "width": 432, "image_path": "input.png", "video_path": None}
+    assert observed["resolve"] == {
+        "height": 240,
+        "width": 432,
+        "image_path": "input.png",
+        "video_path": None,
+        "canvas_policy": None,
+    }
     assert observed["prepare"]["height"] == 288
     assert observed["prepare"]["width"] == 384
     assert observed["condition"]["height"] == 288

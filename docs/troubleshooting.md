@@ -139,7 +139,9 @@ the generated metadata for `canvas_policy`, `requested_width`, `requested_height
 `source_image_width`, `source_image_height`, and final `width`/`height`.
 
 Use `--canvas-policy exact-resize` only when you intentionally want the exact requested canvas and
-accept that the model may reshape or recompose the source.
+accept that the model may reshape or recompose the source. When the exact canvas has a different
+aspect ratio than the source, add `--resize-mode crop` (center-crop) or `--resize-mode pad`
+(letterbox) to map the source onto it without distortion; the default `resize` stretches to fill.
 
 ## Wan Video Quality Looks Weak At Tiny Sizes
 

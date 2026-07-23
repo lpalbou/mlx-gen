@@ -12,12 +12,12 @@ outside chat history.
 | State | Count |
 | --- | ---: |
 | Planned | 17 |
-| Proposed | 19 |
+| Proposed | 20 |
 | Completed | 53 |
 | Deprecated | 1 |
 | Recurrent | 1 |
 
-Counts are item files (recounted 2026-07-22), including topic-track items under
+Counts are item files (recounted 2026-07-23), including topic-track items under
 `planned/memory/`; the completed `planned/runtime_contracts/` track holds only its index.
 Items 0086-0090 came from a 2026-07-22 adversarial performance audit of the
 BlackPixel embedding host traced end-to-end against the 0.23.1 release.
@@ -391,6 +391,7 @@ memory follow-up state.
 | 0088 | [Import-graph diet for cold CLI dispatch](proposed/0088_import_graph_diet.md) | Startup latency, packaging, embedding hosts | Promote when an embedding host measurably depends on cold-dispatch latency; capability probes keep paying today. |
 | 0089 | [Wan memory defaults: streamed decode, per-item transformer release](proposed/0089_wan_memory_defaults.md) | Video, memory, defaults | Promote when A14B batch usage is real or a smaller-RAM user reports pressure; needs the AGENTS.md whole-process RSS harness. |
 | 0090 | [Step-loop performance experiments (batched CFG, Wan compile, step caching)](proposed/0090_step_loop_performance_experiments.md) | Performance, step loop, quality gates | Promote per-experiment once a reproducible benchmark harness exists and quality-mode workloads are demonstrated. |
+| 0092 | [Rename the Python module from `mflux` to `mlxgen`](proposed/0092_mflux_to_mlxgen_module_rename.md) | Packaging, public API naming, embedding hosts | Promote when a release window can absorb the breaking import path (with shim), an ADR fixes the deprecation policy, and the 0.25-track wave has shipped. |
 ## Completed ledger
 
 | ID | Item | Area | Completed | Outcome |

@@ -376,10 +376,14 @@ def test_model_capabilities_are_publicly_inspectable():
     latent = next(capability for capability in capabilities.capabilities if capability.mode == MODE_LATENT_IMG2IMG)
     assert latent.default_canvas_policy == CANVAS_POLICY_SOURCE_ASPECT
     assert latent.canvas_policies == (CANVAS_POLICY_SOURCE_ASPECT, CANVAS_POLICY_EXACT_RESIZE)
+    # Latent i2i honors --resize-mode; reference-pinned edit routes advertise none.
+    assert latent.resize_modes == ("resize", "crop", "pad")
     assert latent.primary_image_index == 0
     assert latent.dimension_multiple == 16
     edit = next(capability for capability in capabilities.capabilities if capability.id == "flux2.edit")
     reframe = next(capability for capability in capabilities.capabilities if capability.id == "flux2.reframe")
+    assert edit.resize_modes == ()
+    assert reframe.resize_modes == ()
     assert edit.supports_outpaint is False
     assert edit.supports_reframe is False
     assert edit.supports_lora is True
@@ -604,6 +608,15 @@ def test_base_qwen_route_validation_statuses_are_split_cleanly():
     assert base_control.lora_validation_profile == "lora_qwen_q8_control_lightning_2026_06_15"
     assert base_control_inpaint.lora_status == "validated"
     assert base_control_inpaint.lora_validation_profile == "lora_qwen_q8_control_inpaint_lightning_2026_06_21"
+    # Mapping-mode truthfulness: latent i2i honors --resize-mode; the control-inpaint
+    # sidecar keeps reference-pinned resize geometry (the CLI rejects the flag there).
+    assert base_latent.resize_modes == ("resize", "crop", "pad")
+    assert base_control.resize_modes == ()
+    assert base_control_inpaint.resize_modes == ()
+
+    native_qwen = mlxgen.get_model_capabilities(model="qwen-image")
+    native_inpaint = next(capability for capability in native_qwen.capabilities if capability.id == "qwen.base-inpaint")
+    assert native_inpaint.resize_modes == ("resize", "crop", "pad")
 
 
 def test_zimage_q8_text_lora_status_is_exact():
@@ -696,6 +709,25 @@ def test_wan_i2v_capability_surfaces_lora_support_and_roles():
     assert first_frame.supports_lora is True
     assert first_frame.lora_status == "mapped-unvalidated"
     assert first_frame.lora_target_roles == ("high_noise_transformer", "low_noise_transformer")
+
+
+def test_wan_capabilities_advertise_canvas_policy_and_resize_mode_contract():
+    # The i2v/v2v canvas+mapping contract added with --canvas-policy/--resize-mode
+    # must be host-inspectable: i2v defaults to a source-ratio canvas, v2v to the
+    # exact validated canvas, and text-to-video takes neither knob.
+    i2v = mlxgen.get_model_capabilities(model="wan2.2-i2v-a14b")
+    first_frame = next(capability for capability in i2v.capabilities if capability.id == "wan.first-frame")
+    assert first_frame.canvas_policies == ("source-aspect", "exact-resize")
+    assert first_frame.default_canvas_policy == "source-aspect"
+    assert first_frame.resize_modes == ("resize", "crop", "pad")
+
+    t2v = mlxgen.get_model_capabilities(model="wan2.2-t2v-a14b")
+    by_id = {capability.id: capability for capability in t2v.capabilities}
+    assert by_id["wan.video-video"].canvas_policies == ("exact-resize", "source-aspect")
+    assert by_id["wan.video-video"].default_canvas_policy == "exact-resize"
+    assert by_id["wan.video-video"].resize_modes == ("resize", "crop", "pad")
+    assert by_id["wan.text-video"].canvas_policies == ()
+    assert by_id["wan.text-video"].resize_modes == ()
 
 
 def test_wan_ti2v_q8_text_video_lora_status_is_exact():

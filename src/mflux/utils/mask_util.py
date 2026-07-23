@@ -16,14 +16,60 @@ class MaskUtil:
         target_height: int,
         resampling: Image.Resampling,
         alpha_warning_context: str | None = None,
+        resize_mode: str = "resize",
     ) -> np.ndarray:
         with Image.open(mask_path) as image:
             if alpha_warning_context is not None and "A" in image.getbands():
                 print(f"⚠️  {alpha_warning_context} has an alpha channel; alpha is ignored and luminance is used.")
-            mask_image = image.convert("L").resize((target_width, target_height), resampling)
+            mask_image = MaskUtil.map_mask_to_canvas(
+                image.convert("L"),
+                target_width=target_width,
+                target_height=target_height,
+                resampling=resampling,
+                resize_mode=resize_mode,
+            )
         mask_values = np.asarray(mask_image, dtype=np.float32) / 255.0
         # White (>= 0.5) marks the editable region; black is preserved.
         return (mask_values >= 0.5).astype(np.float32)
+
+    @staticmethod
+    def map_mask_to_canvas(
+        mask_image: Image.Image,
+        *,
+        target_width: int,
+        target_height: int,
+        resampling: Image.Resampling,
+        resize_mode: str = "resize",
+    ) -> Image.Image:
+        # Masks are authored against the SOURCE content, so they must undergo the
+        # exact source-to-canvas mapping the pixels get (same crop centering, same
+        # letterbox math) or inpaint/vace alignment breaks. Padded borders are 0
+        # (preserved): synthetic bars must never become a silent outpaint claim.
+        if resize_mode == "resize":
+            return mask_image.resize((target_width, target_height), resampling)
+        if resize_mode == "crop":
+            from PIL import ImageOps
+
+            return ImageOps.fit(
+                mask_image,
+                (target_width, target_height),
+                method=resampling,
+                centering=(0.5, 0.5),
+            )
+        if resize_mode == "pad":
+            from mflux.utils.image_util import ImageUtil
+
+            scaled_width, scaled_height, left, top = ImageUtil.letterbox_geometry(
+                source_width=mask_image.width,
+                source_height=mask_image.height,
+                target_width=target_width,
+                target_height=target_height,
+            )
+            resized = mask_image.resize((scaled_width, scaled_height), resampling)
+            canvas = Image.new("L", (target_width, target_height), 0)
+            canvas.paste(resized, (left, top))
+            return canvas
+        raise ValueError("resize_mode must be 'resize', 'crop' or 'pad'.")
 
     @staticmethod
     def interpolate_bilinear(values: np.ndarray, *, target_height: int, target_width: int) -> np.ndarray:

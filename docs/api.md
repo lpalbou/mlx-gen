@@ -151,7 +151,11 @@ machine-readable runtime stream. In that mode, JSONL events are written to `stdo
 text moves to `stderr`.
 
 Each event includes the authoritative routed command/model identity plus step-based progress
-fields. Terminal events also include saved-artifact paths, and failure events include
+fields. Events carry resolved output facts when the route knows them: Wan `start` events include
+the resolved `width`/`height` (final canvas after policy/multiple resolution), and video `save`
+events add `fps`, `width`, `height`, and `total_frames` so hosts can skip a metadata probe decode.
+Unknown fields may be added over time; consumers should ignore fields they do not recognize.
+Terminal events also include saved-artifact paths, and failure events include
 `diagnostics_path` when the route writes a failure manifest. When MLX-Gen can provide actionable
 next steps, failed events also include a nested `remediation` object. `DownloadRequiredError`
 emits `kind=download-required` with `download_command` and optional `prepare_command`; CLI usage
@@ -371,6 +375,16 @@ Use `--canvas-policy exact-resize` only when you intentionally want the requeste
 exactly. Exact resize can reshape or recompose the source and is not a substitute for outpainting.
 Generated image metadata records `canvas_policy`, requested dimensions, source-image dimensions,
 and final `width`/`height` when an image input is used.
+
+`--resize-mode` is orthogonal to `--canvas-policy`: the policy picks the output canvas, the mode
+picks how source pixels map onto it. `resize` stretches the source to fill the canvas (default),
+`crop` center-crops it to fill without distortion, and `pad` letterboxes the full source onto the
+canvas without distortion (black bars). The flag exists on the latent image-to-image family
+commands (Qwen including native masked edit, FLUX.2 Klein, Z-Image including native inpaint,
+ERNIE, FIBO, FLUX.1) and on the Wan video route; edit/reference, controlnet, and outpaint routes
+keep reference-pinned resize geometry and reject the flag loudly. Masks (inpaint and video masks)
+always map through the same geometry as the source pixels; letterbox borders binarize to
+"preserved". Metadata records `resize_mode` next to `canvas_policy`.
 
 For instruction/reference image-to-image, pass one or more input images to an edit-capable model:
 
@@ -655,7 +669,9 @@ At the default 24 fps, `--frames 121` produces about 5.04 seconds of video, `--f
 
 | Option | Behavior |
 | --- | --- |
-| `--width`, `--height` | Accepted values are model-specific. Text-to-video and video-to-video values are adjusted up to the selected Wan VAE/patch multiple. For image-to-video, these values are a size target: MLX-Gen resolves the final canvas from the source image aspect ratio and the selected model's spatial multiple before conditioning the model. |
+| `--width`, `--height` | Accepted values are model-specific. Text-to-video and video-to-video values are adjusted up to the selected Wan VAE/patch multiple. For image-to-video, these values are a size target by default: MLX-Gen resolves the final canvas from the source image aspect ratio and the selected model's spatial multiple before conditioning the model (see `--canvas-policy`). |
+| `--canvas-policy` | How the output canvas is resolved from a source input. Default keeps each route's behavior: image-to-video resolves a source-ratio canvas near the requested size; text/video-to-video honor the requested (multiple-adjusted) canvas. `exact-resize` honors the requested canvas on image-to-video, with the source mapped per `--resize-mode`; `source-aspect` on video-to-video derives a source-ratio canvas from the clip. Recorded in metadata and replayed by `--config-from-metadata`. With `--json-events`, the `start` event carries the resolved `width`/`height`. |
+| `--resize-mode` | How source pixels (image-to-video first frame, video-to-video frames, VACE conditioning, and their masks) map onto the canvas: `resize` stretches to fill (default), `crop` center-crops without distortion, `pad` letterboxes the full source without distortion (black bars). Masks always follow the same geometry as the source pixels; letterboxed borders are preserved regions. Recorded in metadata and replayed by `--config-from-metadata`. |
 | `--frames` | Number of output frames. Wan requires `4n + 1`; other values are adjusted to `4 * floor(frames / 4) + 1`. TI2V-5B default: `121`; A14B default: `81`. |
 | `--fps` | MP4 playback frame rate. Any positive integer is accepted. TI2V-5B default/recommended value: `24`; A14B default/recommended value: `16`. |
 | `--steps` | Denoising steps. TI2V-5B default/recommended quality value: `50`; A14B default/recommended value: `40`. Lower values run faster but reduce quality. |

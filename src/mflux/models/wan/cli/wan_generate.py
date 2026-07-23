@@ -20,6 +20,7 @@ from mflux.cli.seed_values import resolve_seed_values
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.lora.mapping.lora_loader import LoRALoader
 from mflux.models.wan.variants import Wan2_2_TI2V, WanVace
+from mflux.utils.dimension_resolver import CANVAS_POLICY_CHOICES, RESIZE_MODE_CHOICES, RESIZE_MODE_RESIZE
 from mflux.utils.exceptions import ModelConfigError, PromptFileReadError
 from mflux.utils.prompt_util import PromptUtil
 from mflux.utils.runtime_memory import RuntimeMemory
@@ -106,6 +107,8 @@ def main() -> None:
                     video_path=args.video_path,
                     video_strength=args.video_strength,
                     video_mask_path=args.video_mask_path,
+                    canvas_policy=args.canvas_policy,
+                    resize_mode=args.resize_mode,
                     max_sequence_length=args.max_sequence_length,
                     progress_callback=events.handle_progress
                     if events.enabled
@@ -225,6 +228,27 @@ def _parser() -> argparse.ArgumentParser:
         help=(
             "Video height. For text-to-video and video-to-video, adjusted up to a model-specific patch multiple. "
             "For image-to-video, used as a size target while preserving the input image aspect ratio."
+        ),
+    )
+    parser.add_argument(
+        "--canvas-policy",
+        choices=CANVAS_POLICY_CHOICES,
+        default=None,
+        help=(
+            "How the output canvas is resolved from a source input. Default keeps each route's behavior: "
+            "image-to-video resolves a source-ratio canvas near the requested size; text/video-to-video honor "
+            "the requested (multiple-adjusted) canvas. Pass exact-resize to honor the requested canvas on "
+            "image-to-video, or source-aspect to derive a source-ratio canvas on video-to-video."
+        ),
+    )
+    parser.add_argument(
+        "--resize-mode",
+        choices=RESIZE_MODE_CHOICES,
+        default=RESIZE_MODE_RESIZE,
+        help=(
+            "How source pixels (image-to-video first frame, video-to-video frames, and their masks) map onto "
+            "the canvas: resize stretches to fill (default), crop center-crops without distortion, pad "
+            "letterboxes the full source onto the canvas without distortion (black bars)."
         ),
     )
     parser.add_argument(
@@ -487,7 +511,19 @@ def _apply_metadata_defaults(args: argparse.Namespace) -> set[str]:
     if args.lora_target_roles is None and metadata.get("lora_target_roles") is not None:
         args.lora_target_roles = metadata.get("lora_target_roles")
         provided_options.add("--lora-target-roles")
-    for name in ("width", "height", "frames", "fps", "steps", "guidance", "guidance_2", "flow_shift", "solver"):
+    for name in (
+        "width",
+        "height",
+        "frames",
+        "fps",
+        "steps",
+        "guidance",
+        "guidance_2",
+        "flow_shift",
+        "solver",
+        "canvas_policy",
+        "resize_mode",
+    ):
         value = metadata.get(name)
         if value is not None and getattr(args, name) == _parser().get_default(name):
             setattr(args, name, value)
@@ -801,6 +837,8 @@ def _write_failure_manifest(
             "vace_masked_region": args.vace_masked_region,
             "width": args.width,
             "height": args.height,
+            "canvas_policy": args.canvas_policy,
+            "resize_mode": args.resize_mode,
             "frames": args.frames,
             "steps": args.steps,
             "guidance": args.guidance,

@@ -67,6 +67,7 @@ class ErnieImageTurbo(nn.Module):
         pe_top_p: float = 0.95,
         pe_max_new_tokens: int | None = None,
         canvas_policy: str = CANVAS_POLICY_SOURCE_ASPECT,
+        resize_mode: str = "resize",
         lora_paths: list[str] | None = None,
         lora_scales: list[float] | None = None,
         extra_metadata: dict | None = None,
@@ -99,6 +100,7 @@ class ErnieImageTurbo(nn.Module):
             model_config=self.model_config,
             num_inference_steps=num_inference_steps,
             canvas_policy=canvas_policy,
+            resize_mode=resize_mode,
             preserve_image_aspect_ratio=image_path is not None and canvas_policy == CANVAS_POLICY_SOURCE_ASPECT,
         )
 
@@ -258,6 +260,7 @@ class ErnieImageTurbo(nn.Module):
             height=config.height,
             width=config.width,
             tiling_config=self.tiling_config,
+            resize_mode=config.resize_mode,
         )
         encoded = self._ensure_4d_latents(encoded)
         encoded = self._crop_to_even_spatial(encoded)

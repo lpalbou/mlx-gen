@@ -42,6 +42,8 @@ class GeneratedVideo:
         source_height: int | None = None,
         requested_width: int | None = None,
         requested_height: int | None = None,
+        canvas_policy: str | None = None,
+        resize_mode: str | None = None,
         lora_paths: list[str] | None = None,
         lora_scales: list[float] | None = None,
         extra_metadata: dict | None = None,
@@ -79,6 +81,8 @@ class GeneratedVideo:
         self.source_height = source_height
         self.requested_width = requested_width
         self.requested_height = requested_height
+        self.canvas_policy = canvas_policy
+        self.resize_mode = resize_mode
         self.lora_paths = lora_paths
         self.lora_scales = lora_scales
         self.extra_metadata = extra_metadata
@@ -175,6 +179,8 @@ class GeneratedVideo:
             source_height=self.source_height,
             requested_width=self.requested_width,
             requested_height=self.requested_height,
+            canvas_policy=self.canvas_policy,
+            resize_mode=self.resize_mode,
             lora_paths=self.lora_paths,
             lora_scales=self.lora_scales,
             extra_metadata=self.extra_metadata,
@@ -206,6 +212,8 @@ class GeneratedVideo:
         source_height: int | None = None,
         requested_width: int | None = None,
         requested_height: int | None = None,
+        canvas_policy: str | None = None,
+        resize_mode: str | None = None,
         lora_paths: list[str] | None = None,
         lora_scales: list[float] | None = None,
         extra_metadata: dict | None = None,
@@ -226,6 +234,10 @@ class GeneratedVideo:
             "width": width,
             "requested_height": requested_height,
             "requested_width": requested_width,
+            # Canvas/mapping contract, recorded only when a source drove the geometry
+            # (image_path for i2v, video_path for v2v); mirrors the image metadata keys.
+            "canvas_policy": canvas_policy if (image_path or video_path) else None,
+            "resize_mode": resize_mode if (image_path or video_path) else None,
             "source_image_height": source_height,
             "source_image_width": source_width,
             "frames": frame_count,

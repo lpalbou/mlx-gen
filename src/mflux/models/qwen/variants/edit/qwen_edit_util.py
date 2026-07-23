@@ -65,6 +65,7 @@ class QwenEditUtil:
         height: int,
         width: int,
         num_channels_latents: int = 16,
+        resize_mode: str = "resize",
     ) -> mx.array:
         latent_width = width // 8
         latent_height = height // 8
@@ -74,6 +75,7 @@ class QwenEditUtil:
             target_height=latent_height,
             resampling=Image.Resampling.NEAREST,
             alpha_warning_context="Qwen inpaint mask",
+            resize_mode=resize_mode,
         )
         mask = mx.array(mask_values)[None, None, :, :]
         mask = mx.repeat(mask, repeats=num_channels_latents, axis=1)

@@ -64,6 +64,7 @@ class ZImage(nn.Module):
         scheduler: str | None = None,
         negative_prompt: str | None = None,
         canvas_policy: str = CANVAS_POLICY_SOURCE_ASPECT,
+        resize_mode: str = "resize",
     ) -> Image.Image:
         timer = RuntimeTimer()
         if mask_path is not None and image_path is None:
@@ -93,6 +94,7 @@ class ZImage(nn.Module):
             model_config=self.model_config,
             num_inference_steps=num_inference_steps,
             canvas_policy=canvas_policy,
+            resize_mode=resize_mode,
             preserve_image_aspect_ratio=image_path is not None and canvas_policy == CANVAS_POLICY_SOURCE_ASPECT,
         )
         # 1. Create the initial latents
@@ -105,6 +107,7 @@ class ZImage(nn.Module):
                 height=config.height,
                 width=config.width,
                 initial_noise=latents,
+                resize_mode=config.resize_mode,
             )
         else:
             latents = LatentCreator.create_for_txt2img_or_img2img(
@@ -119,6 +122,7 @@ class ZImage(nn.Module):
                     init_time_step=config.init_time_step,
                     image_strength=config.image_strength,
                     tiling_config=self.tiling_config,
+                    resize_mode=config.resize_mode,
                 ),
             )
         text_encodings, negative_encodings = self._encode_prompts(
@@ -276,10 +280,12 @@ class ZImage(nn.Module):
         height: int,
         width: int,
         initial_noise: mx.array,
+        resize_mode: str = "resize",
     ) -> dict[str, mx.array]:
         if image_path is None:
             raise ValueError("image_path is required for native Z-Image inpaint.")
-        cache_key = (self._path_signature(image_path), self._path_signature(mask_path), height, width)
+        # resize_mode changes the encoded/mask tensors, so it must be part of the identity.
+        cache_key = (self._path_signature(image_path), self._path_signature(mask_path), height, width, resize_mode)
         cached = self.inpaint_condition_cache.get(cache_key)
         if cached is not None:
             return {
@@ -293,10 +299,14 @@ class ZImage(nn.Module):
             height=height,
             width=width,
             tiling_config=self.tiling_config,
+            resize_mode=resize_mode,
         )
         image_latents = mx.stop_gradient(ZImageLatentCreator.pack_latents(encoded, height, width))
+        # The mask maps through the SAME source-to-canvas geometry as the image.
         mask_latents = mx.stop_gradient(
-            self._create_inpaint_mask_latents(mask_path=mask_path, height=height, width=width)
+            self._create_inpaint_mask_latents(
+                mask_path=mask_path, height=height, width=width, resize_mode=resize_mode
+            )
         )
         detached_noise = mx.stop_gradient(initial_noise)
         mx.eval(image_latents, mask_latents, detached_noise)
@@ -325,6 +335,7 @@ class ZImage(nn.Module):
         mask_path: Path | str,
         height: int,
         width: int,
+        resize_mode: str = "resize",
     ) -> mx.array:
         latent_width = width // 8
         latent_height = height // 8
@@ -334,6 +345,7 @@ class ZImage(nn.Module):
             target_height=latent_height,
             resampling=Image.Resampling.NEAREST,
             alpha_warning_context="Z-Image inpaint mask",
+            resize_mode=resize_mode,
         )
         return mx.array(mask_values)[None, None, :, :]
 

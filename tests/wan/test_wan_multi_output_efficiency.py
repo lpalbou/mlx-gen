@@ -181,8 +181,8 @@ def test_wan_first_frame_condition_cache_reuses_same_source(monkeypatch, tmp_pat
     Image.new("RGB", (4, 4), color="white").save(image_path)
     expected = mx.array([1.0], dtype=mx.float32)
 
-    def fake_load(self, *, image_path, height, width):
-        observed.append((str(image_path), height, width))
+    def fake_load(self, *, image_path, height, width, resize_mode="resize"):
+        observed.append((str(image_path), height, width, resize_mode))
         return expected
 
     monkeypatch.setattr(Wan2_2_TI2V, "_load_first_frame_condition", fake_load)
@@ -190,7 +190,7 @@ def test_wan_first_frame_condition_cache_reuses_same_source(monkeypatch, tmp_pat
     first = model._encode_first_frame_condition(image_path=image_path, height=64, width=96)
     second = model._encode_first_frame_condition(image_path=image_path, height=64, width=96)
 
-    assert observed == [(str(image_path), 64, 96)]
+    assert observed == [(str(image_path), 64, 96, "resize")]
     np.testing.assert_array_equal(np.array(first), np.array(second))
 
 
@@ -202,8 +202,8 @@ def test_wan_video_condition_cache_reuses_same_source(monkeypatch, tmp_path):
     Image.new("RGB", (4, 4), color="white").save(image_path)
     expected = mx.array([2.0], dtype=mx.float32)
 
-    def fake_load(self, *, image_path, height, width, num_frames, batch_size):
-        observed.append((str(image_path), height, width, num_frames, batch_size))
+    def fake_load(self, *, image_path, height, width, num_frames, batch_size, resize_mode="resize"):
+        observed.append((str(image_path), height, width, num_frames, batch_size, resize_mode))
         return expected
 
     monkeypatch.setattr(Wan2_2_TI2V, "_load_video_condition", fake_load)
@@ -223,5 +223,5 @@ def test_wan_video_condition_cache_reuses_same_source(monkeypatch, tmp_path):
         batch_size=1,
     )
 
-    assert observed == [(str(image_path), 64, 96, 9, 1)]
+    assert observed == [(str(image_path), 64, 96, 9, 1, "resize")]
     np.testing.assert_array_equal(np.array(first), np.array(second))

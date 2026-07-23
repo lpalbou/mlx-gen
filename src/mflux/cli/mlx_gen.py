@@ -412,7 +412,8 @@ def _parser() -> argparse.ArgumentParser:
         epilog=(
             "Common generation options are forwarded to the selected backend, including --prompt, "
             "--prompt-file, --width, --height, --steps, --guidance, --seed, --auto-seeds, "
-            "--negative-prompt/--negative, --canvas-policy, --quantize, --lora-paths, --lora-scales, "
+            "--negative-prompt/--negative, --canvas-policy, --resize-mode (latent image-to-image and "
+            "Wan video routes), --quantize, --lora-paths, --lora-scales, "
             "--mask-path, --controlnet-image-path, --controlnet-strength, --metadata, "
             "--config-from-metadata/-C, --output, --replace, --frames, --fps, --guidance-2, "
             "--flow-shift, --video-strength, --video-mask-path, --reframe-padding, --outpaint-padding, --low-ram, --debug, "

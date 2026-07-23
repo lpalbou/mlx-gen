@@ -22,6 +22,14 @@ CANVAS_POLICY_ALIASES = {
 }
 CANVAS_POLICY_CHOICES = (CANVAS_POLICY_SOURCE_ASPECT, CANVAS_POLICY_EXACT_RESIZE)
 
+# resize_mode is orthogonal to canvas_policy: the policy picks the output canvas,
+# the mode picks how source pixels map onto it. Constants live here (not in
+# image_util) so CLI parsers can import them without pulling PIL (0088).
+RESIZE_MODE_RESIZE = "resize"
+RESIZE_MODE_CROP = "crop"
+RESIZE_MODE_PAD = "pad"
+RESIZE_MODE_CHOICES = (RESIZE_MODE_RESIZE, RESIZE_MODE_CROP, RESIZE_MODE_PAD)
+
 
 @dataclass(frozen=True)
 class ResolvedImageDimensions:
@@ -80,6 +88,14 @@ class DimensionResolver:
         if normalized not in CANVAS_POLICY_CHOICES:
             choices = ", ".join(CANVAS_POLICY_CHOICES)
             raise ValueError(f"Unsupported canvas policy {canvas_policy!r}. Expected one of: {choices}.")
+        return normalized
+
+    @staticmethod
+    def normalize_resize_mode(resize_mode: str | None) -> str:
+        normalized = RESIZE_MODE_RESIZE if resize_mode is None else resize_mode
+        if normalized not in RESIZE_MODE_CHOICES:
+            choices = ", ".join(RESIZE_MODE_CHOICES)
+            raise ValueError(f"Unsupported resize mode {resize_mode!r}. Expected one of: {choices}.")
         return normalized
 
     @staticmethod

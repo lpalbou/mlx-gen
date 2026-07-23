@@ -397,6 +397,27 @@ Practical reading:
 For A14B image-to-video, treat these as target size classes rather than exact guarantees. MLX-Gen
 preserves the source image aspect ratio and resolves to the nearest supported canvas.
 
+## Output Canvas And Source Mapping
+
+Two orthogonal options control geometry on routes that take a source input:
+
+- `--canvas-policy` picks the output canvas. Image-to-video defaults to `source-aspect`: the
+  requested `--width`/`--height` act as a size target and the canvas is resolved from the source
+  image ratio. Video-to-video defaults to the requested (multiple-adjusted) canvas. Pass
+  `exact-resize` on image-to-video to honor the requested canvas exactly, or `source-aspect` on
+  video-to-video to derive the canvas from the clip. VACE requires the exact canvas and rejects
+  `source-aspect`.
+- `--resize-mode` picks how source pixels (image-to-video first frame, video-to-video frames, VACE
+  conditioning, and their masks) map onto that canvas: `resize` stretches to fill (default),
+  `crop` center-crops without distortion, `pad` letterboxes the full source without distortion.
+  Masks always map through the same geometry as the pixels, so masked edits stay aligned;
+  letterboxed borders count as preserved regions.
+
+Both values are recorded in metadata and replayed by `--config-from-metadata`. When source and
+canvas ratios differ by more than 2% under the stretching `resize` mode, plain video-to-video and
+VACE print a warning. With `--json-events`, the `start` event carries the resolved output
+`width`/`height`, so applications learn the final geometry before the first frame is generated.
+
 ## Example Prompt
 
 The comparison clips use this prompt:
@@ -567,3 +588,27 @@ record — the 0.23.0 rerun reproduced the archived clip bit-identically):
 - run metadata: [starship_v2v_a14b.metadata.json](assets/examples/spaceship-v2v/starship_v2v_a14b.metadata.json)
 - source contact sheet: [starship_v2v_source_contact_sheet.png](assets/examples/spaceship-v2v/starship_v2v_source_contact_sheet.png)
 - output contact sheet: [starship_v2v_output_contact_sheet.png](assets/examples/spaceship-v2v/starship_v2v_output_contact_sheet.png)
+
+## Repeat-Run And Application Performance
+
+Options that matter when Wan runs repeatedly in one process or inside an application:
+
+- **Prompt-embed disk cache (default on)**: identical prompt encodes are served from a small
+  on-disk cache instead of reloading the ~11 GB UMT5 text encoder. Opt out with
+  `--no-prompt-cache` or `prompt_embed_disk_cache=False`.
+- **Resident text encoder**: `--keep-text-encoder` / `keep_text_encoder_resident=True` keeps the
+  UMT5 encoder loaded between generations in one process, for hosts that chain scene generations
+  with new prompts. The default releases it after encoding.
+- **`--no-validate-health`**: skips the post-save full-file health re-decode for applications that
+  probe the saved file themselves. The skip is recorded as `health_check: "skipped"` in metadata
+  and the `save` runtime event.
+- **`--compile-transformer` (opt-in)**: runs each denoiser as a compiled MLX graph for roughly
+  2-6% per-step gain. Output is close to but not bit-identical with eager mode, so it never
+  becomes a default.
+- **A14B inactive-expert release (automatic)**: on dual-expert A14B runs from disk-prequantized
+  packages, the ~14 GB high-noise expert is released after its denoise phase and rebuilt when the
+  next item needs it. Override with `--release-inactive-denoiser` /
+  `--no-release-inactive-denoiser`.
+- **`--json-events`**: the `start` event carries resolved output `width`/`height`; the `save`
+  event carries `fps`, `width`, `height`, `total_frames`, and `health_check`, so applications can
+  build artifact records without probe decodes.

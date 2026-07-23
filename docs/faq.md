@@ -694,19 +694,26 @@ published validation rows.
 For ordinary image-to-image, the default `source-aspect` canvas policy keeps the output ratio close
 to the first source image. That prevents accidental stretching, but it does not expand the original
 canvas or preserve source pixels in place. Use `--canvas-policy exact-resize` only for deliberate
-whole-image recomposition.
+whole-image recomposition. When the canvas ratio differs from the source, `--resize-mode` chooses
+how source pixels map onto it: `resize` stretches to fill (default), `crop` center-crops without
+distortion, and `pad` letterboxes the full source without distortion. Masks always follow the same
+geometry as the source pixels.
 
 ## What Wan Video Resolutions Should I Use?
 
 Wan width and height are normalized to the selected model's VAE/patch multiple. For text-to-video,
 MLX-Gen uses the requested canvas after model-multiple normalization. Plain video-to-video uses the
-same requested-canvas rule, and source frames are stretched to that canvas: if the source clip's
-aspect ratio differs from the requested `--width`/`--height` ratio, the source is distorted to fit
-and MLX-Gen prints a warning, so match the requested ratio to the source. For image-to-video,
-MLX-Gen preserves the source image aspect ratio: requested `--width` and `--height` define the
-approximate size target, and the runtime resolves the closest supported canvas from the input image
-ratio before conditioning the model. The video is generated directly at the resolved canvas;
-MLX-Gen does not generate a stretched canvas and then crop or resize it back afterward.
+same requested-canvas rule, and source frames are stretched to that canvas by default: if the
+source clip's aspect ratio differs from the requested `--width`/`--height` ratio, the source is
+distorted to fit and MLX-Gen prints a warning, so match the requested ratio to the source — or pass
+`--canvas-policy source-aspect` to derive the canvas from the clip, or `--resize-mode crop|pad` to
+map the frames without distortion. For image-to-video, MLX-Gen preserves the source image aspect
+ratio: requested `--width` and `--height` define the approximate size target, and the runtime
+resolves the closest supported canvas from the input image ratio before conditioning the model. The
+video is generated directly at the resolved canvas; MLX-Gen does not generate a stretched canvas
+and then crop or resize it back afterward. Pass `--canvas-policy exact-resize` when the requested
+canvas itself is the requirement; combine it with `--resize-mode crop` or `pad` to avoid
+distortion on a mismatched source.
 
 | Model | Required multiple | Recommended/native size | Lower-cost diagnostic sizes |
 | --- | ---: | --- | --- |
@@ -777,7 +784,9 @@ Limits that matter:
 - the A14B route does not accept extra reference images or VACE-style controls - for
   reference-image injection and learned mask conditioning use the natively ported
   `wan-vace` model (see [Wan Video](wan-video.md#vace-reference-images-and-learned-mask-conditioning));
-- source frames are stretched to the requested canvas, so match the aspect ratio to the source;
+- source frames are stretched to the requested canvas by default, so match the aspect ratio to the
+  source, derive the canvas from the clip with `--canvas-policy source-aspect`, or map without
+  distortion via `--resize-mode crop|pad`;
 - TI2V-5B and I2V-A14B do not currently accept `--video-path`.
 
 ## How Do I Change One Thing Without Changing Anything Else In Video-To-Video?
@@ -825,7 +834,9 @@ target and choose dimensions that match the model multiple. For A14B I2V, a `16:
 at `1280x720` produces `1280x720`. For `480p`-class A14B I2V, `832x480` produces exactly `832x480`
 when the source also has the `832:480` aspect ratio; a true `16:9` source resolves to `848x480`.
 For TI2V-5B I2V, `1280x704` produces exactly `1280x704` when the source uses the same `20:11`
-aspect ratio.
+aspect ratio. Alternatively, pass `--canvas-policy exact-resize` to honor the requested
+(multiple-adjusted) canvas directly, with `--resize-mode crop` or `pad` mapping a mismatched
+source onto it without distortion.
 
 ## How Should I Prompt Wan Image-To-Video?
 

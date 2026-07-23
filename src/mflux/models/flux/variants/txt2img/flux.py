@@ -61,6 +61,7 @@ class Flux1(nn.Module):
         scheduler: str = "linear",
         negative_prompt: str | None = None,
         canvas_policy: str = CANVAS_POLICY_SOURCE_ASPECT,
+        resize_mode: str = "resize",
     ) -> GeneratedImage:
         if num_inference_steps is None:
             num_inference_steps = default_inference_steps(self.model_config, fallback=4)
@@ -75,6 +76,7 @@ class Flux1(nn.Module):
             model_config=self.model_config,
             num_inference_steps=num_inference_steps,
             canvas_policy=canvas_policy,
+            resize_mode=resize_mode,
             preserve_image_aspect_ratio=image_path is not None and canvas_policy == CANVAS_POLICY_SOURCE_ASPECT,
         )
 
@@ -90,6 +92,7 @@ class Flux1(nn.Module):
                 sigmas=config.scheduler.sigmas,
                 init_time_step=config.init_time_step,
                 image_strength=config.image_strength,
+                resize_mode=config.resize_mode,
             ),
         )
 

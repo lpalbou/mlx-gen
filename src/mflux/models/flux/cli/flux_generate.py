@@ -16,6 +16,7 @@ def main():
     parser.add_lora_arguments()
     parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
     parser.add_image_to_image_arguments(required=False)
+    parser.add_resize_mode_argument()
     parser.add_output_arguments()
     args = parser.parse_args()
 
@@ -56,6 +57,7 @@ def main():
                 image_strength=args.image_strength,
                 negative_prompt=PromptUtil.read_negative_prompt(args),
                 canvas_policy=args.canvas_policy,
+                resize_mode=args.resize_mode,
             )
             # 4. Save the image
             image.save(path=args.output.format(seed=seed), export_json_metadata=args.metadata, overwrite=args.replace)

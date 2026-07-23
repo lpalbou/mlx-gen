@@ -226,6 +226,7 @@ def test_generated_image_metadata_records_i2i_canvas_policy():
         image_path="source.png",
         image_strength=0.4,
         canvas_policy="source-aspect",
+        resize_mode="crop",
         requested_width=512,
         requested_height=512,
         source_image_width=432,
@@ -238,6 +239,7 @@ def test_generated_image_metadata_records_i2i_canvas_policy():
     assert metadata["width"] == 432
     assert metadata["height"] == 240
     assert metadata["canvas_policy"] == "source-aspect"
+    assert metadata["resize_mode"] == "crop"
     assert metadata["requested_width"] == 512
     assert metadata["requested_height"] == 512
     assert metadata["source_image_width"] == 432

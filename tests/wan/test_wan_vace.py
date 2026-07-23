@@ -192,6 +192,13 @@ def test_vace_model_config_and_capabilities():
     assert by_id["wan.video-video"].supports_video_strength is False
     assert by_id["wan.video-video"].supports_video_mask is True
     assert "wan.text-video" in by_id
+    # VACE requires the exact validated canvas (source-aspect is rejected at
+    # generate_video), but honors all source-to-canvas resize modes.
+    assert by_id["wan.video-video"].canvas_policies == ("exact-resize",)
+    assert by_id["wan.video-video"].default_canvas_policy == "exact-resize"
+    assert by_id["wan.video-video"].resize_modes == ("resize", "crop", "pad")
+    assert by_id["wan.text-video"].canvas_policies == ()
+    assert by_id["wan.text-video"].resize_modes == ()
 
 
 def test_vace_weight_mapping_covers_checkpoint_vace_keys():

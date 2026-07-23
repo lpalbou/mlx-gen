@@ -29,6 +29,7 @@ class Img2Img:
         image_strength: float | None,
         image_path: str | Path | None,
         tiling_config: "TilingConfig" | None = None,
+        resize_mode: str = "resize",
     ):
         self.vae = vae
         self.sigmas = sigmas
@@ -37,6 +38,7 @@ class Img2Img:
         self.image_path = image_path
         self.latent_creator = latent_creator
         self.tiling_config = tiling_config
+        self.resize_mode = resize_mode
 
 
 class LatentCreator:
@@ -66,6 +68,7 @@ class LatentCreator:
                 tiling_config=img2img.tiling_config,
                 sample_posterior=sample_posterior,
                 seed=seed,
+                resize_mode=img2img.resize_mode,
             )
             latents = latent_creator.pack_latents(encoded, height, width)
             sigma = img2img.sigmas[img2img.init_time_step]

@@ -34,6 +34,7 @@ def main():
     parser.set_defaults(model="fibo")
     parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
     parser.add_image_to_image_arguments(required=False)
+    parser.add_resize_mode_argument()
     parser.add_output_arguments()
     args = parser.parse_args()
 
@@ -96,6 +97,7 @@ def main():
                     scheduler="flow_match_euler_discrete",
                     negative_prompt=PromptUtil.read_negative_prompt(args),
                     canvas_policy=args.canvas_policy,
+                    resize_mode=args.resize_mode,
                 )
                 events.emit_save()
                 image.save(

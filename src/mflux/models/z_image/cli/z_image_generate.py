@@ -20,6 +20,7 @@ def main():
     parser.add_lora_arguments()
     parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
     parser.add_image_to_image_arguments(required=False)
+    parser.add_resize_mode_argument()
     parser.add_mask_path_argument(
         help_text=(
             "Mask image path for native Z-Image inpaint. Masked edit is currently supported on Z-Image Turbo "
@@ -96,6 +97,7 @@ def main():
                     scheduler=args.scheduler,
                     negative_prompt=args.negative_prompt,
                     canvas_policy=args.canvas_policy,
+                    resize_mode=args.resize_mode,
                 )
                 events.emit_save()
                 image.save(

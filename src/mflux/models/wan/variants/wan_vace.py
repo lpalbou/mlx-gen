@@ -9,6 +9,7 @@ from PIL import Image
 from mflux.models.common.config.model_config import ModelConfig
 from mflux.models.wan.model.wan_transformer import WanBlockHealthContext
 from mflux.models.wan.variants.wan2_2_ti2v import Wan2_2_TI2V
+from mflux.utils.dimension_resolver import DimensionResolver
 from mflux.utils.generated_video import GeneratedVideo
 from mflux.utils.image_util import ImageUtil
 from mflux.utils.mask_util import MaskUtil
@@ -44,6 +45,8 @@ class WanVace(Wan2_2_TI2V):
         video_path: Path | str | None = None,
         video_strength: float | None = None,
         video_mask_path: Path | str | None = None,
+        canvas_policy: str | None = None,
+        resize_mode: str = "resize",
         masked_region_mode: str = "generate",
         reference_image_paths: list[Path | str] | None = None,
         conditioning_scale: float = 1.0,
@@ -59,6 +62,11 @@ class WanVace(Wan2_2_TI2V):
         start_time = time.time()
         if guidance_2 is not None:
             raise ValueError("Wan VACE uses a single transformer; guidance_2 is not supported.")
+        # VACE requires an exact, multiple-aligned canvas; there is no source-derived
+        # canvas resolution to preserve, so a source-aspect request is a contradiction.
+        if canvas_policy is not None and DimensionResolver.normalize_canvas_policy(canvas_policy) != "exact-resize":
+            raise ValueError("Wan VACE always uses the exact validated canvas; canvas_policy must be 'exact-resize'.")
+        resize_mode = DimensionResolver.normalize_resize_mode(resize_mode)
         if video_strength is not None:
             raise ValueError(
                 "Wan VACE has no SDEdit warm start; video_strength is not supported. "
@@ -101,6 +109,8 @@ class WanVace(Wan2_2_TI2V):
         timesteps = scheduler.timesteps.tolist()
         total_steps = len(timesteps)
         progress_registry = getattr(self, "callbacks", None)
+        # Resolved output dims on the start event: hosts learn final geometry
+        # before container probing (same contract as Wan2_2_TI2V).
         self._emit_progress(
             progress_callback,
             phase="start",
@@ -110,6 +120,8 @@ class WanVace(Wan2_2_TI2V):
             total_steps=total_steps,
             task=task,
             registry=progress_registry,
+            width=width,
+            height=height,
         )
 
         prompt_embeds, negative_prompt_embeds = self.encode_prompt(
@@ -127,6 +139,7 @@ class WanVace(Wan2_2_TI2V):
             width=width,
             num_frames=num_frames,
             fps=fps,
+            resize_mode=resize_mode,
         )
         reference_frames = self._preprocess_reference_images(
             reference_image_paths=reference_image_paths,
@@ -237,6 +250,9 @@ class WanVace(Wan2_2_TI2V):
             source_height=height,
             requested_width=width,
             requested_height=height,
+            # Recorded only when a source video drove the conditioning (build_metadata gate).
+            canvas_policy="exact-resize",
+            resize_mode=resize_mode,
             lora_paths=getattr(self, "lora_paths", None),
             lora_scales=getattr(self, "lora_scales", None),
             extra_metadata=self._vace_extra_metadata(
@@ -285,6 +301,7 @@ class WanVace(Wan2_2_TI2V):
         width: int,
         num_frames: int,
         fps: int,
+        resize_mode: str = "resize",
     ) -> tuple[mx.array, mx.array]:
         if video_path is not None:
             clip = VideoUtil.read_video_clip(video_path, max_frames=num_frames, target_fps=float(fps))
@@ -294,10 +311,22 @@ class WanVace(Wan2_2_TI2V):
                     f"({num_frames / float(fps):.2f}s at {fps} fps), but {video_path} only yielded "
                     f"{clip.clip_frame_count}."
                 )
+            # Same >2% ratio-mismatch warning as plain Wan video-to-video: VACE used
+            # to stretch silently, hiding user-visible distortion.
+            self._warn_source_ratio_mismatch(
+                source_width=clip.source_width or 0,
+                source_height=clip.source_height or 0,
+                width=width,
+                height=height,
+                surface="Wan VACE video conditioning",
+                resize_mode=resize_mode,
+            )
             frames_np = np.empty((1, num_frames, height, width, 3), dtype=np.float32)
             for index, frame in enumerate(clip.frames[:num_frames]):
                 frames_np[0, index] = np.asarray(
-                    ImageUtil.scale_to_dimensions(frame, target_width=width, target_height=height),
+                    ImageUtil.scale_to_dimensions(
+                        frame, target_width=width, target_height=height, resize_mode=resize_mode
+                    ),
                     dtype=np.float32,
                 )
             frames_np = frames_np / 127.5 - 1.0
@@ -307,6 +336,7 @@ class WanVace(Wan2_2_TI2V):
             video = mx.zeros((1, 3, num_frames, height, width), dtype=mx.float32)
 
         if video_mask_path is not None:
+            # Masks map through the SAME source-to-canvas geometry as the video frames.
             if self._is_video_mask(video_mask_path):
                 mask = self._load_video_mask_frames(
                     video_mask_path,
@@ -314,6 +344,7 @@ class WanVace(Wan2_2_TI2V):
                     width=width,
                     num_frames=num_frames,
                     fps=fps,
+                    resize_mode=resize_mode,
                 )
             else:
                 mask_values = MaskUtil.load_binary_mask(
@@ -322,6 +353,7 @@ class WanVace(Wan2_2_TI2V):
                     target_height=height,
                     resampling=Image.Resampling.BOX,
                     alpha_warning_context="Wan VACE mask",
+                    resize_mode=resize_mode,
                 )
                 mask = mx.broadcast_to(
                     mx.array(mask_values)[None, None, None, :, :],
@@ -345,6 +377,7 @@ class WanVace(Wan2_2_TI2V):
         width: int,
         num_frames: int,
         fps: int,
+        resize_mode: str = "resize",
     ) -> mx.array:
         # Per-frame animated masks are the native VACE format: the mask trajectory is what
         # carries the object's motion into the conditioning. Read on the same fps timeline as
@@ -358,8 +391,15 @@ class WanVace(Wan2_2_TI2V):
             )
         mask_np = np.empty((num_frames, height, width), dtype=np.float32)
         for index, frame in enumerate(clip.frames[:num_frames]):
-            resized = frame.convert("L").resize((width, height), Image.Resampling.BOX)
-            # Same policy as MaskUtil: BOX area averaging, then a 50% binarization threshold.
+            # Same policy as MaskUtil: BOX area averaging, then a 50% binarization
+            # threshold - and the SAME source-to-canvas geometry as the video frames.
+            resized = MaskUtil.map_mask_to_canvas(
+                frame.convert("L"),
+                target_width=width,
+                target_height=height,
+                resampling=Image.Resampling.BOX,
+                resize_mode=resize_mode,
+            )
             mask_np[index] = (np.asarray(resized, dtype=np.float32) / 255.0 >= 0.5).astype(np.float32)
         mask = mx.array(mask_np)[None, None, :, :, :]
         return mx.broadcast_to(mask, (1, 3, num_frames, height, width)).astype(mx.float32)

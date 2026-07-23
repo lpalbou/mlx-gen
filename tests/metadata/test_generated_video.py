@@ -145,6 +145,8 @@ def test_generated_video_metadata_records_i2v_source_and_requested_dimensions():
         source_height=240,
         requested_width=512,
         requested_height=288,
+        canvas_policy="source-aspect",
+        resize_mode="pad",
     )
 
     metadata = video._get_metadata()
@@ -155,6 +157,34 @@ def test_generated_video_metadata_records_i2v_source_and_requested_dimensions():
     assert metadata["requested_height"] == 288
     assert metadata["source_image_width"] == 320
     assert metadata["source_image_height"] == 240
+    assert metadata["canvas_policy"] == "source-aspect"
+    assert metadata["resize_mode"] == "pad"
+
+
+def test_generated_video_metadata_omits_canvas_contract_without_source_input():
+    video = GeneratedVideo(
+        frames=[_solid_frame((255, 0, 0))],
+        fps=12,
+        model_config=ModelConfig.wan2_2_ti2v_5b(),
+        seed=42,
+        prompt="test video prompt",
+        steps=2,
+        guidance=4.0,
+        precision=mx.bfloat16,
+        quantization=8,
+        generation_time=1.23,
+        height=256,
+        width=448,
+        task="text-to-video",
+        canvas_policy="source-aspect",
+        resize_mode="resize",
+    )
+
+    metadata = video._get_metadata()
+
+    # No image/video source drove the geometry: the mapping contract is not recorded.
+    assert metadata["canvas_policy"] is None
+    assert metadata["resize_mode"] is None
 
 
 def test_generated_video_metadata_records_video_source_path():

@@ -27,6 +27,11 @@ from mflux.models.wan.scheduler import WanEulerScheduler, WanUniPCMultistepSched
 from mflux.models.wan.variants.wan_video_request import WanVideoRequest
 from mflux.models.wan.wan_initializer import WanInitializer
 from mflux.models.wan.weights import WanWeightDefinition
+from mflux.utils.dimension_resolver import (
+    CANVAS_POLICY_EXACT_RESIZE,
+    CANVAS_POLICY_SOURCE_ASPECT,
+    DimensionResolver,
+)
 from mflux.utils.exceptions import ModelConfigError
 from mflux.utils.generated_video import GeneratedVideo
 from mflux.utils.image_util import ImageUtil
@@ -104,6 +109,8 @@ class Wan2_2_TI2V(nn.Module):
         video_path: Path | str | None = None,
         video_strength: float | None = None,
         video_mask_path: Path | str | None = None,
+        canvas_policy: str | None = None,
+        resize_mode: str = "resize",
         max_sequence_length: int = 512,
         progress_callback: ProgressCallback | None = None,
         release_inactive_denoiser: bool | None = None,
@@ -130,6 +137,8 @@ class Wan2_2_TI2V(nn.Module):
             solver=solver,
             negative_prompt=negative_prompt,
             tensor_health_check_interval=tensor_health_check_interval,
+            canvas_policy=canvas_policy,
+            resize_mode=resize_mode,
         )
         # The model owns the release default (0089 e4): None = auto, so the
         # Python API and the CLI resolve identically; True/False is user intent.
@@ -140,6 +149,8 @@ class Wan2_2_TI2V(nn.Module):
         is_video_to_video = request.is_video_to_video
         task = request.task
         height, width = request.height, request.width
+        canvas_policy = request.canvas_policy
+        resize_mode = request.resize_mode
         spatial_metadata = dict(request.spatial_metadata)
         num_frames = request.num_frames
         video_strength = request.video_strength
@@ -171,6 +182,9 @@ class Wan2_2_TI2V(nn.Module):
                 f"{guidance_2} applies. Increase video_strength to engage the high-noise stage."
             )
         progress_registry = getattr(self, "callbacks", None)
+        # The start event carries the RESOLVED output dims (post canvas/multiple
+        # resolution) so hosts learn final geometry before any container probing,
+        # matching the save-event enrichment contract (0087).
         self._emit_progress(
             progress_callback,
             phase="start",
@@ -180,6 +194,8 @@ class Wan2_2_TI2V(nn.Module):
             total_steps=effective_steps,
             task=task,
             registry=progress_registry,
+            width=width,
+            height=height,
         )
 
         prompt_embeds, negative_prompt_embeds = self.encode_prompt(
@@ -211,6 +227,7 @@ class Wan2_2_TI2V(nn.Module):
                 video_path=video_path,
                 timesteps=timesteps,
                 fps=fps,
+                resize_mode=resize_mode,
             )
             spatial_metadata.update(source_video_metadata)
             self._warn_video_to_video_source_handling(
@@ -219,6 +236,7 @@ class Wan2_2_TI2V(nn.Module):
                 height=height,
                 width=width,
                 fps=fps,
+                resize_mode=resize_mode,
             )
             if video_mask is None:
                 v2v_source_latents = None
@@ -241,6 +259,7 @@ class Wan2_2_TI2V(nn.Module):
                     image_path=image_path,
                     height=height,
                     width=width,
+                    resize_mode=resize_mode,
                 )
                 self._require_tensor_health(condition, phase="image-conditioning", name="condition")
             else:
@@ -250,6 +269,7 @@ class Wan2_2_TI2V(nn.Module):
                     width=width,
                     num_frames=num_frames,
                     batch_size=batch_size,
+                    resize_mode=resize_mode,
                 )
                 self._require_tensor_health(condition, phase="image-conditioning", name="condition")
 
@@ -526,6 +546,8 @@ class Wan2_2_TI2V(nn.Module):
                 video_path=video_path,
                 negative_prompt=negative_prompt,
                 spatial_metadata=spatial_metadata,
+                canvas_policy=canvas_policy,
+                resize_mode=resize_mode,
                 extra_metadata=extra_metadata,
                 is_video_to_video=is_video_to_video,
                 video_strength=video_strength,
@@ -607,6 +629,7 @@ class Wan2_2_TI2V(nn.Module):
         video_path: Path | str,
         timesteps: list[int | float],
         fps: int | float,
+        resize_mode: str = "resize",
     ) -> tuple[mx.array, mx.array, mx.array, dict[str, int | float | None]]:
         if not timesteps:
             raise ValueError("Wan video-to-video requires at least one denoise timestep.")
@@ -616,6 +639,7 @@ class Wan2_2_TI2V(nn.Module):
             width=width,
             num_frames=num_frames,
             fps=fps,
+            resize_mode=resize_mode,
         )
         noise = self.prepare_latents(
             seed=seed,
@@ -635,15 +659,20 @@ class Wan2_2_TI2V(nn.Module):
         *,
         height: int,
         width: int,
+        resize_mode: str = "resize",
     ) -> mx.array:
         latent_height = height // self.vae.spatial_scale
         latent_width = width // self.vae.spatial_scale
+        # The mask is authored against the source content, so it maps to the canvas
+        # with the SAME resize_mode geometry as the source frames (pad borders stay 0
+        # = preserved: letterboxed bars must not become a silent outpaint claim).
         mask_values = MaskUtil.load_binary_mask(
             mask_path,
             target_width=latent_width,
             target_height=latent_height,
             resampling=Image.Resampling.BOX,
             alpha_warning_context="Wan video mask",
+            resize_mode=resize_mode,
         )
         # White (>= 0.5) marks the region the model may change; black is preserved from the source.
         mask = mx.array(mask_values)[None, None, None, :, :]
@@ -691,8 +720,18 @@ class Wan2_2_TI2V(nn.Module):
         width: int,
         num_frames: int,
         fps: int | float,
+        resize_mode: str = "resize",
     ) -> tuple[mx.array, dict[str, int | float | None]]:
-        cache_key = ("video-to-video", self._cache_path_key(video_path), height, width, num_frames, float(fps))
+        # resize_mode changes the encoded tensor, so it is part of the cache identity.
+        cache_key = (
+            "video-to-video",
+            self._cache_path_key(video_path),
+            height,
+            width,
+            num_frames,
+            float(fps),
+            resize_mode,
+        )
         cached = self._cached_tensor(cache_name="video_condition_cache", key=cache_key)
         if cached is not None:
             return cached, self._cached_video_source_metadata(cache_key)
@@ -702,6 +741,7 @@ class Wan2_2_TI2V(nn.Module):
             width=width,
             num_frames=num_frames,
             fps=fps,
+            resize_mode=resize_mode,
         )
         return self._store_video_latent_cache(cache_key=cache_key, latents=latents, source_metadata=source_metadata)
 
@@ -713,6 +753,7 @@ class Wan2_2_TI2V(nn.Module):
         width: int,
         num_frames: int,
         fps: int | float,
+        resize_mode: str = "resize",
     ) -> tuple[mx.array, dict[str, int | float | None]]:
         clip = VideoUtil.read_video_clip(video_path, max_frames=num_frames, target_fps=float(fps))
         if clip.clip_frame_count < num_frames:
@@ -726,7 +767,9 @@ class Wan2_2_TI2V(nn.Module):
         video_np = np.empty((1, num_frames, height, width, 3), dtype=np.float32)
         for index, frame in enumerate(clip.frames[:num_frames]):
             video_np[0, index] = np.asarray(
-                ImageUtil.scale_to_dimensions(frame, target_width=width, target_height=height),
+                ImageUtil.scale_to_dimensions(
+                    frame, target_width=width, target_height=height, resize_mode=resize_mode
+                ),
                 dtype=np.float32,
             )
         video_np /= 255.0
@@ -779,6 +822,31 @@ class Wan2_2_TI2V(nn.Module):
         return dict(metadata_cache.get(cache_key, {}))
 
     @staticmethod
+    def _warn_source_ratio_mismatch(
+        *,
+        source_width: int,
+        source_height: int,
+        width: int,
+        height: int,
+        surface: str,
+        resize_mode: str = "resize",
+    ) -> None:
+        # A >2% ratio mismatch only distorts when the mapping stretches;
+        # crop and pad are aspect-preserving by construction.
+        if resize_mode != "resize":
+            return
+        if source_width <= 0 or source_height <= 0 or width <= 0 or height <= 0:
+            return
+        source_ratio = source_width / source_height
+        target_ratio = width / height
+        if abs(source_ratio - target_ratio) / target_ratio > 0.02:
+            print(
+                f"⚠️  {surface} stretches source frames ({source_width}x{source_height}) "
+                f"to the requested canvas ({width}x{height}). Match the requested aspect ratio to the source "
+                "to avoid distortion, or pass resize_mode 'crop' or 'pad'."
+            )
+
+    @staticmethod
     def _warn_video_to_video_source_handling(
         *,
         source_metadata: dict,
@@ -786,18 +854,16 @@ class Wan2_2_TI2V(nn.Module):
         height: int,
         width: int,
         fps: int | float | None,
+        resize_mode: str = "resize",
     ) -> None:
-        source_width = source_metadata.get("source_width") or 0
-        source_height = source_metadata.get("source_height") or 0
-        if source_height > 0 and height > 0:
-            source_ratio = source_width / source_height
-            target_ratio = width / height
-            if target_ratio > 0 and abs(source_ratio - target_ratio) / target_ratio > 0.02:
-                print(
-                    f"⚠️  Wan video-to-video stretches source frames ({source_width}x{source_height}) "
-                    f"to the requested canvas ({width}x{height}). Match the requested aspect ratio to the source "
-                    "to avoid distortion."
-                )
+        Wan2_2_TI2V._warn_source_ratio_mismatch(
+            source_width=source_metadata.get("source_width") or 0,
+            source_height=source_metadata.get("source_height") or 0,
+            width=width,
+            height=height,
+            surface="Wan video-to-video",
+            resize_mode=resize_mode,
+        )
         source_fps = source_metadata.get("source_video_fps")
         source_duration = source_metadata.get("source_video_duration_seconds")
         used_seconds = num_frames / float(fps) if fps else None
@@ -937,19 +1003,34 @@ class Wan2_2_TI2V(nn.Module):
             gc.collect()
         return embeds
 
-    def _encode_first_frame_condition(self, image_path: Path | str | None, height: int, width: int) -> mx.array:
-        cache_key = ("first-frame", self._cache_path_key(image_path), height, width)
+    def _encode_first_frame_condition(
+        self,
+        image_path: Path | str | None,
+        height: int,
+        width: int,
+        resize_mode: str = "resize",
+    ) -> mx.array:
+        # resize_mode changes the conditioned pixels, so it is part of the cache identity.
+        cache_key = ("first-frame", self._cache_path_key(image_path), height, width, resize_mode)
         cached = self._cached_tensor(cache_name="image_condition_cache", key=cache_key)
         if cached is not None:
             return cached
-        condition = self._load_first_frame_condition(image_path=image_path, height=height, width=width)
+        condition = self._load_first_frame_condition(
+            image_path=image_path, height=height, width=width, resize_mode=resize_mode
+        )
         return self._store_cached_tensor(cache_name="image_condition_cache", key=cache_key, value=condition)
 
-    def _load_first_frame_condition(self, image_path: Path | str | None, height: int, width: int) -> mx.array:
+    def _load_first_frame_condition(
+        self,
+        image_path: Path | str | None,
+        height: int,
+        width: int,
+        resize_mode: str = "resize",
+    ) -> mx.array:
         if image_path is None:
             raise ValueError("Wan image-to-video requires image_path.")
         image = ImageUtil.scale_to_dimensions(
-            ImageUtil.load_image(image_path), target_width=width, target_height=height
+            ImageUtil.load_image(image_path), target_width=width, target_height=height, resize_mode=resize_mode
         )
         image_np = np.array(image).astype(np.float32) / 255.0
         image_np = image_np[None, ...]
@@ -967,8 +1048,10 @@ class Wan2_2_TI2V(nn.Module):
         width: int,
         num_frames: int,
         batch_size: int,
+        resize_mode: str = "resize",
     ) -> mx.array:
-        cache_key = ("video", self._cache_path_key(image_path), height, width, num_frames, batch_size)
+        # resize_mode changes the conditioned pixels, so it is part of the cache identity.
+        cache_key = ("video", self._cache_path_key(image_path), height, width, num_frames, batch_size, resize_mode)
         cached = self._cached_tensor(cache_name="image_condition_cache", key=cache_key)
         if cached is not None:
             return cached
@@ -978,6 +1061,7 @@ class Wan2_2_TI2V(nn.Module):
             width=width,
             num_frames=num_frames,
             batch_size=batch_size,
+            resize_mode=resize_mode,
         )
         return self._store_cached_tensor(cache_name="image_condition_cache", key=cache_key, value=condition)
 
@@ -988,21 +1072,22 @@ class Wan2_2_TI2V(nn.Module):
         width: int,
         num_frames: int,
         batch_size: int,
+        resize_mode: str = "resize",
     ) -> mx.array:
         if image_path is None:
             raise ValueError("Wan image-to-video requires image_path.")
         image = ImageUtil.scale_to_dimensions(
-            ImageUtil.load_image(image_path), target_width=width, target_height=height
+            ImageUtil.load_image(image_path), target_width=width, target_height=height, resize_mode=resize_mode
         )
         image_np = np.array(image).astype(np.float32) / 255.0
         image_mx = mx.array(image_np[None, ...])
         image_mx = mx.transpose(image_mx, (0, 3, 1, 2))
-        image_mx = ImageUtil._normalize(image_mx)
-        first_frame = image_mx[:, :, None, :, :]
-        zero_frames = mx.zeros(
-            (batch_size, first_frame.shape[1], num_frames - 1, height, width), dtype=first_frame.dtype
+        video_condition = self._build_first_frame_video_condition(
+            normalized_first_frame=ImageUtil._normalize(image_mx),
+            num_frames=num_frames,
+            batch_size=batch_size,
+            precision=ModelConfig.precision,
         )
-        video_condition = mx.concatenate([first_frame, zero_frames], axis=2).astype(ModelConfig.precision)
         latent_condition = self.vae.encode_normalized(video_condition).astype(mx.float32)
         latent_frames = latent_condition.shape[2]
         latent_height = latent_condition.shape[3]
@@ -1017,6 +1102,27 @@ class Wan2_2_TI2V(nn.Module):
         condition = mx.concatenate([mask[:, :, :latent_frames], latent_condition], axis=1)
         mx.eval(condition)
         return condition.astype(mx.float32)
+
+    @staticmethod
+    def _build_first_frame_video_condition(
+        *,
+        normalized_first_frame: mx.array,
+        num_frames: int,
+        batch_size: int,
+        precision: mx.Dtype,
+    ) -> mx.array:
+        # F2 (0089): build the padded VAE-encode input directly in the model precision.
+        # The old path concatenated first_frame + zero_frames in float32 and cast the
+        # result (a ~1 GB f32 transient at 1280x720x81, ~3 GB at 1920x1080x121) that
+        # the cast immediately halved. Casting the single normalized frame first and
+        # allocating the zero padding in the target dtype is BITWISE identical
+        # (elementwise cast; zeros cast exactly) at roughly half the transient
+        # footprint. Normalization stays in float32 so its rounding is unchanged.
+        height = normalized_first_frame.shape[2]
+        width = normalized_first_frame.shape[3]
+        first_frame = normalized_first_frame.astype(precision)[:, :, None, :, :]
+        zero_frames = mx.zeros((batch_size, first_frame.shape[1], num_frames - 1, height, width), dtype=precision)
+        return mx.concatenate([first_frame, zero_frames], axis=2)
 
     @staticmethod
     def _cache_path_key(image_path: Path | str | None) -> tuple[str, int, int] | None:
@@ -1082,12 +1188,14 @@ class Wan2_2_TI2V(nn.Module):
         width: int,
         image_path: Path | str | None,
         video_path: Path | str | None = None,
+        canvas_policy: str | None = None,
     ) -> tuple[int, int]:
         resolved_height, resolved_width, _ = self._resolve_video_spatial_size(
             height=height,
             width=width,
             image_path=image_path,
             video_path=video_path,
+            canvas_policy=canvas_policy,
         )
         return resolved_height, resolved_width
 
@@ -1098,36 +1206,58 @@ class Wan2_2_TI2V(nn.Module):
         width: int,
         image_path: Path | str | None,
         video_path: Path | str | None = None,
+        canvas_policy: str | None = None,
     ) -> tuple[int, int, dict[str, int]]:
         if image_path is None and video_path is None:
+            # Fail loudly (cycle-3 review): the no-source branch used to skip policy
+            # normalization entirely, so invalid values AND the contradictory
+            # source-aspect request (no source to derive an aspect from) passed
+            # silently. exact-resize stays accepted: it names this route's behavior.
+            if canvas_policy is not None:
+                resolved_policy = DimensionResolver.normalize_canvas_policy(canvas_policy)
+                if resolved_policy == CANVAS_POLICY_SOURCE_ASPECT:
+                    raise ValueError(
+                        "canvas_policy 'source-aspect' requires a source input (image_path or video_path); "
+                        "text-to-video always renders the requested (multiple-adjusted) canvas."
+                    )
             resolved_height, resolved_width = self._validated_spatial_size(height=height, width=width)
             return resolved_height, resolved_width, {}
         if image_path is not None:
             source_image = ImageUtil.load_image(image_path)
             source_info = {"height": source_image.height, "width": source_image.width}
+            source_label = "image"
+            # None keeps today's route default: i2v resolves a source-ratio canvas.
+            resolved_policy = DimensionResolver.normalize_canvas_policy(canvas_policy)
         else:
             video_info = VideoUtil.inspect_video(video_path)
             source_info = {"height": video_info.source_height, "width": video_info.source_width}
+            source_label = "video"
             if source_info["height"] <= 0 or source_info["width"] <= 0:
                 raise ValueError("Wan video-to-video source video must have positive dimensions.")
-            resolved_height, resolved_width = self._validated_spatial_size(height=height, width=width)
-            return (
-                resolved_height,
-                resolved_width,
-                {
-                    "source_width": source_info["width"],
-                    "source_height": source_info["height"],
-                    "requested_width": width,
-                    "requested_height": height,
-                },
+            # None keeps today's route default: v2v honors the requested (validated) canvas.
+            # Only an explicit source-aspect request re-derives the canvas from the source clip.
+            resolved_policy = (
+                CANVAS_POLICY_SOURCE_ASPECT
+                if canvas_policy is not None
+                and DimensionResolver.normalize_canvas_policy(canvas_policy) == CANVAS_POLICY_SOURCE_ASPECT
+                else CANVAS_POLICY_EXACT_RESIZE
             )
-        resolved_height, resolved_width = self._validated_source_aspect_spatial_size(
-            height=height,
-            width=width,
-            source_height=source_info["height"],
-            source_width=source_info["width"],
-            source_label="image",
-        )
+        if resolved_policy == CANVAS_POLICY_SOURCE_ASPECT:
+            resolved_height, resolved_width = self._validated_source_aspect_spatial_size(
+                height=height,
+                width=width,
+                source_height=source_info["height"],
+                source_width=source_info["width"],
+                source_label=source_label,
+            )
+        else:
+            resolved_height, resolved_width = self._validated_spatial_size(height=height, width=width)
+            if image_path is not None:
+                print(
+                    f"Wan {source_label}-guided video generation honoring the requested canvas "
+                    f"(canvas_policy=exact-resize): ({resolved_height}, {resolved_width}) with source "
+                    f"{source_label} ({source_info['height']}, {source_info['width']})."
+                )
         return (
             resolved_height,
             resolved_width,
@@ -1165,9 +1295,11 @@ class Wan2_2_TI2V(nn.Module):
         )
         if (height, width) != (calc_height, calc_width):
             print(
-                f"Wan {source_label}-guided video generation preserves the source aspect ratio. "
+                f"Wan {source_label}-guided video generation preserves the source aspect ratio "
+                f"(canvas_policy=source-aspect). "
                 f"Adjusting requested video size ({height}, {width}) with source {source_label} "
-                f"({source_height}, {source_width}) -> ({calc_height}, {calc_width})."
+                f"({source_height}, {source_width}) -> ({calc_height}, {calc_width}). "
+                "Pass canvas_policy 'exact-resize' to honor the requested canvas instead."
             )
         return calc_height, calc_width
 
@@ -1334,6 +1466,8 @@ class Wan2_2_TI2V(nn.Module):
         task: str | None = None,
         timestep: int | float | None = None,
         registry: CallbackRegistry | None = None,
+        width: int | None = None,
+        height: int | None = None,
     ) -> None:
         if progress_callback is None and registry is None:
             return
@@ -1345,6 +1479,8 @@ class Wan2_2_TI2V(nn.Module):
             total_steps=total_steps,
             task=task,
             timestep=timestep,
+            width=width,
+            height=height,
         )
         if progress_callback is not None:
             progress_callback(event)
@@ -1514,6 +1650,8 @@ class Wan2_2_TI2V(nn.Module):
         video_mask_path: Path | str | None,
         effective_steps: int,
         high_noise_stage_skipped: bool,
+        canvas_policy: str | None = None,
+        resize_mode: str | None = None,
         decode_extras: dict | None = None,
     ) -> dict:
         # Shared artifact kwargs; generation_time and factory wiring stay at the call site.
@@ -1537,6 +1675,8 @@ class Wan2_2_TI2V(nn.Module):
             "source_height": spatial_metadata.get("source_height"),
             "requested_width": spatial_metadata.get("requested_width"),
             "requested_height": spatial_metadata.get("requested_height"),
+            "canvas_policy": canvas_policy,
+            "resize_mode": resize_mode,
             "lora_paths": getattr(self, "lora_paths", None),
             "lora_scales": getattr(self, "lora_scales", None),
             "extra_metadata": {

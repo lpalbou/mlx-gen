@@ -4,7 +4,9 @@ import numpy as np
 from mflux.models.common.config import ModelConfig
 from mflux.models.fibo.model.fibo_vae.common.wan_2_2_rms_norm import Wan2_2_RMSNorm
 from mflux.models.wan.model.wan_vae import Wan2_2_VAE
+from mflux.models.wan.variants.wan2_2_ti2v import Wan2_2_TI2V
 from mflux.models.wan.weights.wan_weight_mapping import WanWeightMapping
+from mflux.utils.image_util import ImageUtil
 from mflux.utils.video_util import VideoUtil
 
 
@@ -68,6 +70,44 @@ def test_wan_vae_streamed_slice_decode_is_bitwise_identical_to_full_decode():
 
     assert streamed.shape == full.shape == (1, 3, 9, 64, 64)
     np.testing.assert_array_equal(np.array(streamed), np.array(full))
+
+
+def test_wan_i2v_precision_condition_build_is_bitwise_identical_to_f32_concat_cast():
+    # F2 (0089): the A14B i2v condition used to concatenate first_frame + zero_frames
+    # in float32 and cast the whole tensor (a ~1 GB transient at 1280x720x81). The
+    # precision-first build must be BITWISE identical: normalization still runs in
+    # f32, the cast is elementwise, and zeros cast exactly.
+    mx.random.seed(11)
+    pixels = mx.random.uniform(shape=(1, 3, 64, 64), dtype=mx.float32)
+    normalized = ImageUtil._normalize(pixels)
+
+    first_frame_f32 = normalized[:, :, None, :, :]
+    zero_frames_f32 = mx.zeros((1, 3, 8, 64, 64), dtype=first_frame_f32.dtype)
+    old_condition = mx.concatenate([first_frame_f32, zero_frames_f32], axis=2).astype(mx.bfloat16)
+    new_condition = Wan2_2_TI2V._build_first_frame_video_condition(
+        normalized_first_frame=normalized,
+        num_frames=9,
+        batch_size=1,
+        precision=mx.bfloat16,
+    )
+    mx.eval(old_condition, new_condition)
+
+    assert new_condition.dtype == mx.bfloat16
+    assert new_condition.shape == old_condition.shape == (1, 3, 9, 64, 64)
+    # bf16 -> f32 is exact, so float32 equality proves bitwise equality of the bf16 tensors.
+    np.testing.assert_array_equal(
+        np.array(new_condition.astype(mx.float32)), np.array(old_condition.astype(mx.float32))
+    )
+
+    # And through a tiny random-weight VAE encode: identical inputs, identical latents.
+    mx.random.seed(7)
+    vae = Wan2_2_VAE()
+    old_latents = vae.encode_normalized(old_condition)
+    new_latents = vae.encode_normalized(new_condition)
+    mx.eval(old_latents, new_latents)
+    np.testing.assert_array_equal(
+        np.array(new_latents.astype(mx.float32)), np.array(old_latents.astype(mx.float32))
+    )
 
 
 def test_wan_vae_encode_normalized_first_frame_matches_i2v_condition_shape():

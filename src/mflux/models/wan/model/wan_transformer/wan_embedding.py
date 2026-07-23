@@ -121,11 +121,19 @@ class WanRotaryPosEmbed(nn.Module):
             freqs_sin.append(sin)
         self.freqs_cos = mx.concatenate(freqs_cos, axis=1)
         self.freqs_sin = mx.concatenate(freqs_sin, axis=1)
+        # Per-shape cache (F7, 0090): the embeds are a pure function of the token
+        # grid, which is constant within a run, yet were rebuilt on every forward
+        # (~33 ms at A14B-121f token counts, x2 with CFG). The underscore prefix
+        # keeps the dict out of nn.Module parameter traversal (weights/quantize).
+        self._freqs_cache: dict = {}
 
     def __call__(self, hidden_states: mx.array) -> tuple[mx.array, mx.array]:
         _, _, num_frames, height, width = hidden_states.shape
         p_t, p_h, p_w = self.patch_size
         ppf, pph, ppw = num_frames // p_t, height // p_h, width // p_w
+        cached = self._freqs_cache.get((ppf, pph, ppw))
+        if cached is not None:
+            return cached
         cos_t, cos_h, cos_w = mx.split(self.freqs_cos, [self.t_dim, self.t_dim + self.h_dim], axis=1)
         sin_t, sin_h, sin_w = mx.split(self.freqs_sin, [self.t_dim, self.t_dim + self.h_dim], axis=1)
 
@@ -138,6 +146,19 @@ class WanRotaryPosEmbed(nn.Module):
 
         freqs_cos = mx.concatenate([cos_f, cos_h, cos_w], axis=-1).reshape(1, ppf * pph * ppw, 1, -1)
         freqs_sin = mx.concatenate([sin_f, sin_h, sin_w], axis=-1).reshape(1, ppf * pph * ppw, 1, -1)
+        # Materialize once so cache hits return ready tensors instead of re-walking
+        # the lazy graph; MLX arrays are immutable, so sharing them is seed-safe.
+        mx.eval(freqs_cos, freqs_sin)
+        self._freqs_cache[(ppf, pph, ppw)] = (freqs_cos, freqs_sin)
+        # Shapes are constant within a run (one grid per instance), so the bound only
+        # limits idle retention for long-lived hosts that chain runs at several
+        # resolutions. A grid pair is not small: ~114 MB f32 at A14B 121f@1280x720
+        # (111,600 tokens x 128 dims x cos+sin), and A14B holds one embed PER expert.
+        # Two grids cover the realistic alternating-preset case; a third resolution
+        # merely recomputes (~33 ms), so favor the smaller resident footprint.
+        # Eviction is FIFO by insertion (hits do not refresh): adequate at this size.
+        while len(self._freqs_cache) > 2:
+            self._freqs_cache.pop(next(iter(self._freqs_cache)))
         return freqs_cos, freqs_sin
 
     @staticmethod

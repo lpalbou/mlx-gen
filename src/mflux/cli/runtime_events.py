@@ -97,6 +97,10 @@ class CliRuntimeEventStream:
             total_frames=event.total_frames,
             frame_progress=event.frame_progress,
             timestep=event.timestep,
+            # Resolved output dims ride any event that carries them (Wan start
+            # events do), mirroring the save-event enrichment contract (0087).
+            width=event.width,
+            height=event.height,
             output_path=self._output_path if phase in {"save", "complete", "failed"} else None,
         )
 

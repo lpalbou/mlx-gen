@@ -5,11 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.24.0] - 2026-07-23
 
-Embedded-host performance pass (backlog 0086/0087), driven by an end-to-end
-adversarial audit of the BlackPixel host: the dominant per-video fixed costs are
-the per-prompt UMT5 text-encoder load and the post-save health re-decode.
+Embedded-host performance and generation-geometry release. The first wave
+(backlog 0086/0087) removes the dominant per-video fixed costs — the per-prompt
+UMT5 text-encoder load and the post-save health re-decode. The second wave
+(backlog 0088/0089/0090) trims the import graph, changes Wan decode memory
+behavior, and adds the geometry contract (`--resize-mode`, Wan
+`--canvas-policy`) plus opt-in step-loop performance options.
+
+Release validation: same-seed TI2V-5B output is bitwise identical to 0.23.1
+under identical dependency versions (raw-YUV frame comparison; evidence in
+backlog 0091), disk-cache hits reproduce their miss runs exactly, and the
+local Wan parity suite passes 6/6. Same-seed outputs can shift when the host's
+torch/transformers versions change, because UMT5 text-encoder kernels differ
+across those versions; that is upstream behavior, not an mlx-gen change.
 
 ### Added
 
@@ -37,11 +47,10 @@ the per-prompt UMT5 text-encoder load and the post-save health re-decode.
   event now carries `fps`, `width`, `height`, and `total_frames` of the saved
   output, so hosts can build artifact metadata with zero probe decodes.
 
-### 0.25-track (import diet, Wan streamed decode, opt-in Wan compile, video color tags)
+### Import diet, Wan streamed decode, opt-in Wan compile, video color tags
 
-Second wave of the same audit cycle: three verdicts from the adversarial
-prioritization review of backlog 0088/0089/0090 plus one cross-repo color bug
-the review measured.
+Second wave of the same audit cycle, covering backlog 0088/0089/0090 plus one
+cross-repo color bug the audit measured.
 
 #### Changed
 
@@ -124,6 +133,83 @@ the review measured.
   `release_inactive_denoiser` frees it so weight memory is actually released.
   Compiled-vs-eager parity (both timestep conventions), eligibility notice, and
   CLI wiring are test-pinned.
+- **`--resize-mode` (resize | crop | pad), orthogonal to `--canvas-policy`**:
+  the canvas policy picks the output canvas; the resize mode picks how source
+  pixels map onto it. `resize` stretches to fill (the unchanged default),
+  `crop` center-crops without distortion, and the new `pad` mode letterboxes
+  the full source onto the canvas (aspect-preserving, black fill by default and
+  configurable via `ImageUtil.scale_to_dimensions(fill_color=...)`; the Wan
+  VACE reference-image canvas keeps its own upstream-parity white/BILINEAR
+  path). Exposed as a `generate_image` kwarg and CLI flag on the latent
+  image-to-image families (Qwen incl. native masked edit, FLUX.2 Klein,
+  Z-Image incl. native inpaint, ERNIE, FIBO, FLUX.1) and on Wan
+  `generate_video` (i2v first frame, v2v source frames, VACE conditioning).
+  Masks always map through the SAME source-to-canvas geometry as the pixels
+  (shared letterbox math; pad borders binarize to 0 = preserved), so
+  inpaint/VACE alignment cannot drift. Routes with reference-pinned
+  conditioning geometry (edit/reference, controlnet, outpaint) reject the flag
+  loudly instead of ignoring it. Image and video metadata record `resize_mode`
+  next to `canvas_policy`; Wan condition caches key on it. Defaults are
+  bit-identical everywhere.
+- **Wan i2v exact-canvas support (`--canvas-policy` on the wan route)**:
+  image-to-video previously ALWAYS replaced the requested canvas with a
+  source-ratio canvas. `generate_video(canvas_policy=...)` / wan
+  `--canvas-policy` now accept `exact-resize` to honor the requested
+  (validated, multiple-snapped) dimensions with the source mapped per
+  `--resize-mode`, and `source-aspect` on video-to-video to derive a
+  source-ratio canvas from the clip. Default (`None`) keeps each route's
+  existing behavior bit-identically. The i2v resolution print names the active
+  policy and the escape hatch, both values replay via
+  `--config-from-metadata`, and Wan `start` runtime events (plus
+  `ProgressEvent`) now carry the RESOLVED `width`/`height` so embedding hosts
+  learn final geometry before container probing (0087 save-event pattern).
+- **Wan VACE ratio-mismatch warning**: VACE video conditioning used to stretch
+  mismatched sources silently; it now prints the same >2% aspect-ratio warning
+  as plain video-to-video. Both warnings fire only when the mapping actually
+  stretches (`resize`); `crop`/`pad` are aspect-preserving by construction.
+
+#### Changed (performance, output-identical)
+
+- **Wan A14B i2v condition builds in model precision (0089 F2)**: the
+  first-frame video condition concatenated `first_frame` + `zero_frames` in
+  float32 before casting (a ~1 GB f32 transient at 1280x720x81, ~3 GB at
+  1920x1080x121 that the cast immediately halved). The padded VAE-encode input
+  is now built directly in the model precision; normalization stays in f32, so
+  the encoded tensor is BITWISE identical (test-pinned through a tiny
+  random-weight VAE encode).
+- **Wan RoPE per-shape cache (0090 F7)**: `WanRotaryPosEmbed` rebuilt the
+  rotary embeds on every forward (~33 ms at A14B-121f token counts, ~11 ms
+  TI2V, x2 with CFG) although shapes are constant within a run. The embeds now
+  cache per (frames, height, width) token grid on the embed instance
+  (underscore-prefixed: excluded from parameter/quantization traversal;
+  bounded to 2 grids — a grid pair measures ~114 MB f32 at A14B 121f@1280x720
+  per expert, a run only ever uses one grid, and a rebuild costs ~33 ms). Pure
+  shape-keyed
+  compute: cached vs fresh embeds are bitwise identical (test-pinned).
+
+#### Fixed
+
+- **Wan text-to-video now validates `canvas_policy` loudly**: the no-source
+  branch skipped policy normalization entirely, so invalid values AND the
+  contradictory `source-aspect` request (no source to derive an aspect from)
+  were silently ignored. Both now raise; `exact-resize` stays accepted because
+  it names what text-to-video already does (regression-tested).
+- **Image CLIs replay `canvas_policy`/`resize_mode` from metadata**: the wan
+  route replayed both via `--config-from-metadata`, but the image parsers
+  replayed neither (canvas_policy had been recorded since 0022 and never
+  replayed), so a faithful `-C` replay could silently reproduce different
+  geometry. Both fields now replay on parsers that define the flags; explicit
+  arguments still win (regression-tested).
+- **Capabilities advertise `resize_modes` per route**: `mlxgen capabilities`
+  and `resolve_generation_plan` now expose which source-to-canvas mapping
+  modes each route's handler actually accepts (additive field, schema
+  version unchanged): latent image-to-image rows, Qwen native masked edit,
+  Z-Image native inpaint, and Wan i2v/v2v advertise `resize | crop | pad`;
+  reference-pinned routes (edit/reference, controlnet incl. the Qwen
+  control-inpaint sidecar, outpaint/reframe) and text-only routes advertise
+  none. Wan i2v/v2v rows also advertise their `canvas_policies` and per-route
+  default (i2v: source-aspect; v2v and VACE: exact-resize, with VACE
+  exact-only), which they previously did not.
 
 ## [0.23.1] - 2026-07-18
 

@@ -84,6 +84,7 @@ class ImageUtil:
             negative_prompt=negative_prompt,
             init_metadata=init_metadata,
             canvas_policy=config.canvas_policy,
+            resize_mode=config.resize_mode,
             requested_width=config.requested_width,
             requested_height=config.requested_height,
             source_image_width=config.source_image_width,
@@ -231,6 +232,7 @@ class ImageUtil:
         target_width: int,
         target_height: int,
         resize_mode: str = "resize",
+        fill_color: tuple | int = (0, 0, 0),
     ) -> PIL.Image.Image:
         if (image.width, image.height) == (target_width, target_height):
             return image
@@ -246,7 +248,41 @@ class ImageUtil:
                 method=PIL.Image.Resampling.LANCZOS,
                 centering=(0.5, 0.5),
             )
-        raise ValueError("resize_mode must be 'resize' or 'crop'.")
+        if resize_mode == "pad":
+            # Aspect-preserving letterbox (generalized from the Wan VACE reference-image
+            # canvas, which keeps its own upstream-parity white/BILINEAR path). Black is
+            # the general default: letterbox bars conventionally read as "no content"
+            # and, on video routes, padded first frames are visible output pixels.
+            scaled_width, scaled_height, left, top = ImageUtil.letterbox_geometry(
+                source_width=image.width,
+                source_height=image.height,
+                target_width=target_width,
+                target_height=target_height,
+            )
+            resized = image.resize((scaled_width, scaled_height), PIL.Image.LANCZOS)
+            canvas = PIL.Image.new(image.mode, (target_width, target_height), fill_color)
+            canvas.paste(resized, (left, top))
+            return canvas
+        raise ValueError("resize_mode must be 'resize', 'crop' or 'pad'.")
+
+    @staticmethod
+    def letterbox_geometry(
+        *,
+        source_width: int,
+        source_height: int,
+        target_width: int,
+        target_height: int,
+    ) -> tuple[int, int, int, int]:
+        # Single source of truth for pad-mode placement: images and masks both map
+        # through this integer math, so their geometries can never drift apart.
+        if source_width <= 0 or source_height <= 0 or target_width <= 0 or target_height <= 0:
+            raise ValueError("letterbox_geometry requires positive source and target dimensions.")
+        scale = min(target_width / source_width, target_height / source_height)
+        scaled_width = max(1, min(target_width, round(source_width * scale)))
+        scaled_height = max(1, min(target_height, round(source_height * scale)))
+        left = (target_width - scaled_width) // 2
+        top = (target_height - scaled_height) // 2
+        return scaled_width, scaled_height, left, top
 
     @staticmethod
     def save_image(

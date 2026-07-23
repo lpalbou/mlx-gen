@@ -59,6 +59,7 @@ class FIBO(nn.Module):
         scheduler: str = "flow_match_euler_discrete",
         negative_prompt: str | None = None,
         canvas_policy: str = CANVAS_POLICY_SOURCE_ASPECT,
+        resize_mode: str = "resize",
     ) -> GeneratedImage:
         if image_path is not None:
             raise ValueError(
@@ -80,6 +81,7 @@ class FIBO(nn.Module):
             model_config=self.model_config,
             num_inference_steps=num_inference_steps,
             canvas_policy=canvas_policy,
+            resize_mode=resize_mode,
             preserve_image_aspect_ratio=image_path is not None and canvas_policy == CANVAS_POLICY_SOURCE_ASPECT,
         )
 
@@ -96,6 +98,7 @@ class FIBO(nn.Module):
                 init_time_step=config.init_time_step,
                 image_strength=config.image_strength,
                 tiling_config=self.tiling_config,
+                resize_mode=config.resize_mode,
             ),
         )
 

@@ -141,6 +141,20 @@ NEEDS REAL-CHECKPOINT VALIDATION (owner, per AGENTS.md):
    high_noise_transformer/low_noise_transformer roles) verifying re-fused
    output identity across items (same seed twice: item 1 vs a fresh process).
 
+## Implementation record (2026-07-23): A14B i2v condition precision build (F2)
+
+`_load_video_condition` built first_frame + zero_frames in float32 and
+concatenated BEFORE the precision cast — a ~1 GB f32 transient at 1280x720x81
+(~3 GB at 1920x1080x121) that the cast immediately halved. The padded
+VAE-encode input is now built directly in `ModelConfig.precision`
+(`Wan2_2_TI2V._build_first_frame_video_condition`): normalization stays in
+float32, the single frame is cast first, and the zero padding is allocated in
+the target dtype. The VAE encode input is BITWISE identical (elementwise cast;
+zeros cast exactly), pinned by a tiny random-weight VAE encode parity test
+(`tests/wan/test_wan_vae.py::test_wan_i2v_precision_condition_build_is_bitwise_identical_to_f32_concat_cast`).
+Real-checkpoint validation item: none needed for output correctness (bitwise);
+a peak-RSS spot check on one A14B i2v run would confirm the transient claim.
+
 ## Follow-up note (2026-07-22): video writer HD color coding
 
 The 0.25-track writer fix pins and truthfully tags the BT.601 matrix ffmpeg was

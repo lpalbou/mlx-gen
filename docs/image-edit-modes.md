@@ -47,6 +47,11 @@ This mode is weaker for:
 `--image-strength` controls how far the output may drift. Lower values stay closer to the source.
 Higher values allow a stronger restyle.
 
+Geometry follows the shared image-to-image contract: the default `--canvas-policy source-aspect`
+keeps the output ratio close to the source, and `--resize-mode` (`resize` | `crop` | `pad`)
+chooses how source pixels map onto a canvas whose ratio differs. See
+[docs/api.md](api.md) for the full contract.
+
 Example:
 
 ```sh

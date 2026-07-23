@@ -22,6 +22,7 @@ def main():
     parser.add_lora_arguments()
     parser.add_image_generator_arguments(supports_metadata_config=True, supports_dimension_scale_factor=True)
     parser.add_image_to_image_arguments(required=False)
+    parser.add_resize_mode_argument()
     parser.add_mask_path_argument(
         help_text=(
             "Optional mask image path for base-Qwen masked edit. White pixels are repainted and black pixels are "
@@ -101,6 +102,7 @@ def main():
                     "--controlnet-model conflicts with the exact base-Qwen control-inpaint row. "
                     "Use the documented route, or call a different backend explicitly if you need another ControlNet package."
                 )
+            _require_default_resize_mode(parser, args, route_label="the control-inpaint sidecar route")
             qwen = QwenImageControlNet(
                 controlnet_model=args.controlnet_model or plan.control_model,
                 model_config=model_config,
@@ -127,6 +129,7 @@ def main():
                 "--controlnet-model conflicts with the exact structured-control row selected by this backend. "
                 "Use the documented route, or call a different backend explicitly if you need another ControlNet package."
             )
+        _require_default_resize_mode(parser, args, route_label="structured-control routes")
         qwen = QwenImageControlNet(
             controlnet_model=args.controlnet_model or plan.control_model,
             model_config=model_config,
@@ -177,6 +180,7 @@ def main():
                         mask_path=args.mask_path,
                         mask_strength=args.mask_strength,
                         canvas_policy=args.canvas_policy,
+                        resize_mode=args.resize_mode,
                     )
                 elif args.controlnet_image_path is not None or args.mask_path is not None:
                     image = qwen.generate_image(
@@ -207,6 +211,7 @@ def main():
                         num_inference_steps=args.steps,
                         image_strength=args.image_strength,
                         canvas_policy=args.canvas_policy,
+                        resize_mode=args.resize_mode,
                     )
                 events.emit_save()
                 image.save(
@@ -233,6 +238,13 @@ def _read_negative_prompt(args) -> str | None:
     if _any_option_was_provided(sys.argv[1:], ("--negative-prompt", "--negative")):
         return PromptUtil.read_negative_prompt(args)
     return None
+
+
+def _require_default_resize_mode(parser: CommandLineParser, args, *, route_label: str) -> None:
+    # ControlNet conditioning geometry is reference-pinned; reject loudly instead of
+    # silently ignoring a non-default mapping request.
+    if args.resize_mode != "resize":
+        parser.error(f"--resize-mode is not supported on {route_label}; they keep reference-pinned resize geometry.")
 
 
 def _any_option_was_provided(argv: list[str], option_names: tuple[str, ...]) -> bool:

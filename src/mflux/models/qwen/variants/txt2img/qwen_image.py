@@ -73,6 +73,7 @@ class QwenImage(nn.Module):
         scheduler: str = "flow_match_euler_discrete",
         negative_prompt: str | None = None,
         canvas_policy: str = CANVAS_POLICY_SOURCE_ASPECT,
+        resize_mode: str = "resize",
     ) -> GeneratedImage:
         timer = RuntimeTimer()
         if mask_path is not None and image_path is None:
@@ -103,6 +104,7 @@ class QwenImage(nn.Module):
             model_config=self.model_config,
             num_inference_steps=num_inference_steps,
             canvas_policy=canvas_policy,
+            resize_mode=resize_mode,
             preserve_image_aspect_ratio=image_path is not None and canvas_policy == CANVAS_POLICY_SOURCE_ASPECT,
         )
 
@@ -116,6 +118,7 @@ class QwenImage(nn.Module):
                 height=config.height,
                 width=config.width,
                 initial_noise=initial_noise,
+                resize_mode=config.resize_mode,
             )
             latents = LatentCreator.add_noise_by_interpolation(
                 clean=inpaint_latents["image"],
@@ -135,6 +138,7 @@ class QwenImage(nn.Module):
                     image_strength=config.image_strength,
                     image_path=config.image_path,
                     tiling_config=self.tiling_config,
+                    resize_mode=config.resize_mode,
                 ),
             )
 
@@ -266,16 +270,19 @@ class QwenImage(nn.Module):
         height: int,
         width: int,
         initial_noise: mx.array,
+        resize_mode: str = "resize",
     ) -> dict[str, mx.array]:
         # Diffusers QwenImageInpaintPipeline semantics at the repo-wide full-strength mask
         # contract: encode the clean source once, keep unmasked latents locked to it by
         # per-step blending against the run's own initial noise.
+        # The mask maps through the SAME source-to-canvas geometry as the image.
         encoded = LatentCreator.encode_image(
             vae=self.vae,
             image_path=image_path,
             height=height,
             width=width,
             tiling_config=self.tiling_config,
+            resize_mode=resize_mode,
         )
         image_latents = mx.stop_gradient(
             QwenLatentCreator.pack_latents(latents=encoded, height=height, width=width)
@@ -285,6 +292,7 @@ class QwenImage(nn.Module):
                 mask_path=str(mask_path),
                 height=height,
                 width=width,
+                resize_mode=resize_mode,
             ).astype(image_latents.dtype)
         )
         detached_noise = mx.stop_gradient(initial_noise)

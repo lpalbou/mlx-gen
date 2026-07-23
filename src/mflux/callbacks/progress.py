@@ -18,6 +18,10 @@ class ProgressEvent:
     item_count: int | None = None
     output_path: str | None = None
     input_name: str | None = None
+    # Resolved output dimensions, carried on early events (Wan emits them at
+    # phase="start") so hosts learn final geometry before container probing.
+    width: int | None = None
+    height: int | None = None
 
     @property
     def progress(self) -> float:

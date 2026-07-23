@@ -61,6 +61,7 @@ class Flux2Klein(nn.Module):
         image_strength: float | None = None,
         scheduler: str = "flow_match_euler_discrete",
         canvas_policy: str = CANVAS_POLICY_SOURCE_ASPECT,
+        resize_mode: str = "resize",
     ) -> GeneratedImage:
         timer = RuntimeTimer()
         if num_inference_steps is None:
@@ -77,6 +78,7 @@ class Flux2Klein(nn.Module):
             image_strength=image_strength,
             scheduler=scheduler,
             canvas_policy=canvas_policy,
+            resize_mode=resize_mode,
             preserve_image_aspect_ratio=image_path is not None and canvas_policy == CANVAS_POLICY_SOURCE_ASPECT,
         )
         self._configure_generation_scheduler(config)
@@ -214,6 +216,7 @@ class Flux2Klein(nn.Module):
             height=config.height,
             width=config.width,
             tiling_config=self.tiling_config,
+            resize_mode=config.resize_mode,
         )
         encoded = _Flux2KleinEditHelpers.ensure_4d_latents(encoded)
         encoded = _Flux2KleinEditHelpers.crop_to_even_spatial(encoded)

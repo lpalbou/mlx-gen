@@ -78,6 +78,9 @@ latent_plan = resolve_generation_plan(
 print(latent_plan.task, latent_plan.mode, latent_plan.handler_id, latent_plan.canvas_policies)
 # image-to-image latent-img2img flux2.generate ('source-aspect', 'exact-resize')
 
+print(latent_plan.resize_modes)
+# ('resize', 'crop', 'pad') — routes with reference-pinned geometry advertise ()
+
 print(resolve_task(model="Wan-AI/Wan2.2-I2V-A14B-Diffusers", image_count=1).task)
 # image-to-video
 

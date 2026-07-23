@@ -5,7 +5,11 @@ from dataclasses import dataclass
 from mflux.lora_validation_registry import LORA_STATUS_UNSUPPORTED, get_lora_validation_status
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.resolution.config_resolution import ConfigResolution
-from mflux.utils.dimension_resolver import CANVAS_POLICY_EXACT_RESIZE, CANVAS_POLICY_SOURCE_ASPECT
+from mflux.utils.dimension_resolver import (
+    CANVAS_POLICY_EXACT_RESIZE,
+    CANVAS_POLICY_SOURCE_ASPECT,
+    RESIZE_MODE_CHOICES,
+)
 from mflux.utils.exceptions import ModelConfigError
 
 TASK_ALIASES = {
@@ -99,6 +103,10 @@ class GenerationCapability:
     model_override: str | None = None
     canvas_policies: tuple[str, ...] = ()
     default_canvas_policy: str | None = None
+    # Source-to-canvas mapping modes the route's handler actually accepts
+    # (--resize-mode). Empty on routes with reference-pinned geometry
+    # (edit/reference, controlnet, outpaint) and on text-only routes.
+    resize_modes: tuple[str, ...] = ()
     primary_image_index: int | None = None
     dimension_multiple: int | None = None
 
@@ -141,6 +149,7 @@ class GenerationCapability:
             "model_override": self.model_override,
             "canvas_policies": list(self.canvas_policies),
             "default_canvas_policy": self.default_canvas_policy,
+            "resize_modes": list(self.resize_modes),
             "primary_image_index": self.primary_image_index,
             "dimension_multiple": self.dimension_multiple,
         }
@@ -177,6 +186,7 @@ class GenerationPlan:
     model_override: str | None = None
     canvas_policies: tuple[str, ...] = ()
     default_canvas_policy: str | None = None
+    resize_modes: tuple[str, ...] = ()
     primary_image_index: int | None = None
     dimension_multiple: int | None = None
     supports_lora: bool = False
@@ -203,6 +213,7 @@ class GenerationPlan:
             "model_override": self.model_override,
             "canvas_policies": list(self.canvas_policies),
             "default_canvas_policy": self.default_canvas_policy,
+            "resize_modes": list(self.resize_modes),
             "primary_image_index": self.primary_image_index,
             "dimension_multiple": self.dimension_multiple,
             "supports_lora": self.supports_lora,
@@ -448,6 +459,7 @@ def resolve_generation_plan(
         model_override=capability.model_override,
         canvas_policies=capability.canvas_policies,
         default_canvas_policy=capability.default_canvas_policy,
+        resize_modes=capability.resize_modes,
         primary_image_index=capability.primary_image_index,
         dimension_multiple=capability.dimension_multiple,
         supports_lora=capability.supports_lora,
@@ -758,6 +770,7 @@ def _image_latent_capabilities(
                 max_images=1,
                 supports_image_strength=True,
                 default_for_task=True,
+                resize_modes=RESIZE_MODE_CHOICES,
                 **_lora_capability_kwargs(
                     identity=identity, capability_id=f"{family}.latent", supports_lora=supports_lora
                 ),
@@ -804,6 +817,9 @@ def _z_image_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 min_images=1,
                 max_images=1,
                 supports_mask=True,
+                # Native inpaint maps source+mask through the shared geometry, so it
+                # honors --resize-mode (unlike reference-pinned edit routes).
+                resize_modes=RESIZE_MODE_CHOICES,
                 **_lora_capability_kwargs(identity=identity, capability_id="z-image.inpaint", supports_lora=True),
                 **_ordinary_i2i_canvas_contract(),
             ),
@@ -942,6 +958,10 @@ def _qwen_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                         min_images=1,
                         max_images=1,
                         supports_mask=True,
+                        # Native masked edit maps source+mask through the shared
+                        # geometry; the control-inpaint sidecar row stays
+                        # reference-pinned and advertises no resize modes.
+                        resize_modes=RESIZE_MODE_CHOICES,
                         **_lora_capability_kwargs(
                             identity=identity,
                             capability_id="qwen.base-inpaint",
@@ -962,6 +982,7 @@ def _qwen_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 max_images=1,
                 supports_image_strength=True,
                 default_for_task=True,
+                resize_modes=RESIZE_MODE_CHOICES,
                 **_lora_capability_kwargs(identity=identity, capability_id="qwen.latent", supports_lora=True),
                 **i2i_canvas,
             ),
@@ -1028,6 +1049,7 @@ def _flux2_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 min_images=1,
                 max_images=1,
                 supports_image_strength=True,
+                resize_modes=RESIZE_MODE_CHOICES,
                 **_lora_capability_kwargs(identity=identity, capability_id="flux2.latent", supports_lora=True),
                 **i2i_canvas,
             ),
@@ -1160,6 +1182,13 @@ def _wan_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                     supports_frames=True,
                     supports_fps=True,
                     default_for_task=True,
+                    # VACE requires the exact validated canvas; plain v2v can opt in
+                    # to a source-ratio canvas derived from the clip.
+                    canvas_policies=(CANVAS_POLICY_EXACT_RESIZE,)
+                    if is_vace
+                    else (CANVAS_POLICY_EXACT_RESIZE, CANVAS_POLICY_SOURCE_ASPECT),
+                    default_canvas_policy=CANVAS_POLICY_EXACT_RESIZE,
+                    resize_modes=RESIZE_MODE_CHOICES,
                     **_lora_capability_kwargs(
                         identity=identity,
                         capability_id="wan.video-video",
@@ -1180,6 +1209,9 @@ def _wan_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 supports_frames=True,
                 supports_fps=True,
                 default_for_task=True,
+                canvas_policies=(CANVAS_POLICY_SOURCE_ASPECT, CANVAS_POLICY_EXACT_RESIZE),
+                default_canvas_policy=CANVAS_POLICY_SOURCE_ASPECT,
+                resize_modes=RESIZE_MODE_CHOICES,
                 **_lora_capability_kwargs(
                     identity=identity,
                     capability_id="wan.first-frame",

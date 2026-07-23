@@ -44,6 +44,7 @@ class GeneratedImage:
         negative_prompt: str | None = None,
         init_metadata: dict | None = None,
         canvas_policy: str | None = None,
+        resize_mode: str | None = None,
         requested_width: int | None = None,
         requested_height: int | None = None,
         source_image_width: int | None = None,
@@ -76,6 +77,7 @@ class GeneratedImage:
         self.negative_prompt = negative_prompt
         self.init_metadata = init_metadata
         self.canvas_policy = canvas_policy
+        self.resize_mode = resize_mode
         self.requested_width = requested_width
         self.requested_height = requested_height
         self.source_image_width = source_image_width
@@ -111,6 +113,7 @@ class GeneratedImage:
             concept_heatmap=self.concept_heatmap,
             init_metadata=self.init_metadata,
             canvas_policy=self.canvas_policy,
+            resize_mode=self.resize_mode,
             requested_width=self.requested_width,
             requested_height=self.requested_height,
             source_image_width=self.source_image_width,
@@ -287,6 +290,7 @@ class GeneratedImage:
             "image_paths": [str(p) for p in self.image_paths] if self.image_paths else None,
             "image_strength": self.image_strength if (self.image_path or self.image_paths) else None,
             "canvas_policy": self.canvas_policy if (self.image_path or self.image_paths) else None,
+            "resize_mode": self.resize_mode if (self.image_path or self.image_paths) else None,
             "requested_width": self.requested_width if (self.image_path or self.image_paths) else None,
             "requested_height": self.requested_height if (self.image_path or self.image_paths) else None,
             "source_image_width": self.source_image_width if (self.image_path or self.image_paths) else None,

@@ -38,6 +38,7 @@ class Config:
         controlnet_strength: float | None = None,
         scheduler: str = "linear",
         canvas_policy: str = CANVAS_POLICY_EXACT_RESIZE,
+        resize_mode: str = "resize",
         preserve_image_aspect_ratio: bool = False,
         dimension_multiple: int = 16,
     ):
@@ -101,6 +102,9 @@ class Config:
         self._scheduler = None
         self._time_steps = None
         self._canvas_policy = resolved_dimensions.canvas_policy
+        # Orthogonal to canvas_policy: the policy picks the canvas, the mode picks
+        # how source pixels map onto it (resize | crop | pad).
+        self._resize_mode = DimensionResolver.normalize_resize_mode(resize_mode)
         self._requested_width = resolved_dimensions.requested_width
         self._requested_height = resolved_dimensions.requested_height
         self._source_image_width = resolved_dimensions.source_width
@@ -125,6 +129,10 @@ class Config:
     @property
     def canvas_policy(self) -> str:
         return self._canvas_policy
+
+    @property
+    def resize_mode(self) -> str:
+        return self._resize_mode
 
     @property
     def requested_width(self) -> int | None:
