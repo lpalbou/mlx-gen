@@ -395,6 +395,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../previews/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generation Previews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../image-edit-modes/" class="md-nav__link">
         
   
@@ -543,6 +571,62 @@
     
   
     Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wan-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upscaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image & Video Upscaling
   
 
     
@@ -934,6 +1018,17 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-watch-an-image-while-it-generates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I Watch An Image While It Generates?
+      
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#where-is-the-save-command" class="md-nav__link">
@@ -1458,6 +1553,17 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#can-i-watch-an-image-while-it-generates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I Watch An Image While It Generates?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#where-is-the-save-command" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1874,6 +1980,17 @@
 
 
 <h1 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h1>
+<h2 id="can-i-watch-an-image-while-it-generates">Can I Watch An Image While It Generates?<a class="headerlink" href="#can-i-watch-an-image-while-it-generates" title="Permanent link">&para;</a></h2>
+<p>Yes. Pass <code>--stepwise-image-output-dir DIR</code> to write one PNG per denoising step. By default those
+previews are rendered with a published tiny autoencoder for the model's latent space, which
+decodes about 11-13x faster than the model's own VAE and makes previewing every step cost roughly
+8% extra wall time instead of roughly 86%. Download a decoder once with
+<code>mlxgen download --model madebyollin/taef1</code> (FLUX.1 and Z-Image) or
+<code>mlxgen download --model madebyollin/taef2</code> (FLUX.2 Klein, ERNIE-Image, Bonsai).</p>
+<p>Use <code>--preview-decoder full</code> to render previews with the model's own VAE, or <code>tiny</code> to require the
+tiny decoder. Final outputs are always decoded with the full VAE regardless of this setting.
+Applications embedding MLX-Gen can render live preview frames through <code>PreviewDecoder</code>; see
+<a href="../previews/">Generation Previews</a>.</p>
 <h2 id="where-is-the-save-command">Where Is The Save Command?<a class="headerlink" href="#where-is-the-save-command" title="Permanent link">&para;</a></h2>
 <p>Use <code>mlxgen prepare</code>.</p>
 <p><code>prepare</code> creates a local MLX-Gen model package: a directory with MLX-Gen weights, config files,

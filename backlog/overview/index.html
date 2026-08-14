@@ -391,6 +391,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../previews/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generation Previews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../image-edit-modes/" class="md-nav__link">
         
   
@@ -539,6 +567,62 @@
     
   
     Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../wan-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../upscaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image & Video Upscaling
   
 
     
@@ -1900,6 +1984,18 @@ memory follow-up state.</p>
 <td><a href="../proposed/0111_qwen_image_edit_instruction_scope_leakage/">Qwen image edit instruction-scope leakage</a></td>
 <td>Image editing, quality investigation</td>
 <td>Promote after a controlled reproduction measures off-target change and splits model behavior from implementation drift.</td>
+</tr>
+<tr>
+<td>0112</td>
+<td><a href="../proposed/0112_x0_estimate_previews/">Preview the x0 estimate instead of the noisy latent</a></td>
+<td>Previews, callback contract, early abort</td>
+<td>Promote alongside any preview follow-up: this is what makes early-step previews readable, and it needs the in-loop callback to carry the denoiser's x0 estimate.</td>
+</tr>
+<tr>
+<td>0113</td>
+<td><a href="../proposed/0113_video_family_tiny_previews/">Tiny previews for the Wan, Qwen, and FIBO latent spaces</a></td>
+<td>Previews, Wan/Qwen/FIBO, TAEHV port</td>
+<td>Promote when video preview value is wanted: mapping is already verified by VAE lineage, the work is porting the causal TAEHV graph and validating per family.</td>
 </tr>
 <tr>
 <td>## Completed ledger</td>

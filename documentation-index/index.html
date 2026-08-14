@@ -16,7 +16,7 @@
         <link rel="prev" href="../getting-started/">
       
       
-        <link rel="next" href="../image-edit-modes/">
+        <link rel="next" href="../previews/">
       
       
         
@@ -464,6 +464,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../previews/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generation Previews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../image-edit-modes/" class="md-nav__link">
         
   
@@ -612,6 +640,62 @@
     
   
     Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wan-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upscaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image & Video Upscaling
   
 
     
@@ -1137,6 +1221,7 @@
 <li><a href="../wan-video/">Wan video</a>: practical Wan2.2 T2V/I2V sizing, plain and masked prompt-guided A14B video-to-video, the natively ported Wan2.1-VACE-1.3B route (<code>wan-vace</code>: reference-image object injection and learned mask conditioning with <code>--vace-masked-region</code>), the measured motion-fidelity ladder (strength vs gesture preservation, with a motion-preserving restyle recipe), the fps-resampling and audio copy-through contract with a playable proof, broader A14B target size families, full example commands, and included MP4/frame-strip assets.</li>
 <li><a href="../bernini/">Bernini-R 1.3B</a>: experimental reference-to-video and video-edit routes, pinned BF16 runtime setup, measured memory, the committed official public parity bundle (full prompts and contact sheets per upstream example row), and task-specific recipes for many-reference binding and structure-changing edits.</li>
 <li><a href="../examples/spaceship-snow/">Spaceship snow workflow</a>: reproducible model-backed T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B commands with included assets.</li>
+<li><a href="../previews/">Generation previews</a>: step-wise previews rendered with published tiny autoencoders (<code>taef1</code>, <code>taef2</code>), the <code>--preview-decoder auto|tiny|full</code> contract, the per-latent-space availability table, measured agreement against the full VAE, and the guarantee that final outputs are always full-VAE decoded.</li>
 <li><a href="../upscaling/">Image upscaling</a>: SeedVR2 command usage for image and video restoration, published 3B/7B q8/q4 package handles, shortest-edge and scale-factor sizing, the conservative safe-video profile, the validated June 21 five-second Eiffel <code>1x</code> and <code>2x</code> 3B/7B proof bundles plus timings/memory data, and real 5x image comparisons from a <code>133x113</code> source.</li>
 <li><a href="../edit-capabilities/">Image edit capabilities</a>: image-edit plus generative reframe and outpaint contact sheets, exact model/package status, the Qwen Image Edit 2511 q8 masked-edit proof, the exact base Qwen q8 structured-control and control-inpaint proofs, the exact Z-Image Turbo q8 native-inpaint proof, the FLUX.2 Klein base source-model starship proof, and command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, Qwen control routes, Z-Image native inpaint, and latent I2I rows. FIBO Edit is unsupported through unified <code>mlxgen generate</code>.</li>
 <li><a href="../reframe-outpaint/">Reframe and outpaint</a>: <code>--reframe-padding</code> and <code>--outpaint-padding</code> workflows, supported models, the historical mixed June 8 profile, the current FLUX.2 Klein base source-model starship proof, and the validation profile ids for canvas expansion workflows.</li>

@@ -61,6 +61,10 @@
          <lastmod>2026-08-14</lastmod>
     </url>
     <url>
+         <loc>https://www.lpalbou.info/mlx-gen/previews/</loc>
+         <lastmod>2026-08-14</lastmod>
+    </url>
+    <url>
          <loc>https://www.lpalbou.info/mlx-gen/python-integration/</loc>
          <lastmod>2026-08-14</lastmod>
     </url>
@@ -590,6 +594,14 @@
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0111_qwen_image_edit_instruction_scope_leakage/</loc>
+         <lastmod>2026-08-14</lastmod>
+    </url>
+    <url>
+         <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0112_x0_estimate_previews/</loc>
+         <lastmod>2026-08-14</lastmod>
+    </url>
+    <url>
+         <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0113_video_family_tiny_previews/</loc>
          <lastmod>2026-08-14</lastmod>
     </url>
     <url>

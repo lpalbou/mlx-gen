@@ -397,6 +397,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../previews/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generation Previews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../image-edit-modes/" class="md-nav__link">
         
   
@@ -545,6 +573,62 @@
     
   
     Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wan-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upscaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image & Video Upscaling
   
 
     
@@ -813,6 +897,17 @@
     <span class="md-ellipsis">
       
         Progress And Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#live-preview-frames" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live Preview Frames
       
     </span>
   </a>
@@ -1183,6 +1278,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#live-preview-frames" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Live Preview Frames
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#threading" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1521,6 +1627,33 @@ serial outputs without losing per-seed attribution.</p>
 <p>For CLI integrations, prefer <code>mlxgen ... --json-events</code> over parsing human stdout. Image routes map
 model <code>complete</code> to <code>generated</code>, then emit <code>save</code> and final <code>complete</code> only after the output file
 is written. Wan failure events include <code>diagnostics_path</code> when a failure manifest is produced.</p>
+<h2 id="live-preview-frames">Live Preview Frames<a class="headerlink" href="#live-preview-frames" title="Permanent link">&para;</a></h2>
+<p>Progress events report where a run is; live previews show what it currently looks like. Register
+an in-loop callback, decode the step's latents with <code>PreviewDecoder</code>, and hand the resulting
+<code>PIL.Image</code> to your interface. Resolving the decoder once, before generation, keeps the loop cheap:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.common.preview.preview_decoder</span><span class="w"> </span><span class="kn">import</span> <span class="n">PreviewDecoder</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.utils.image_util</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImageUtil</span>
+
+<span class="n">preview_decoder</span> <span class="o">=</span> <span class="n">PreviewDecoder</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
+
+
+<span class="k">class</span><span class="w"> </span><span class="nc">LivePreview</span><span class="p">:</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">call_in_loop</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">t</span><span class="p">,</span> <span class="n">seed</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">latents</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">time_steps</span><span class="p">):</span>
+        <span class="n">unpacked</span> <span class="o">=</span> <span class="n">LatentCreator</span><span class="o">.</span><span class="n">unpack_latents</span><span class="p">(</span><span class="n">latents</span><span class="o">=</span><span class="n">latents</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">height</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">width</span><span class="p">)</span>
+        <span class="n">decoded</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">preview_decoder</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">unpacked</span><span class="p">,</span> <span class="n">vae</span><span class="o">=</span><span class="n">model</span><span class="o">.</span><span class="n">vae</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">preview_decoder</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+            <span class="k">else</span> <span class="n">model</span><span class="o">.</span><span class="n">vae</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">unpacked</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">display</span><span class="p">(</span><span class="n">ImageUtil</span><span class="o">.</span><span class="n">to_pil_image</span><span class="p">(</span><span class="n">decoded</span><span class="p">))</span>
+
+
+<span class="n">model</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">LivePreview</span><span class="p">())</span>
+</code></pre></div>
+<p><code>PreviewDecoder.resolve(..., mode="auto")</code> returns a tiny decoder when one is published for the
+model's latent space and returns <code>None</code> otherwise, so applications should keep the full-VAE
+fallback shown above. Use the latent creator belonging to the model family you loaded. See
+<a href="../previews/">Generation Previews</a> for supported families, measured fidelity, and decode costs.</p>
 <h2 id="threading">Threading<a class="headerlink" href="#threading" title="Permanent link">&para;</a></h2>
 <p>MLX model instances should be treated as stateful runtime objects. Applications that multiplex user requests should serialize access to a loaded model instance unless they have tested a narrower concurrency model for that specific backend.</p>
 
