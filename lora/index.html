@@ -1,0 +1,1699 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/lora/">
+      
+      
+        <link rel="prev" href="../bernini/">
+      
+      
+        <link rel="next" href="../quantization/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>LoRA - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#lora" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              LoRA
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#check-support-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Support First
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-production-supported-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Production-Supported Surface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#published-proof-bundles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Published Proof Bundles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#download-adapters-explicitly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Download Adapters Explicitly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adapter-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapter Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exact-example-rows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exact Example Rows
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exact Example Rows">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#base-qwen-latent-img2img" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base Qwen latent img2img
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qwen-image-edit-2511-reframeoutpaintmulti-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qwen Image Edit 2511 reframe/outpaint/multi-reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flux2-klein-base-4b-outpaint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FLUX.2 Klein base 4B outpaint
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lightning-caveat-for-qwen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lightning Caveat For Qwen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wan-video-lora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wan Video LoRA
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#check-support-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Check Support First
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-production-supported-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Production-Supported Surface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#published-proof-bundles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Published Proof Bundles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#download-adapters-explicitly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Download Adapters Explicitly
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adapter-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapter Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#exact-example-rows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exact Example Rows
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Exact Example Rows">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#base-qwen-latent-img2img" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base Qwen latent img2img
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qwen-image-edit-2511-reframeoutpaintmulti-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qwen Image Edit 2511 reframe/outpaint/multi-reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flux2-klein-base-4b-outpaint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FLUX.2 Klein base 4B outpaint
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lightning-caveat-for-qwen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Lightning Caveat For Qwen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wan-video-lora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wan Video LoRA
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="lora">LoRA<a class="headerlink" href="#lora" title="Permanent link">&para;</a></h1>
+<p>LoRA support in MLX-Gen is route-specific and exact-row validated. The public support claim is not
+"this family probably loads adapters"; it is "this exact model/package and route has a current
+accepted A/B proof row."</p>
+<p>MLX-Gen still fails closed on bad LoRA input:</p>
+<ul>
+<li>missing or unreadable adapter files;</li>
+<li>corrupt files;</li>
+<li>zero matched keys;</li>
+<li>zero applied targets;</li>
+<li>incompatible matrix shapes;</li>
+<li>known adapter/base-model mismatches from cached model-card metadata;</li>
+<li>unsupported route or model-family combinations.</li>
+</ul>
+<p>Generation records what actually applied in output metadata:</p>
+<ul>
+<li><code>lora_application_reports</code></li>
+<li><code>lora_applied_file_count</code></li>
+<li><code>lora_applied_target_count</code></li>
+</ul>
+<h2 id="check-support-first">Check Support First<a class="headerlink" href="#check-support-first" title="Permanent link">&para;</a></h2>
+<p>Use <code>mlxgen capabilities</code> before a run:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit
+</code></pre></div>
+<p>Each capability row includes:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>supports_lora</code></td>
+<td>Whether the route accepts LoRA arguments at all.</td>
+</tr>
+<tr>
+<td><code>lora_status</code></td>
+<td><code>unsupported</code>, <code>mapped-unvalidated</code>, or <code>validated</code>.</td>
+</tr>
+<tr>
+<td><code>lora_target_roles</code></td>
+<td>Model components targeted by adapters, such as <code>transformer</code>.</td>
+</tr>
+<tr>
+<td><code>lora_validation_profile</code></td>
+<td>Exact proof row id for <code>mlxgen validation</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Treat only <code>lora_status="validated"</code> rows as production-supported. <code>mapped-unvalidated</code> means
+MLX-Gen has a mapping and strict loader path for the route, but the exact model/package row has not
+yet passed a visible accepted-adapter A/B proof.</p>
+<p>Inspect the proof row directly:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>validation<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2511-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>lora_qwen2511_q8_outpaint_multi_angle_2026_06_22
+</code></pre></div>
+<h2 id="current-production-supported-surface">Current Production-Supported Surface<a class="headerlink" href="#current-production-supported-surface" title="Permanent link">&para;</a></h2>
+<p>These are the current exact validated LoRA rows in the public MLX-Gen contract.</p>
+<table>
+<thead>
+<tr>
+<th>Exact model</th>
+<th>Validated routes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AbstractFramework/qwen-image-edit-8bit</code></td>
+<td><code>qwen.edit</code></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/qwen-image-edit-2509-8bit</code></td>
+<td><code>qwen.edit</code></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/qwen-image-edit-2511-8bit</code></td>
+<td><code>qwen.edit</code>, <code>qwen.inpaint</code>, <code>qwen.multi-reference</code>, <code>qwen.reframe</code>, <code>qwen.outpaint</code></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/qwen-image-8bit</code></td>
+<td><code>qwen.text</code>, <code>qwen.latent</code>, <code>qwen.control</code>, <code>qwen.control-inpaint</code></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/qwen-image-2512-8bit</code></td>
+<td><code>qwen.text</code></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/z-image-turbo-8bit</code></td>
+<td><code>z-image.text</code>, <code>z-image.latent</code></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/ernie-image-turbo-8bit</code></td>
+<td><code>ernie-image.text</code>, <code>ernie-image.latent</code></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/flux.2-klein-9b-8bit</code></td>
+<td><code>flux2.edit</code>, <code>flux2.multi-reference</code></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/flux.2-klein-base-4b-8bit</code></td>
+<td><code>flux2.outpaint</code></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code></td>
+<td><code>wan.text-video</code>, <code>wan.first-frame</code></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit</code></td>
+<td><code>wan.text-video</code></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit</code></td>
+<td><code>wan.first-frame</code></td>
+</tr>
+</tbody>
+</table>
+<p>Current deliberate boundaries:</p>
+<ul>
+<li><code>AbstractFramework/qwen-image-2512-8bit</code> latent img2img is not validated yet.</li>
+<li>Distilled FLUX.2 Klein LoRA support is not promoted as a general public surface. The exact
+  current FLUX.2 claim is the three rows listed above and nothing broader.</li>
+<li>SeedVR2, FIBO, and Bonsai are not public LoRA families today.</li>
+</ul>
+<h2 id="published-proof-bundles">Published Proof Bundles<a class="headerlink" href="#published-proof-bundles" title="Permanent link">&para;</a></h2>
+<p>The current exact image-route completion bundle is:</p>
+<ul>
+<li><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/lora-route-expansion-2026-06-22/lora_route_expansion_report.md">LoRA route expansion report</a></li>
+<li><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/lora-route-expansion-2026-06-22/lora_route_expansion_command_log.md">LoRA route expansion command log</a></li>
+<li><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/lora-route-expansion-2026-06-22/lora_route_expansion_stats_m5max.json">LoRA route expansion stats</a></li>
+<li><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/zimage-latent-lora-2026-06-24/zimage_latent_lora_report.md">Z-Image Turbo q8 latent LoRA report</a></li>
+<li><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/zimage-latent-lora-2026-06-24/zimage_latent_lora_command_log.md">Z-Image Turbo q8 latent LoRA command log</a></li>
+<li><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/zimage-latent-lora-2026-06-24/zimage_latent_lora_stats_m5max.json">Z-Image Turbo q8 latent LoRA stats</a></li>
+</ul>
+<p>That bundle includes accepted contact sheets for:</p>
+<ul>
+<li>base Qwen text realism;</li>
+<li>base Qwen latent realism;</li>
+<li>Z-Image Turbo latent children's-drawing style transfer;</li>
+<li>Qwen Image Edit 2511 multi-reference;</li>
+<li>Qwen Image Edit 2511 reframe;</li>
+<li>Qwen Image Edit 2511 outpaint;</li>
+<li>FLUX.2 Klein 9B multi-reference;</li>
+<li>FLUX.2 Klein base 4B outpaint;</li>
+<li>ERNIE latent img2img.</li>
+</ul>
+<p>The exact Z-Image latent row is:</p>
+<ul>
+<li><code>AbstractFramework/z-image-turbo-8bit</code> on <code>z-image.latent</code></li>
+<li>adapter: <code>ostris/z_image_turbo_childrens_drawings:z_image_turbo_childrens_drawings.safetensors</code></li>
+<li>proof shape: same source, prompt, seed, and latent strength; only the adapter changes</li>
+</ul>
+<p>Wan video LoRA uses a separate MP4 proof bundle. See the Wan sections in this guide and
+<a href="../wan-video/">Wan Video</a>.</p>
+<h2 id="download-adapters-explicitly">Download Adapters Explicitly<a class="headerlink" href="#download-adapters-explicitly" title="Permanent link">&para;</a></h2>
+<p>Generation does not download LoRA files. Download the adapter repository first:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA<span class="w"> </span>--all-files
+</code></pre></div>
+<p>Then reference either:</p>
+<ul>
+<li>a local <code>.safetensors</code> path, or</li>
+<li>a cached Hugging Face adapter id in <code>owner/repo:file.safetensors</code> form.</li>
+</ul>
+<p>The file part can include a subdirectory:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>&lt;compatible-model&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;&lt;prompt from the adapter model card&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>owner/repo:adapter.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>with_lora.png
+</code></pre></div>
+<p>The number of <code>--lora-scales</code> values must match the number of <code>--lora-paths</code> values exactly.
+Passing scales without paths fails before model load.</p>
+<h2 id="adapter-compatibility">Adapter Compatibility<a class="headerlink" href="#adapter-compatibility" title="Permanent link">&para;</a></h2>
+<p>Read the adapter model card and match its base model. A LoRA trained for one model family is not
+automatically compatible with another.</p>
+<p>Example:</p>
+<ul>
+<li><code>lovis93/Flux-2-Multi-Angles-LoRA-v2</code> targets <code>black-forest-labs/FLUX.2-dev</code></li>
+<li>MLX-Gen currently validates FLUX.2 Klein rows, not FLUX.2-dev</li>
+<li>MLX-Gen rejects that adapter on Klein routes</li>
+</ul>
+<p>The same rule applies inside one family: do not assume a text-only proof automatically validates a
+latent, multi-reference, reframe, or outpaint route.</p>
+<h2 id="exact-example-rows">Exact Example Rows<a class="headerlink" href="#exact-example-rows" title="Permanent link">&para;</a></h2>
+<h3 id="base-qwen-latent-img2img">Base Qwen latent img2img<a class="headerlink" href="#base-qwen-latent-img2img" title="Permanent link">&para;</a></h3>
+<p>Validated row:</p>
+<ul>
+<li>model: <code>AbstractFramework/qwen-image-8bit</code></li>
+<li>route: <code>qwen.latent</code></li>
+<li>adapter: <code>prithivMLmods/Qwen-Image-Studio-Realism:qwen-studio-realism.safetensors</code></li>
+</ul>
+<p>Representative command:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>docs/assets/validation/lora-route-expansion-2026-06-22/qwen_q8_latent_source_portrait_illustration.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--i2i-mode<span class="w"> </span>latent<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.6<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Studio Realism, photorealistic portrait of the same young woman of African descent standing in the same sunlit park with arms crossed, the same loose shoulder-length curls, the same pendant necklace, and the same sleeveless taupe dress. Preserve the same pose, framing, and background layout. Natural skin texture, realistic hair strands, subtle outdoor depth of field, no text.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">4421</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>prithivMLmods/Qwen-Image-Studio-Realism:qwen-studio-realism.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>qwen_q8_latent_with_lora.png
+</code></pre></div>
+<h3 id="qwen-image-edit-2511-reframeoutpaintmulti-reference">Qwen Image Edit 2511 reframe/outpaint/multi-reference<a class="headerlink" href="#qwen-image-edit-2511-reframeoutpaintmulti-reference" title="Permanent link">&para;</a></h3>
+<p>Validated rows:</p>
+<ul>
+<li>model: <code>AbstractFramework/qwen-image-edit-2511-8bit</code></li>
+<li>adapters:</li>
+<li><code>lightx2v/Qwen-Image-Edit-2511-Lightning:Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors</code></li>
+<li><code>fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA:qwen-image-edit-2511-multiple-angles-lora.safetensors</code></li>
+</ul>
+<p>These rows are validated route-by-route. The Lightning adapter is the fast baseline; the
+multi-angle adapter is what changes the viewpoint behavior on top of that exact route.</p>
+<h3 id="flux2-klein-base-4b-outpaint">FLUX.2 Klein base 4B outpaint<a class="headerlink" href="#flux2-klein-base-4b-outpaint" title="Permanent link">&para;</a></h3>
+<p>Validated row:</p>
+<ul>
+<li>model: <code>AbstractFramework/flux.2-klein-base-4b-8bit</code></li>
+<li>route: <code>flux2.outpaint</code></li>
+<li>adapter: <code>fal/flux-2-klein-4B-outpaint-lora:flux-outpaint-lora.safetensors</code></li>
+</ul>
+<p>Representative command:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>docs/assets/validation/reframe-outpaint-2026-06-08/source-b-cropped-starship.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">&quot;5%,80%,5%,60%&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Fill the green spaces according to the image&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">1040</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">272</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">8612</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>fal/flux-2-klein-4B-outpaint-lora:flux-outpaint-lora.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>flux2_base4b_q8_outpaint_with_lora.png
+</code></pre></div>
+<p>The base route already supports outpaint without a LoRA. This exact validated row exists to prove
+the dedicated outpaint adapter on the same green-canvas route and seed, not to claim that
+<code>flux2.outpaint</code> needs a LoRA to function at all.</p>
+<h2 id="lightning-caveat-for-qwen">Lightning Caveat For Qwen<a class="headerlink" href="#lightning-caveat-for-qwen" title="Permanent link">&para;</a></h2>
+<p>For the LightX2V Qwen Lightning adapters, keep one distinction clear:</p>
+<ul>
+<li>MLX-Gen's validated public routes use the published <code>AbstractFramework/*-8bit</code> q8 packages.</li>
+<li>The upstream LightX2V note about BF16-versus-FP8 Lightning compatibility applies to external
+  FP8 Qwen checkpoints, not to MLX-Gen's q8 packages.</li>
+</ul>
+<p>Current MLX-Gen recommendation:</p>
+<ol>
+<li>use the validated q8 MLX-Gen package for the route you want;</li>
+<li>use the exact documented Lightning adapter for that route;</li>
+<li>do not generalize those results to unrelated third-party FP8 checkpoints.</li>
+</ol>
+<p>Upstream reference:</p>
+<ul>
+<li><a href="https://github.com/ModelTC/LightX2V-Qwen-Image-Lightning#-using-lightning-loras-with-fp8-models">https://github.com/ModelTC/LightX2V-Qwen-Image-Lightning#-using-lightning-loras-with-fp8-models</a></li>
+</ul>
+<h2 id="wan-video-lora">Wan Video LoRA<a class="headerlink" href="#wan-video-lora" title="Permanent link">&para;</a></h2>
+<p>Wan video LoRA is now exact-route validated on the current q8 public rows.</p>
+<p>TI2V-5B:</p>
+<ul>
+<li><code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code> on <code>wan.text-video</code></li>
+<li><code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code> on <code>wan.first-frame</code></li>
+</ul>
+<p>A14B:</p>
+<ul>
+<li><code>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit</code> on <code>wan.text-video</code></li>
+<li><code>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit</code> on <code>wan.first-frame</code></li>
+</ul>
+<p>For A14B, pass the intended <code>high_noise_transformer</code> / <code>low_noise_transformer</code> role assignment
+explicitly when you use separate adapter files. MLX-Gen does not silently duplicate roles.</p>
+<p>Video-to-video (plain and masked) on <code>Wan2.2-T2V-A14B</code> also accepts the T2V Lightning pairs
+through the public <code>unipc</code> route. Bounded validation on 2026-07-04 covered
+<code>Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1</code> (two seeds, conference and ship clips at
+480x832/25f and 448x256/17f, plus the <code>--video-mask-path</code> combination) and
+<code>...-Seko-V2.0</code> (one seed; slightly closer source tracking). Recipe: <code>--steps 4
+--video-strength 0.75 --guidance 1 --guidance-2 1 --flow-shift 5 --solver unipc</code>. Negative
+prompts are inert at guidance 1, unmasked runs re-synthesize the scene more than the
+20-step CFG-on baseline, and the 4-step lattice cannot reach the motion-preserving strength
+band (fast and motion-preserving are mutually exclusive; see
+<a href="../wan-video/#motion-fidelity-versus-strength">Motion Fidelity Versus Strength</a>); see also
+<a href="../wan-video/#fast-video-to-video-with-lightning">Wan Video</a> and
+the included proof bundle <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/lightning-v2v-2026-07-04/README.md">docs/assets/validation/lightning-v2v-2026-07-04/</a>.
+The stable copy-paste adapter form works directly from the Hugging Face cache:</p>
+<div class="highlight"><pre><span></span><code>--lora-paths<span class="w"> </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">             </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+--lora-target-roles<span class="w"> </span>high_noise_transformer<span class="w"> </span>low_noise_transformer
+</code></pre></div>
+<p>For the current A14B fast path:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>lightx2v/Wan2.2-Lightning<span class="w"> </span>--all-files
+</code></pre></div>
+<p>Then use the paired T2V or I2V files shown in the current validation examples. The stable public
+adapter form is <code>owner/repo:subdir/file.safetensors</code>, and absolute local file paths are also fine
+after download.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

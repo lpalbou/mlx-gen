@@ -1,0 +1,282 @@
+{
+  "command": {
+    "model": "models/wan2.2-i2v-a14b-diffusers-bf16",
+    "task": "image-to-video",
+    "prompt": "Cinematic image-to-video of the spacecraft lifting off from a snowy landing field, engines glowing, exhaust plume expanding, the full craft remains centered in frame.",
+    "image": "docs/assets/i2v_takeoff_source.png",
+    "output": "validation_outputs/wan14b_release_2026_06_04/i2v_bf16_384x384_33f_12steps_seed4242.mp4",
+    "metrics": "validation_outputs/wan14b_release_2026_06_04/i2v_bf16_384x384_33f_12steps_seed4242.metrics.json",
+    "width": 384,
+    "height": 384,
+    "frames": 33,
+    "steps": 12,
+    "guidance": 3.5,
+    "guidance_2": 3.5,
+    "fps": 8,
+    "seed": 4242,
+    "low_ram": true,
+    "sample_interval": 0.25,
+    "tensor_health_check_interval": 1
+  },
+  "model_config": {
+    "model_name": "models/wan2.2-i2v-a14b-diffusers-bf16",
+    "base_model": "Wan-AI/Wan2.2-I2V-A14B-Diffusers"
+  },
+  "model_bits": null,
+  "logical_model_bytes": {
+    "transformer": 28578850944,
+    "transformer_2": 28578850944,
+    "vae": 253785062,
+    "total": 57411486950
+  },
+  "timing": {
+    "total_seconds": 228.15307998657227,
+    "generation_seconds": 227.646,
+    "save_and_health_seconds": 0.507079986572279
+  },
+  "memory": {
+    "sampler": {
+      "sample_count": 839,
+      "rss_current_peak_bytes": 34127691776,
+      "phys_footprint_peak_bytes": 36213171784,
+      "resident_peak_bytes": 34127691776,
+      "wired_peak_bytes": 0
+    },
+    "rusage_maxrss_bytes": 34127691776,
+    "mlx_peak_bytes": 30317360248,
+    "after_model_init": {
+      "phase": "after_model_init",
+      "elapsed_seconds": 1.49,
+      "mlx_peak_bytes": 31620,
+      "mlx_active_bytes": 8,
+      "mlx_cache_bytes": 0,
+      "rss_current_bytes": 983564288,
+      "phys_footprint": 670254448,
+      "resident": 983564288,
+      "wired": 0
+    },
+    "after_generate": {
+      "phase": "after_generate",
+      "elapsed_seconds": 227.646,
+      "mlx_peak_bytes": 30317360248,
+      "mlx_active_bytes": 254041334,
+      "mlx_cache_bytes": 163676300,
+      "rss_current_bytes": 1922859008,
+      "phys_footprint": 1905970080,
+      "resident": 1922859008,
+      "wired": 0
+    },
+    "after_save": {
+      "phase": "after_save",
+      "elapsed_seconds": 227.952,
+      "mlx_peak_bytes": 30317360248,
+      "mlx_active_bytes": 254041334,
+      "mlx_cache_bytes": 163676300,
+      "rss_current_bytes": 1979662336,
+      "phys_footprint": 1946864664,
+      "resident": 1979662336,
+      "wired": 0
+    },
+    "after_video_health": {
+      "phase": "after_video_health",
+      "elapsed_seconds": 228.025,
+      "mlx_peak_bytes": 30317360248,
+      "mlx_active_bytes": 254041334,
+      "mlx_cache_bytes": 163676300,
+      "rss_current_bytes": 1979662336,
+      "phys_footprint": 1946864664,
+      "resident": 1979662336,
+      "wired": 0
+    }
+  },
+  "video": {
+    "path": "validation_outputs/wan14b_release_2026_06_04/i2v_bf16_384x384_33f_12steps_seed4242.mp4",
+    "bytes": 619860,
+    "health": {
+      "source": "validation_outputs/wan14b_release_2026_06_04/i2v_bf16_384x384_33f_12steps_seed4242.mp4",
+      "frame_count": 33,
+      "width": 384,
+      "height": 384,
+      "fps": 8.0,
+      "luma_min": 0.0,
+      "luma_max": 255.0,
+      "luma_mean": 148.06023984966856,
+      "mean_temporal_delta": 10.362504661083221
+    }
+  },
+  "progress": {
+    "event_count": 17,
+    "events": [
+      {
+        "phase": "start",
+        "frame": 0,
+        "total_frames": 33,
+        "step": 0,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.0,
+        "elapsed_seconds": 1.5
+      },
+      {
+        "phase": "denoise",
+        "frame": 2,
+        "total_frames": 33,
+        "step": 1,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.08333333333333333,
+        "elapsed_seconds": 75.853
+      },
+      {
+        "phase": "denoise",
+        "frame": 5,
+        "total_frames": 33,
+        "step": 2,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.16666666666666666,
+        "elapsed_seconds": 87.064
+      },
+      {
+        "phase": "denoise",
+        "frame": 8,
+        "total_frames": 33,
+        "step": 3,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.25,
+        "elapsed_seconds": 98.76
+      },
+      {
+        "phase": "denoise",
+        "frame": 10,
+        "total_frames": 33,
+        "step": 4,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.3333333333333333,
+        "elapsed_seconds": 111.936
+      },
+      {
+        "phase": "denoise",
+        "frame": 13,
+        "total_frames": 33,
+        "step": 5,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.4166666666666667,
+        "elapsed_seconds": 126.189
+      },
+      {
+        "phase": "denoise",
+        "frame": 16,
+        "total_frames": 33,
+        "step": 6,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.5,
+        "elapsed_seconds": 139.909
+      },
+      {
+        "phase": "denoise",
+        "frame": 18,
+        "total_frames": 33,
+        "step": 7,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.5833333333333334,
+        "elapsed_seconds": 153.493
+      },
+      {
+        "phase": "denoise",
+        "frame": 21,
+        "total_frames": 33,
+        "step": 8,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.6666666666666666,
+        "elapsed_seconds": 167.252
+      },
+      {
+        "phase": "denoise",
+        "frame": 24,
+        "total_frames": 33,
+        "step": 9,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.75,
+        "elapsed_seconds": 180.849
+      },
+      {
+        "phase": "denoise",
+        "frame": 26,
+        "total_frames": 33,
+        "step": 10,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.8333333333333334,
+        "elapsed_seconds": 193.965
+      },
+      {
+        "phase": "denoise",
+        "frame": 29,
+        "total_frames": 33,
+        "step": 11,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 0.9166666666666666,
+        "elapsed_seconds": 207.145
+      },
+      {
+        "phase": "denoise",
+        "frame": 32,
+        "total_frames": 33,
+        "step": 12,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 1.0,
+        "elapsed_seconds": 220.653
+      },
+      {
+        "phase": "decode",
+        "frame": 33,
+        "total_frames": 33,
+        "step": 12,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 1.0,
+        "elapsed_seconds": 220.98
+      },
+      {
+        "phase": "convert",
+        "frame": 33,
+        "total_frames": 33,
+        "step": 12,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 1.0,
+        "elapsed_seconds": 227.619
+      },
+      {
+        "phase": "generated",
+        "frame": 33,
+        "total_frames": 33,
+        "step": 12,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 1.0,
+        "elapsed_seconds": 227.646
+      },
+      {
+        "phase": "complete",
+        "frame": 33,
+        "total_frames": 33,
+        "step": 12,
+        "total_steps": 12,
+        "task": "image-to-video",
+        "progress": 1.0,
+        "elapsed_seconds": 227.951
+      }
+    ]
+  }
+}

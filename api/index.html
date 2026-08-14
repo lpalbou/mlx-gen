@@ -1,0 +1,2649 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/api/">
+      
+      
+        <link rel="prev" href="../recommendations/">
+      
+      
+        <link rel="next" href="../architecture/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>API - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#api-and-cli" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              API
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command-Line Surface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generation-router" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generation Router
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Generation Router">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#runtime-memory-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Memory Defaults
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cli-runtime-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLI Runtime Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#image-metadata-and-finalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image Metadata And Finalization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#image-to-image-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image-To-Image Modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structured-control-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured Control Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#image-to-image-canvas-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image-To-Image Canvas Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#negative-prompts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Negative Prompts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bernini-role-aware-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bernini Role-Aware Video
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wan-video-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wan Video Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seedvr2-upscale-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SeedVR2 Upscale Command
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-management-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Management Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility Boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#command-line-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command-Line Surface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generation-router" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generation Router
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Generation Router">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#runtime-memory-defaults" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Memory Defaults
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cli-runtime-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CLI Runtime Events
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multiple-outputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multiple Outputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#image-metadata-and-finalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image Metadata And Finalization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#image-to-image-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image-To-Image Modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#structured-control-images" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Structured Control Images
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#image-to-image-canvas-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image-To-Image Canvas Policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#negative-prompts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Negative Prompts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#bernini-role-aware-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bernini Role-Aware Video
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wan-video-parameters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wan Video Parameters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seedvr2-upscale-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SeedVR2 Upscale Command
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-management-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Management Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python Integration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility Boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="api-and-cli">API And CLI<a class="headerlink" href="#api-and-cli" title="Permanent link">&para;</a></h1>
+<p>MLX-Gen can be used from the command line or embedded in Python applications. The stable public entry point for new command-line usage is <code>mlxgen</code>.</p>
+<h2 id="command-line-surface">Command-Line Surface<a class="headerlink" href="#command-line-surface" title="Permanent link">&para;</a></h2>
+<p>Use <code>mlxgen --help</code> to see the command groups:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>--help
+</code></pre></div>
+<p>The public workflows are:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mlxgen generate</code></td>
+<td>Generate images or supported videos from a downloaded source model or MLX-Gen model package. Image input selects image-to-image or image-to-video when the model supports it.</td>
+</tr>
+<tr>
+<td><code>mlxgen upscale</code></td>
+<td>Upscale and restore images or video clips with SeedVR2.</td>
+</tr>
+<tr>
+<td><code>mlxgen capabilities</code></td>
+<td>Inspect the public tasks, internal modes, and option support for a model without loading weights.</td>
+</tr>
+<tr>
+<td><code>mlxgen validation</code></td>
+<td>Inspect generated-output and benchmark records for exact model/package rows.</td>
+</tr>
+<tr>
+<td><code>mlxgen download</code></td>
+<td>Explicitly download model or LoRA files into the local cache.</td>
+</tr>
+<tr>
+<td><code>mlxgen prepare</code></td>
+<td>Create a reusable local MLX-Gen model package, optionally quantized, and write a Hugging Face model card.</td>
+</tr>
+</tbody>
+</table>
+<p>The package also installs compatibility entry points from the mflux codebase. New workflows should
+prefer the <code>mlxgen</code> commands above when a matching command exists.</p>
+<p>Reader-first workflow split:</p>
+<table>
+<thead>
+<tr>
+<th>You have</th>
+<th>You want</th>
+<th>Current command</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Only a prompt</td>
+<td>A new image or a new video</td>
+<td><code>mlxgen generate</code></td>
+</tr>
+<tr>
+<td>One image</td>
+<td>Image editing, reframe/outpaint, or Wan first-frame image-to-video</td>
+<td><code>mlxgen generate</code></td>
+</tr>
+<tr>
+<td>One to eight reference images</td>
+<td>A Bernini reference-guided video</td>
+<td><code>mlxgen generate --model bernini-r-1.3b --reference-image ...</code></td>
+</tr>
+<tr>
+<td>One video clip</td>
+<td>SeedVR2 restoration or upscale, with no prompt</td>
+<td><code>mlxgen upscale --video-path ...</code></td>
+</tr>
+<tr>
+<td>One video clip</td>
+<td>Prompt-guided content change</td>
+<td><code>mlxgen generate --model Wan-AI/Wan2.2-T2V-A14B-Diffusers --video-path ...</code></td>
+</tr>
+<tr>
+<td>One video plus reference images</td>
+<td>A Bernini reference-guided edit</td>
+<td><code>mlxgen generate --model bernini-r-1.3b --video ... --reference-image ...</code></td>
+</tr>
+</tbody>
+</table>
+<p>That recommendation is especially important for application integrations that shell out to a
+subprocess. Use <code>mlxgen generate</code> instead of calling model-family commands such as
+<code>mflux-generate-flux2</code> or <code>mflux-generate-flux2-edit</code> directly. The unified <code>mlxgen</code> surface is
+the command contract that MLX-Gen documents, tests, and evolves for integrations.</p>
+<p>For a full copy/pasteable workflow that exercises T2I, I2I edit, multi-reference I2I, T2V A14B,
+and I2V A14B, see <a href="../examples/spaceship-snow/">Spaceship Snow Workflow</a>. For practical Wan size
+and runtime examples, see <a href="../wan-video/">Wan Video</a>. For role-aware reference video, see
+<a href="../bernini/">Bernini-R 1.3B</a>.</p>
+<h2 id="generation-router">Generation Router<a class="headerlink" href="#generation-router" title="Permanent link">&para;</a></h2>
+<p><code>mlxgen generate</code> chooses the backend from <code>--model</code>, optional <code>--family</code>, and image or video
+inputs. Public tasks are media directions: <code>text-to-image</code>, <code>image-to-image</code>, <code>text-to-video</code>,
+<code>image-to-video</code>, and <code>video-to-video</code>. Edit/reference behavior is an internal image-to-image mode,
+not a separate public task.</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>z-image-turbo<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A product photo of a ceramic teapot&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>image.png
+</code></pre></div>
+<p>Inspect a model before generation:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>flux2-klein-4b
+</code></pre></div>
+<p>The JSON includes each route-supported public task, internal mode, image count, route handler, and
+option support. Capabilities schema 8 adds <code>min_reference_images</code> and <code>max_reference_images</code> so
+applications can keep semantic references separate from primary <code>--image</code> inputs. Route support
+means MLX-Gen knows how to dispatch and validate options; it is not a claim that a model/package
+passed visual release QA. Applications can use the same contract from Python through
+<code>get_model_capabilities(...)</code> and <code>resolve_generation_plan(...)</code>. For custom
+repositories or local paths whose name does not identify the architecture, construct the
+<code>ModelConfig</code> with the same base-model hint that you would pass to the CLI.
+These route helpers cover the unified <code>mlxgen generate</code> families only. SeedVR2 uses <code>mlxgen
+upscale</code> on the CLI and direct <code>SeedVR2.generate_image(...)</code> / <code>SeedVR2.restore_video_to_path(...)</code>
+in Python.</p>
+<p>Qwen structured control is exposed through the same contract. When a capability row reports
+<code>supports_control_image=true</code>, the route accepts <code>--controlnet-image-path</code> as a structured guide.
+The exact public proof row is <code>AbstractFramework/qwen-image-8bit</code> on <code>qwen.control</code>. That
+row also reports the exact sidecar through <code>control_model</code>, and the unified <code>mlxgen generate</code>
+router injects that sidecar automatically.</p>
+<p>LoRA support is route-specific. Capability rows include <code>supports_lora</code>, <code>lora_status</code>,
+<code>lora_target_roles</code>, and <code>lora_validation_profile</code>. Treat only <code>lora_status="validated"</code> rows as
+production-supported. <code>mapped-unvalidated</code> means the route has a mapping and strict loader path,
+but the exact model/package has not yet passed a visible A/B validation with an accepted adapter.</p>
+<p>Generation does not download LoRA files. Download LoRA repositories explicitly, then pass a local
+<code>.safetensors</code> file or a cached Hugging Face adapter id. The file part can include a subdirectory
+inside the adapter repository:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>lovis93/Flux-2-Multi-Angles-LoRA-v2<span class="w"> </span>--all-files
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>&lt;compatible-model&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;&lt;prompt from the LoRA model card&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>owner/repo:adapter.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>with_lora.png
+</code></pre></div>
+<p>The adapter must match the selected model architecture. For example,
+<code>lovis93/Flux-2-Multi-Angles-LoRA-v2</code> targets <code>black-forest-labs/FLUX.2-dev</code>; MLX-Gen currently
+supports FLUX.2 Klein 4B/9B, so that adapter is rejected for Klein routes. The number of
+<code>--lora-scales</code> values must match the number of <code>--lora-paths</code> values exactly. See
+<a href="../lora/">LoRA</a> for the source/no-LoRA/with-LoRA validation method.</p>
+<p>Wan video LoRA is route-specific. Exact validated q8 rows exist
+for TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, and
+I2V-A14B first-frame image-to-video. A14B requests still require explicit
+<code>high_noise_transformer</code> / <code>low_noise_transformer</code> role assignment when you pass separate adapter
+files. For the current A14B fast path, download <code>lightx2v/Wan2.2-Lightning</code> with
+<code>mlxgen download --model lightx2v/Wan2.2-Lightning --all-files</code>, then use the paired T2V or I2V
+files shown in <a href="../lora/">LoRA</a>. After download, you can reference those paired files either with
+the public <code>repo:subdir/file.safetensors</code> form or with absolute local file paths. For A14B, each
+file must be its own <code>--lora-paths</code> argument. Bonsai remains a separate fail-closed case because
+its packed ternary runtime does not expose standard replaceable linear-module targets.</p>
+<p>Most image and video backends accept a negative prompt. In the unified CLI,
+<code>--negative-prompt</code> and <code>--negative</code> are aliases. Python callers pass the same value as
+<code>negative_prompt=...</code> on the model-specific generation method.</p>
+<p>FLUX.2 is the important exception: FLUX.2 Klein routes do not accept <code>--negative-prompt</code>. Use the
+positive prompt to describe the target result and omit the negative prompt entirely for FLUX.2
+generation and FLUX.2 image-conditioned edit runs.</p>
+<p>Use <code>mlxgen validation</code> when you need exact release evidence for a model/package:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>validation<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2509-8bit
+mlxgen<span class="w"> </span>validation<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b
+</code></pre></div>
+<p>This returns the current validation profile rows with status, prompt, source image(s), artifact
+path, and reviewer notes. Route support and visual validation are intentionally separate:
+<code>mlxgen capabilities --model briaai/Fibo-Edit</code> exposes no unified public generation capability,
+while <code>mlxgen validation --model AbstractFramework/qwen-image-edit-2511-8bit</code> reports the
+published Qwen 2511 edit proof rows.
+The Bernini profile reports three experimental BF16 video routes from the historical schema-v3
+bundle and links each failed row to its playable MP4. Its overall status is <code>FAIL</code> for that
+bounded bundle. Accepted official public 1.3B example proof with full prompts and contact sheets
+lives in <code>docs/assets/validation/bernini-r-1.3b-2026-08-11/</code>. The unmeasured official
+848x480x81 profile is not implied.</p>
+<p>For LoRA routes, pass the exact <code>lora_validation_profile</code> value surfaced by <code>mlxgen capabilities</code>
+when you want the accepted proof row for that route:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>validation<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>lora_qwen_edit_q8_ghibli_edit_2026_06_11
+</code></pre></div>
+<h3 id="runtime-memory-defaults">Runtime Memory Defaults<a class="headerlink" href="#runtime-memory-defaults" title="Permanent link">&para;</a></h3>
+<p>MLX-Gen applies two machine-derived runtime-memory behaviors by default. Both are visible,
+bounded, and overridable.</p>
+<table>
+<thead>
+<tr>
+<th>Behavior</th>
+<th>Default</th>
+<th>Override</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MLX buffer-cache limit</td>
+<td>When no limit is set, model load applies <code>total RAM / 8</code>, clamped to <code>[1 GiB, 8 GiB]</code>, once per process. One stderr line names the applied cap. Low-RAM mode keeps its 1 GB default. A pre-existing limit at or below half of physical RAM (set by a host through <code>mx.set_cache_limit</code>) is treated as deliberate, preserved, and announced instead.</td>
+<td><code>--mlx-cache-limit-gb &lt;gb&gt;</code> on CLIs, <code>MFLUX_MLX_CACHE_LIMIT_GB=&lt;gb&gt;</code> for Python-API hosts. Pass <code>-1</code> for explicitly unlimited. Precedence: CLI flag &gt; env var &gt; low-RAM default &gt; machine ladder.</td>
+</tr>
+<tr>
+<td>Weight prefetch at load</td>
+<td>Weight files loaded from HF-repo layouts are sequentially read into the OS page cache before use, so page-cold weights fault in at sequential SSD speed instead of random-access speed. Prepared MLX-Gen packages are not prefetched — they are written in module-tree order and materialize near-sequentially on their own (a prefetch measurably slowed their cold loads). Already-resident files are detected (<code>mincore</code>) and skipped; the prefetch is skipped entirely when the files exceed half of physical RAM (protects low-RAM machines from page-cache thrash).</td>
+<td><code>MFLUX_NO_WEIGHT_PREFETCH=1</code> disables it.</td>
+</tr>
+</tbody>
+</table>
+<p>The buffer-cache limit bounds only the FREE cache (reclaim happens at the next allocation);
+resident weights and in-flight activations are unaffected. Hosts that manage
+<code>mx.set_cache_limit</code> themselves are detected and left alone (see table); exporting
+<code>MFLUX_MLX_CACHE_LIMIT_GB=-1</code> (or their own value) remains the explicit way to pin the
+behavior.</p>
+<h3 id="cli-runtime-events">CLI Runtime Events<a class="headerlink" href="#cli-runtime-events" title="Permanent link">&para;</a></h3>
+<p>Use <code>--json-events</code> on <code>mlxgen generate</code> and <code>mlxgen upscale</code> when an application needs a
+machine-readable runtime stream. In that mode, JSONL events are written to <code>stdout</code> and human CLI
+text moves to <code>stderr</code>.</p>
+<p>Each event includes the authoritative routed command/model identity plus step-based progress
+fields. Events carry resolved output facts when the route knows them: Wan <code>start</code> events include
+the resolved <code>width</code>/<code>height</code> (final canvas after policy/multiple resolution), and video <code>save</code>
+events add <code>fps</code>, <code>width</code>, <code>height</code>, and <code>total_frames</code> so hosts can skip a metadata probe decode.
+Unknown fields may be added over time; consumers should ignore fields they do not recognize.
+Terminal events also include saved-artifact paths, and failure events include
+<code>diagnostics_path</code> when the route writes a failure manifest. When MLX-Gen can provide actionable
+next steps, failed events also include a nested <code>remediation</code> object. <code>DownloadRequiredError</code>
+emits <code>kind=download-required</code> with <code>download_command</code> and optional <code>prepare_command</code>; CLI usage
+failures under <code>--json-events</code> emit <code>kind=cli-usage</code> with the relevant usage string.</p>
+<p>For image routes, model progress <code>complete</code> means the in-memory image object is ready. The CLI
+maps that to <code>generated</code>, then emits <code>save</code> and reserves terminal <code>complete</code> for the point where
+the output file has actually been written. Wan video routes also accept <code>--failure-diagnostics</code>;
+non-Wan <code>mlxgen generate</code> routes do not advertise or accept that flag.</p>
+<h3 id="multiple-outputs">Multiple Outputs<a class="headerlink" href="#multiple-outputs" title="Permanent link">&para;</a></h3>
+<p>The public CLI uses seeds as the shared multi-output contract.</p>
+<ul>
+<li><code>mlxgen generate</code> accepts one or more explicit seeds through <code>--seed</code>.</li>
+<li><code>mlxgen generate</code> also accepts <code>--auto-seeds N</code> for image routes and Wan video routes.</li>
+<li><code>mlxgen upscale</code> accepts one or more explicit seeds through <code>--seed</code> and <code>--auto-seeds N</code>.</li>
+<li>Each seed produces one saved image or one saved video.</li>
+<li>Duplicate explicit seeds are rejected because they would target the same artifact path.</li>
+<li><code>--auto-seeds</code> must be greater than zero.</li>
+</ul>
+<p>When one invocation processes several seeds, MLX-Gen appends <code>_seed_&lt;seed&gt;</code> to the output stem
+automatically unless your <code>--output</code> pattern already contains <code>{seed}</code>.</p>
+<p>Examples:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>qwen-image<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean studio product photo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="m">202</span><span class="w"> </span><span class="m">303</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>product.png
+</code></pre></div>
+<p>This writes <code>product_seed_101.png</code>, <code>product_seed_202.png</code>, and <code>product_seed_303.png</code>.</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-T2V-A14B-Diffusers<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic shot of mist rolling across a teal mountain lake&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="m">202</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>lake.mp4
+</code></pre></div>
+<p>This writes <code>lake_seed_101.mp4</code> and <code>lake_seed_202.mp4</code>.</p>
+<p><code>mlxgen upscale</code> can also process several source files in one invocation. When that happens, MLX-Gen
+appends the source-file stem automatically so each saved artifact gets its own path:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>seedvr2-3b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>clip_a.mp4<span class="w"> </span>clip_b.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">11</span><span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>restored.mp4
+</code></pre></div>
+<p>This writes <code>restored_seed_11_clip_a.mp4</code>, <code>restored_seed_22_clip_a.mp4</code>,
+<code>restored_seed_11_clip_b.mp4</code>, and <code>restored_seed_22_clip_b.mp4</code>.</p>
+<p><code>--output</code> supports <code>{seed}</code> everywhere. SeedVR2 multi-source runs also support <code>{input_name}</code>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>seedvr2-3b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>clip_a.mp4<span class="w"> </span>clip_b.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">11</span><span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span><span class="s2">&quot;restored_{input_name}_{seed}.mp4&quot;</span>
+</code></pre></div>
+<p>Legacy <code>{image_name}</code> is still accepted as a compatibility alias. If two SeedVR2 source files
+share the same basename, keep <code>--replace false</code> or rename the inputs; overwrite-prone batches are
+rejected when <code>--replace true</code>.</p>
+<p>For Python integrations on the unified <code>mlxgen generate</code> families, use
+<code>load_generation_model(...).generate_outputs(...)</code> for the same serial multi-output reuse
+contract. SeedVR2/upscale remains outside that wrapper and stays on direct <code>SeedVR2</code> methods.</p>
+<h3 id="image-metadata-and-finalization">Image Metadata And Finalization<a class="headerlink" href="#image-metadata-and-finalization" title="Permanent link">&para;</a></h3>
+<p>The default image save path is intentionally lightweight: MLX-Gen writes the image once and does
+not embed runtime-memory diagnostics into the image file by default.</p>
+<p>Use <code>--metadata</code> to write a <code>.metadata.json</code> sidecar. That sidecar is the default place where
+runtime-memory metadata is recorded. Use <code>--embed-metadata</code> only when you explicitly want image
+metadata embedded into the saved PNG/JPEG/TIFF artifact and accept the extra finalization work.</p>
+<p>Both the sidecar and embedded metadata carry <code>metadata_schema_version</code> (currently <code>2</code>).
+Evolution is additive-only: new optional fields may appear without a version bump; the version
+increments only if a field's meaning changes or a field is removed. Version <code>2</code> renamed the
+0.21.0 masked-edit key <code>masked_warm_start_strength</code> to <code>mask_strength</code>;
+<code>--config-from-metadata</code> reads both spellings. Consumers should ignore unknown fields and
+check this version, not <code>mflux_version</code> (which identifies the producing package release, not
+the metadata structure).</p>
+<h3 id="image-to-image-modes">Image-To-Image Modes<a class="headerlink" href="#image-to-image-modes" title="Permanent link">&para;</a></h3>
+<p><code>image-to-image</code> is one public task with several internal modes. Use <code>mlxgen capabilities --model
+&lt;model&gt;</code> to see which modes a selected model exposes, and use <code>--i2i-mode</code> when you need to force a
+specific path.</p>
+<p>For a plain-language guide to what each mode is good at, see
+<a href="../image-edit-modes/">Image Edit Modes</a>. For the current Qwen route map, see
+<a href="../qwen-route-matrix/">Qwen route matrix</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Internal mode</th>
+<th>Inputs</th>
+<th>Selection rule</th>
+<th>Uses <code>--image-strength</code>?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Whole-image variation or restyle from a source image</td>
+<td><code>latent-img2img</code></td>
+<td>exactly one image</td>
+<td>pass <code>--image-strength</code> or <code>--i2i-mode latent</code> on a model that supports latent I2I</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Instruction edit, object/layout change, or composition-preserving style edit</td>
+<td><code>edit-reference</code></td>
+<td>one image</td>
+<td>default for FLUX.2 and dedicated edit checkpoints when one image is supplied without <code>--image-strength</code>; or pass <code>--i2i-mode edit</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>Localized masked edit / inpaint</td>
+<td><code>edit-reference</code> with mask support</td>
+<td>one image + one mask</td>
+<td>pass <code>--mask-path</code> on a model that supports masked edit or inpaint</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Reference composition from several images</td>
+<td><code>multi-reference</code></td>
+<td>two or more images</td>
+<td>repeat <code>--image</code> on a model that supports multi-reference I2I; or pass <code>--i2i-mode multi-reference</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>Generative reframe / zoom-out</td>
+<td><code>edit-reference</code> with reframe support</td>
+<td>one image</td>
+<td>pass <code>--reframe-padding</code> on a model whose capability has <code>supports_reframe=true</code></td>
+<td>No</td>
+</tr>
+<tr>
+<td>Backend-specific outpaint</td>
+<td><code>edit-reference</code> with outpaint support</td>
+<td>one image</td>
+<td>pass <code>--outpaint-padding</code> on a model whose capability has <code>supports_outpaint=true</code></td>
+<td>No</td>
+</tr>
+</tbody>
+</table>
+<h3 id="structured-control-images">Structured Control Images<a class="headerlink" href="#structured-control-images" title="Permanent link">&para;</a></h3>
+<p>Structured control is adjacent to image editing, but it is not an image-to-image route. It is a
+text-to-image route guided by a control image. The control image is supplied with
+<code>--controlnet-image-path</code>, and the selected capability must report <code>supports_control_image=true</code>.</p>
+<p>Current exact public proof exists for:</p>
+<ul>
+<li><code>AbstractFramework/qwen-image-8bit</code> on <code>qwen.control</code></li>
+<li>sidecar injected by the unified router:
+  <code>InstantX/Qwen-Image-ControlNet-Union:diffusion_pytorch_model.safetensors</code></li>
+</ul>
+<p>Important workflow boundary:</p>
+<ul>
+<li><code>--image</code> means source-image generation or editing;</li>
+<li><code>--controlnet-image-path</code> means structured text-to-image control.</li>
+</ul>
+<p>The structured-control route still does not combine <code>--controlnet-image-path</code> with <code>--image</code>. If
+you need source-image editing on the exact base-Qwen row, use <code>--image + --mask-path</code> instead so
+the router can select <code>qwen.control-inpaint</code> and inject the exact inpainting sidecar. For the
+accepted proof artifacts for these Qwen rows, see <a href="../edit-capabilities/">Image Edit Capabilities</a>,
+<a href="../qwen-localized-editing/">Qwen localized editing</a>, and <a href="../qwen-route-matrix/">Qwen route matrix</a>.</p>
+<p>On the exact base-Qwen control routes, unified <code>mlxgen generate</code> also accepts
+<code>--controlnet-strength</code>. On <code>qwen.control-inpaint</code>, <code>--controlnet-model</code> is only accepted when it
+matches the exact inpainting sidecar that the route already validates and injects.</p>
+<p>Example:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Aesthetics art, traditional asian pagoda, elaborate golden accents, sky blue and white color palette, swirling cloud pattern, digital illustration, east asian architecture, ornamental rooftop, intricate detailing on building, cultural representation.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;blurry, low quality, distorted, deformed, text, watermark, ugly&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">576</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">864</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">5802</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--controlnet-image-path<span class="w"> </span>canny.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>lightx2v/Qwen-Image-Lightning:Qwen-Image-Lightning-4steps-V2.0-bf16.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>controlled.png
+</code></pre></div>
+<p>Use latent img2img when you want a whole-image variation driven by source-image noise injection:
+restyle the whole scene, change the mood, or make a loose variation. Higher <code>--image-strength</code>
+adds more noise, allows more change, and runs more effective denoise steps. Lower values stay
+closer to the encoded source image.</p>
+<p>Use edit/reference I2I when the prompt is an instruction: remove an object, change an object color,
+turn a scene into a pencil sketch while preserving layout, reposition or reshape a subject, or keep
+the composition stable. Edit/reference and multi-reference routes use the image(s) as conditioning
+or references, so <code>--image-strength</code> is rejected before loading weights.</p>
+<p>When a capability row supports masked edit or inpaint, that row accepts <code>--mask-path</code> for
+localized masked edit or inpaint. White mask pixels are repainted and black mask pixels are
+preserved, and <code>--image-strength</code> is rejected together with <code>--mask-path</code>. Masked routes exist
+for Qwen edit models (<code>qwen.inpaint</code>), base Qwen models (<code>qwen.base-inpaint</code> natively, or
+<code>qwen.control-inpaint</code> with the auto-injected InstantX sidecar on the exact
+<code>AbstractFramework/qwen-image-8bit</code> row), Z-Image Turbo (<code>z-image.inpaint</code>; non-turbo masked
+requests are rejected for the moment after measured geometry failures), and FLUX.2 Klein
+distilled and base (<code>flux2.inpaint</code>, with optional masked-area reference images on the backend
+command and Python API).</p>
+<p>The user request shape is the same, but the backend route is not: the same
+<code>--image + --mask-path + --prompt</code> request selects whichever masked route the exact row
+carries. Native base-Qwen masked edit warm-starts from the re-noised source and records the
+applied <code>mask_strength</code> plus executed <code>effective_steps</code> in metadata; <code>--mask-strength</code>
+(default <code>0.85</code>, raise toward <code>0.95</code> for content-replacing edits) tunes that warm start, while
+the other masked routes denoise the full schedule. Use <code>mlxgen capabilities --model ...</code> to
+confirm which exact masked route a selected row supports, and see
+<a href="../masked-editing/">Masked editing</a> for the full model matrix, per-family behavior, and proof
+grades. Without <code>--mask-path</code>, the same route may behave like a global edit or a latent
+variation, depending on the selected capability.</p>
+<p>In <code>auto</code> mode, the selected model's default capability wins. FLUX.2 routes one image to
+<code>edit-reference</code>, supports latent I2I when <code>--image-strength</code> is supplied, and supports
+multi-reference I2I with two or more images. The original <code>Qwen/Qwen-Image-Edit</code> checkpoint is a
+single-reference edit model in MLX-Gen. Use it for one-source semantic or appearance edits such as
+pencil sketch, object-state changes, style changes, and layout-preserving instruction edits. Qwen
+Image Edit 2509 and 2511 expose multi-reference edit routes through unified
+<code>mlxgen generate</code> when a package supports that route. The validation command records which exact
+source model or MLX-Gen optimized package rows passed visual review. The reframe/outpaint
+validation profile covers Qwen Image Edit, Qwen Image Edit 2509/2511, and FLUX.2 Klein
+4B/9B source/q8/q4 rows.</p>
+<p>Latent-only image models such as ERNIE Image Turbo, Z-Image, and base Qwen Image require explicit
+<code>--image-strength</code> for <code>latent-img2img</code>. Base FIBO exposes text-to-image through unified
+<code>mlxgen generate</code>. FIBO Edit is not exposed as a public <code>mlxgen generate</code> capability until it has
+passing source-model and optimized-variant visual proof; use the dedicated FIBO Edit command only for
+experimental parity work.</p>
+<h3 id="image-to-image-canvas-policy">Image-To-Image Canvas Policy<a class="headerlink" href="#image-to-image-canvas-policy" title="Permanent link">&para;</a></h3>
+<p>Ordinary image-to-image defaults to <code>--canvas-policy source-aspect</code>. The first input image defines
+the output aspect ratio for latent img2img, edit/reference I2I, and multi-reference I2I. <code>--width</code>
+and <code>--height</code> are treated as a size target, then MLX-Gen chooses the nearest model-compatible
+canvas that preserves the source ratio. For multi-reference I2I, the first <code>--image</code> is the
+geometry anchor and later images are references.</p>
+<p>Use <code>--canvas-policy exact-resize</code> only when you intentionally want the requested output canvas
+exactly. Exact resize can reshape or recompose the source and is not a substitute for outpainting.
+Generated image metadata records <code>canvas_policy</code>, requested dimensions, source-image dimensions,
+and final <code>width</code>/<code>height</code> when an image input is used.</p>
+<p><code>--resize-mode</code> is orthogonal to <code>--canvas-policy</code>: the policy picks the output canvas, the mode
+picks how source pixels map onto it. <code>resize</code> stretches the source to fill the canvas (default),
+<code>crop</code> center-crops it to fill without distortion, and <code>pad</code> letterboxes the full source onto the
+canvas without distortion (black bars). The flag exists on the latent image-to-image family
+commands (Qwen including native masked edit, FLUX.2 Klein, Z-Image including native inpaint,
+ERNIE, FIBO, FLUX.1) and on the Wan video route; edit/reference, controlnet, and outpaint routes
+keep reference-pinned resize geometry and reject the flag loudly. Masks (inpaint and video masks)
+always map through the same geometry as the source pixels; letterbox borders binarize to
+"preserved". Metadata records <code>resize_mode</code> next to <code>canvas_policy</code>.</p>
+<p>For instruction/reference image-to-image, pass one or more input images to an edit-capable model:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2509-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the room into a pencil sketch&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;color, blur, crop, text, watermark&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>edited.png
+</code></pre></div>
+<p>For latent image-to-image variation, use a model that supports <code>latent-img2img</code> and pass
+<code>--image-strength</code>. <code>--image-strength</code> is rejected for edit/reference and multi-reference modes
+because those paths use source/reference images as conditioning rather than noising the source
+latent:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-4b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--i2i-mode<span class="w"> </span>latent<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--canvas-policy<span class="w"> </span>source-aspect<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Make the scene more cinematic&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>variation.png
+</code></pre></div>
+<p><code>--task edit</code> remains accepted as a compatibility alias for
+<code>--task image-to-image --i2i-mode edit</code>, but new commands and integrations should prefer
+<code>--i2i-mode</code>.</p>
+<p>Generative reframe is available through <code>--reframe-padding</code> for edit models that advertise
+<code>supports_reframe=true</code> in <code>mlxgen capabilities</code>. It asks the edit model to generate a larger view
+from one source image. Padding accepts CSS-style values in <code>top,right,bottom,left</code> order. MLX-Gen
+builds a larger conditioning canvas with the source pasted at that offset, then asks the edit model
+to generate the larger view:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-4b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reframe-padding<span class="w"> </span><span class="s2">&quot;15%,35%,15%,35%&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Generatively reframe this image into a wider view. Keep the subject fully visible and extend the background naturally.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>reframed.png
+</code></pre></div>
+<p>This is a generative edit workflow. It may redraw source content, and the prompt still controls
+where the model places or reconstructs the subject. Use it for zoom-out, background extension, or
+revealing plausible missing object boundaries.</p>
+<p>Backend-specific outpaint is available for routes that advertise <code>supports_outpaint=true</code>. Use
+<code>--outpaint-padding</code> when you want MLX-Gen to build an expanded canvas and guide an edit model to
+fill the larger view:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>black-forest-labs/FLUX.2-klein-base-9B<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">&quot;5%,80%,5%,60%&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Outpaint this close crop into a wider realistic shot. Complete the missing background and subject outside the original frame.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>outpaint.png
+</code></pre></div>
+<p>Outpaint is backend-specific. Qwen Image Edit variants create a larger temporary canvas, initialize
+the new area with edge-extended source context, and apply adaptive source restoration only when the
+generated source window remains close enough to the original source. Current FLUX.2 Klein strict
+outpaint is different: it is base-only, uses source-locked denoising with a narrow latent
+transition band, and does not paste the original crop back over the result. Published source-model
+proof for FLUX.2 Klein base <code>4B/9B</code> is documented in
+<a href="../edit-capabilities/#flux2-klein-base-4b-and-9b-source-proof">Image Edit Capabilities</a> and
+<a href="../reframe-outpaint/">Reframe and Outpaint</a>.</p>
+<p>This is not the same as a native fill/inpaint pipeline that receives an explicit diffusion mask.
+It is not an exact pixel-lock guarantee. MLX-Gen still keeps lower-level FLUX.1 Fill support
+separate from the current unified edit-reference canvas route. Z-Image, ERNIE, FIBO, base Qwen
+Image, Qwen Image 2512, distilled FLUX.2 Klein, latent I2I routes, video routes, and SeedVR2
+reject <code>--outpaint-padding</code> before loading weights. Base FLUX.2 Klein source models now pass a
+published starship proof set; prepared base q8/q4 package proof is still pending.</p>
+<h3 id="negative-prompts">Negative Prompts<a class="headerlink" href="#negative-prompts" title="Permanent link">&para;</a></h3>
+<p>Use <code>--negative-prompt</code> or the shorter <code>--negative</code> alias to describe what the model should avoid:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Convert the scene into a clean graphite pencil sketch while preserving layout&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;color, blur, crop, text, watermark&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>sketch.png
+</code></pre></div>
+<p>For Qwen image edit, guidance above <code>1</code> uses true classifier-free guidance when a negative prompt
+is present. If you omit the option, MLX-Gen uses the official blank negative-prompt behavior for
+Qwen edit models, so true CFG remains enabled by default. Passing an explicit negative prompt is
+still useful for blocking concrete failure modes such as crop, blur, text, intact object state, or
+unwanted color.</p>
+<p>For FLUX.2 Klein, omit the negative prompt entirely. FLUX.2 routes do not support
+<code>--negative-prompt</code> in MLX-Gen.</p>
+<p>For Wan, omitting the option uses the model's official default negative prompt. Pass
+<code>--negative ""</code> or <code>--negative-prompt ""</code> to intentionally run without a negative prompt.</p>
+<p>Supported router families are <code>qwen</code>, <code>flux2</code>, <code>bonsai</code>, <code>fibo</code>, <code>z-image</code>, <code>ernie-image</code>, and <code>wan</code>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--family<span class="w"> </span>qwen<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean studio product photo&quot;</span>
+</code></pre></div>
+<p>Use <code>--config-from-metadata</code> / <code>-C</code> when you want the router to read fields such as <code>model</code>, <code>image_path</code>, or <code>image_paths</code> from an existing metadata file.</p>
+<p>Bonsai Image routes through the same text-to-image command surface. The supported ternary
+checkpoint is already low-bit packed, so omit <code>--quantize</code>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>prism-ml/bonsai-image-ternary-4B-mlx-2bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A bonsai tree in a quiet ceramic studio, soft morning light&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>bonsai.png
+</code></pre></div>
+<p>Bonsai is text-to-image only in MLX-Gen. Image input, negative prompts, and <code>--quantize</code> are
+rejected before model execution. Bonsai LoRA is also rejected today: the packed ternary runtime does
+not expose the ordinary replaceable linear-module boundary that MLX-Gen's current LoRA loader
+requires.</p>
+<p>ERNIE Image Turbo routes through the same command surface:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean product photo of a ceramic mug&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>image.png
+</code></pre></div>
+<p>ERNIE Image Turbo supports BF16 source weights plus MLX-Gen q8/q4 optimized packages. MLX-Gen also provides single-image latent image-to-image for ERNIE:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the scene into a pencil sketch&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.25<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>edited.png
+</code></pre></div>
+<p>ERNIE image-to-image accepts exactly one input image. Multi-image edit is not supported. <code>--image-strength</code> follows latent img2img denoising semantics: higher values add more noise and allow more transformation, while lower positive values stay closer to the encoded source image.</p>
+<p>For ERNIE image-to-image, the default source-aspect canvas policy preserves the input ratio while
+using <code>--width</code> and <code>--height</code> as a size target. Use roughly <code>--image-strength 0.25</code> to <code>0.35</code> for
+visible stylization, <code>0.45</code> to <code>0.6</code> for stronger source preservation, and 12-16 steps when the
+output needs more polished stylization. Use Qwen Image Edit for single-image instruction edits when
+source layout matters, and use FLUX.2 when the workflow needs validated multi-reference composition.</p>
+<p>ERNIE's optional Prompt Enhancer is available with <code>--use-prompt-enhancer</code> when the full source snapshot is present. The default <code>mlxgen download --model baidu/ERNIE-Image-Turbo</code> command downloads only generation components; run <code>mlxgen download --model baidu/ERNIE-Image-Turbo --all-files</code> before using Prompt Enhancer. ERNIE q8/q4 MLX-Gen packages created by <code>mlxgen prepare</code> do not include Prompt Enhancer files.</p>
+<p>ERNIE LoRA support is route-specific. The public q8 route
+<code>AbstractFramework/ernie-image-turbo-8bit</code> now has exact validated anime-style text-to-image and
+latent img2img LoRA rows. Check <code>mlxgen capabilities --model ...</code> before relying on a specific
+ERNIE LoRA workflow.</p>
+<p>Wan LoRA support is also route-specific. Exact validated q8 rows now exist for TI2V-5B
+text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, and I2V-A14B
+first-frame image-to-video. Wan uses explicit target roles: <code>transformer</code> for TI2V-5B, and
+<code>high_noise_transformer</code> plus <code>low_noise_transformer</code> for A14B routes.</p>
+<p>Wan2.2 routes through the same command surface for video generation. TI2V-5B is the smaller text-to-video and first-frame image-to-video path:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-TI2V-5B-Diffusers<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A short cinematic video of a glowing orange glass sphere floating above teal water&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">704</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">121</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>video.mp4
+</code></pre></div>
+<p>T2V-A14B uses the larger two-transformer Diffusers path. <code>--guidance-2</code> is an optional
+Diffusers-compatible low-noise-stage override. With no guidance flags, MLX-Gen uses the model's
+two-stage defaults (<code>4</code> high-noise and <code>3</code> low-noise for T2V-A14B). If you set <code>--guidance</code> and
+omit <code>--guidance-2</code>, the low-noise stage follows <code>--guidance</code>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-T2V-A14B-Diffusers<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic shot of mist rolling across a teal mountain lake&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">720</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">81</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance-2<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>video.mp4
+</code></pre></div>
+<p>TI2V-5B image-to-video uses the same command with one input image:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-TI2V-5B-Diffusers<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A slow cinematic camera move from the input frame&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">704</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">121</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>video.mp4
+</code></pre></div>
+<p>A14B I2V uses the separate <code>Wan-AI/Wan2.2-I2V-A14B-Diffusers</code> snapshot and the Diffusers
+concatenated image-condition latent path:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-I2V-A14B-Diffusers<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic flyby around the subject in the input image&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">720</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">81</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">40</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">3</span>.5<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>video.mp4
+</code></pre></div>
+<p>The TI2V-5B I2V path follows Diffusers first-frame latent conditioning: the first frame is VAE-encoded, kept active through denoising with a timestep mask, and reinserted before decode. The separate A14B I2V model uses concatenated image-condition latents instead. Multi-image/video interpolation is not enabled.</p>
+<p>For Wan image-to-video, saved metadata records the requested dimensions, the source image
+dimensions, and the resolved output dimensions.</p>
+<p>For Wan video-to-video, saved metadata records the requested <code>steps</code> (so
+<code>--config-from-metadata</code> replays the same schedule) plus <code>effective_steps</code>, <code>video_strength</code>,
+<code>high_noise_stage_skipped</code>, <code>source_video_resampled</code>, and the source clip's dimensions, frame
+count, duration, fps, and audio presence. The source is resampled onto the <code>--fps</code> timeline at
+decode (<code>--frames 17 --fps 16</code> always consumes the first 1.06 s of the source at real-time
+speed); matching fps passes frames through untouched. Source audio is copied onto the saved
+output best-effort and the outcome is recorded as <code>audio_copied</code> / <code>audio_copy_mode</code> /
+<code>audio_copy_reason</code> in the sidecar.</p>
+<h3 id="bernini-role-aware-video">Bernini Role-Aware Video<a class="headerlink" href="#bernini-role-aware-video" title="Permanent link">&para;</a></h3>
+<p><code>bernini-r-1.3b</code> routes the official ByteDance 1.3B renderer through the Wan backend with three
+distinct input contracts:</p>
+<p>This surface is <strong>experimental</strong>. Its numerical/runtime contracts pass, and seven official public
+1.3B example rows plus <code>ads2v</code> at mid profile are qualitatively accepted with committed proof in
+<code>docs/assets/validation/bernini-r-1.3b-2026-08-11/</code>. The historical schema-v3 release bundle still
+fails at the bounded 17-frame profile. Use these commands for diagnosis and development, not
+production output.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># R2V: one to eight ordered references, no source video.</span>
+mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reference-image<span class="w"> </span>subject.png<span class="w"> </span>--reference-image<span class="w"> </span>garment.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Animate image0 wearing the garment from image1&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span>--output<span class="w"> </span>referenced.mp4
+
+<span class="c1"># RV2V: one source video plus one to eight ordered references.</span>
+mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video<span class="w"> </span>source.mp4<span class="w"> </span>--reference-image<span class="w"> </span>garment.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Replace the outer garment with image0 and preserve the source person and scene&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span>--output<span class="w"> </span>reference_edit.mp4
+
+<span class="c1"># V2V: one source video and no references.</span>
+mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video<span class="w"> </span>source.mp4<span class="w"> </span>--prompt<span class="w"> </span><span class="s2">&quot;Add a snowman beside the path&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span>--output<span class="w"> </span>video_edit.mp4
+</code></pre></div>
+<p>Defaults are 848x480, 81 frames, 16 fps, 40 steps, flow shift 5, UniPC, text guidance 4,
+reference guidance 4.5, source guidance 1.25, and maximum condition side 848. The hard condition
+cap is 1280, the reference count cap is eight, and the prompt cap is exactly 512 UMT5 tokens.
+Video-source modes accept only <code>source-aspect</code> plus <code>resize</code>; R2V honors its requested canvas.
+On Bernini RV2V/V2V, width and height are a source-aspect area target capped by
+<code>--max-condition-size</code>, while frames is a maximum capped by source duration. The start event and
+saved metadata expose the resolved canvas and actual <code>output_frames</code>.</p>
+<p>Bernini rejects <code>--quantize</code>, LoRA, <code>--video-strength</code>, <code>--video-mask-path</code>, <code>--guidance-2</code>,
+explicit denoising grids, non-UniPC solvers, first/last/context/SVI conditioning, and ordinary
+<code>--image</code> inputs. <code>--reference-image</code> is a separate semantic role and must not be rewritten as
+the first frame. Metadata records ordered paths, condition shapes/source IDs, guidance activity,
+system/effective prompts, component-source revisions, and output health. See
+<a href="../bernini/">Bernini-R 1.3B</a> for memory measurements and playable proof.</p>
+<h3 id="wan-video-parameters">Wan Video Parameters<a class="headerlink" href="#wan-video-parameters" title="Permanent link">&para;</a></h3>
+<p>Wan uses frame-count control rather than a separate duration flag. The output duration is:</p>
+<div class="highlight"><pre><span></span><code>duration_seconds = frames / fps
+</code></pre></div>
+<p>At the default 24 fps, <code>--frames 121</code> produces about 5.04 seconds of video, <code>--frames 73</code> produces about 3.04 seconds, and <code>--frames 49</code> produces about 2.04 seconds.</p>
+<p>Bernini source-video modes are the exception to an exact requested count: <code>--frames</code> is a maximum,
+and the source duration plus requested fps may resolve fewer <code>4n+1</code> frames. Use
+<code>actual_duration_seconds = output_frames / fps</code> from the returned artifact or metadata.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--width</code>, <code>--height</code></td>
+<td>Accepted values are model-specific. Text-to-video and video-to-video values are adjusted up to the selected Wan VAE/patch multiple. For image-to-video, these values are a size target by default: MLX-Gen resolves the final canvas from the source image aspect ratio and the selected model's spatial multiple before conditioning the model (see <code>--canvas-policy</code>). Bernini source-video modes also treat them as a size target and preserve the source aspect ratio.</td>
+</tr>
+<tr>
+<td><code>--canvas-policy</code></td>
+<td>How the output canvas is resolved from a source input. Default keeps each route's behavior: image-to-video resolves a source-ratio canvas near the requested size; text/video-to-video honor the requested (multiple-adjusted) canvas. <code>exact-resize</code> honors the requested canvas on image-to-video, with the source mapped per <code>--resize-mode</code>; <code>source-aspect</code> on video-to-video derives a source-ratio canvas from the clip. Bernini source-video modes require <code>source-aspect</code>; its reference-only R2V mode has no source canvas. Recorded in metadata and replayed by <code>--config-from-metadata</code>. With <code>--json-events</code>, the <code>start</code> event carries the resolved <code>width</code>/<code>height</code>.</td>
+</tr>
+<tr>
+<td><code>--resize-mode</code></td>
+<td>How source pixels (image-to-video first frame, video-to-video frames, VACE conditioning, and their masks) map onto the canvas: <code>resize</code> stretches to fill (default), <code>crop</code> center-crops without distortion, <code>pad</code> letterboxes the full source without distortion (black bars). Masks always follow the same geometry as the source pixels; letterboxed borders are preserved regions. Bernini video/reference conditions support resize only. Recorded in metadata and replayed by <code>--config-from-metadata</code>.</td>
+</tr>
+<tr>
+<td><code>--frames</code></td>
+<td>Requested output frames. Wan requires <code>4n + 1</code>; other values are adjusted to <code>4 * floor(frames / 4) + 1</code>. On Bernini source-video routes this is a maximum and may resolve lower from source duration/fps; metadata <code>output_frames</code> is authoritative. TI2V-5B default: <code>121</code>; A14B and Bernini default: <code>81</code>.</td>
+</tr>
+<tr>
+<td><code>--fps</code></td>
+<td>MP4 playback frame rate. Any positive integer is accepted. TI2V-5B default/recommended value: <code>24</code>; A14B and Bernini default/recommended value: <code>16</code>.</td>
+</tr>
+<tr>
+<td><code>--steps</code></td>
+<td>Denoising steps. TI2V-5B default/recommended quality value: <code>50</code>; A14B and Bernini default/recommended value: <code>40</code>. Lower values run faster but reduce quality. Mutually exclusive with <code>--denoising-step-list</code>.</td>
+</tr>
+<tr>
+<td><code>--denoising-step-list</code></td>
+<td>Explicit denoising timestep grid (strictly decreasing integers in <code>[1, 1000]</code>), e.g. <code>--denoising-step-list 1000 750 500 250</code> for the LightX2V distill contract. The transformer sees exactly these timesteps; sigma follows <code>t / 1000</code>. Grid entries are final, already-shifted timesteps, so this flag is mutually exclusive with <code>--steps</code> and <code>--flow-shift</code>, and rejected for video-to-video (strength truncation would drop grid points), Wan VACE, and Bernini. Works on both <code>unipc</code> and <code>euler</code> solvers where accepted. Recorded in metadata (<code>denoising_step_list</code>, with <code>steps</code> set to the grid length and <code>flow_shift</code> null) and replayed by <code>--config-from-metadata</code>. Python callers use <code>denoising_step_list=[...]</code>.</td>
+</tr>
+<tr>
+<td><code>--guidance</code></td>
+<td>Classifier-free/text guidance scale. TI2V-5B default: <code>5</code>; A14B and Bernini default: <code>4</code>.</td>
+</tr>
+<tr>
+<td><code>--guidance-2</code></td>
+<td>Optional low-noise guidance scale for Wan A14B <code>transformer_2</code>. If both guidance flags are omitted, model-specific two-stage defaults are used. If <code>--guidance</code> is set and <code>--guidance-2</code> is omitted, the low-noise stage follows <code>--guidance</code>. It is rejected for single-transformer Wan models.</td>
+</tr>
+<tr>
+<td><code>--flow-shift</code></td>
+<td>Flow-matching scheduler shift. Defaults to the selected Wan model config. TI2V-5B and Bernini default to <code>5.0</code>; A14B defaults to <code>3.0</code>. For new 480p-class TI2V-5B checks such as <code>832x480</code>, pass <code>--flow-shift 3</code>. Python callers use <code>flow_shift=...</code>.</td>
+</tr>
+<tr>
+<td><code>--last-image</code></td>
+<td>Wan A14B image-to-video only (experimental on Wan 2.2): a second anchor image the clip should END near, alongside the <code>--image-path</code> first frame (diffusers <code>last_image</code> first+last bracket conditioning). The last image maps through the same resolved canvas and <code>--resize-mode</code> as the first frame — match their aspect ratios. Requires <code>--image-path</code>; rejected on TI2V-5B (<code>expand_timesteps</code>), Wan VACE, and text/video-to-video. Recorded in metadata (<code>last_image_path</code>) and replayed by <code>--config-from-metadata</code>; advertised as <code>supports_last_image</code> on the <code>wan.first-frame</code> capability row. Official first+last training exists for Wan 2.1 (FLF2V); on Wan 2.2 A14B the shipped probe measured end-frame adherence at MAE 4.6/255 vs the target (baseline without the flag: 56.1) with no mid-clip artifacts on one Lightning 4-step storyboard pair — treat broader recipes as unverified (backlog item 0097 records the bounds).</td>
+</tr>
+<tr>
+<td><code>--context-frames</code></td>
+<td>Wan A14B image-to-video only (EXPERIMENTAL zero-shot): the ordered frames that FOLLOW <code>--image-path</code> in the motion being continued. The conditioned head becomes <code>[--image-path, *--context-frames]</code>, so a continuation clip inherits the predecessor's real momentum instead of restarting from one frozen frame (the multi-frame handover used by SkyReels-V2/SVI-class pipelines). Pass 4, 8, or 12 frames — the head must fill whole 4x VAE latent groups (5, 9, or 13 conditioned frames); passing the start frame here too is the common misuse and fails on that count check. Requires <code>--image-path</code>; needs <code>--frames &gt;= head + 4</code>; composes with <code>--last-image</code>; rejected on TI2V-5B (<code>expand_timesteps</code>), Wan VACE, and text/video-to-video — CLI rejects before weight load. All frames map through the same canvas and <code>--resize-mode</code> as the first frame. Recorded in metadata (<code>context_image_paths</code>), replayed by <code>--config-from-metadata</code>, advertised as <code>supports_context_frames</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 6; the current capabilities payload is schema 8. Measured zero-shot on a Lightning 4-step continuation pair (backlog 0102): the K=5 head carried the source clip's motion speed (seam magnitude ratio 0.90 vs the single-frame baseline's 1.90 = double-speed restart) with a mild ~2-frame flare/exposure step at the conditioned-to-free boundary (luma delta ~3.2/255 vs the source clip's own max 1.15; visually mild, structurally clean). Treat as a storyboard continue-seam tool, not a validated general feature.</td>
+</tr>
+<tr>
+<td><code>--context-noise</code></td>
+<td>Optional noise on the <code>--context-frames</code> conditioned head, <code>0-1000</code> timestep-like scale (SkyReels <code>addnoise_condition</code> precedent, ~20 is the community default). Applied in latent space to the head only, deterministic per seed, recorded in metadata (<code>context_noise</code>) and replayed. In the shipped zero-shot probe it did not reduce the boundary flare (backlog 0102); it exists so adapter recipes (SVI-class) that expect conditioning noise can be reproduced exactly. Requires <code>--context-frames</code>.</td>
+</tr>
+<tr>
+<td><code>--svi-anchor-image</code></td>
+<td>Wan A14B image-to-video only (EXPERIMENTAL): SVI 2.0 Pro chain conditioning (Stable Video Infinity, ICLR'26, trained for Wan 2.2 A14B i2v). One persistent anchor image is re-injected into EVERY clip of a chain as <code>[anchor_latent, motion_latent?, zero-latents]</code> — identity from the anchor, momentum from the previous clip's exported latent, TRUE zero-latent padding (not the stock zero-frame VAE encode; the conventions are mutually unintelligible, which is why the mode and the LoRA pair gate each other loudly in both directions). Replaces <code>--image-path</code>; conflicts with <code>--image-path</code>, <code>--last-image</code>, <code>--context-frames</code>, <code>--video-path</code>; rejected on TI2V-5B and VACE before weight load. Requires <code>--svi-lora-high</code>/<code>--svi-lora-low</code>. Every SVI run exports <code>&lt;output&gt;.svi_latent.safetensors</code> for the next clip and records <code>svi_*</code> metadata including <code>svi_assembly_trim_frames</code> (drop that many frames of every CONTINUATION clip at assembly: <code>1 + 4 x count</code>). Use a unique seed per clip. Advertised as <code>supports_svi</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 7; the current capabilities payload is schema 8.</td>
+</tr>
+<tr>
+<td><code>--svi-motion-latent</code></td>
+<td>The <code>*.svi_latent.safetensors</code> exported by the PREVIOUS clip's SVI run: its trailing latent entries hand the motion over losslessly (never a pixel round-trip). Omit on the first clip of a chain. The chain must keep one canvas end to end (mismatch rejected at load). <code>--svi-motion-latent-count</code> (default <code>1</code>, the reference recipe) selects how many trailing entries carry over. Requires <code>--svi-anchor-image</code>. Continuation segments beyond 65 frames print a trained-length advisory (community-measured color shifts).</td>
+</tr>
+<tr>
+<td><code>--svi-lora-high</code>, <code>--svi-lora-low</code></td>
+<td>The SVI 2.0 Pro error-recycling LoRA pair (high/low-noise experts; official weights <code>vita-video-gen/svi-model:version-2.0/SVI_Wan2.2-I2V-A14B_{high,low}_noise_lora_v2.0_pro.safetensors</code>). Loaded at fixed scale 1.0 under a STRICT key-match contract: any unmatched key aborts the load (<code>unmatched_key_count == 0</code> per file; verified 800/800 on the official pack) — a partially applied SVI LoRA silently corrupts the convention. Both-or-neither; requires <code>--svi-anchor-image</code> (the pack corrupts non-SVI runs and is rejected for them); re-fused automatically on per-item high-noise expert reloads. Composes with the Lightning 4-step pair through the ordinary <code>--lora-paths</code>/<code>--lora-scales</code>: the author-documented coexistence sets lightx2v HIGH scale to 0.5-0.6 (1.0 weakens dynamics/text-following and snaps back to the anchor) and keeps lightx2v LOW at 1.0.</td>
+</tr>
+<tr>
+<td><code>--video</code>, <code>--video-path</code></td>
+<td>One source video for the public Wan video-to-video routes. The SDEdit-style route (with <code>--video-strength</code>, optionally a mask) is limited to <code>Wan2.2-T2V-A14B</code>. Wan VACE uses learned control conditioning. Bernini uses the video as an independently VAE-encoded packed source, selects V2V without references or RV2V with them, and has no warm start. TI2V-5B and I2V-A14B reject source-video input.</td>
+</tr>
+<tr>
+<td><code>--video-strength</code></td>
+<td>Denoising strength in <code>(0, 1]</code> for A14B SDEdit-style video-to-video. Default: <code>0.8</code>. Higher values allow larger changes from the source clip. The run denoises <code>floor(steps x video_strength)</code> effective steps; saved metadata records requested plus effective steps, and below roughly <code>0.7</code> the A14B high-noise stage is skipped. Rejected on VACE and Bernini.</td>
+</tr>
+<tr>
+<td><code>--video-mask-path</code></td>
+<td>One static image mask for masked video-to-video. White marks the region the model may change; black regions are locked to the source video at every denoising step and match it up to VAE round-trip precision. Binarized at 50% on the latent grid. Requires <code>--video-path</code>; all-black masks are rejected before model load; strength applies inside the mask. On Wan VACE the same flag feeds learned mask conditioning. Bernini rejects masks. Recorded in metadata and replayed by <code>--config-from-metadata</code>.</td>
+</tr>
+<tr>
+<td><code>--reference-image</code></td>
+<td>A repeatable semantic reference role. On Wan VACE, pictured subjects enter the learned VACE control branch; prepared plain-background cutouts work best. On Bernini, one to eight ordinary ordered images become independently VAE-encoded packed segments: reference-only input selects R2V, while one video plus references selects RV2V. The prompt addresses them as <code>image0</code>, <code>image1</code>, and so on. Recorded in metadata and replayed by <code>--config-from-metadata</code>.</td>
+</tr>
+<tr>
+<td><code>--reference-guidance</code></td>
+<td>Bernini reference contribution scale (default <code>4.5</code>), active on R2V and RV2V. Rejected or inactive outside the Bernini renderer contract.</td>
+</tr>
+<tr>
+<td><code>--source-guidance</code></td>
+<td>Bernini source-video contribution scale (default <code>1.25</code>), active only on RV2V.</td>
+</tr>
+<tr>
+<td><code>--apg-eta</code>, <code>--apg-norm-threshold</code>, <code>--apg-momentum</code></td>
+<td>Bernini APG controls, defaults <code>0.5</code>, <code>50</code>, and <code>0</code>. Active on R2V and source-only V2V; RV2V uses chained CFG and records them as inactive.</td>
+</tr>
+<tr>
+<td><code>--max-condition-size</code></td>
+<td>Bernini hard maximum side for independently resized video/reference conditions and source-video output. Must be a multiple of 16 in <code>[16, 1280]</code>; default <code>848</code>. The 1280 smoke used one reference and does not prove the independent eight-reference maximum at that size.</td>
+</tr>
+<tr>
+<td><code>--system-prompt</code></td>
+<td>Optional Bernini task-prefix override. By default MLX-Gen uses the exact official R2V, RV2V, or V2V prefix and records the effective prompt.</td>
+</tr>
+<tr>
+<td><code>--conditioning-scale</code></td>
+<td>Wan VACE models only: strength of the VACE conditioning applied at every control layer (default <code>1.0</code>). Replaces <code>--video-strength</code>, which VACE models reject (no SDEdit warm start).</td>
+</tr>
+<tr>
+<td><code>--vace-masked-region</code></td>
+<td>Wan VACE models only: <code>generate</code> (default) gray-fills the white mask region before conditioning per the official VACE inpainting convention, so the model synthesizes new structure there; <code>repaint</code> keeps the source content as conditioning, preserving structure and changing style/color only. Recorded in metadata (<code>masked_region_mode</code>) and replayed by <code>--config-from-metadata</code>.</td>
+</tr>
+<tr>
+<td><code>--solver</code></td>
+<td>Wan supports <code>unipc</code> and <code>euler</code> broadly, but public A14B video-to-video and every Bernini route require <code>unipc</code>.</td>
+</tr>
+<tr>
+<td><code>--negative-prompt</code>, <code>--negative</code></td>
+<td>If omitted, Wan uses the model's official default negative prompt. Pass <code>--negative ""</code> to intentionally run without a negative prompt; this can be better for simple abstract scenes where the default negative prompt adds unwanted texture.</td>
+</tr>
+<tr>
+<td><code>--seed</code></td>
+<td>Deterministic seed. Repeat with multiple values to create multiple videos.</td>
+</tr>
+<tr>
+<td><code>--progress</code>, <code>--no-progress</code></td>
+<td>Show or disable the CLI video progress bar. The bar advances by denoising step and keeps the requested frame count as context. Default: <code>--progress true</code>.</td>
+</tr>
+<tr>
+<td><code>--low-ram</code></td>
+<td>For Wan CLI runs, clear MLX cache between transformer blocks and denoise steps, release denoisers before decode when the model instance will not be reused for another seed, and clear cache between VAE temporal decode slices. This is intended for memory pressure, not speed.</td>
+</tr>
+<tr>
+<td><code>--keep-text-encoder</code></td>
+<td>Keep the UMT5 text encoder resident between generations in one process (~11 GB resident RAM) instead of reloading it per prompt encode — for hosts that chain scene generations. Default: load-and-release.</td>
+</tr>
+<tr>
+<td><code>--no-prompt-cache</code></td>
+<td>Disable the exact on-disk prompt-embed cache. By default, identical (encoder snapshot, tokenized prompt, length, precision) encodes are served from a small safetensors cache instead of reloading the text encoder.</td>
+</tr>
+<tr>
+<td><code>--no-validate-health</code></td>
+<td>Skip the post-save full-file health re-decode (~0.3-0.8 s at storyboard sizes) for hosts that probe the saved file themselves. The skip is recorded as <code>health_check: "skipped"</code> in metadata and the save event. Default: validation ON.</td>
+</tr>
+<tr>
+<td><code>--compile-transformer</code></td>
+<td>Opt-in <code>mx.compile</code> of the Wan denoiser(s) (~2-6% per step, output differs from eager by ~5e-4 — never a silent default). Ineligible with <code>--low-ram</code> per-block clearing or block-health diagnostics; those runs print a notice and stay eager.</td>
+</tr>
+<tr>
+<td><code>--release-inactive-denoiser</code>, <code>--no-release-inactive-denoiser</code></td>
+<td>Explicit control of the A14B dual-expert release. Default: single-seed CLI runs release the inactive expert (the process exits after one item); multi-seed and Python-API runs use the model-owned default — auto-release with lazy reload (~0.3-0.7 s warm) on disk-prequantized checkpoints, resident otherwise.</td>
+</tr>
+</tbody>
+</table>
+<p>Wan prompts have a hard UMT5 budget of <code>--max-sequence-length</code> tokens (default <code>512</code>); text
+beyond it never conditions the video. Runs that exceed the budget print one stderr warning
+naming the counts ("prompt truncated: 547 -&gt; 512 UMT5 tokens") and record <code>prompt_tokens</code> /
+<code>prompt_truncated</code> (plus the negative-prompt pair when guidance actually encodes it) in the
+metadata sidecar.</p>
+<p>Common Wan video sizes:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th style="text-align: right;">Required width/height multiple</th>
+<th>Recommended/native quality size</th>
+<th>Lower-cost diagnostic sizes</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TI2V-5B T2V/I2V</td>
+<td style="text-align: right;">32 px</td>
+<td><code>1280x704</code> or <code>704x1280</code></td>
+<td><code>832x480</code>, <code>480x832</code>; smaller sizes such as <code>448x256</code> are smoke checks only</td>
+<td>Text-to-video <code>1280x720</code> adjusts to <code>1280x736</code>; image-to-video preserves the source image ratio at a nearby supported canvas.</td>
+</tr>
+<tr>
+<td>T2V-A14B</td>
+<td style="text-align: right;">16 px</td>
+<td><code>1280x720</code> or <code>720x1280</code></td>
+<td><code>832x480</code>, <code>480x832</code>, <code>448x256</code>, <code>256x448</code>, <code>432x240</code></td>
+<td>Text-to-video plus public video-to-video (plain or masked with <code>--video-mask-path</code>); image input is rejected and public V2V currently requires <code>unipc</code>.</td>
+</tr>
+<tr>
+<td>I2V-A14B</td>
+<td style="text-align: right;">16 px</td>
+<td>Source-ratio canvas near <code>1280x720</code> or <code>720x1280</code></td>
+<td>Source-ratio canvas near <code>832x480</code>, <code>448x256</code>, or <code>432x240</code></td>
+<td>Requires one input image; output preserves the source image ratio at a nearby supported canvas.</td>
+</tr>
+<tr>
+<td>Bernini-R 1.3B</td>
+<td style="text-align: right;">16 px</td>
+<td><code>848x480</code> or source-ratio equivalent</td>
+<td><code>320x192</code>/<code>176x320</code> were bounded functional proofs, not final-quality settings</td>
+<td>R2V accepts 1-8 references; V2V/RV2V preserve source aspect and use resize-only conditioning. BF16/UniPC only.</td>
+</tr>
+</tbody>
+</table>
+<p>Additional A14B target families that MLX-Gen accepts are useful when you want a different aspect
+ratio while staying on a 16-pixel multiple:</p>
+<ul>
+<li>square: <code>240x240</code>, <code>480x480</code>, <code>720x720</code>, <code>960x960</code>, <code>1280x1280</code>, <code>1440x1440</code></li>
+<li>portrait targets: <code>240x480</code>, <code>480x832</code>, <code>720x1280</code>, <code>832x1104</code>, <code>1248x1648</code>, <code>1080x1920</code></li>
+<li>landscape targets: <code>480x240</code>, <code>832x480</code>, <code>1280x720</code>, <code>1104x832</code>, <code>1648x1248</code>, <code>1920x1080</code></li>
+</ul>
+<p>For A14B, the official quality envelope still centers on <code>480P</code> and <code>720P</code>. For image-to-video,
+these are target size classes rather than exact guarantees because MLX-Gen preserves the source
+image ratio and resolves to the nearest supported canvas.</p>
+<p>The upstream TI2V-5B guidance is 1280x704 or 704x1280, 121 frames, 50 steps, 24 fps, and flow shift
+<code>5.0</code>. The upstream A14B guidance is 1280x720 or 720x1280, 81 frames, 40 steps, <code>--guidance 4</code>,
+optional <code>--guidance-2 3</code>, flow shift <code>3.0</code>, and 16 fps. Lower resolutions, frame counts, or step
+counts are useful for routing and prompt checks; for visual TI2V-5B prompt checks, use at least
+<code>832x480</code> and pass
+<code>--flow-shift 3</code>.</p>
+<p>For a practical 5-second local profile, A14B T2V at <code>480x240</code> or <code>240x480</code>, <code>101</code> frames,
+<code>20</code> fps, and <code>20</code> to <code>25</code> steps is a useful quality/speed point on an M5 Max. The documented
+starship profile takes about 30 minutes at <code>480x240</code>. TI2V-5B at <code>832x480</code>, <code>25</code> steps, <code>101</code>
+frames, and <code>20</code> fps takes about 12 minutes on the same class of machine; new 480p-class TI2V-5B
+checks should include <code>--flow-shift 3</code>. TI2V-5B at <code>1280x704</code> with the same frames and steps takes
+about 35 minutes and should use the default flow shift. See <a href="../wan-video/">Wan Video</a> for the MP4
+assets and frame strips.</p>
+<p>For visual checks, use <code>448x256</code> or larger for Wan examples. Tiny square canvases such as <code>128x128</code>
+are not representative of Wan video quality or prompt adherence.</p>
+<p>Example outputs at 1280x704, 17 frames, and 20 steps:</p>
+<p><img alt="Wan2.2 TI2V 1280x704 text-to-video contact sheet" src="../assets/generation/wan2.2-ti2v-5b-t2v-1280x704-17f-20steps-contact-sheet.png" /></p>
+<p><img alt="Wan2.2 TI2V first-frame image-to-video contact sheet" src="../assets/generation/wan2.2-ti2v-5b-i2v-bateau-1280x704-17f-20steps-contact-sheet.png" /></p>
+<p>These panels are examples at the model's spatial scale. Evaluate final visual quality with the
+recommended full-resolution, frame-count, and step-count settings for your target model.</p>
+<h2 id="seedvr2-upscale-command">SeedVR2 Upscale Command<a class="headerlink" href="#seedvr2-upscale-command" title="Permanent link">&para;</a></h2>
+<p>SeedVR2 image and video restoration use <code>mlxgen upscale</code>. The public video CLI path uses
+sequential temporal chunking, defaults video restore to <code>1x</code> when <code>--resolution</code> is omitted,
+enables <code>--low-ram</code> automatically, and fails closed on enlarged video output unless you explicitly
+pass <code>--force-unsafe-video-memory</code>. See <a href="../upscaling/">Image Upscaling</a> for a reproducible 5x
+image comparison plus the accepted June 21 five-second Eiffel <code>1x</code> and <code>2x</code> 3B/7B validation
+bundles.</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/seedvr2-3b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-path<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>input_short_edge_1024.png
+</code></pre></div>
+<p><code>--resolution</code> accepts either an integer target or a scale factor:</p>
+<table>
+<thead>
+<tr>
+<th>Value</th>
+<th>Meaning</th>
+<th>Example from <code>320x192</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>1024</code></td>
+<td>Set the shorter output edge to 1024px and preserve the source aspect ratio.</td>
+<td><code>1706x1024</code> after even-dimension normalization</td>
+</tr>
+<tr>
+<td><code>2x</code></td>
+<td>Multiply both source dimensions by 2 and preserve the source aspect ratio.</td>
+<td><code>640x384</code></td>
+</tr>
+<tr>
+<td><code>3x</code></td>
+<td>Multiply both source dimensions by 3 and preserve the source aspect ratio.</td>
+<td><code>960x576</code></td>
+</tr>
+</tbody>
+</table>
+<p>Use integer shortest-edge sizing when you want a predictable target size across mixed source image
+ratios. Use scale factors when you want to compare direct 2x/3x upscaling behavior. SeedVR2 also
+restores and denoises, so a target close to the source size can be useful for restoration checks but
+is not a good visual proof of super-resolution. For upscale quality checks, choose a target that
+materially increases the pixel dimensions.</p>
+<p>Useful options:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--image-path</code></td>
+<td>One or more image files or directories. Directories are expanded to supported image files. Mutually exclusive with <code>--video-path</code>.</td>
+</tr>
+<tr>
+<td><code>--video-path</code></td>
+<td>One or more video files or directories. Directories are expanded to supported video files. Mutually exclusive with <code>--image-path</code>.</td>
+</tr>
+<tr>
+<td><code>--resolution</code></td>
+<td>Integer shorter-edge target or scale factor such as <code>2x</code> or <code>3x</code>. Default: <code>384</code> for image input. Video input defaults to <code>1x</code> when omitted.</td>
+</tr>
+<tr>
+<td><code>--model</code></td>
+<td>Optional SeedVR2 model selector. Defaults to <code>seedvr2-3b</code>, the official <code>ByteDance-Seed/SeedVR2-3B</code> source model. Use <code>seedvr2-7b</code> for the official 7B source model, <code>AbstractFramework/seedvr2-3b-8bit</code>, <code>AbstractFramework/seedvr2-3b-4bit</code>, <code>AbstractFramework/seedvr2-7b-8bit</code>, <code>AbstractFramework/seedvr2-7b-4bit</code>, or a local path such as <code>./models/seedvr2-7b-8bit</code>.</td>
+</tr>
+<tr>
+<td><code>--quantize</code></td>
+<td>Optional runtime quantization for source-model runs. Published q8/q4 packages do not need this flag. Bernini-R rejects every value and currently requires BF16 because q4 failed model-backed validation and nominal Wan q8 quantized none of its transformer linears.</td>
+</tr>
+<tr>
+<td><code>--softness</code></td>
+<td>Optional input smoothing from <code>0.0</code> to <code>1.0</code>. <code>0.0</code> preserves the preprocessed source most directly. Higher values pre-downsample the conditioning image before reconstruction, which can suppress source grain/JPEG texture but can also soften fine details or make a clip look muddy. Try <code>0.25</code> to <code>0.5</code> for noisy or compressed sources only after checking a short clip first.</td>
+</tr>
+<tr>
+<td><code>--steps</code></td>
+<td>Denoising steps for image restoration. Default is automatic: the official single step, plus a 4-step refinement only when the decoded output measurably shows the one-step noise texture that flat or dark content can produce (recorded in metadata as <code>steps_mode</code> and <code>one_step_residue_pct</code>). Pass <code>1</code>-<code>4</code> to force a fixed count. Image inputs only; video restoration always uses the one-step path.</td>
+</tr>
+<tr>
+<td><code>--vae-tiling</code></td>
+<td>Force tiled VAE encode/decode for image runs. Video restore rejects this flag; use <code>--low-ram</code> and temporal chunking instead.</td>
+</tr>
+<tr>
+<td><code>--color-correction</code></td>
+<td>Tone/color post-process after restoration. <code>wavelet</code> = wavelet tone reconstruction, <code>lab</code> = LAB tone matching, <code>off</code> = raw model output.</td>
+</tr>
+<tr>
+<td><code>--start-seconds</code></td>
+<td>For video inputs, skip frames before this source timestamp in seconds.</td>
+</tr>
+<tr>
+<td><code>--max-frames</code></td>
+<td>For video inputs, decode at most this many frames after <code>--start-seconds</code>.</td>
+</tr>
+<tr>
+<td><code>--temporal-chunk-size</code></td>
+<td>For longer video inputs, restore this many source frames per temporal chunk. Streamed SeedVR2 video profiles below <code>29</code> frames are rejected when they would create multiple chunks because they can preserve frame count while breaking temporal continuity.</td>
+</tr>
+<tr>
+<td><code>--temporal-chunk-overlap</code></td>
+<td>Reuse this many source frames as context between adjacent chunks. Multi-chunk SeedVR2 video profiles require at least <code>8</code> frames of overlap. This is context overlap, not an output crossfade.</td>
+</tr>
+<tr>
+<td><code>--drop-audio</code></td>
+<td>Opt out of the default audio-preservation contract and publish a silent restored MP4 intentionally.</td>
+</tr>
+<tr>
+<td><code>--force-unsafe-video-memory</code></td>
+<td>Bypass the conservative SeedVR2 safe-video profile. Use only when you are intentionally accepting the risk of a high-memory run.</td>
+</tr>
+<tr>
+<td><code>--metadata</code></td>
+<td>Write a <code>.metadata.json</code> sidecar with final output dimensions, source dimensions, seed, and model details.</td>
+</tr>
+</tbody>
+</table>
+<p>For video inputs:</p>
+<ul>
+<li>SeedVR2 preserves the source FPS by default;</li>
+<li>MLX-Gen trims temporary SeedVR2 padding frames back to the requested clip length before saving;</li>
+<li>by default, MLX-Gen preserves the matching source audio segment when the source clip has audio;</li>
+<li>if copied audio cannot be proven safe, the run fails instead of silently dropping it;</li>
+<li>use <code>--drop-audio</code> when you intentionally want a silent restored MP4;</li>
+<li>the public CLI safe profile uses sequential temporal chunking, defaults video restore to <code>1x</code>,
+  enables <code>--low-ram</code> automatically, and rejects enlarged video output unless you explicitly pass
+  <code>--force-unsafe-video-memory</code>;</li>
+<li>public quality comparisons should use at least five contiguous seconds of source video, not a
+  sub-second clip;</li>
+<li>the public Eiffel proof in <a href="../upscaling/">upscaling.md</a> keeps the accepted <code>70s</code> to <code>75s</code>
+  comparison MP4s, motion strips, detail crops, and readable report as the primary quality
+  evidence.</li>
+</ul>
+<p>Python callers using <code>SeedVR2.restore_video_to_path(...)</code> follow the same contract. The Python API
+rejects multi-chunk video profiles below 29 source frames or 8 overlap frames for the same
+temporal-continuity reason as the CLI. Source audio is preserved by default, and <code>drop_audio=True</code>
+is the explicit opt-out for intentionally silent saved output.</p>
+<h2 id="model-management-commands">Model Management Commands<a class="headerlink" href="#model-management-commands" title="Permanent link">&para;</a></h2>
+<p><code>mlxgen download</code> and <code>mlxgen prepare</code> are the only public MLX-Gen commands that authorize network access.</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>Qwen/Qwen-Image
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>Qwen/Qwen-Image<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--path<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--quantize<span class="w"> </span><span class="m">8</span>
+</code></pre></div>
+<p>Use <code>prepare</code> when you need a local MLX-Gen model package. It creates MLX-Gen saved weights,
+optional quantized weights, and a generated Hugging Face card.</p>
+<p>If a complete local MLX-Gen package exists at <code>./models/&lt;repo-name&gt;</code>, a matching Hugging Face handle can
+resolve to it before requiring a cache snapshot. This lets applications use stable handles such as
+<code>AbstractFramework/qwen-image-edit-2511-8bit</code> or
+<code>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit</code> while still running from local files.</p>
+<p>Generation output replaces the requested <code>--output</code> path by default. Use <code>--replace false</code> or <code>--no-replace</code> to preserve an existing file and save to a suffixed filename.</p>
+<p>Wan video failures write a compact manifest next to the intended output path, such as
+<code>video.failure.json</code> for <code>video.mp4</code>. It captures the error, tensor-health report when available,
+seed, prompt, dimensions, frames, steps, guidance, fps, output path, and memory-related runtime
+flags.</p>
+<h2 id="python-integration">Python Integration<a class="headerlink" href="#python-integration" title="Permanent link">&para;</a></h2>
+<p>New applications should start from the public <code>mlxgen</code> routing helpers documented in <a href="../python-integration/">Python Integration</a>, especially <code>resolve_generation_runtime(...)</code> and <code>load_generation_model(...)</code> for warm workers and embedded runtimes. The loaded runtime owns serial multi-output execution through <code>generate_output(...)</code> and <code>generate_outputs(...)</code>: one loaded model instance, one seed at a time, one artifact per seed. Those helpers cover the unified <code>mlxgen generate</code> families only; SeedVR2 continues through <code>mlxgen upscale</code> and direct <code>SeedVR2</code> methods. Direct model classes inherited from the mflux codebase remain available when a caller explicitly needs backend-specific control.</p>
+<p>Python callers should prepare or download required model files before constructing model objects. Runtime constructors and generation calls do not start network downloads.</p>
+<p>For progress monitoring, use <code>mflux.callbacks.ProgressEvent</code> and subscribe with
+<code>model.callbacks.subscribe_progress(...)</code>. Image generation emits <code>start</code> and <code>denoise</code>, followed
+by exactly one terminal phase: <code>complete</code>, <code>failed</code>, or <code>interrupted</code>. In the Python image and
+in-memory video APIs, <code>complete</code> means the generated in-memory artifact is ready to return from
+<code>generate_image()</code> or <code>generate_video()</code>. Persisting that artifact to disk is still the caller's
+responsibility.</p>
+<p>Wan video generation uses the same event type and also accepts a direct <code>progress_callback</code>
+argument on <code>generate_video()</code>: model generation emits <code>start</code>, <code>denoise</code>, <code>decode</code>, <code>convert</code>,
+and <code>generated</code>; the Wan CLI then emits <code>save</code> when it begins persisting the MP4 (the save event
+carries the output's <code>fps</code>, <code>width</code>, <code>height</code>, and <code>total_frames</code>, plus <code>health_check: "skipped"</code>
+when <code>--no-validate-health</code> was requested), emits <code>complete</code> only after MP4 save and any
+video-health validation succeed, and emits <code>failed</code> instead when save/finalization fails after
+progress starts.
+SeedVR2 streamed restore uses the same terminal rule on <code>restore_video_to_path(...)</code> and the
+<code>mlxgen upscale --video-path ...</code> CLI path: <code>task="video-to-video"</code> and <code>complete</code> means the
+restored MP4, metadata, and optional post-write validation steps all succeeded.</p>
+<p>When a CLI consumer needs saved-artifact semantics instead of in-memory model progress, use
+<code>--json-events</code>: image routes emit <code>generated</code>, then <code>save</code>, then <code>complete</code> after the file is
+written.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.common.download_policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">DownloadRequiredError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen.models.z_image</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZImageTurbo</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">ZImageTurbo</span><span class="p">(</span><span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">DownloadRequiredError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="o">.</span><span class="n">download_command</span><span class="p">)</span>
+    <span class="k">raise</span>
+</code></pre></div>
+<h2 id="compatibility-boundary">Compatibility Boundary<a class="headerlink" href="#compatibility-boundary" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen model packages use the MLX/mflux saved-weight layout and MLX quantization tensors. They are intended for MLX-Gen and compatible mflux code, not for direct Diffusers or Transformers <code>from_pretrained()</code> loading.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

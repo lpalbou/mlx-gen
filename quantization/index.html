@@ -1,0 +1,2491 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/quantization/">
+      
+      
+        <link rel="prev" href="../lora/">
+      
+      
+        <link rel="next" href="../model-management/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Quantization - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#quantization" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Quantization
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#published-package-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Published Package Matrix
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Published Package Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#text-to-image-and-latent-image-to-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Text-To-Image And Latent Image-To-Image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edit-conditioned-image-to-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edit-Conditioned Image-To-Image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#image-upscaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image Upscaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text-to-video-and-image-to-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Text-To-Video And Image-To-Video
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reframe-and-outpaint-package-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reframe And Outpaint Package Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qwen-q4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qwen q4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fibo-q8-and-q4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FIBO q8 And q4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seedvr2-q8-and-q4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SeedVR2 q8 And q4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        q8
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bernini-r-is-bf16-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bernini-R Is BF16-Only
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wan-q8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wan q8
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ernie-image-turbo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERNIE Image Turbo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bonsai-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bonsai Image
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-quantized-families" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other Quantized Families
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#published-package-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Published Package Matrix
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Published Package Matrix">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#text-to-image-and-latent-image-to-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Text-To-Image And Latent Image-To-Image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#edit-conditioned-image-to-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edit-Conditioned Image-To-Image
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#image-upscaling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image Upscaling
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#text-to-video-and-image-to-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Text-To-Video And Image-To-Video
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reframe-and-outpaint-package-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reframe And Outpaint Package Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qwen-q4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qwen q4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fibo-q8-and-q4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FIBO q8 And q4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#seedvr2-q8-and-q4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SeedVR2 q8 And q4
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#q8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        q8
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bernini-r-is-bf16-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bernini-R Is BF16-Only
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wan-q8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wan q8
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ernie-image-turbo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERNIE Image Turbo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bonsai-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bonsai Image
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#other-quantized-families" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Other Quantized Families
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="quantization">Quantization<a class="headerlink" href="#quantization" title="Permanent link">&para;</a></h1>
+<p>MLX-Gen can run supported base Hugging Face models after <code>mlxgen download</code>. For lower-memory or
+faster-loading variants, <code>mlxgen prepare --model ... --path ... --quantize ...</code> creates a local
+MLX-Gen model package with the mflux/MLX saved-weight layout. Published AbstractFramework quantized
+repos are these MLX-Gen-specific packages, often with model-specific choices such as keeping
+sensitive layers in 8-bit or BF16. They are designed for MLX-Gen and are not Diffusers or
+Transformers <code>from_pretrained()</code> checkpoints.</p>
+<h2 id="compatibility-summary">Compatibility Summary<a class="headerlink" href="#compatibility-summary" title="Permanent link">&para;</a></h2>
+<p>The current quantized-model compatibility surface is:</p>
+<table>
+<thead>
+<tr>
+<th>Model family</th>
+<th>q8 MLX-Gen packages</th>
+<th>q4 MLX-Gen packages</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qwen Image</td>
+<td>Supported</td>
+<td>Supported with mixed q4/q8</td>
+<td>Applies to Qwen Image and Qwen Image 2512 text-to-image checkpoints.</td>
+</tr>
+<tr>
+<td>Qwen Image Edit</td>
+<td>Supported</td>
+<td>Supported with mixed q4/q8</td>
+<td>Applies to the original Qwen Image Edit plus the 2509 and 2511 checkpoints. The original checkpoint routes single-image edit-reference only; 2509 and 2511 also route multi-reference. Validation reports record exact pass/fail quality evidence per package.</td>
+</tr>
+<tr>
+<td>ERNIE Image Turbo</td>
+<td>Supported</td>
+<td>Supported with mixed q4/q8</td>
+<td>Text-to-image plus single-image latent image-to-image. Prompt Enhancer is optional and requires a full source snapshot.</td>
+</tr>
+<tr>
+<td>FLUX.2 Klein</td>
+<td>Supported</td>
+<td>Supported</td>
+<td>Standard MLX quantization policy. 9B derivatives follow the source gated/non-commercial access requirements.</td>
+</tr>
+<tr>
+<td>Bonsai Image</td>
+<td>Not an MLX-Gen q8 package</td>
+<td>Ternary 2-bit pre-packed checkpoint supported</td>
+<td>Bonsai checkpoints are already packed MLX artifacts. Use <code>mlxgen download</code> and <code>mlxgen generate</code>; do not run <code>prepare</code>. Binary 1-bit is detected but blocked until stock MLX supports 1-bit packed affine matmul.</td>
+</tr>
+<tr>
+<td>Z-Image / Z-Image Turbo</td>
+<td>Supported</td>
+<td>Supported</td>
+<td>Standard MLX quantization policy with model-specific generation defaults.</td>
+</tr>
+<tr>
+<td>FIBO</td>
+<td>Supported with mixed q8/BF16 when source access is available</td>
+<td>Supported with mixed q4/BF16 when source access is available</td>
+<td>Base FIBO text-to-image only. FIBO Edit is a separate model family and is not exposed as a public unified generation capability in this release.</td>
+</tr>
+<tr>
+<td>SeedVR2 3B/7B</td>
+<td>Supported</td>
+<td>Supported</td>
+<td>Image super-resolution through <code>mlxgen upscale</code>. Published q8/q4 packages are generated from the official <code>ByteDance-Seed/SeedVR2-3B</code> and <code>ByteDance-Seed/SeedVR2-7B</code> source models.</td>
+</tr>
+<tr>
+<td>Wan2.2</td>
+<td>Supported with mixed q8/BF16</td>
+<td>Not published</td>
+<td>MLX-Gen keeps Wan conditioning/output projection linears BF16 and quantizes the bulky transformer block linears at q8.</td>
+</tr>
+<tr>
+<td>Bernini-R 1.3B</td>
+<td>Rejected</td>
+<td>Rejected</td>
+<td>BF16-only. Generic Wan q4 failed transformer/video gates; nominal q8 quantized zero Bernini transformer linears and mislabeled BF16-equivalent execution.</td>
+</tr>
+</tbody>
+</table>
+<p>MLX-Gen treats low-bit quality as model-specific, not automatic. Qwen and ERNIE use mixed q4/q8 policies to preserve generation quality. FIBO uses mixed q8/BF16 and q4/BF16 policies that keep precision-sensitive conditioning and output paths at BF16. Bonsai uses Prism's pre-packed ternary 2-bit transformer plus a 4-bit Qwen3 text encoder rather than MLX-Gen's <code>prepare</code> flow. q8 remains the closest optimized-package option to BF16 when memory allows.</p>
+<p>For image and video generation, the default optimized recommendation in MLX-Gen is still the
+validated q8 package when one exists. Bernini is an explicit exception and rejects every
+<code>--quantize</code> value. That is different from third-party FP8 checkpoint guidance.
+For example, the upstream LightX2V Qwen Lightning README warns that BF16-trained Lightning LoRAs do
+not automatically behave well on every external FP8 Qwen base. That warning does not map 1:1 to
+MLX-Gen's published q8 packages. In MLX-Gen, prefer the documented q8 route plus the exact
+validated Lightning adapter example for that route, and do not treat an arbitrary external FP8
+checkpoint as equivalent to an <code>AbstractFramework/*-8bit</code> package.</p>
+<p>The difference between Bonsai ternary 2-bit and MLX-Gen's mixed q4/q8 policies is mostly packaging and runtime ownership, not the quality philosophy. Both avoid blind full low-bit conversion:</p>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Used by</th>
+<th>Quality-preserving rule</th>
+<th>Representative footprint and runtime</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mixed q4/q8 MLX-Gen packages</td>
+<td>Qwen Image/Edit and ERNIE Image Turbo q4 packages created by <code>mlxgen prepare</code></td>
+<td>q4 for bulk transformer paths, q8 for empirically sensitive linears, BF16 for non-quantizable weights and selected runtime components.</td>
+<td>ERNIE mixed q4/q8: 8.2 GiB package, 9.34 GiB peak RSS, 7.83 s at 512px. Qwen uses the same policy shape on larger source models.</td>
+</tr>
+<tr>
+<td>Mixed q4/BF16 and q8/BF16 MLX-Gen packages</td>
+<td>Base FIBO text-to-image packages created by <code>mlxgen prepare</code></td>
+<td>q4 or q8 for quantizable transformer/text-encoder linears, BF16 for the VAE and precision-sensitive FIBO conditioning, timestep, caption-projection, norm, and output paths.</td>
+<td>FIBO q8/BF16: 14.5 GiB package, 15.89 GB max RSS, 16.45 s at 512px. FIBO q4/BF16: 10.2 GiB package, 11.39 GB max RSS, 15.24 s at 512px.</td>
+</tr>
+<tr>
+<td>SeedVR2 q4/q8 MLX-Gen packages</td>
+<td>SeedVR2 3B and 7B image super-resolution packages created by <code>mlxgen prepare</code></td>
+<td>q4 or q8 for quantizable SeedVR2 transformer linears and VAE attention linears, BF16 for convolutions, norms, and other non-quantizable parameters.</td>
+<td>3B q8: 4.39 GiB package, 4.73 GiB max RSS. 3B q4: 2.54 GiB package, 2.89 GiB max RSS. 7B q8: 8.62 GiB package, 8.90 GiB max RSS. 7B q4: 4.79 GiB package, 5.10 GiB max RSS.</td>
+</tr>
+<tr>
+<td>Pre-packed ternary 2-bit checkpoint</td>
+<td>Bonsai Image 2-bit from Prism</td>
+<td>The transformer is already packed at 2-bit, the Qwen3 text encoder is 4-bit, and the Flux2 VAE stays BF16.</td>
+<td>Bonsai ternary: 3.6 GiB cached snapshot, 3.57 GiB peak RSS, 2.92 s at 512px.</td>
+</tr>
+</tbody>
+</table>
+<p>These are not model-quality rankings across unrelated models. They show the current MLX-Gen rule: use the smallest validated layout that still stays in the same visual family as a higher-precision baseline.</p>
+<h2 id="published-package-matrix">Published Package Matrix<a class="headerlink" href="#published-package-matrix" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen optimized packages published by the
+<a href="https://huggingface.co/AbstractFramework">AbstractFramework Hugging Face organization</a> should be
+read together with the task resolver: public tasks describe media direction, while the selected
+model determines the exact internal mode. Sizes below are current Hugging Face repository totals
+checked on 2026-06-04 and rounded to one decimal GiB. Source size is the upstream repository total;
+package size is the published AbstractFramework repository total.</p>
+<h3 id="text-to-image-and-latent-image-to-image">Text-To-Image And Latent Image-To-Image<a class="headerlink" href="#text-to-image-and-latent-image-to-image" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Source model</th>
+<th>Public task / mode</th>
+<th style="text-align: right;">Source size</th>
+<th>Published packages</th>
+<th style="text-align: right;">Package sizes</th>
+<th>Quantization status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FLUX.2 Klein 4B</td>
+<td>T2I, edit/reference I2I where supported by the model route</td>
+<td style="text-align: right;">22.1 GiB</td>
+<td><code>flux.2-klein-4b-4bit</code><br><code>flux.2-klein-4b-8bit</code></td>
+<td style="text-align: right;">4.3 GiB<br>8.0 GiB</td>
+<td>Standard MLX q4/q8 optimized packages. Distilled source/q8/q4 passed the June 5 edit-capability profile and the June 8 reframe profile; their June 8 outpaint rows are now stale historical evidence only.</td>
+</tr>
+<tr>
+<td>FLUX.2 Klein 9B</td>
+<td>T2I, edit/reference I2I where supported by the model route</td>
+<td style="text-align: right;">49.3 GiB</td>
+<td><code>flux.2-klein-9b-4bit</code><br><code>flux.2-klein-9b-8bit</code></td>
+<td style="text-align: right;">8.9 GiB<br>16.6 GiB</td>
+<td>Standard MLX q4/q8 optimized packages; inherits the source model's gated/non-commercial terms. Distilled source/q8/q4 passed the June 5 edit-capability profile and the June 8 reframe profile; their June 8 outpaint rows are stale historical evidence only.</td>
+</tr>
+<tr>
+<td>FLUX.2 Klein Base 4B</td>
+<td>T2I, edit/reference I2I where supported by the model route</td>
+<td style="text-align: right;">22.1 GiB</td>
+<td><code>flux.2-klein-base-4b-4bit</code><br><code>flux.2-klein-base-4b-8bit</code></td>
+<td style="text-align: right;">4.3 GiB<br>8.0 GiB</td>
+<td>Standard MLX q4/q8 optimized packages. Current published proof covers the source model on the June 10 starship profile; prepared base q8/q4 package proof is still pending.</td>
+</tr>
+<tr>
+<td>FLUX.2 Klein Base 9B</td>
+<td>T2I, edit/reference I2I where supported by the model route</td>
+<td style="text-align: right;">49.3 GiB</td>
+<td><code>flux.2-klein-base-9b-4bit</code><br><code>flux.2-klein-base-9b-8bit</code></td>
+<td style="text-align: right;">8.9 GiB<br>16.6 GiB</td>
+<td>Standard MLX q4/q8 optimized packages; inherits the source model's gated/non-commercial terms. Current published proof covers the source model on the June 10 starship profile; prepared base q8/q4 package proof is still pending.</td>
+</tr>
+<tr>
+<td>Qwen Image</td>
+<td>T2I</td>
+<td style="text-align: right;">53.7 GiB</td>
+<td><code>qwen-image-4bit</code><br><code>qwen-image-8bit</code></td>
+<td style="text-align: right;">16.2 GiB<br>27.5 GiB</td>
+<td>q4 uses MLX-Gen's mixed q4/q8 Qwen policy; q8 uses the standard q8 path.</td>
+</tr>
+<tr>
+<td>Qwen Image 2512</td>
+<td>T2I</td>
+<td style="text-align: right;">53.7 GiB</td>
+<td><code>qwen-image-2512-4bit</code><br><code>qwen-image-2512-8bit</code></td>
+<td style="text-align: right;">16.2 GiB<br>27.5 GiB</td>
+<td>q4 uses MLX-Gen's mixed q4/q8 Qwen policy; q8 uses the standard q8 path.</td>
+</tr>
+<tr>
+<td>ERNIE Image Turbo</td>
+<td>T2I, latent I2I</td>
+<td style="text-align: right;">29.5 GiB</td>
+<td><code>ernie-image-turbo-8bit</code><br><code>ernie-image-turbo-4bit</code></td>
+<td style="text-align: right;">11.5 GiB<br>11.5 GiB</td>
+<td>The public <code>-8bit</code> package is q8. The public <code>-4bit</code> repository currently has q8 metadata and the same size as <code>-8bit</code>; do not treat it as a valid q4 memory package until it is republished.</td>
+</tr>
+<tr>
+<td>Z-Image</td>
+<td>T2I</td>
+<td style="text-align: right;">19.1 GiB</td>
+<td><code>z-image-4bit</code><br><code>z-image-8bit</code></td>
+<td style="text-align: right;">5.5 GiB<br>10.2 GiB</td>
+<td>Standard MLX q4/q8 optimized packages.</td>
+</tr>
+<tr>
+<td>Z-Image Turbo</td>
+<td>T2I</td>
+<td style="text-align: right;">30.6 GiB</td>
+<td><code>z-image-turbo-4bit</code><br><code>z-image-turbo-8bit</code></td>
+<td style="text-align: right;">5.5 GiB<br>10.2 GiB</td>
+<td>Standard MLX q4/q8 optimized packages.</td>
+</tr>
+<tr>
+<td>FIBO</td>
+<td>T2I</td>
+<td style="text-align: right;">23.8 GiB</td>
+<td><code>fibo-4bit</code><br><code>fibo-8bit</code></td>
+<td style="text-align: right;">10.2 GiB<br>14.5 GiB</td>
+<td>q8 uses mixed q8/BF16; q4 uses mixed q4/BF16. FIBO Edit is not included in these base FIBO packages.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="edit-conditioned-image-to-image">Edit-Conditioned Image-To-Image<a class="headerlink" href="#edit-conditioned-image-to-image" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Source model</th>
+<th>Public task / mode</th>
+<th style="text-align: right;">Source size</th>
+<th>Published packages</th>
+<th style="text-align: right;">Package sizes</th>
+<th>Quantization status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Qwen Image Edit</td>
+<td>I2I edit/reference</td>
+<td style="text-align: right;">53.8 GiB</td>
+<td><code>qwen-image-edit-4bit</code><br><code>qwen-image-edit-8bit</code></td>
+<td style="text-align: right;">17.0 GiB<br>28.3 GiB</td>
+<td>q4 uses MLX-Gen's mixed q4/q8 Qwen edit policy; q8 uses the standard q8 path. The original Qwen Image Edit checkpoint is single-reference; use the explicit 2509 or 2511 checkpoints for multi-reference routes. Source/q8/q4 passed the 2026-06-08 reframe/outpaint profile.</td>
+</tr>
+<tr>
+<td>Qwen Image Edit 2509</td>
+<td>I2I edit/reference and multi-reference</td>
+<td style="text-align: right;">53.8 GiB</td>
+<td><code>qwen-image-edit-2509-4bit</code><br><code>qwen-image-edit-2509-8bit</code></td>
+<td style="text-align: right;">17.0 GiB<br>28.3 GiB</td>
+<td>q4 uses MLX-Gen's mixed q4/q8 Qwen edit policy; q8 uses the standard q8 path. The 2026-06-05 source and q8 validation passed the B/C/D/E spaceship edit sequence. The q4 package passed single-image B/C/D rows, but its multi-reference composition only partially applied the color reference. Source/q8/q4 passed the 2026-06-08 reframe/outpaint profile.</td>
+</tr>
+<tr>
+<td>Qwen Image Edit 2511</td>
+<td>I2I edit/reference and multi-reference</td>
+<td style="text-align: right;">53.8 GiB</td>
+<td><code>qwen-image-edit-2511-4bit</code><br><code>qwen-image-edit-2511-8bit</code></td>
+<td style="text-align: right;">17.0 GiB<br>28.3 GiB</td>
+<td>q4 uses MLX-Gen's mixed q4/q8 Qwen edit policy; q8 uses the standard q8 path. Source, q8, and q4 passed the 2026-06-06 pencil sketch, hard-landing edit, multi-reference composition profile, and the 2026-06-08 reframe/outpaint profile.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="image-upscaling">Image Upscaling<a class="headerlink" href="#image-upscaling" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Source model</th>
+<th>Public task / mode</th>
+<th style="text-align: right;">Source size</th>
+<th>Published packages</th>
+<th style="text-align: right;">Package sizes</th>
+<th>Quantization status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SeedVR2 3B</td>
+<td>Image super-resolution/restoration</td>
+<td style="text-align: right;">13.57 GiB generation files</td>
+<td><code>seedvr2-3b-4bit</code><br><code>seedvr2-3b-8bit</code></td>
+<td style="text-align: right;">2.54 GiB<br>4.39 GiB</td>
+<td>Published q4/q8 packages generated from the official <code>ByteDance-Seed/SeedVR2-3B</code> checkpoint. Use through <code>mlxgen upscale</code>, not <code>mlxgen generate</code>.</td>
+</tr>
+<tr>
+<td>SeedVR2 7B</td>
+<td>Image super-resolution/restoration</td>
+<td style="text-align: right;">31.63 GiB generation files</td>
+<td><code>seedvr2-7b-4bit</code><br><code>seedvr2-7b-8bit</code></td>
+<td style="text-align: right;">4.79 GiB<br>8.62 GiB</td>
+<td>q4/q8 packages generated from the official regular <code>ByteDance-Seed/SeedVR2-7B</code> checkpoint. Use through <code>mlxgen upscale</code>, not <code>mlxgen generate</code>.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="text-to-video-and-image-to-video">Text-To-Video And Image-To-Video<a class="headerlink" href="#text-to-video-and-image-to-video" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Source model</th>
+<th>Public task / mode</th>
+<th style="text-align: right;">Source size</th>
+<th>Published packages</th>
+<th style="text-align: right;">Package sizes</th>
+<th>Quantization status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wan2.2 TI2V-5B</td>
+<td>T2V and first-frame I2V</td>
+<td style="text-align: right;">31.9 GiB</td>
+<td><code>wan2.2-ti2v-5b-diffusers-bf16</code><br><code>wan2.2-ti2v-5b-diffusers-8bit</code></td>
+<td style="text-align: right;">21.2 GiB<br>16.9 GiB</td>
+<td>BF16 package plus q8/BF16 package. BF16 reduces storage/download size versus the FP32/BF16 source snapshot but does not reduce measured runtime memory. q8 further reduces storage and MLX model/allocator footprint in the documented 1280x704 benchmark. No q4 or mixed q4/q8 package is published.</td>
+</tr>
+<tr>
+<td>Wan2.2 T2V-A14B</td>
+<td>T2V</td>
+<td style="text-align: right;">117.5 GiB</td>
+<td><code>wan2.2-t2v-a14b-diffusers-bf16</code><br><code>wan2.2-t2v-a14b-diffusers-8bit</code></td>
+<td style="text-align: right;">64.1 GiB<br>39.5 GiB</td>
+<td>BF16 package plus mixed q8/BF16 package. Runtime measurements are below.</td>
+</tr>
+<tr>
+<td>Wan2.2 I2V-A14B</td>
+<td>I2V</td>
+<td style="text-align: right;">117.5 GiB</td>
+<td><code>wan2.2-i2v-a14b-diffusers-bf16</code><br><code>wan2.2-i2v-a14b-diffusers-8bit</code></td>
+<td style="text-align: right;">64.1 GiB<br>39.5 GiB</td>
+<td>BF16 package plus mixed q8/BF16 package. Runtime measurements are below.</td>
+</tr>
+<tr>
+<td>Bernini-R 1.3B</td>
+<td>R2V, RV2V, V2V renderer</td>
+<td style="text-align: right;">16.36 GiB selective pinned files</td>
+<td>None</td>
+<td style="text-align: right;">None</td>
+<td>BF16-only factored source route. <code>mlxgen download --model bernini-r-1.3b</code> fetches the Wan base subset plus renderer transformer; no quantized package is published.</td>
+</tr>
+</tbody>
+</table>
+<p>Runtime memory and timing measurements are currently complete in this document for SeedVR2 3B/7B,
+ERNIE Image Turbo, Bonsai Image, Wan TI2V-5B, and Wan A14B benchmark profiles. Other published
+packages are documented here by package size and quantization policy, with representative visual
+panels where local benchmark runs have produced them.</p>
+<h2 id="reframe-and-outpaint-package-validation">Reframe And Outpaint Package Validation<a class="headerlink" href="#reframe-and-outpaint-package-validation" title="Permanent link">&para;</a></h2>
+<p>The 2026-06-08 reframe/outpaint profile validates source, q8, and q4 rows for Qwen Image Edit,
+Qwen Image Edit 2509/2511, and distilled FLUX.2 Klein 4B/9B. For FLUX, treat the outpaint rows in
+that profile as stale historical evidence only; current strict FLUX outpaint is base-only.</p>
+<p><img alt="Reframe and outpaint source/q8/q4 summary" src="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/reframe-outpaint-2026-06-08/reframe-outpaint-base-q8-q4-summary.jpg" /></p>
+<p>Inspect the machine-readable records for a package:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>validation<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--profile<span class="w"> </span>reframe_outpaint_2026_06_08<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2511-8bit
+</code></pre></div>
+<p>The exact commands and per-family contact sheets are listed in
+<a href="../reframe-outpaint/">Reframe and Outpaint</a>.</p>
+<p>Current base-model FLUX proof is published separately as source-model evidence only:</p>
+<ul>
+<li><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/flux2-klein-base-starship-2026-06-10/flux2-klein-base-starship-edit-matrix.jpg">FLUX.2 Klein base 4B/9B edit matrix</a></li>
+<li><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/flux2-klein-base-starship-2026-06-10/flux2-klein-base-starship-outpaint-seams.jpg">FLUX.2 Klein base 4B/9B strict-outpaint seam review</a></li>
+</ul>
+<p>Prepared base q8/q4 packages expose the same route surface through <code>mlxgen capabilities</code>, but they
+are not yet part of a published starship contact-sheet proof set.</p>
+<h2 id="qwen-q4">Qwen q4<a class="headerlink" href="#qwen-q4" title="Permanent link">&para;</a></h2>
+<p>Qwen Image and Qwen Image Edit use a mixed q4/q8 policy when created with <code>--quantize 4</code>. Fully q4 Qwen checkpoints can lose coherent generative behavior, so MLX-Gen keeps only the sensitive paths at higher precision:</p>
+<ul>
+<li>q4 for most Qwen transformer attention, feed-forward, and projection linears.</li>
+<li>q8 for Qwen <code>*.img_mod_linear</code> transformer modulation layers.</li>
+<li>q4 for group64-compatible Qwen text-encoder language linears.</li>
+<li>q8 for group64-compatible Qwen text-encoder visual linears.</li>
+<li>BF16 for the VAE, norms, embeddings, and linears that are not MLX group64-compatible.</li>
+</ul>
+<p>This policy applies to Qwen q4 MLX-Gen packages only. It is used for Qwen Image and Qwen Image Edit variants, including 2509 and 2511 edit checkpoints.</p>
+<p>Representative Qwen Image 2512 512x512 benchmark at 15 steps:</p>
+<p><img alt="Qwen Image 2512 BF16, q8, full q4, and mixed q4/q8 comparison" src="../assets/quantization/qwen-image-2512-q4-q8-comparison.png" /></p>
+<h2 id="fibo-q8-and-q4">FIBO q8 And q4<a class="headerlink" href="#fibo-q8-and-q4" title="Permanent link">&para;</a></h2>
+<p>Base FIBO supports text-to-image MLX-Gen packages when the user has access to the gated
+<code>briaai/FIBO</code> source model:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>briaai/FIBO<span class="w"> </span>--path<span class="w"> </span>models/fibo-8bit<span class="w"> </span>-q<span class="w"> </span><span class="m">8</span>
+mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>briaai/FIBO<span class="w"> </span>--path<span class="w"> </span>models/fibo-4bit<span class="w"> </span>-q<span class="w"> </span><span class="m">4</span>
+</code></pre></div>
+<p>FIBO q8 uses a mixed q8/BF16 policy, and FIBO q4 uses a mixed q4/BF16 policy:</p>
+<ul>
+<li>q8 or q4 for quantizable FIBO transformer and text-encoder linears.</li>
+<li>BF16 for the FIBO VAE.</li>
+<li>BF16 for FIBO conditioning, timestep, caption-projection, normalization, and output-projection
+  paths that are precision-sensitive in MLX-Gen.</li>
+</ul>
+<p>The 512x512 benchmark below used the same JSON prompt, seed 103, 8 denoise steps, and guidance 5.
+The q8/BF16 package stayed close to the source result; the q4/BF16 package remained coherent but
+shows more drift on fine text.</p>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: right;">Disk</th>
+<th style="text-align: right;">Time</th>
+<th style="text-align: right;">Max RSS</th>
+<th style="text-align: right;">MAE vs source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Source <code>briaai/FIBO</code></td>
+<td style="text-align: right;">23.8 GiB cache</td>
+<td style="text-align: right;">15.13 s</td>
+<td style="text-align: right;">24.13 GB</td>
+<td style="text-align: right;">baseline</td>
+</tr>
+<tr>
+<td><code>AbstractFramework/fibo-8bit</code></td>
+<td style="text-align: right;">14.5 GiB</td>
+<td style="text-align: right;">16.45 s</td>
+<td style="text-align: right;">15.89 GB</td>
+<td style="text-align: right;">8.81</td>
+</tr>
+<tr>
+<td><code>AbstractFramework/fibo-4bit</code></td>
+<td style="text-align: right;">10.2 GiB</td>
+<td style="text-align: right;">15.24 s</td>
+<td style="text-align: right;">11.39 GB</td>
+<td style="text-align: right;">17.56</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="FIBO BF16, q8, and q4 comparison" src="../assets/quantization/fibo-q4-q8-comparison.png" /></p>
+<h2 id="seedvr2-q8-and-q4">SeedVR2 q8 And q4<a class="headerlink" href="#seedvr2-q8-and-q4" title="Permanent link">&para;</a></h2>
+<p>SeedVR2 3B image super-resolution can run from the official source model or from reusable
+published MLX-Gen q8/q4 packages:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/seedvr2-3b-8bit
+
+mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/seedvr2-3b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-path<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>2x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>input_seedvr2_q8_2x.png
+</code></pre></div>
+<p>The q8 and q4 packages quantize SeedVR2 transformer linears and VAE attention linears where MLX
+supports it. Convolutions, normalization layers, and other non-quantizable parameters remain BF16.</p>
+<p>The table below was measured on an Apple M5 Max with 128 GB unified memory. Each row used the same
+<code>133x113</code> source image, <code>--resolution 5x</code>, seed 42, and metadata output. The final image size was
+<code>658x560</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: right;">Storage</th>
+<th style="text-align: right;">Generation time</th>
+<th style="text-align: right;">Wall time</th>
+<th style="text-align: right;">Max RSS</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ByteDance-Seed/SeedVR2-3B</code> source generation files</td>
+<td style="text-align: right;">13.57 GiB</td>
+<td style="text-align: right;">2.27 s</td>
+<td style="text-align: right;">5.89 s</td>
+<td style="text-align: right;">25.49 GiB</td>
+<td><a href="../assets/upscaling/seedvr2-3b-official-base-5x.png">PNG</a></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/seedvr2-3b-8bit</code></td>
+<td style="text-align: right;">4.39 GiB</td>
+<td style="text-align: right;">2.13 s</td>
+<td style="text-align: right;">3.22 s</td>
+<td style="text-align: right;">4.73 GiB</td>
+<td><a href="../assets/upscaling/seedvr2-3b-q8-5x.png">PNG</a></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/seedvr2-3b-4bit</code></td>
+<td style="text-align: right;">2.54 GiB</td>
+<td style="text-align: right;">2.16 s</td>
+<td style="text-align: right;">3.18 s</td>
+<td style="text-align: right;">2.89 GiB</td>
+<td><a href="../assets/upscaling/seedvr2-3b-q4-5x.png">PNG</a></td>
+</tr>
+</tbody>
+</table>
+<p><code>Generation time</code> is the model-reported generation duration. <code>Wall time</code> and <code>Max RSS</code> come from
+<code>/usr/bin/time -l</code> around the complete command. The source row includes loading the official
+PyTorch checkpoint files. The q8/q4 package rows load MLX-Gen saved weights directly.</p>
+<p>SeedVR2 7B uses the official <code>ByteDance-Seed/SeedVR2-7B</code> source model and has q8/q4 MLX-Gen
+packages:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/seedvr2-7b-8bit
+
+mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/seedvr2-7b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-path<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>2x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>input_seedvr2_7b_q8_2x.png
+</code></pre></div>
+<p>The official 7B repository also contains a <code>seedvr2_ema_7b_sharp.pth</code> checkpoint. The MLX-Gen
+<code>seedvr2-7b</code> route documented here uses the regular <code>seedvr2_ema_7b.pth</code> checkpoint.</p>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: right;">Storage</th>
+<th style="text-align: right;">Generation time</th>
+<th style="text-align: right;">Wall time</th>
+<th style="text-align: right;">Max RSS</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ByteDance-Seed/SeedVR2-7B</code> source generation files</td>
+<td style="text-align: right;">31.63 GiB</td>
+<td style="text-align: right;">2.64 s</td>
+<td style="text-align: right;">8.69 s</td>
+<td style="text-align: right;">61.62 GiB</td>
+<td><a href="../assets/upscaling/seedvr2-7b-official-base-5x.png">PNG</a></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/seedvr2-7b-8bit</code></td>
+<td style="text-align: right;">8.62 GiB</td>
+<td style="text-align: right;">2.29 s</td>
+<td style="text-align: right;">3.36 s</td>
+<td style="text-align: right;">8.90 GiB</td>
+<td><a href="../assets/upscaling/seedvr2-7b-q8-5x.png">PNG</a></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/seedvr2-7b-4bit</code></td>
+<td style="text-align: right;">4.79 GiB</td>
+<td style="text-align: right;">2.21 s</td>
+<td style="text-align: right;">3.24 s</td>
+<td style="text-align: right;">5.10 GiB</td>
+<td><a href="../assets/upscaling/seedvr2-7b-q4-5x.png">PNG</a></td>
+</tr>
+</tbody>
+</table>
+<p>The combined sheet below stacks the 3B and 7B results from the same source image and <code>5x</code> profile:</p>
+<p><img alt="SeedVR2 3B and 7B source, q8, and q4 5x comparison" src="../assets/upscaling/seedvr2-3b-7b-5x-contact-sheet.jpg" /></p>
+<h2 id="q8">q8<a class="headerlink" href="#q8" title="Permanent link">&para;</a></h2>
+<p>Qwen q8 uses the standard MLX-Gen/mflux quantization flow: quantizable modules are saved at 8-bit where the model layout supports MLX quantization, while VAE weights and non-quantizable layers remain BF16.</p>
+<p>Other model families use their existing model-specific quantization predicates.</p>
+<h2 id="bernini-r-is-bf16-only">Bernini-R Is BF16-Only<a class="headerlink" href="#bernini-r-is-bf16-only" title="Permanent link">&para;</a></h2>
+<p>Bernini does not inherit the ordinary Wan q8 recommendation. An exact packed-transformer probe
+measured generic q4 at cosine <code>0.782339</code> / relative L2 <code>0.71033</code> against official Torch, and the
+same-seed MP4 remained an overexposed latent-like texture. Generic Wan q8 skipped every Bernini
+transformer linear; its MP4 was byte-identical to BF16 while metadata claimed q8.</p>
+<p>The renderer therefore rejects all <code>--quantize</code> values. This is fail-closed behavior, not an
+absence of low-memory testing: the BF16 low-RAM media matrix peaked at 9.45 GB whole-process
+physical footprint. That matrix fails its visual-quality gate, so BF16 is the only numerically
+credible implementation path, not a production-quality endorsement. See the
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-04/README.md#quantization-diagnosis">quantization comparison and playable clips</a>.</p>
+<h2 id="wan-q8">Wan q8<a class="headerlink" href="#wan-q8" title="Permanent link">&para;</a></h2>
+<p>Wan q8 uses a mixed q8/BF16 policy. MLX-Gen quantizes the bulky transformer block linears and keeps
+sensitive paths at BF16:</p>
+<ul>
+<li>q8 for quantizable Wan transformer attention and feed-forward linears.</li>
+<li>BF16 for the Wan VAE.</li>
+<li>BF16 for Wan transformer <code>condition_embedder.*</code> and <code>proj_out</code>.</li>
+<li>BF16 for the UMT5 text encoder, scheduler metadata, tokenizer files, norms, convolutions, and
+  other non-quantizable parameters.</li>
+</ul>
+<p>The published TI2V-5B MLX-Gen packages are
+<code>AbstractFramework/wan2.2-ti2v-5b-diffusers-bf16</code> and
+<code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code>. The upstream TI2V-5B source snapshot is about
+31.9 GiB and is not uniformly 16-bit on disk: its transformer and VAE safetensors are FP32, while
+the UMT5 text encoder is BF16. MLX-Gen loads Wan transformer/VAE weights at BF16 runtime precision,
+so the 21.2 GiB BF16 package is a storage and download-size optimization, not a runtime
+memory optimization. The q8 package is 16.9 GiB and reduces stored model bytes plus the active MLX
+model footprint. In the benchmark below, full-process <code>Physical Peak</code> is similar across source,
+BF16 package, and q8/BF16 layouts. TI2V-5B q4 or mixed q4/q8 is not published as a supported
+package.</p>
+<p>TI2V-5B benchmark on an Apple M5 Max used the same prompt, seed, resolution, frame count, steps,
+guidance, fps, and explicit empty negative prompt for the source model, BF16 package, and q8/BF16
+package:</p>
+<div class="highlight"><pre><span></span><code>--prompt<span class="w"> </span><span class="s2">&quot;A short cinematic video of a glowing orange glass sphere floating above calm teal water, soft reflections, gentle camera movement&quot;</span><span class="w"> </span><span class="se">\</span>
+--negative-prompt<span class="w"> </span><span class="s2">&quot;&quot;</span><span class="w"> </span><span class="se">\</span>
+--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span>--height<span class="w"> </span><span class="m">704</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span>--guidance<span class="w"> </span><span class="m">5</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">24</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">321</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Correction (2026-07-05):</strong> the mixed q8/BF16 row below predates the 2026-06-12 Wan
+runtime-precision fix. Since that fix, q8 Wan packages dequantize every transformer-block linear
+to BF16 at load, so runtime memory matches the BF16 row; the q8 saving is storage/download only.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Layout</th>
+<th>Package</th>
+<th style="text-align: right;">Storage</th>
+<th style="text-align: right;">Wan MLX model</th>
+<th style="text-align: right;">MLX active after generation</th>
+<th style="text-align: right;">Physical Peak</th>
+<th style="text-align: right;">Max RSS</th>
+<th style="text-align: right;">MLX Peak</th>
+<th style="text-align: right;">Time</th>
+<th>Runtime profile</th>
+<th>MP4</th>
+<th>Decoded-frame comparison</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Upstream source snapshot</td>
+<td><code>Wan-AI/Wan2.2-TI2V-5B-Diffusers</code></td>
+<td style="text-align: right;">31.9 GiB</td>
+<td style="text-align: right;">10.6 GiB</td>
+<td style="text-align: right;">10.3 GiB</td>
+<td style="text-align: right;">102.7 GiB</td>
+<td style="text-align: right;">13.7 GiB</td>
+<td style="text-align: right;">58.5 GiB</td>
+<td style="text-align: right;">216.2 s</td>
+<td>1280x704, 17 frames, 20 steps, 24 fps, default cache</td>
+<td><a href="../assets/quantization/wan-ti2v5b-clean/base-source.mp4">base-source.mp4</a></td>
+<td>Baseline.</td>
+</tr>
+<tr>
+<td>BF16 MLX-Gen package</td>
+<td><code>AbstractFramework/wan2.2-ti2v-5b-diffusers-bf16</code></td>
+<td style="text-align: right;">21.2 GiB</td>
+<td style="text-align: right;">10.6 GiB</td>
+<td style="text-align: right;">10.3 GiB</td>
+<td style="text-align: right;">102.6 GiB</td>
+<td style="text-align: right;">14.5 GiB</td>
+<td style="text-align: right;">58.5 GiB</td>
+<td style="text-align: right;">261.6 s</td>
+<td>Same profile</td>
+<td><a href="../assets/quantization/wan-ti2v5b-clean/bf16-package.mp4">bf16-package.mp4</a></td>
+<td>Byte-identical decoded frames versus source.</td>
+</tr>
+<tr>
+<td>Mixed q8/BF16 MLX-Gen package</td>
+<td><code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code></td>
+<td style="text-align: right;">16.9 GiB</td>
+<td style="text-align: right;">6.3 GiB</td>
+<td style="text-align: right;">6.1 GiB</td>
+<td style="text-align: right;">103.7 GiB</td>
+<td style="text-align: right;">13.8 GiB</td>
+<td style="text-align: right;">54.2 GiB</td>
+<td style="text-align: right;">243.4 s</td>
+<td>Same profile</td>
+<td><a href="../assets/quantization/wan-ti2v5b-clean/mixed-q8-bf16.mp4">mixed-q8-bf16.mp4</a></td>
+<td>Mean frame MAE 1.7 versus source/BF16.</td>
+</tr>
+</tbody>
+</table>
+<p><code>Storage</code> is the Hugging Face repository total. <code>Wan MLX model</code> is the loaded Wan transformer plus
+VAE tensor footprint measured from MLX arrays; it excludes the UMT5 text encoder, tokenizer, Python
+objects, video buffers, and save validation. <code>MLX active after generation</code> is the MLX allocator
+memory still live after <code>generate_video()</code> returns, before cleanup. <code>Physical Peak</code> is the sampled
+Darwin full-process physical-footprint high-water mark from model initialization through MP4 save
+and health validation; it includes MLX/Metal allocations, the PyTorch UMT5 prompt encoder, Python
+and native-library transients, decoded video buffers, and save validation. <code>Max RSS</code> is resident set
+high-water memory reported by the process tools; on Apple unified memory it can under-report Metal
+and other physical-footprint allocations. <code>MLX Peak</code> is only the MLX allocator high-water mark and
+does not include every process-level allocation.</p>
+<p><img alt="Wan2.2 TI2V-5B clean source, BF16, and q8 comparison" src="../assets/quantization/wan-ti2v5b-clean/contact-sheet.png" /></p>
+<p>Detailed frame metrics are available in
+<a href="../assets/quantization/wan-ti2v5b-clean/metrics.json">metrics.json</a>. Wan uses the model's official
+negative prompt when <code>--negative-prompt</code> is omitted. This benchmark passes <code>--negative-prompt ""</code>
+to run without the default negative prompt for a simple abstract object/water scene.</p>
+<p>The upstream Wan A14B Diffusers source snapshots are about 117.5 GiB. MLX-Gen also publishes
+BF16 MLX-Gen packages for users who want a smaller reusable MLX-Gen package without quantizing
+runtime-sensitive weights.</p>
+<p>The A14B benchmark table uses small repeatable low-RAM runs on an Apple M5 Max with 128 GiB unified
+memory. Current CLI <code>--low-ram</code> clears cache between denoise steps, clears transformer-block
+boundaries, releases inactive denoisers before decode, and clears cache during VAE temporal-slice
+decode.</p>
+<blockquote>
+<p><strong>Correction (2026-07-05): the q8 rows below predate the 2026-06-12 runtime-precision fix and no
+longer describe runtime memory.</strong> Since that fix, Wan q8 packages (A14B and TI2V-5B) dequantize
+every transformer-block linear to BF16 at load to protect output quality, so <strong>runtime memory now
+matches the BF16 rows; q8 remains a storage/download saving only.</strong> Re-measured on 2026-07-05 at
+the exact same T2V profile (384x224, 33 frames, 12 steps, low-RAM, seed 4242), the mixed q8/BF16
+package peaks at <strong>27.8 GiB MLX</strong> versus the 15.5 GiB shown below - equal to the BF16 row's
+27.7 GiB (<a href="../assets/quantization/wan-a14b-lowram/t2v_q8bf16_postfix_384x224_33f_12steps_seed4242.metrics.json">post-fix metrics JSON</a>).
+July-2026 video-to-video runs at 480x832x25f on the q8 A14B package likewise recorded
+31.7-33.1 GB MLX peaks in their metadata sidecars.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Package</th>
+<th style="text-align: right;">Disk</th>
+<th style="text-align: right;">Physical Peak</th>
+<th style="text-align: right;">Max RSS</th>
+<th style="text-align: right;">MLX Peak</th>
+<th style="text-align: right;">Generation Time</th>
+<th>Benchmark Profile</th>
+<th>Metrics</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wan2.2 T2V-A14B</td>
+<td>BF16</td>
+<td style="text-align: right;">64.1 GiB</td>
+<td style="text-align: right;">33.0 GiB</td>
+<td style="text-align: right;">31.8 GiB</td>
+<td style="text-align: right;">27.7 GiB</td>
+<td style="text-align: right;">152.7 s</td>
+<td>384x224, 33 frames, 12 steps, 8 fps, low-RAM</td>
+<td><a href="../assets/quantization/wan-a14b-lowram/t2v_bf16_384x224_33f_12steps_seed4242.metrics.json">JSON</a></td>
+</tr>
+<tr>
+<td>Wan2.2 T2V-A14B</td>
+<td>mixed q8/BF16</td>
+<td style="text-align: right;">39.5 GiB</td>
+<td style="text-align: right;">20.7 GiB</td>
+<td style="text-align: right;">19.5 GiB</td>
+<td style="text-align: right;">15.5 GiB</td>
+<td style="text-align: right;">154.8 s</td>
+<td>384x224, 33 frames, 12 steps, 8 fps, low-RAM</td>
+<td><a href="../assets/quantization/wan-a14b-lowram/t2v_q8bf16_384x224_33f_12steps_seed4242.metrics.json">JSON</a></td>
+</tr>
+<tr>
+<td>Wan2.2 I2V-A14B</td>
+<td>BF16</td>
+<td style="text-align: right;">64.1 GiB</td>
+<td style="text-align: right;">33.7 GiB</td>
+<td style="text-align: right;">31.8 GiB</td>
+<td style="text-align: right;">28.2 GiB</td>
+<td style="text-align: right;">228.2 s</td>
+<td>384x384, 33 frames, 12 steps, 8 fps, low-RAM</td>
+<td><a href="../assets/quantization/wan-a14b-lowram/i2v_bf16_384x384_33f_12steps_seed4242.metrics.json">JSON</a></td>
+</tr>
+<tr>
+<td>Wan2.2 I2V-A14B</td>
+<td>mixed q8/BF16</td>
+<td style="text-align: right;">39.5 GiB</td>
+<td style="text-align: right;">21.5 GiB</td>
+<td style="text-align: right;">19.6 GiB</td>
+<td style="text-align: right;">15.9 GiB</td>
+<td style="text-align: right;">242.2 s</td>
+<td>384x384, 33 frames, 12 steps, 8 fps, low-RAM</td>
+<td><a href="../assets/quantization/wan-a14b-lowram/i2v_q8bf16_384x384_33f_12steps_seed4242.metrics.json">JSON</a></td>
+</tr>
+</tbody>
+</table>
+<p>In these A14B benchmarks, mixed q8/BF16 cuts disk usage by about 38% versus the BF16 MLX-Gen
+packages. Since 2026-06-12 it is <strong>not</strong> a runtime-memory or speed improvement; plan memory as if
+running the BF16 package.</p>
+<p>The 0.18.11 release also validated the published A14B q8 Hugging Face handles on a short practical
+video profile. These runs use the default generation path, not <code>--low-ram</code>, and keep tensor-health
+diagnostics opt-in. The I2V row uses a 16:9 source image and therefore resolves the 480x240 size
+target to 448x256 to preserve the source aspect ratio.</p>
+<table>
+<thead>
+<tr>
+<th>Model handle</th>
+<th>Task</th>
+<th style="text-align: right;">Requested size</th>
+<th style="text-align: right;">Output size</th>
+<th style="text-align: right;">Frames</th>
+<th style="text-align: right;">Steps</th>
+<th>Guidance</th>
+<th style="text-align: right;">Time</th>
+<th style="text-align: right;">Max RSS</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit</code></td>
+<td>T2V</td>
+<td style="text-align: right;">480x240</td>
+<td style="text-align: right;">480x240</td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">15</td>
+<td>4 / 3</td>
+<td style="text-align: right;">348.9 s</td>
+<td style="text-align: right;">19.5 GiB</td>
+<td><a href="../assets/quantization/wan-a14b-q8-release/t2v_a14b_q8_480x240_41f_15steps_seed4242.mp4">MP4</a>, <a href="../assets/quantization/wan-a14b-q8-release/t2v_a14b_q8_480x240_41f_15steps_seed4242.metadata.json">metadata</a></td>
+</tr>
+<tr>
+<td><code>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit</code></td>
+<td>I2V</td>
+<td style="text-align: right;">480x240</td>
+<td style="text-align: right;">448x256</td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">15</td>
+<td>4 / 3</td>
+<td style="text-align: right;">360.3 s</td>
+<td style="text-align: right;">19.6 GiB</td>
+<td><a href="../assets/quantization/wan-a14b-q8-release/i2v_a14b_q8_480x240_41f_15steps_seed4243.mp4">MP4</a>, <a href="../assets/quantization/wan-a14b-q8-release/i2v_a14b_q8_480x240_41f_15steps_seed4243.metadata.json">metadata</a></td>
+</tr>
+</tbody>
+</table>
+<p>The contact sheets below are extracted from the MP4 outputs linked in the table.</p>
+<p><img alt="Wan A14B q8 T2V release-validation contact sheet" src="../assets/quantization/wan-a14b-q8-release/t2v_a14b_q8_480x240_41f_15steps_seed4242_contact_sheet.jpg" /></p>
+<p><img alt="Wan A14B q8 I2V release-validation contact sheet" src="../assets/quantization/wan-a14b-q8-release/i2v_a14b_q8_480x240_41f_15steps_seed4243_contact_sheet.jpg" /></p>
+<p>For longer <code>101</code>-frame, 20 fps Wan examples comparing A14B at <code>480x240</code> with TI2V-5B at
+<code>832x480</code> and <code>1280x704</code>, see <a href="../wan-video/">Wan Video</a>.</p>
+<p>Full-size Wan video memory and runtime vary with resolution, frame count, step count, task, cache
+settings, and prompt/image conditioning. Measure the profile you plan to use before starting long
+production jobs.</p>
+<h2 id="ernie-image-turbo">ERNIE Image Turbo<a class="headerlink" href="#ernie-image-turbo" title="Permanent link">&para;</a></h2>
+<p>ERNIE Image Turbo supports BF16, q8, and q4 text-to-image generation. Use <code>mlxgen prepare</code> to create reusable q8 or q4 MLX-Gen packages:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span>--path<span class="w"> </span>./models/ernie-image-turbo-8bit<span class="w"> </span>--quantize<span class="w"> </span><span class="m">8</span>
+mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span>--path<span class="w"> </span>./models/ernie-image-turbo-4bit<span class="w"> </span>--quantize<span class="w"> </span><span class="m">4</span>
+</code></pre></div>
+<p>ERNIE q4 uses a model-specific mixed q4/q8 policy. Fully q4 ERNIE checkpoints can drift from BF16/q8 behavior, especially on text-heavy poster prompts, so MLX-Gen keeps the sensitive text-conditioning and attention-output paths at q8:</p>
+<ul>
+<li>q4 for ERNIE transformer Q/K attention projections.</li>
+<li>q4 for ERNIE transformer feed-forward modules.</li>
+<li>q8 for ERNIE transformer V/O attention projections.</li>
+<li>q8 for ERNIE text projection, timestep embedding, AdaLN modulation, final norm, and final projection.</li>
+<li>q8 for Mistral3 text-encoder and Prompt Enhancer linears.</li>
+<li>q8 for quantizable ERNIE VAE attention modules.</li>
+<li>BF16 for norms, convolutions, and other non-quantizable parameters.</li>
+</ul>
+<p>Local benchmark on Apple Silicon with 512x512, 8 steps, guidance 1:</p>
+<table>
+<thead>
+<tr>
+<th>Layout</th>
+<th style="text-align: right;">Package Size</th>
+<th style="text-align: right;">Peak RSS</th>
+<th style="text-align: right;">Average Generation Time</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BF16 source generation components</td>
+<td style="text-align: right;">~22.4 GiB</td>
+<td style="text-align: right;">23.5 GiB</td>
+<td style="text-align: right;">6.38 s</td>
+<td>Fastest at 512px, largest memory footprint.</td>
+</tr>
+<tr>
+<td>q8 MLX-Gen package</td>
+<td style="text-align: right;">12 GiB</td>
+<td style="text-align: right;">12.9 GiB</td>
+<td style="text-align: right;">7.57 s</td>
+<td>About half the memory footprint.</td>
+</tr>
+<tr>
+<td>full q4 exploratory layout</td>
+<td style="text-align: right;">6.2 GiB</td>
+<td style="text-align: right;">7.2 GiB</td>
+<td style="text-align: right;">9.31 s</td>
+<td>Too much visual drift on controlled poster tests; not recommended.</td>
+</tr>
+<tr>
+<td>mixed q4/q8 MLX-Gen package</td>
+<td style="text-align: right;">8.2 GiB</td>
+<td style="text-align: right;">9.34 GiB</td>
+<td style="text-align: right;">7.83 s</td>
+<td>Default q4 policy; preserves BF16/q8 behavior more closely.</td>
+</tr>
+</tbody>
+</table>
+<p>At 1024x1024 with 8 steps and guidance 1, q8 generated in 84.69 s with 12.9 GiB peak RSS, and the older full-q4 exploratory layout generated in 78.94 s with 7.2 GiB peak RSS. The mixed q4/q8 default should be used for new ERNIE q4 packages because the full-q4 layout does not preserve quality reliably.</p>
+<p>On a controlled 512x512 poster prompt with seed 123, q8 stayed close to BF16 while full q4 visibly changed text color and composition. Mean absolute pixel error against q8 was 26.00 for full q4 and 12.03 for mixed q4/q8. Across a 3-seed poster repeat, full q4 averaged 33.48 MAE against q8 while mixed q4/q8 averaged 16.39 MAE.</p>
+<p>ERNIE q8/q4 MLX-Gen packages contain the ordinary text-to-image generation components. ERNIE Prompt Enhancer remains an optional full-source-snapshot feature and is not bundled into quantized MLX-Gen packages.</p>
+<p>Representative ERNIE Image Turbo 512x512 benchmark panels:</p>
+<p><img alt="ERNIE Image Turbo BF16, q8, and mixed q4/q8 poster comparison" src="../assets/quantization/ernie-image-turbo-q4-q8-comparison.png" /></p>
+<p><img alt="ERNIE Image Turbo full q4 versus mixed q4/q8 comparison" src="../assets/quantization/ernie-image-turbo-full-vs-mixed-q4.png" /></p>
+<p>ERNIE Image Turbo also supports single-image image-to-image in MLX-Gen. The image path is encoded with the ERNIE VAE, patchified to the ERNIE denoising latent shape, normalized with the model's VAE batch-normalization statistics, and then blended with generation noise before denoising. This is an MLX-Gen extension; use it for stylization and guided variation rather than exact multi-image editing.</p>
+<p>The same 512x512 image-to-image pencil-sketch prompt with seed 503 stayed coherent across BF16, q8, and mixed q4/q8:</p>
+<p><img alt="ERNIE Image Turbo image-to-image BF16, q8, and mixed q4/q8 comparison" src="../assets/generation/ernie-image-turbo-i2i-pencil-quant-comparison.png" /></p>
+<p>ERNIE image-to-image is not a substitute for a true edit-conditioned model. It initializes ERNIE's text-to-image denoising from encoded image latents, so it is useful for fast stylization and guided variation. Use Qwen Image Edit for one-image instruction edits when the source layout should remain active as conditioning, and use FLUX.2 when the workflow needs validated multi-reference composition. Use dimensions that match the source aspect ratio and consider 12-16 steps for stronger stylization.</p>
+<p>Representative ERNIE q8 image-to-image versus Qwen Image Edit 2511 q4 comparisons:</p>
+<p><img alt="ERNIE Image Turbo q8 versus Qwen Image Edit 2511 q4 room pencil comparison" src="../assets/generation/ernie-vs-qwen2511-room-pencil.png" /></p>
+<p><img alt="ERNIE Image Turbo q8 versus Qwen Image Edit 2511 q4 boat watercolor comparison" src="../assets/generation/ernie-vs-qwen2511-boat-watercolor.png" /></p>
+<p><img alt="ERNIE Image Turbo q8 versus Qwen Image Edit 2511 q4 local wall-color edit comparison" src="../assets/generation/ernie-vs-qwen2511-teal-wall.png" /></p>
+<p><img alt="ERNIE Image Turbo q8 versus Qwen Image Edit 2511 q4 object replacement comparison" src="../assets/generation/ernie-vs-qwen2511-replace-laptop.png" /></p>
+<p>In the object-replacement comparison, ERNIE can introduce the requested fruit-basket concept, but it does so by reimagining the room from its encoded latent initialization. Qwen Image Edit keeps the source image active as conditioning throughout denoising and is therefore better suited to one-image layout-preserving instruction edits.</p>
+<h2 id="bonsai-image">Bonsai Image<a class="headerlink" href="#bonsai-image" title="Permanent link">&para;</a></h2>
+<p>Bonsai Image support is different from ordinary q4/q8 preparation. Prism publishes Bonsai as
+ready-to-run MLX artifacts:</p>
+<ul>
+<li><code>prism-ml/bonsai-image-ternary-4B-mlx-2bit</code>: supported in MLX-Gen.</li>
+<li><code>prism-ml/bonsai-image-binary-4B-mlx-1bit</code>: detected, but not runnable on stock MLX through
+  0.31.2 because the active runtime cannot execute the required <code>bits=1, group_size=128</code> packed
+  affine matmul.</li>
+</ul>
+<p>Use <code>mlxgen download</code> to cache Bonsai, then generate directly:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>prism-ml/bonsai-image-ternary-4B-mlx-2bit
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>prism-ml/bonsai-image-ternary-4B-mlx-2bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A bonsai tree in a quiet ceramic studio, soft morning light&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>bonsai.png
+</code></pre></div>
+<p>Do not use <code>mlxgen prepare</code> for Bonsai. The repository already contains a low-bit packed
+transformer, a 4-bit Qwen3 text encoder, and a BF16 Flux2 VAE.</p>
+<p>Local comparison against FLUX.2 Klein 4B q8 on the same prompt, seed 42, guidance 1, and 4 steps:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th style="text-align: right;">Disk footprint</th>
+<th style="text-align: right;">512px average time</th>
+<th style="text-align: right;">512px peak RSS</th>
+<th style="text-align: right;">1024px time</th>
+<th style="text-align: right;">1024px peak RSS</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bonsai ternary 2-bit</td>
+<td style="text-align: right;">3.6 GiB cached snapshot</td>
+<td style="text-align: right;">2.92 s</td>
+<td style="text-align: right;">3.57 GiB</td>
+<td style="text-align: right;">5.69 s</td>
+<td style="text-align: right;">3.60 GiB</td>
+<td>Coherent image quality, same visual family as Klein 4B q8.</td>
+</tr>
+<tr>
+<td>FLUX.2 Klein 4B q8</td>
+<td style="text-align: right;">22 GiB source cache, q8 applied at runtime</td>
+<td style="text-align: right;">3.55 s</td>
+<td style="text-align: right;">9.23 GiB</td>
+<td style="text-align: right;">6.81 s</td>
+<td style="text-align: right;">9.39 GiB</td>
+<td>Strong baseline with much higher memory footprint.</td>
+</tr>
+<tr>
+<td>Bonsai binary 1-bit</td>
+<td style="text-align: right;">3.2 GiB cached snapshot</td>
+<td style="text-align: right;">Not runnable</td>
+<td style="text-align: right;">Not runnable</td>
+<td style="text-align: right;">Not runnable</td>
+<td style="text-align: right;">Not runnable</td>
+<td>Waiting on stock-MLX 1-bit packed affine runtime support; latest checked stock MLX is 0.31.2.</td>
+</tr>
+</tbody>
+</table>
+<p>The 512px timing values are three cold-process repeats captured with <code>/usr/bin/time -l</code>. The Klein
+baseline used on-the-fly q8 from the parent source cache because local disk space was tight during
+validation.</p>
+<p>Representative Bonsai ternary versus FLUX.2 Klein 4B q8 benchmark:</p>
+<p><img alt="Bonsai ternary 2-bit versus FLUX.2 Klein 4B q8 comparison" src="../assets/quantization/bonsai-ternary-vs-klein4b-q8.png" /></p>
+<h2 id="other-quantized-families">Other Quantized Families<a class="headerlink" href="#other-quantized-families" title="Permanent link">&para;</a></h2>
+<p>FLUX.2 Klein, Z-Image, and Z-Image Turbo currently use their standard model-specific MLX
+quantization predicates. The following panels are representative checks, not a claim that every
+prompt has identical visual behavior across quantization levels.</p>
+<p>Z-Image 512x512 benchmark:</p>
+<p><img alt="Z-Image BF16, q8, and q4 comparison" src="../assets/quantization/z-image-q4-q8-comparison.png" /></p>
+<p>Z-Image Turbo 512x512 benchmark:</p>
+<p><img alt="Z-Image Turbo BF16, q8, and q4 comparison" src="../assets/quantization/z-image-turbo-q4-q8-comparison.png" /></p>
+<h2 id="compatibility">Compatibility<a class="headerlink" href="#compatibility" title="Permanent link">&para;</a></h2>
+<p>Saved MLX-Gen packages can be loaded by MLX-Gen and by compatible mflux code that understands the same saved-weight layout and quantization predicates. They are not directly readable by Diffusers or Transformers because the files contain MLX quantization tensors and the mflux/MLX component layout.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

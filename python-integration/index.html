@@ -1,0 +1,1588 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/python-integration/">
+      
+      
+        <link rel="prev" href="../huggingface-publishing/">
+      
+      
+        <link rel="next" href="../recommendations/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Python Integration - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#python-integration" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Python Integration
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cache-only-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cache-Only Runtime
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#abstractvision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AbstractVision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capability-and-plan-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capability And Plan Resolution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-planning-and-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Planning And Loading
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#progress-and-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progress And Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#threading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Threading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#cache-only-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cache-Only Runtime
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#abstractvision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AbstractVision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#capability-and-plan-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capability And Plan Resolution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-planning-and-loading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime Planning And Loading
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#progress-and-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progress And Monitoring
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#threading" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Threading
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="python-integration">Python Integration<a class="headerlink" href="#python-integration" title="Permanent link">&para;</a></h1>
+<p>MLX-Gen can be embedded directly in Python. The underlying model classes remain available, but new integrations should start from the route-resolved <code>mlxgen</code> helper APIs documented below for the unified <code>mlxgen generate</code> families. SeedVR2 sits outside that planner surface: use <code>mlxgen upscale</code> on the CLI and direct <code>SeedVR2.generate_image(...)</code> / <code>SeedVR2.restore_video_to_path(...)</code> in Python.</p>
+<h2 id="cache-only-runtime">Cache-Only Runtime<a class="headerlink" href="#cache-only-runtime" title="Permanent link">&para;</a></h2>
+<p>Python callers should download or prepare models before constructing model objects. Runtime constructors and generation calls do not download missing artifacts. See <a href="../model-management/">Model Management</a> for the CLI setup commands.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.common.download_policy</span><span class="w"> </span><span class="kn">import</span> <span class="n">DownloadRequiredError</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen.models.z_image</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZImageTurbo</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">ZImageTurbo</span><span class="p">(</span><span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">DownloadRequiredError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="o">.</span><span class="n">download_command</span><span class="p">)</span>
+    <span class="k">raise</span>
+</code></pre></div>
+<p>For user-facing applications, show the exception message or the <code>download_command</code>/<code>prepare_command</code> fields and stop the workflow.</p>
+<h2 id="abstractvision">AbstractVision<a class="headerlink" href="#abstractvision" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen is intended to be the Apple Silicon / MLX dependency for
+<a href="https://github.com/lpalbou/abstractvision">AbstractVision</a>, while AbstractVision remains a
+cross-platform image/video generation abstraction inside the wider
+<a href="https://abstractframework.ai/">AbstractFramework</a> ecosystem.</p>
+<p>That split means:</p>
+<ul>
+<li>AbstractVision owns provider-neutral image/video request objects, artifact storage, capability checks, and AbstractCore integration.</li>
+<li>AbstractVision is the right place for higher-level convenience such as curated model-to-adapter selection and user-facing presets.</li>
+<li>MLX-Gen owns MLX model loading, exact route behavior, local quantized formats, capability reporting, and runtime compatibility checks.</li>
+<li>MLX-Gen should fail early when required local artifacts are missing so AbstractVision can surface a clear remediation message instead of starting a network transfer.</li>
+</ul>
+<p>New Python integrations should prefer the route-resolved runtime planner below. Direct model classes remain available as an advanced escape hatch when an application intentionally wants backend-specific control.</p>
+<p><a href="https://abstractcore.ai/">AbstractCore</a> can expose OpenAI-compatible endpoints backed by
+AbstractVision providers, including image and video generation. In that path, MLX-Gen remains the
+local Apple Silicon runtime behind the AbstractVision provider.</p>
+<p><a href="https://github.com/lpalbou/abstractflow">AbstractFlow</a> can orchestrate these generation
+capabilities visually alongside other media, text, and agent workflows. MLX-Gen remains the local
+model runtime boundary: it reports capabilities, validates local artifacts, emits progress events,
+and writes generated assets.</p>
+<h2 id="capability-and-plan-resolution">Capability And Plan Resolution<a class="headerlink" href="#capability-and-plan-resolution" title="Permanent link">&para;</a></h2>
+<p>Applications can use the same routing contract as the CLI through the public <code>mlxgen</code> package. The
+resolver does not load weights. Public tasks describe media direction only:
+<code>text-to-image</code>, <code>image-to-image</code>, <code>text-to-video</code>, <code>image-to-video</code>, and <code>video-to-video</code>. Image editing,
+multi-reference editing, and latent image-to-image are internal modes selected by model capability,
+image count, and options such as <code>image_strength</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_model_capabilities</span><span class="p">,</span> <span class="n">get_model_validation</span><span class="p">,</span> <span class="n">resolve_generation_plan</span><span class="p">,</span> <span class="n">resolve_task</span>
+
+<span class="n">capabilities</span> <span class="o">=</span> <span class="n">get_model_capabilities</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;flux2-klein-4b&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">([</span><span class="n">capability</span><span class="o">.</span><span class="n">mode</span> <span class="k">for</span> <span class="n">capability</span> <span class="ow">in</span> <span class="n">capabilities</span><span class="o">.</span><span class="n">capabilities</span><span class="p">])</span>
+<span class="c1"># [&#39;text-only&#39;, &#39;latent-img2img&#39;, &#39;edit-reference&#39;, &#39;multi-reference&#39;]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;flux2-klein-4b&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
+<span class="c1"># text-to-image</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;flux2-klein-4b&quot;</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
+<span class="c1"># image-to-image</span>
+
+<span class="n">plan</span> <span class="o">=</span> <span class="n">resolve_generation_plan</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;flux2-klein-4b&quot;</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">task</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">handler_id</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">default_canvas_policy</span><span class="p">)</span>
+<span class="c1"># image-to-image edit-reference flux2.edit source-aspect</span>
+
+<span class="n">latent_plan</span> <span class="o">=</span> <span class="n">resolve_generation_plan</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;flux2-klein-4b&quot;</span><span class="p">,</span>
+    <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">i2i_mode</span><span class="o">=</span><span class="s2">&quot;latent&quot;</span><span class="p">,</span>
+    <span class="n">has_image_strength</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">latent_plan</span><span class="o">.</span><span class="n">task</span><span class="p">,</span> <span class="n">latent_plan</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">latent_plan</span><span class="o">.</span><span class="n">handler_id</span><span class="p">,</span> <span class="n">latent_plan</span><span class="o">.</span><span class="n">canvas_policies</span><span class="p">)</span>
+<span class="c1"># image-to-image latent-img2img flux2.generate (&#39;source-aspect&#39;, &#39;exact-resize&#39;)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">latent_plan</span><span class="o">.</span><span class="n">resize_modes</span><span class="p">)</span>
+<span class="c1"># (&#39;resize&#39;, &#39;crop&#39;, &#39;pad&#39;) — routes with reference-pinned geometry advertise ()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;Wan-AI/Wan2.2-I2V-A14B-Diffusers&quot;</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
+<span class="c1"># image-to-video</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;Wan-AI/Wan2.2-T2V-A14B-Diffusers&quot;</span><span class="p">,</span> <span class="n">video_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
+<span class="c1"># video-to-video</span>
+
+<span class="n">validation</span> <span class="o">=</span> <span class="n">get_model_validation</span><span class="p">(</span><span class="s2">&quot;AbstractFramework/qwen-image-edit-2509-8bit&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">validation</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
+<span class="c1"># PASS</span>
+</code></pre></div>
+<p><code>--task edit</code> in the CLI is only a compatibility alias. Python integrations should request
+<code>task="image-to-image"</code> and, when they need disambiguation, pass <code>i2i_mode="edit"</code> or
+<code>i2i_mode="latent"</code>.</p>
+<p>For ordinary image-to-image, capabilities expose the canvas contract. <code>default_canvas_policy</code> is
+<code>"source-aspect"</code> for latent img2img, edit/reference I2I, and multi-reference I2I. The first input
+image is the geometry anchor (<code>primary_image_index == 0</code>), and generated metadata records the
+requested, source, and final dimensions.</p>
+<p><code>get_model_capabilities(...)</code> is route-only: it tells an application which request shapes can be
+dispatched and which options are legal. <code>get_model_validation(...)</code> is release-evidence metadata:
+it reports exact model/package status rows for the current validation profiles. Applications such
+as AbstractVision can use capabilities for routing and validation status for UI warnings, filtering,
+or release gates.</p>
+<p>Underlying model methods are singular: each <code>generate_image(...)</code>,
+<code>generate_video(...)</code>, or <code>restore_video_to_path(...)</code> call produces one output artifact for one
+seed. <code>image_count</code> in the planning helpers means input-reference count for route selection, not
+output count.</p>
+<p>For multi-output generation on the unified <code>mlxgen generate</code> runtime families, use the loaded
+runtime wrapper instead of rebuilding the seed loop yourself. This is serial multi-output reuse,
+not tensor batching: MLX-Gen loads one model instance, runs one seed at a time, preserves exact
+per-seed outputs, and can save each artifact to a distinct path with one shared progress stream.
+When <code>overwrite=False</code>, the wrapper resolves the unique final path before save, so existing
+targets are preserved and colliding per-seed outputs are suffixed predictably.</p>
+<h2 id="runtime-planning-and-loading">Runtime Planning And Loading<a class="headerlink" href="#runtime-planning-and-loading" title="Permanent link">&para;</a></h2>
+<p>For embedded workers, <code>mlxgen</code> now exposes a public runtime planner that carries the resolved route,
+selected runtime class, and a stable worker-cache key base without forcing the app to map
+<code>handler_id</code> values back to concrete model classes.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_generation_runtime</span>
+
+<span class="n">runtime</span> <span class="o">=</span> <span class="n">resolve_generation_runtime</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;Qwen/Qwen-Image&quot;</span><span class="p">,</span>
+    <span class="n">has_control_image</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">worker_key</span> <span class="o">=</span> <span class="n">runtime</span><span class="o">.</span><span class="n">cache_key</span><span class="p">(</span><span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;./models/qwen-image-8bit&quot;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">runtime</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;./models/qwen-image-8bit&quot;</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">runtime</span><span class="o">.</span><span class="n">runtime_id</span><span class="p">)</span>
+<span class="c1"># qwen.controlnet</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">runtime</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">handler_id</span><span class="p">,</span> <span class="n">runtime</span><span class="o">.</span><span class="n">plan</span><span class="o">.</span><span class="n">control_model</span><span class="p">)</span>
+<span class="c1"># qwen.generate InstantX/Qwen-Image-ControlNet-Union:diffusion_pytorch_model.safetensors</span>
+</code></pre></div>
+<p>If you want the convenience path that both resolves and loads the runtime, use
+<code>load_generation_model(...)</code>. It returns the loaded model plus the resolved plan and cache keys.
+The returned object now also owns serial multi-output execution through <code>generate_output(...)</code> and
+<code>generate_outputs(...)</code>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_generation_model</span>
+
+<span class="n">loaded</span> <span class="o">=</span> <span class="n">load_generation_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;qwen-image&quot;</span><span class="p">)</span>
+<span class="n">results</span> <span class="o">=</span> <span class="n">loaded</span><span class="o">.</span><span class="n">generate_outputs</span><span class="p">(</span>
+    <span class="n">seeds</span><span class="o">=</span><span class="p">[</span><span class="mi">101</span><span class="p">,</span> <span class="mi">202</span><span class="p">,</span> <span class="mi">303</span><span class="p">],</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;A clean studio product photo of a ceramic teapot&quot;</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">guidance</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+    <span class="n">output</span><span class="o">=</span><span class="s2">&quot;teapot.png&quot;</span><span class="p">,</span>
+    <span class="n">save_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;export_json_metadata&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;embed_metadata&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">([</span><span class="n">result</span><span class="o">.</span><span class="n">saved_path</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">])</span>
+<span class="c1"># [&#39;teapot_seed_101.png&#39;, &#39;teapot_seed_202.png&#39;, &#39;teapot_seed_303.png&#39;]</span>
+</code></pre></div>
+<p>When <code>output=...</code> is provided, <code>generate_outputs(...)</code> maps the model's in-memory <code>complete</code> event
+to <code>generated</code>, then emits <code>save</code>, then emits final <code>complete</code> only after the file is written.
+When <code>output</code> is omitted, the wrapper returns the in-memory artifacts and preserves the model's
+original <code>complete</code> event.</p>
+<p>For video artifacts, <code>save_kwargs</code> also accepts <code>validate_health=False</code> to skip the post-save
+full-file health re-decode (for hosts that probe the saved file themselves; the skip is recorded
+as <code>health_check: "skipped"</code> in the video metadata) and <code>export_json_metadata=True</code> to write the
+<code>.metadata.json</code> sidecar carrying the resolved seed and parameters.</p>
+<p><code>load_generation_model(...)</code> also accepts <code>model_kwargs={...}</code>: host-provided constructor extras
+forwarded to the resolved model class (merged last, and reflected in the returned <code>cache_key</code> so
+hosts that dedupe loaded models see them as part of the identity). The current Wan options are
+<code>keep_text_encoder_resident=True</code> (keep the UMT5 text encoder resident between generations in one
+process, ~11 GB resident RAM for skipping the per-prompt reload — built for hosts that chain
+scene generations) and <code>prompt_embed_disk_cache=False</code> (opt out of the exact on-disk prompt-embed
+cache). Passing a kwarg the resolved model class does not accept raises <code>TypeError</code> at load time.</p>
+<div class="highlight"><pre><span></span><code><span class="n">loaded</span> <span class="o">=</span> <span class="n">load_generation_model</span><span class="p">(</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;wan2.2-i2v-a14b&quot;</span><span class="p">,</span>
+    <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">model_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;keep_text_encoder_resident&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Runtime memory defaults for Python hosts: the first weight load in a process applies a
+machine-derived MLX buffer-cache limit (<code>total RAM / 8</code>, clamped to <code>[1 GiB, 8 GiB]</code>) unless a
+limit was already applied, and announces it on stderr. Hosts that call <code>mx.set_cache_limit</code>
+directly are safe: a pre-existing limit at or below half of physical RAM is recognized as
+host-managed, preserved, and announced instead of overridden. Export
+<code>MFLUX_MLX_CACHE_LIMIT_GB=&lt;gb&gt;</code> to pick the cap yourself, or <code>-1</code> to keep the cache
+unlimited. Weight files loaded from HF-repo layouts are sequentially prefetched into the page
+cache at load (prepared MLX-Gen packages materialize near-sequentially on their own and are
+not prefetched; already-resident files are skipped, as is everything on machines where the
+files exceed half of physical RAM); set <code>MFLUX_NO_WEIGHT_PREFETCH=1</code> to opt out.</p>
+<p>Published reuse-vs-reload validation covers Qwen masked edit, FLUX.2 multi-reference edit, Wan
+A14B image-to-video on a recurring short profile, and a <code>1024x1024</code> Z-Image Turbo image
+generation case. See
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/python-runtime-multi-output-2026-06-30/python_runtime_multi_output_reuse_report.md">Python multi-output reuse validation</a>.</p>
+<p>Qwen edit versions are distinct. <code>qwen-image-edit</code> is the original single-reference edit
+checkpoint. Use <code>qwen-image-edit-2509</code> or <code>qwen-image-edit-2511</code> when you need multi-reference
+capabilities and the selected package supports that route.</p>
+<p>Negative prompts are part of the model-specific generation API. The CLI aliases
+<code>--negative-prompt</code> and <code>--negative</code> both map to <code>negative_prompt=...</code> in Python. For Qwen image
+edit, passing a negative prompt enables true classifier-free guidance when <code>guidance &gt; 1</code>; when the
+caller omits it, MLX-Gen applies the official blank negative-prompt behavior for Qwen edit models.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.common.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.qwen.variants.edit.qwen_image_edit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QwenImageEdit</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">QwenImageEdit</span><span class="p">(</span>
+    <span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;AbstractFramework/qwen-image-edit-8bit&quot;</span><span class="p">,</span>
+    <span class="n">model_config</span><span class="o">=</span><span class="n">ModelConfig</span><span class="o">.</span><span class="n">qwen_image_edit</span><span class="p">(),</span>
+<span class="p">)</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_image</span><span class="p">(</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">9501</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Convert the scene into a clean graphite pencil sketch while preserving layout&quot;</span><span class="p">,</span>
+    <span class="n">negative_prompt</span><span class="o">=</span><span class="s2">&quot;color, blur, crop, text, watermark&quot;</span><span class="p">,</span>
+    <span class="n">image_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;input.png&quot;</span><span class="p">],</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">432</span><span class="p">,</span>
+    <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">guidance</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;sketch.png&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Contradictions fail early:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">TaskInferenceError</span><span class="p">,</span> <span class="n">resolve_task</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;Wan-AI/Wan2.2-T2V-A14B-Diffusers&quot;</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">TaskInferenceError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
+</code></pre></div>
+<h2 id="progress-and-monitoring">Progress And Monitoring<a class="headerlink" href="#progress-and-monitoring" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen exposes one lightweight progress event type for applications that need to update a UI, publish job status, or integrate with an external workflow runner. The event does not include latents or model tensors.</p>
+<p><code>ProgressEvent.progress</code> is denoise-step progress: <code>step / total_steps</code>. Video events also carry output-frame context through <code>frame</code>, <code>total_frames</code>, and <code>frame_progress</code>.</p>
+<p>For single-output image generation, subscribe before calling <code>generate_image()</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.callbacks</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProgressEvent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen.models.z_image</span><span class="w"> </span><span class="kn">import</span> <span class="n">ZImageTurbo</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">on_progress</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">ProgressEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">task</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">phase</span><span class="si">}</span><span class="s2">: step </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">total_steps</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">progress</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">ZImageTurbo</span><span class="p">(</span><span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">unsubscribe</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">subscribe_progress</span><span class="p">(</span><span class="n">on_progress</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="s2">&quot;text-to-image&quot;</span><span class="p">)</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_image</span><span class="p">(</span>
+        <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+        <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;A clean studio product photo of a ceramic teapot&quot;</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+        <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="k">finally</span><span class="p">:</span>
+    <span class="n">unsubscribe</span><span class="p">()</span>
+</code></pre></div>
+<p>For image-to-image, the same subscription path emits <code>task="image-to-image"</code> for latent img2img
+when generation uses an input image with positive <code>image_strength</code>. Edit-conditioned backends pass
+the task explicitly so applications can subscribe to <code>task="image-to-image"</code> even though those
+paths do not use <code>image_strength</code>.</p>
+<p>Wan video generation supports the same subscription path. It also accepts <code>progress_callback</code> directly on <code>generate_video()</code> when a caller wants a one-shot handler for a single run:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.callbacks</span><span class="w"> </span><span class="kn">import</span> <span class="n">ProgressEvent</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.wan.variants</span><span class="w"> </span><span class="kn">import</span> <span class="n">Wan2_2_TI2V</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">on_progress</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">ProgressEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">phase</span><span class="si">}</span><span class="s2">: frame </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">frame</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">total_frames</span><span class="si">}</span><span class="s2">, &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;step </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">total_steps</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">progress</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">)</span>
+
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">Wan2_2_TI2V</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;Wan-AI/Wan2.2-TI2V-5B-Diffusers&quot;</span><span class="p">)</span>
+<span class="n">video</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_video</span><span class="p">(</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">321</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;A slow cinematic shot of a glass sphere floating above teal water&quot;</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">1280</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">704</span><span class="p">,</span>
+    <span class="n">num_frames</span><span class="o">=</span><span class="mi">121</span><span class="p">,</span>
+    <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+    <span class="n">fps</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+    <span class="n">progress_callback</span><span class="o">=</span><span class="n">on_progress</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;video.mp4&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>For Wan2.2 T2V-A14B, construct the same class with <code>model_config=ModelConfig.wan2_2_t2v_a14b()</code> or the A14B model name routed through the CLI. That same route now owns public <code>video-to-video</code>: pass <code>video_path</code>, keep <code>solver="unipc"</code>, use <code>video_strength</code> for the source-change amount, and add <code>video_mask_path</code> when you want preserved regions locked to the source. For Wan2.2 I2V-A14B, use <code>model_config=ModelConfig.wan2_2_i2v_a14b()</code> or the <code>Wan-AI/Wan2.2-I2V-A14B-Diffusers</code> model name and pass <code>image_path</code> to <code>generate_video()</code>. On that i2v route, <code>last_image_path=...</code> adds an optional second anchor the clip should end near (first+last bracket conditioning, experimental on Wan 2.2 A14B; the last image maps through the same canvas and <code>resize_mode</code> as the first frame, and every other Wan route rejects it). Also on that route, <code>context_image_paths=[...]</code> extends the conditioned head with the ordered frames that FOLLOW <code>image_path</code> in the motion being continued (4, 8, or 12 frames — heads of 5, 9, or 13 fill whole 4x latent groups), so a continuation inherits real momentum instead of restarting from one frozen frame; <code>context_noise=...</code> (0-1000, ~20) optionally perturbs that head SkyReels-style. Both are experimental zero-shot behaviors measured in backlog 0102, rejected on every non-A14B-i2v route, and hosts should gate on the <code>supports_context_frames</code> capability field (introduced in schema 6; current schema 8). For chained scenes, the same i2v route also ships SVI 2.0 Pro conditioning (backlog 0103, EXPERIMENTAL): construct the model with the SVI error-recycling LoRA pair (<code>svi_lora_high_path=...</code>, <code>svi_lora_low_path=...</code>; strict key-match, fixed scale 1.0) and call <code>generate_video(svi_anchor_image_path=...)</code> for the first clip, then add <code>svi_motion_latent_path=...</code> (the previous clip's exported latent; export with <code>svi_motion_latent_export_path=...</code>) and a NEW seed per clip for continuations — one persistent anchor carries identity, the latent handover carries momentum, and assembly must drop <code>svi_assembly_trim_frames</code> frames (metadata; 5 for the default one motion latent) from each continuation clip. SVI mode replaces <code>image_path</code> and conflicts with <code>last_image_path</code>/<code>context_image_paths</code>/<code>video_path</code>; hosts gate on <code>supports_svi</code> (introduced in schema 7; current schema 8). <code>denoising_step_list=[1000, 750, 500, 250]</code> runs an exact distill timestep grid instead of a step count on text/image-to-video routes; it is mutually exclusive with <code>num_inference_steps</code> and an explicit <code>flow_shift</code>. A14B boundary routing is handled internally. If both <code>guidance</code> and <code>guidance_2</code> are omitted, MLX-Gen uses the model's two-stage defaults. If <code>guidance</code> is provided and <code>guidance_2</code> is omitted, the low-noise <code>transformer_2</code> stage follows <code>guidance</code>. For Wan image-to-video, <code>width</code> and <code>height</code> are size targets; the model API resolves the final output canvas from the source image aspect ratio and model spatial multiples. For Wan video-to-video, <code>width</code> and <code>height</code> are the requested output canvas after Wan patch-multiple normalization.</p>
+<p>Bernini uses a dedicated renderer class and keeps references separate from first-frame images:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.wan.variants</span><span class="w"> </span><span class="kn">import</span> <span class="n">BerniniRenderer</span>
+
+<span class="n">renderer</span> <span class="o">=</span> <span class="n">BerniniRenderer</span><span class="p">()</span>
+<span class="n">video</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">generate_video</span><span class="p">(</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Animate the subject from image0 in a fixed medium shot&quot;</span><span class="p">,</span>
+    <span class="n">reference_image_paths</span><span class="o">=</span><span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;subject.png&quot;</span><span class="p">)],</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">320</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span>
+    <span class="n">num_frames</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
+    <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">fps</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">max_condition_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+    <span class="n">clear_cache_each_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">clear_cache_each_transformer_block</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;referenced.mp4&quot;</span><span class="p">,</span> <span class="n">export_json_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>Pass <code>video_path=...</code> as well for RV2V, or pass a video without references for V2V. Construct
+without <code>quantize</code>; Bernini is BF16-only. It rejects LoRA and the ordinary Wan image/strength/mask/
+continuation controls. Applications can inspect <code>bernini.reference-video</code>,
+<code>bernini.reference-video-edit</code>, and <code>bernini.video-edit</code> through the same capability planner before
+loading weights. These capabilities advertise executable experimental routes, not a production
+promotion; see the committed official parity bundle and <a href="../bernini/">Bernini-R 1.3B</a> for the exact
+input, memory, and failure contract.
+Set <code>release_denoisers_before_decode=True</code> only for a one-shot low-memory call: it makes that
+renderer instance unusable for a second generation. The unified CLI applies it only to single-seed
+low-RAM jobs.</p>
+<p>Image generation emits <code>start</code> and <code>denoise</code>, followed by exactly one terminal phase: <code>complete</code>,
+<code>failed</code>, or <code>interrupted</code>. For image and in-memory video APIs, <code>complete</code> means the generated
+in-memory artifact is ready to return from <code>generate_image()</code> or <code>generate_video()</code>. Saving to
+disk is still a separate caller action, so Python progress <code>complete</code> is not a saved-file
+guarantee.</p>
+<p>The loaded runtime wrapper augments those same progress events with <code>seed</code>, <code>item_index</code>,
+<code>item_count</code>, and, when saving, <code>output_path</code>. That makes one shared callback usable for several
+serial outputs without losing per-seed attribution.</p>
+<p>Wan video generation emits <code>start</code>, <code>denoise</code>, <code>decode</code>, <code>convert</code>, and <code>generated</code> from <code>generate_video()</code>. The Wan CLI then emits <code>save</code> and reserves <code>complete</code> for a saved MP4 that passes video-health validation; it can emit <code>failed</code> instead if save or final validation fails after progress has started. Progress callback exceptions propagate to the caller, so production applications should keep handlers small and defensive.</p>
+<p>SeedVR2 streamed video restore follows the saved-output model rather than the in-memory one: <code>restore_video_to_path()</code> emits <code>task="video-to-video"</code> and reserves <code>complete</code> for a restored MP4 whose write, metadata, optional audio copy, and optional health validation all succeeded.</p>
+<p>For CLI integrations, prefer <code>mlxgen ... --json-events</code> over parsing human stdout. Image routes map
+model <code>complete</code> to <code>generated</code>, then emit <code>save</code> and final <code>complete</code> only after the output file
+is written. Wan failure events include <code>diagnostics_path</code> when a failure manifest is produced.</p>
+<h2 id="threading">Threading<a class="headerlink" href="#threading" title="Permanent link">&para;</a></h2>
+<p>MLX model instances should be treated as stateful runtime objects. Applications that multiplex user requests should serialize access to a loaded model instance unless they have tested a narrower concurrency model for that specific backend.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,2789 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/overview/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Backlog Overview - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#backlog-overview" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Backlog Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#project-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Project summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#counts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Counts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completed-runtime-contract-hardening-band" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completed runtime contract hardening band
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completed-python-runtime-multi-output-surface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completed Python runtime multi-output surface
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completed-video-edit-boundary-public-route-and-reference-proof-groundwork" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completed video-edit boundary, public route, and reference-proof groundwork
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completed-masked-edit-expansion-band" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completed masked-edit expansion band
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completed-flux2-klein-masked-edit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completed FLUX.2 Klein masked edit
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completed-audit-hardening-band" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completed audit hardening band
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#active-memory-validation-band" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Active memory validation band
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#topic-tracks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topic tracks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-recommended-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next recommended work
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#planned-ledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planned ledger
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proposed-ledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proposed ledger
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deprecated-ledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deprecated ledger
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recurrent-ledger" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recurrent ledger
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Process
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#planning-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planning notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="backlog-overview">Backlog Overview<a class="headerlink" href="#backlog-overview" title="Permanent link">&para;</a></h1>
+<h2 id="project-summary">Project summary<a class="headerlink" href="#project-summary" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen is an independent Apple Silicon image and video generation package derived from
+<a href="https://github.com/filipstrand/mflux">mflux</a>. The backlog tracks model integration work,
+compatibility fixes, release-readiness work, and follow-up investigations that should survive
+outside chat history.</p>
+<h2 id="counts">Counts<a class="headerlink" href="#counts" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th style="text-align: right;">Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Planned</td>
+<td style="text-align: right;">15</td>
+</tr>
+<tr>
+<td>Proposed</td>
+<td style="text-align: right;">30</td>
+</tr>
+<tr>
+<td>Completed</td>
+<td style="text-align: right;">64</td>
+</tr>
+<tr>
+<td>Deprecated</td>
+<td style="text-align: right;">1</td>
+</tr>
+<tr>
+<td>Recurrent</td>
+<td style="text-align: right;">1</td>
+</tr>
+</tbody>
+</table>
+<p>Counts are item files (recounted 2026-08-04 after adding item 0106; the
+2026-07-25 release hygiene had moved 0093-0095, 0097-0099, and release
+item 0101 to completed/), including topic-track items under
+<code>planned/memory/</code>; the completed <code>planned/runtime_contracts/</code> track holds only its index.
+Item 0107 was added on 2026-08-10 for the larger Bernini-model capacity/scope gate.
+Items 0086-0090 came from a 2026-07-22 adversarial performance audit of the
+BlackPixel embedding host traced end-to-end against the 0.23.1 release.
+Items 0093-0095 came from the 2026-07-23 follow-up audit of image-to-image
+latency in the same host (BlackPixel backlog 0069 holds the full record).
+Items 0097-0100 came from the 2026-07-25 storyboard cross-scene-consistency
+investigation (three agents; verification + fixed-seed generation A/Bs; the
+full record lives in BlackPixel backlog
+<code>proposed/storyboard_consistency_2026_07/</code>).</p>
+<h2 id="completed-runtime-contract-hardening-band">Completed runtime contract hardening band<a class="headerlink" href="#completed-runtime-contract-hardening-band" title="Permanent link">&para;</a></h2>
+<p>The 2026-06-29 serial validation pass converted several previously theoretical concerns into
+concrete shipped bugs with preserved repro commands and artifacts. Items 0067-0070 are now
+completed with focused regressions, one-at-a-time real proofs, and a shared validation report.</p>
+<ol>
+<li>Finished <a href="../completed/0067_progress_event_contract_hardening/">progress event contract hardening</a>
+   so masked image routes, SeedVR2 upscale/restore routes, and terminal success semantics are
+   truthful for subscribers.</li>
+<li>Finished <a href="../completed/0068_qwen_control_route_hardening/">Qwen control route hardening</a>
+   so public control-inpaint no longer crashes on the no-LoRA path and base control routes honor
+   the base-Qwen blank-negative contract.</li>
+<li>Finished <a href="../completed/0069_zimage_cfg_and_inpaint_repair/">Z-Image CFG and inpaint repair</a>
+   so guided denoise math is correct and native inpaint has refreshed same-case evidence after the
+   formula fix.</li>
+<li>Finished <a href="../completed/0070_canonical_capability_identity_for_variant_routes/">canonical capability identity for variant routes</a>
+   so spoofed local paths and remote-looking prepared ids cannot advertise unsupported
+   variant-sensitive routes.</li>
+</ol>
+<h2 id="completed-python-runtime-multi-output-surface">Completed Python runtime multi-output surface<a class="headerlink" href="#completed-python-runtime-multi-output-surface" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen now owns the shared Python multi-output execution contract for the unified
+<code>mlxgen generate</code> families. Completed item 0071 records the route-resolved runtime wrapper,
+overwrite/collision behavior, and the reuse-vs-reload evidence across image and video routes.</p>
+<ol>
+<li>Finished <a href="../completed/0071_python_runtime_serial_multi_output_reuse/">Python runtime serial multi-output reuse</a>
+   so embedding apps can call <code>load_generation_model(...).generate_outputs(...)</code> instead of
+   rebuilding seed loops, output naming, and per-seed save handling around direct model classes.</li>
+</ol>
+<h2 id="completed-video-edit-boundary-public-route-and-reference-proof-groundwork">Completed video-edit boundary, public route, and reference-proof groundwork<a class="headerlink" href="#completed-video-edit-boundary-public-route-and-reference-proof-groundwork" title="Permanent link">&para;</a></h2>
+<p>The 2026-07-03 video-edit pass now has three concrete outcomes: the public boundary is coherent,
+the first plain public Wan <code>video-to-video</code> route is shipped, and the bounded upstream VACE
+reference proof is preserved. The remaining result is intentionally split: plain source-video
+editing is now real, but the local <code>Wan2.1-VACE-1.3B</code> MPS proof was still not good enough to
+promote richer VACE conditioning into the public runtime yet.</p>
+<ol>
+<li>Finished <a href="../completed/0072_reader_first_video_workflow_boundary_and_generative_video_edit_contract/">reader-first video workflow boundary and generative video-edit contract</a>
+   so the current CLI, docs, and ADR surfaces agree that prompt-guided source-video editing
+   belongs to <code>mlxgen generate</code> and starts with plain <code>video-to-video</code>.</li>
+<li>Finished <a href="../completed/0073_wan_vace_reference_validation_harness_and_bounded_source_cases/">Wan VACE reference validation harness and bounded source cases</a>
+   so future agents have preserved local artifacts, wall time, and memory evidence instead of
+   generic “VACE exists upstream” claims. The bounded portrait and ship cases ran, but they did
+   not pass a release-quality visual bar on this host.</li>
+<li>Finished <a href="../completed/0074_wan_plain_generative_video_to_video_route/">Wan plain generative video-to-video route</a>
+   so <code>mlxgen generate</code> now owns a bounded public Wan source-video edit route on <code>Wan2.2-T2V-A14B</code>
+   with truthful config gating, <code>unipc</code>-only public solver support, focused tests, and a preserved
+   ship-edit proof bundle.</li>
+<li>Finished <a href="../completed/0076_wan_masked_video_to_video_latent_compositing/">Wan masked video-to-video via latent compositing</a>
+   so <code>--video-mask-path</code> locks preserved regions to the source at the measured H.264 floor
+   (drift 1.7 vs 14.9 unmasked on the conference proof), with UniPC scheduler-state compositing,
+   fail-closed contracts, replayable metadata, and an in-repo proof bundle under
+   <code>docs/assets/examples/conference-masked-v2v/</code>.</li>
+<li>Finished <a href="../completed/0077_wan_v2v_fps_resampling_and_audio_copy_through/">Wan V2V fps resampling and audio copy-through</a>
+   so video-to-video keeps real-time speed on any source fps (decode-time resampling with a
+   drift-based skip tolerance that leaves matching-fps runs bit-identical) and copies source
+   audio onto the output best-effort with the outcome recorded in metadata; the proof's first
+   run exposed and fixed a <code>-shortest</code> mux bug that dropped trailing frames of short clips,
+   pinned by a regression test, with the model-backed proof under
+   <code>validation_outputs/fps_audio_proof_2026_07_05/</code>.</li>
+<li>Finished <a href="../completed/0078_router_descriptors_wan_decomposition_mask_util_schema_version/">router descriptors, Wan decomposition phase 1, MaskUtil, metadata schema version</a>
+   so the <code>mlxgen generate</code> option surface is single-sourced with completeness and round-trip
+   tests (fixing the silently dropped <code>--debug</code>, late metadata <code>video_strength</code> validation, an
+   <code>mflux-completions</code> crash present at HEAD, and the empty z-image completion), the Wan
+   runtime's validation head and twin metadata blocks are deduplicated behind
+   <code>WanVideoRequest</code>/<code>_to_video_shared_kwargs</code>, user-mask loading is centralized in <code>MaskUtil</code>
+   with a reference-faithful resampling policy, and image/video metadata carries
+   <code>metadata_schema_version: 1</code>.</li>
+<li>Finished <a href="../completed/0079_wan_v2v_motion_fidelity_ladder/">Wan V2V motion-fidelity ladder and control run</a>
+   so the strength-vs-gesture-preservation trade-off is measured (gesture-timing r 0.86/0.90 at
+   strength 0.5/0.6, 0.73 at 0.7, 0.20 at the 0.8 default; edit landed at every strength) and
+   documented with a copy-pasteable motion-preserving recipe in <code>docs/wan-video.md</code>, a paired
+   Lightning-point control showing prompt language recovers the class of motion but not its
+   timing, and a committed proof mirror under <code>docs/assets/validation/motion-ladder-2026-07-05/</code>.</li>
+<li>Finished <a href="../completed/0080_wan_vace_1_3b_native_port/">Wan2.1-VACE-1.3B native MLX port</a>
+   so <code>wan-vace</code> ships reference-image object injection and learned masked source-video
+   editing natively (parity proven stage-by-stage against the diffusers reference: mask
+   preparation and UniPC bit-exact, transformer at the measured fp32 noise floor), with
+   capability proofs that carry their own controls - a masked object replacement in the
+   default generate mode (in-mask change 63.8 against a codec-floor background, 1027 s;
+   repaint mode restyles in place, 239 s; the upstream pipeline on un-blanked inputs fails
+   to replace and re-renders the whole frame, 2161 s CPU) and a reference-injection identity
+   ablation (segmented subject transfers; same seed without the reference gives an unrelated
+   ship) - in a committed proof mirror under <code>docs/assets/validation/wan-vace-2026-07-06/</code>.</li>
+</ol>
+<h2 id="completed-masked-edit-expansion-band">Completed masked-edit expansion band<a class="headerlink" href="#completed-masked-edit-expansion-band" title="Permanent link">&para;</a></h2>
+<p>The 2026-07-15 masked-edit surface audit (one adversarial subagent) identified base-Qwen native
+inpaint as the strongest unsurfaced route and the Z-Image non-turbo gate as proof-blocked.
+Both shipped the same day with a consolidated canonical docs page.</p>
+<ol>
+<li>Finished <a href="../completed/0082_masked_edit_expansion_qwen_zimage/">masked edit expansion: native base-Qwen and Z-Image non-turbo</a>
+   so <code>--mask-path</code> works natively on trusted base Qwen rows (diffusers
+   <code>QwenImageInpaintPipeline</code> port with the internal 0.85 warm start and <code>effective_steps</code>
+   runtime-truth metadata; the exact validated 8bit row keeps control-inpaint) and on
+   non-turbo Z-Image rows, with one masked route per row enforced by construction, plan-time
+   maskless rejection, re-mirrored completions, the canonical <code>docs/masked-editing.md</code> page,
+   and a visual-smoke proof bundle in <code>docs/assets/validation/masked-edit-2026-07-15/</code>.
+   Control-inpaint row broadening was superseded by the native route (decision of record in
+   the item); Z-Image ControlNet-inpaint stayed proposed in item 0045, refreshed with
+   upstream sizing facts.</li>
+<li>Promoted the smoke rows to graded matrix rows the same day: the masked-edit 5x5 matrix
+   (<code>docs/assets/validation/masked-edit-matrix-2026-07-15/</code>, registry profile
+   <code>masked_edit_matrix_5x5_2026_07_15</code>) scores Klein 4B q8 rows PASS across all four
+   well-posed cases, the <code>qwen.base-inpaint</code> q4/2512-q8 rows PARTIAL (documented warm-start
+   recolor limitation), and the Z-Image non-turbo q8 row mixed (seed-reproducible
+   arm-retexture geometry failure), with an unscored partial-object-removal limitation
+   demonstration folded into the masked-editing docs as a mask-design rule.</li>
+</ol>
+<h2 id="completed-flux2-klein-masked-edit">Completed FLUX.2 Klein masked edit<a class="headerlink" href="#completed-flux2-klein-masked-edit" title="Permanent link">&para;</a></h2>
+<p>The 2026-07-15 pass ported the upstream diffusers <code>Flux2KleinInpaintPipeline</code> semantics onto
+the existing FLUX.2 Klein family so <code>--mask-path</code> works on distilled and base Klein rows
+through unified <code>mlxgen generate</code>, with optional masked-area reference images on the backend
+command and Python API.</p>
+<ol>
+<li>Finished <a href="../completed/0081_flux2_klein_masked_edit/">FLUX.2 Klein masked edit / inpaint</a>
+   so the new <code>flux2.inpaint</code> capability composites unmasked latents from the re-noised
+   clean source every step while the clean source rides along as conditioning tokens
+   (t=10, references at t=20+), with torch-parity bilinear mask downsampling onto the
+   packed latent grid, adversarial-subagent review (one major guidance-default finding
+   fixed pre-smoke), and model-backed q8 smoke proofs (distilled 4-step guidance-1, base
+   8-step CFG guidance-4, and a reference-conditioned plaid-fill case) preserved locally in
+   <code>validation_outputs/flux2-klein-inpaint-smoke/</code>. Published visual-QA proof rows remain a
+   follow-up before any exact package claims a validated masked-edit row.</li>
+</ol>
+<h2 id="completed-audit-hardening-band">Completed audit hardening band<a class="headerlink" href="#completed-audit-hardening-band" title="Permanent link">&para;</a></h2>
+<p>The 2026-06-27 code-only audit and two adversarial confirmation passes inserted a new hardening
+band ahead of model-expansion work. Items 0051-0057 are now completed. The residual architecture
+follow-up remains proposed as item 0058. Items 0059-0061 are now quantitatively completed; items
+0062-0064 remain planned until exact-quality SeedVR2 video, startup, and retention memory
+statistics prove completion.</p>
+<ol>
+<li>Finished <a href="../completed/0051_safe_checkpoint_loading/">safe Torch checkpoint loading</a> before treating
+   arbitrary local or remote <code>.pt</code> / <code>.pth</code> model artifacts as safe to load.</li>
+<li>Finished <a href="../completed/0052_release_publish_fail_closed/">fail-closed PyPI publishing</a> before running
+   local release tagging or GitHub release creation.</li>
+<li>Finished <a href="../completed/0053_prepare_model_class_registry_resolution/">prepare model-class config resolution</a>
+   before relying on <code>mlxgen prepare</code> for custom/local model paths with <code>--base-model</code>.</li>
+<li>Finished <a href="../completed/0054_inference_defaults_and_step_validation/">inference defaults and step validation</a>
+   to stop invalid step counts early and then remove CLI/Python default drift.</li>
+<li>Finished <a href="../completed/0055_low_ram_repeat_generation_safety/">low-RAM repeat-generation safety</a>
+   before advertising <code>--low-ram</code> as safe for all multi-seed or prompt-file runs.</li>
+<li>Finished <a href="../completed/0056_wan_vlm_bf16_performance_hardening/">Wan/VLM/BF16 performance hardening</a>
+   as the first concrete performance and precision pass.</li>
+<li>Finished <a href="../completed/0057_package_dependency_and_dist_hygiene/">package dependency and dist hygiene</a>
+   as release-cleanup work after the blockers above.</li>
+</ol>
+<h2 id="active-memory-validation-band">Active memory validation band<a class="headerlink" href="#active-memory-validation-band" title="Permanent link">&para;</a></h2>
+<p>The 2026-06-27 adversarial memory pass implemented several concrete memory changes. Items 0059-0061
+are now completed with real process-isolated quantitative evidence. Items 0062-0064 are still
+planned because the available reports did not prove a quality-preserving SeedVR2 video memory
+reduction, startup/first-step peak reduction, or retention memory reduction.</p>
+<p>The SeedVR2 1280px image follow-up now has real 3B and 7B stats. The fixed image <code>--low-ram</code> path
+is stable and pixel-identical but only reduces retained physical footprint at metadata time.
+Explicit tuned <code>--vae-tiling</code> reduces MLX peak sharply, with a measured non-zero pixel delta, so it
+remains an opt-in memory-pressure path rather than a default quality-preserving optimization.</p>
+<ol>
+<li>Finished <a href="../completed/0060_runtime_memory_telemetry_and_manifests/">runtime memory telemetry and manifests</a>
+   with sampled process peaks, MLX peaks, schema evidence, parent physical-footprint sampling, and
+   telemetry overhead.</li>
+<li>Finished <a href="../completed/0061_prompt_materialization_for_low_ram_release/">prompt materialization for low-RAM release</a>
+   with prompt-to-denoise peak RSS statistics and exact output parity on affected families.</li>
+<li>Reopened <a href="../planned/memory/0062_seedvr2_chunk_bounded_noise/">SeedVR2 chunk-bounded video noise</a>
+   after same-video review showed the bounded <code>absolute_latent_frame</code> path changes restored pixels
+   and the 7B evidence was a frame-count scaling run, not a normal 1:1 baseline/candidate proof.
+   The current package default is back to <code>seedvr2_noise_mode=global</code>; the first 2026-06-28 normal
+   proof was rejected because it used unsafe temporal chunking, and the corrected
+   <code>seedvr2_temporal_quality_repair_20260628</code> proof demonstrates normal 149-frame 3B/7B <code>29/8</code>
+   restores but does not close a memory-reduction task.</li>
+<li>Validate and finish <a href="../planned/memory/0063_componentwise_model_loading_memory_policy/">component-wise model loading memory policy</a>
+   with startup/first-step memory statistics; keep broader initializer streaming in proposed item
+   0065 until startup remains a measured blocker.</li>
+<li>Validate and finish <a href="../planned/memory/0064_generation_retention_cleanup/">generation retention cleanup</a>
+   with stepwise/debug and hidden-state-retention memory statistics plus quality/performance checks.</li>
+</ol>
+<h2 id="topic-tracks">Topic tracks<a class="headerlink" href="#topic-tracks" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../planned/runtime_contracts/">Runtime contract hardening</a>: completed June 29 closure band
+  for items 0067-0070, with the shared report in
+  <code>docs/assets/validation/runtime-contracts-2026-06-29/runtime_contracts_report.md</code>.</li>
+<li><a href="../planned/memory/">Memory validation</a>: items 0062-0064 keep the remaining exact-quality
+  memory validation work grouped separately from runtime contract repair.</li>
+</ul>
+<h2 id="next-recommended-work">Next recommended work<a class="headerlink" href="#next-recommended-work" title="Permanent link">&para;</a></h2>
+<p>The highest-priority work is now the remaining memory-validation band. The runtime-contract
+hardening band is closed and documented.</p>
+<p>The <a href="../completed/0105_bernini_r_1_3b_renderer_integration/">Bernini-R 1.3B renderer integration</a>
+is complete only as a functional runtime. Its original visual pass was invalidated after 5K
+full-frame review: every required case fails, the registry is <code>FAIL</code>, and the route is
+experimental. Treat <a href="../planned/0106_bernini_full_trajectory_parity_and_release_quality/">item 0106</a>
+as urgent release-blocking work before any Bernini quality recommendation.</p>
+<ul>
+<li>
+<p>Build the exact-input real-conditioning first-step and full-trajectory Bernini 1.3B parity
+  ladder in item 0106, locate the cadence/tail divergence, and require a metadata-bearing official
+  1.3B baseline plus passing 5K paged visual proof before promoting the registry.</p>
+</li>
+<li>
+<p>Finish the remaining memory validation track: find and test an exact-quality SeedVR2 video
+   memory reduction for item 0062 only if a larger still-supported profile proves the global-noise
+   term is materially relevant; otherwise re-scope it as a low-value research item for future
+   enlarged-video profiles. In parallel, run phase-isolated startup/first-step profiles for item
+   0063 and retention-isolating profiles for item 0064, record statistics under
+   <code>validation_outputs/memory/</code>, and only then close those remaining items.</p>
+</li>
+<li>Finish
+   <a href="../planned/0015_wan_prompt_adherence_parity_validation/">Wan prompt adherence parity validation</a>
+   before treating T2V/I2V prompt or motion behavior as quality-proven; explicitly match official
+   Wan negative prompts and A14B guidance pairs in Diffusers-vs-MLX runs.</li>
+<li>Finish the remaining
+   <a href="../planned/0019_first_class_i2i_modes_and_outpaint_reframe/">first-class I2I modes and outpaint/reframe UX</a>
+   work where it still adds capability beyond the now-completed Qwen and FLUX.2 route surface.
+   Route ownership is much clearer now; the next useful work is UX and contract cleanup, not
+   another speculative route split.</li>
+<li>Finish
+   <a href="../planned/0035_wan_ti2v5b_math_and_behavior_parity/">Wan2.2 TI2V-5B math and behavior parity</a>
+   after the current image-route work is closed. The official Wan source and local Diffusers audit
+   found no tensor mismatch in the existing TI2V-5B fixtures, but public quality claims still need
+   the broader behavior proof and the explicit <code>--flow-shift 3</code> route.</li>
+<li>Keep proposed
+   <a href="../proposed/0048_seedvr2_enlarged_video_safe_profile_certification/">SeedVR2 enlarged-video safe-profile certification</a>
+   as the remaining SeedVR2 proof question after release <code>0.18.20</code>. The bounded June 21 public
+   proof already answers the <code>3B</code> versus <code>7B</code> comparison on the accepted slice; what remains is
+   whether any enlarged SeedVR2 video recipe should graduate from explicit unsafe override to a
+   documented safe public profile.</li>
+<li>Preserve
+   <a href="../proposed/0045_zimage_controlnet_followup/">Z-Image ControlNet follow-up</a> as the next image
+   follow-up after native Z-Image inpaint and the completed Qwen parity work rather than
+   broadening current items again.</li>
+<li>Keep proposed
+   <a href="../proposed/0041_lightx2v_wan_distilled_model_loader_support/">LightX2V Wan distilled-model loader support</a>
+   scoped as the next Wan acceleration follow-up, not the current one. Completed
+   <a href="../completed/0040_lightx2v_wan_4step_acceleration_profiles/">item 0040</a> now provides the exact
+   LightX2V Lightning 4-step A14B fast path on the current runtime, so 0041 should only advance if
+   native distilled checkpoints still offer clearer user value than the explicit LoRA recipe.</li>
+</ul>
+<p>Keep proposed
+<a href="../proposed/0065_componentwise_weight_streaming_migration/">component-wise weight streaming migration</a>
+as the next startup-memory follow-up after real process-memory profiling. The Z-Image cache-policy
+profile now shows startup/first-step peak still dominates even when retained cache falls sharply.
+Do not promote it until one specific family has a measured startup peak that justifies the
+family-specific migration risk. The 2026-06-29 size audit suggests the first prepared-package
+candidate should be Z-Image or FLUX.2 rather than SeedVR2, while the SeedVR2 1280px image profile
+still points instead to VAE spatial encode peak, so 0065 should not be promoted solely for that
+case.</p>
+<p>Completed
+<a href="../completed/0066_image_finalization_memory_peak_and_metadata_rewrite/">image finalization memory peak and metadata rewrite</a>.
+The current generated-image default path is now a one-pass save with zero reopen passes and zero
+runtime-memory snapshots, while opt-in embedded metadata still preserves EXIF plus PNG XMP/IPTC in
+one save call. The June 30, 2026 <code>4096x4096</code> save-phase probe measured peak sampled RSS
+<code>0.394 GB -&gt; 0.192 GB</code> (<code>-51.2316%</code>) and peak Darwin physical footprint <code>0.373 GB -&gt; 0.171 GB</code>
+(<code>-54.1496%</code>) versus the legacy three-pass simulation, so this no longer belongs in proposed
+memory follow-up state.</p>
+<ol>
+<li>Finish the prepared-package residue in
+   <a href="../planned/0036_flux2_klein_base_source_validation_and_contact_sheets/">FLUX.2 Klein base source validation and contact sheets</a>.
+   Source-model base <code>4B/9B</code> now have starship proof, and the exact q8 base-4B outpaint row is
+   now validated through the LoRA route-completion bundle, but the broader prepared base package
+   contact-sheet surface is still narrower than the source-model profile.</li>
+<li>Keep proposed
+   <a href="../proposed/0039_wan_vace_video_editing_and_control/">Wan VACE video editing and control</a> and
+   <a href="../proposed/0075_wan_vace_conditioning_expansion_after_plain_video_to_video/">Wan VACE conditioning expansion after plain video-to-video</a>
+   as the later richer-conditioning follow-up, not the current runtime baseline. The shipped plain
+   V2V route means the remaining bar is now strictly about whether richer conditioning is good
+   enough to justify expansion. The July 3 local VACE proof bundle is useful because it stops
+   overclaiming: the path runs, but the bounded <code>1.3B</code> MPS results were not good enough to promote yet.</li>
+<li>Keep the
+   <a href="../planned/0034_flux2_dev_multi_angle_lora_support/">FLUX.2-dev multi-angle LoRA support</a>
+   item parked even after 0007 completion. The lovis multi-angle adapter still targets
+   <code>black-forest-labs/FLUX.2-dev</code>, not FLUX.2 Klein, so there is no reason to expand the runtime
+   surface until the current supported image families have exact LoRA proofs.</li>
+<li>Validate and finish
+   <a href="../planned/0013_wan_a14b_boundary_memory_recovery/">Wan A14B boundary memory recovery and full-size validation</a>
+   after the full-size I2V retry captures memory, exit-code, metadata, and output evidence across
+   the high-noise to low-noise denoiser boundary. Remaining memory items 0062-0064 must provide quantitative
+   evidence before this can depend on those memory claims.</li>
+<li>Finish the <a href="../planned/0002_wan_quantization_motion_parity/">Wan quantization and motion parity</a>
+   residuals: TI2V-5B now has clean source/BF16/q8 evidence at 1280x704, 17 frames, 20 steps, but
+   the TI2V-5B memory result is storage/MLX-footprint focused rather than a full-process physical
+   peak reduction; full-duration validation, I2V-A14B mixed q8 quality, q4 policy, and exact-setting
+   card claims still need to stay tied to passed settings.</li>
+<li>Use the completed
+   <a href="../completed/0026_edit_model_prepared_capability_contact_sheets/">edit model prepared-package capability contact sheets</a>
+   as the current release gate for image-edit quality claims: FLUX.2 Klein source/q8 and Qwen Edit
+   2509 source/q8 passed the standardized sequence. Qwen Edit 2511 has newer source/q8/q4 proof in
+   <a href="../completed/0029_qwen_image_edit_2511_base_parity/">item 0029</a>. FIBO Edit remains unsupported
+   through unified <code>mlxgen generate</code>. Use the <a href="../completed/0028_release_validation_registry/">release validation registry</a>
+   for machine-readable package status.</li>
+<li>Keep <a href="../planned/0027_fibo_edit_diffusers_parity_release_quality/">FIBO Edit Diffusers parity</a>
+   and <a href="../planned/0024_fibo_edit_unified_i2i_validation/">FIBO Edit unified validation</a> deferred.
+   FIBO Edit remains unsupported through unified <code>mlxgen generate</code>; do not schedule more work here
+   ahead of outpaint/reframe, LoRA strictness, or video quality work unless a specific product need
+   changes the priority.</li>
+<li>Keep Bonsai binary 1-bit deferred in
+   <a href="../proposed/0004_bonsai_binary_1bit_runtime_support/">proposed item 0004</a> until stock MLX can
+   execute the required 1-bit packed affine matmul or an ADR accepts a custom kernel path.</li>
+<li>Investigate <a href="../planned/0005_wan_q8_performance_investigation/">Wan q8 performance</a> only after
+   integrity-gated outputs are healthy enough for timing claims; current public docs describe mixed
+   q8/BF16 as model-size and measured-profile footprint focused, not speed-improving.</li>
+<li>Continue the <a href="../planned/0001_model_integration_roadmap/">model integration roadmap</a> in priority
+   order, starting with automated publication audits, supported q4/q8 validation, and
+   gated-derivative hygiene.</li>
+<li>Keep the second-family video bucket explicit. Proposed
+   <a href="../proposed/0044_hunyuanvideo15_second_family_spike/">HunyuanVideo-1.5 second-family spike</a>
+   is now the strongest concrete non-Wan candidate for Apple Silicon bounded by a public <code>480p</code>
+   step-distilled path, while proposed
+   <a href="../proposed/0010_ltx2_conditioning_lora_spike/">LTX family conditioning and LoRA spike</a> should
+   stay narrowed to <code>LTX-Video</code> first rather than broad <code>LTX-2.3</code> audio-video scope.</li>
+<li>Keep the image/edit watchlist honest. Proposed
+   <a href="../proposed/0011_next_generation_image_edit_watchlist/">next-generation image/edit watchlist</a>
+   now includes Ideogram 4, Ovis-Image, PRXPixel, and DreamLite, but those remain watchlist-only
+   until license, runtime shape, or direct MLX value becomes clearer. Proposed
+   <a href="../proposed/0049_boogu_image_family_support/">Boogu image family support</a> is now the focused
+   version of that watch state: interesting enough to preserve because of bilingual text and
+   unified generation/editing, but not yet strong enough to outrank the active Qwen, Z-Image, and
+   Wan items. Proposed <a href="../proposed/0050_krea2_turbo_integration/">Krea 2 Turbo integration</a> is an
+   adjacent low-priority watch item: technically credible, but held back mainly by its
+   materially restrictive custom license.</li>
+<li>Keep <a href="../proposed/0104_minimax_h3_joint_audio_video_watch/">MiniMax H3 joint audio-video</a>
+   license-blocked. The published grant excludes the EU development territory even though the
+   repository is public. Do not fetch or execute the weights unless the public terms change or
+   written permission is obtained; only then consider a five-second FL2VA parity spike and a new
+   generated joint audio-video contract ADR.</li>
+<li>Continue ERNIE-Image/Turbo after completed
+   <a href="../completed/0037_ernie_image_turbo_lora_runtime_support/">ERNIE Image Turbo LoRA runtime support</a>:
+   the latent img2img proof is now accepted, so the remaining follow-up is stronger Diffusers
+   parity coverage and non-turbo validation.</li>
+<li>Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
+   stronger quality/performance checks, and remaining cancel APIs. SeedVR2 has a validated
+   <code>mlxgen upscale</code> command, official 3B/7B source loading, and q8/q4 <code>mlxgen prepare</code> package
+   support.</li>
+<li>Keep Bonsai LoRA fail-closed and low priority; revisit it only through
+   <a href="../proposed/0038_bonsai_packed_lora_runtime_support/">proposed item 0038</a>. The current packed
+   runtime does not expose replaceable linear targets for standard LoRA injection, and the first
+   public “Bonsai LoRA” candidate inspected used unrelated SDXL UNet keys.</li>
+</ol>
+<h2 id="planned-ledger">Planned ledger<a class="headerlink" href="#planned-ledger" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Area</th>
+<th>Priority</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0001</td>
+<td><a href="../planned/0001_model_integration_roadmap/">Model integration roadmap</a></td>
+<td>Models, routing, quantization, UX</td>
+<td>P0-P3</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0002</td>
+<td><a href="../planned/0002_wan_quantization_motion_parity/">Wan quantization and motion parity</a></td>
+<td>Video, quantization, Diffusers parity</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0005</td>
+<td><a href="../planned/0005_wan_q8_performance_investigation/">Wan q8 performance investigation</a></td>
+<td>Video, performance, quantization</td>
+<td>P1</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0013</td>
+<td><a href="../planned/0013_wan_a14b_boundary_memory_recovery/">Wan A14B boundary memory recovery and full-size validation</a></td>
+<td>Video, memory, progress, validation</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0015</td>
+<td><a href="../planned/0015_wan_prompt_adherence_parity_validation/">Wan prompt adherence parity validation</a></td>
+<td>Video, Diffusers parity, prompt adherence</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0019</td>
+<td><a href="../planned/0019_first_class_i2i_modes_and_outpaint_reframe/">First-class I2I modes and outpaint/reframe UX</a></td>
+<td>Image routing, generative reframe, outpaint capability</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0024</td>
+<td><a href="../planned/0024_fibo_edit_unified_i2i_validation/">FIBO Edit unified I2I validation</a></td>
+<td>Image routing, FIBO Edit, validation</td>
+<td>P3 deferred</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0027</td>
+<td><a href="../planned/0027_fibo_edit_diffusers_parity_release_quality/">FIBO Edit Diffusers parity and release-quality validation</a></td>
+<td>Image edit, FIBO Edit, Diffusers parity</td>
+<td>P3 deferred</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0034</td>
+<td><a href="../planned/0034_flux2_dev_multi_angle_lora_support/">FLUX.2-dev multi-angle LoRA support</a></td>
+<td>LoRA, FLUX.2-dev, validation</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0035</td>
+<td><a href="../planned/0035_wan_ti2v5b_math_and_behavior_parity/">Wan2.2 TI2V-5B math and behavior parity</a></td>
+<td>Video, Wan TI2V-5B, official/Diffusers parity</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0036</td>
+<td><a href="../planned/0036_flux2_klein_base_source_validation_and_contact_sheets/">FLUX.2 Klein base source validation and contact sheets</a></td>
+<td>FLUX.2 base, validation, docs</td>
+<td>P0</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0062</td>
+<td><a href="../planned/memory/0062_seedvr2_chunk_bounded_noise/">SeedVR2 chunk-bounded video noise</a></td>
+<td>Video restoration, SeedVR2, memory</td>
+<td>P0</td>
+<td>Reopened; exact-quality memory reduction pending</td>
+</tr>
+<tr>
+<td>0063</td>
+<td><a href="../planned/memory/0063_componentwise_model_loading_memory_policy/">Component-wise model loading memory policy</a></td>
+<td>Memory, CLI, model loading</td>
+<td>P0</td>
+<td>Quantitative validation pending</td>
+</tr>
+<tr>
+<td>0064</td>
+<td><a href="../planned/memory/0064_generation_retention_cleanup/">Generation retention cleanup</a></td>
+<td>Memory, hidden states, stepwise output</td>
+<td>P0</td>
+<td>Quantitative validation pending</td>
+</tr>
+<tr>
+<td>0106</td>
+<td><a href="../planned/0106_bernini_full_trajectory_parity_and_release_quality/">Bernini-R 1.3B full-trajectory parity and release quality</a></td>
+<td>Bernini video, exact-input parity, cadence, visual release proof</td>
+<td>P0 release blocker</td>
+<td>Planned</td>
+</tr>
+</tbody>
+</table>
+<h2 id="proposed-ledger">Proposed ledger<a class="headerlink" href="#proposed-ledger" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Area</th>
+<th>Promotion criteria</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0004</td>
+<td><a href="../proposed/0004_bonsai_binary_1bit_runtime_support/">Bonsai binary 1-bit runtime support</a></td>
+<td>T2I, low-bit runtime</td>
+<td>Promote after ternary works and MLX 1-bit packed affine runtime support is proven or accepted by ADR.</td>
+</tr>
+<tr>
+<td>0006</td>
+<td><a href="../proposed/0006_wan_i2v_prompt_motion_validation/">Wan I2V prompt motion validation</a></td>
+<td>Video, I2V quality</td>
+<td>Promote only if planned item 0015 shows an I2V-specific motion or prompt-adherence gap that needs a separate fix.</td>
+</tr>
+<tr>
+<td>0009</td>
+<td><a href="../proposed/0009_video_second_family_selection/">Video second-family selection</a></td>
+<td>Video model roadmap</td>
+<td>Promote after Wan stabilization leaves room for the next video backend.</td>
+</tr>
+<tr>
+<td>0010</td>
+<td><a href="../proposed/0010_ltx2_conditioning_lora_spike/">LTX family conditioning and LoRA spike</a></td>
+<td>Video, LTX, LoRA</td>
+<td>Promote if the LTX family becomes the selected second video family or a local spike proves feasibility.</td>
+</tr>
+<tr>
+<td>0011</td>
+<td><a href="../proposed/0011_next_generation_image_edit_watchlist/">Next-generation image/edit watchlist</a></td>
+<td>Image/edit roadmap</td>
+<td>Promote when a watched model becomes locally cacheable, licensed, and useful enough for implementation.</td>
+</tr>
+<tr>
+<td>0038</td>
+<td><a href="../proposed/0038_bonsai_packed_lora_runtime_support/">Bonsai packed-runtime LoRA support</a></td>
+<td>Bonsai, LoRA, packed runtime architecture</td>
+<td>Promote only if MLX-Gen adopts an unpacked Bonsai LoRA route, a packed-kernel LoRA path, or a real public Bonsai-compatible adapter family.</td>
+</tr>
+<tr>
+<td>0039</td>
+<td><a href="../proposed/0039_wan_vace_video_editing_and_control/">Wan VACE video editing and control</a></td>
+<td>Video editing, Wan, VACE</td>
+<td>Promote after current Wan parity work settles and one official Wan VACE or Wan video-to-video route is selected for bounded smoke validation.</td>
+</tr>
+<tr>
+<td>0041</td>
+<td><a href="../proposed/0041_lightx2v_wan_distilled_model_loader_support/">LightX2V Wan distilled-model loader support</a></td>
+<td>Video, Wan, LightX2V, native distilled checkpoints</td>
+<td>Promote after completed item 0040 and one exact distilled A14B file set is audited deeply enough to size the scheduler-plus-loader delta.</td>
+</tr>
+<tr>
+<td>0044</td>
+<td><a href="../proposed/0044_hunyuanvideo15_second_family_spike/">HunyuanVideo-1.5 second-family spike</a></td>
+<td>Video, HunyuanVideo, second-family selection</td>
+<td>Promote after a bounded upstream Diffusers smoke and a license/value comparison against Wan, SeedVR2, and LTX.</td>
+</tr>
+<tr>
+<td>0045</td>
+<td><a href="../proposed/0045_zimage_controlnet_followup/">Z-Image ControlNet follow-up</a></td>
+<td>Image edit, Z-Image, ControlNet</td>
+<td>Promote after completed item 0043 is accepted as the native-inpaint baseline and one public ControlNet weight family is audited cleanly.</td>
+</tr>
+<tr>
+<td>0048</td>
+<td><a href="../proposed/0048_seedvr2_enlarged_video_safe_profile_certification/">SeedVR2 enlarged-video safe-profile certification</a></td>
+<td>Video restoration, SeedVR2, validation</td>
+<td>Promote after the accepted <code>0.18.20</code> proof bundle is stable, completed item 0046 is no longer the blocking follow-up, and there is a concrete reason to revisit the safe enlarged-video boundary.</td>
+</tr>
+<tr>
+<td>0049</td>
+<td><a href="../proposed/0049_boogu_image_family_support/">Boogu image family support</a></td>
+<td>Image model roadmap, Boogu, text rendering, editing</td>
+<td>Promote only if independent evidence or repeatable local proof shows a meaningful win over current Qwen/Z-Image/FLUX routes and the non-fp8 Boogu path looks credible on Apple Silicon.</td>
+</tr>
+<tr>
+<td>0050</td>
+<td><a href="../proposed/0050_krea2_turbo_integration/">Krea 2 Turbo integration</a></td>
+<td>Image model roadmap, Krea 2, licensing, fast text-to-image</td>
+<td>Promote only if MLX-Gen explicitly accepts the restrictive Krea license class and a bounded upstream smoke shows clear value over current fast image routes.</td>
+</tr>
+<tr>
+<td>0058</td>
+<td><a href="../proposed/0058_model_profile_registry_authority/">Model profile registry authority</a></td>
+<td>Architecture, model identity, defaults, loader policy</td>
+<td>Promote after an ADR spike proves one lightweight registry can own model family identity/defaults without import-cycle or startup-cost regressions.</td>
+</tr>
+<tr>
+<td>0065</td>
+<td><a href="../proposed/0065_componentwise_weight_streaming_migration/">Component-wise weight streaming migration</a></td>
+<td>Memory, startup, weight loading</td>
+<td>Promote when profiling shows startup peak remains a practical blocker after remaining item 0063, or when one specific family needs the reduction for a supported profile.</td>
+</tr>
+<tr>
+<td>0075</td>
+<td><a href="../proposed/0075_wan_vace_conditioning_expansion_after_plain_video_to_video/">Wan VACE conditioning expansion after plain video-to-video</a></td>
+<td>Video editing, Wan, richer conditioning</td>
+<td>Promote only after the plain public <code>video-to-video</code> route is shipped or strongly proven and a new exact VACE proof beats the bounded July 3 <code>1.3B</code> MPS results.</td>
+</tr>
+<tr>
+<td>0088</td>
+<td><a href="../proposed/0088_import_graph_diet/">Import-graph diet for cold CLI dispatch</a></td>
+<td>Startup latency, packaging, embedding hosts</td>
+<td>Promote when an embedding host measurably depends on cold-dispatch latency; capability probes keep paying today.</td>
+</tr>
+<tr>
+<td>0089</td>
+<td><a href="../proposed/0089_wan_memory_defaults/">Wan memory defaults: streamed decode, per-item transformer release</a></td>
+<td>Video, memory, defaults</td>
+<td>Promote when A14B batch usage is real or a smaller-RAM user reports pressure; needs the AGENTS.md whole-process RSS harness.</td>
+</tr>
+<tr>
+<td>0090</td>
+<td><a href="../proposed/0090_step_loop_performance_experiments/">Step-loop performance experiments (batched CFG, Wan compile, step caching)</a></td>
+<td>Performance, step loop, quality gates</td>
+<td>Promote per-experiment once a reproducible benchmark harness exists and quality-mode workloads are demonstrated.</td>
+</tr>
+<tr>
+<td>0092</td>
+<td><a href="../proposed/0092_mflux_to_mlxgen_module_rename/">Rename the Python module from <code>mflux</code> to <code>mlxgen</code></a></td>
+<td>Packaging, public API naming, embedding hosts</td>
+<td>Promote when a release window can absorb the breaking import path (with shim), an ADR fixes the deprecation policy, and the 0.25-track wave has shipped.</td>
+</tr>
+<tr>
+<td>0096</td>
+<td><a href="../proposed/0096_outpaint_capability_expansion/">Outpaint capability expansion beyond Qwen edit and Klein Base</a></td>
+<td>Image edit, outpaint, capability registry, embedding hosts</td>
+<td>Owner-requested (2026-07-23): survey which families can truthfully outpaint (existing mask routes + source-locked denoising math); evidence-gated per ADR 0001.</td>
+</tr>
+<tr>
+<td>0100</td>
+<td><a href="../proposed/0100_wan_vace_identity_anchor_recipe/">VACE identity-anchor recipe documentation</a></td>
+<td>Wan VACE, subject reference, draft/repair tier</td>
+<td>Conditional: decide after 0097's A/B (supersession gate); recipe is wireable today with no code changes.</td>
+</tr>
+<tr>
+<td>0102</td>
+<td><a href="../proposed/0102_wan_context_frame_head_conditioning/">Wan A14B i2v multi-frame context head conditioning</a></td>
+<td>Wan video, storyboard continue seams, momentum carry</td>
+<td>Implemented 2026-07-27 (EXPERIMENTAL, unreleased): <code>--context-frames</code>/<code>--context-noise</code> extend the i2v conditioned head to K in {5,9,13} frames (the 0097 non-goal, now gated per the BlackPixel frame-consistency blueprint); zero-shot probe measured momentum carry (K=5 seam magnitude ratio 0.90 vs single-frame 1.90) with a mild boundary flare; capabilities <code>schema_version</code> 6 adds <code>supports_context_frames</code>.</td>
+</tr>
+<tr>
+<td>0103</td>
+<td><a href="../proposed/0103_wan_svi_pro_conditioning/">Wan A14B i2v SVI 2.0 Pro conditioning</a></td>
+<td>Wan video, storyboard chains, identity anchor + latent motion handover</td>
+<td>Implemented 2026-07-27 (EXPERIMENTAL, unreleased): <code>--svi-anchor-image</code>/<code>--svi-motion-latent</code>/<code>--svi-lora-high</code>/<code>--svi-lora-low</code> port Stable Video Infinity 2.0 Pro chain conditioning (<code>[anchor, motion latent, zero-latents]</code> + error-recycling LoRA pair under a strict <code>unmatched_key_count == 0</code> contract, 800/800 verified) to the A14B i2v route per the BlackPixel consistency-redo doctrine (mechanism 4, probe-gated); capabilities <code>schema_version</code> 7 adds <code>supports_svi</code>.</td>
+</tr>
+<tr>
+<td>0104</td>
+<td><a href="../proposed/0104_minimax_h3_joint_audio_video_watch/">MiniMax H3 joint audio-video license-blocked watch</a></td>
+<td>Joint audio-video generation, licensing, new artifact contract</td>
+<td>Promote only after the EU license gate clears, stable official upstream semantics exist, a target-Mac resource envelope is credible, and a generated joint audio-video contract ADR is accepted.</td>
+</tr>
+<tr>
+<td>0108</td>
+<td><a href="../proposed/0108_bernini_selective_8bit_package/">Bernini-R 1.3B selective 8-bit package</a></td>
+<td>Bernini, quantization, published packages</td>
+<td>Promote after a selective q8 policy passes the step-0 tensor probe, same-seed reduced comparison, and full-profile contact-sheet gates against the BF16 baseline.</td>
+</tr>
+<tr>
+<td>0109</td>
+<td><a href="../proposed/0109_bernini_task_type_cli_exposure/">Bernini task-type and guidance-mode CLI exposure</a></td>
+<td>Bernini, CLI surface</td>
+<td>Promote when the mv2v structure-changing recipe should be CLI-reachable; low risk, surfaces existing runtime parameters.</td>
+</tr>
+<tr>
+<td>0110</td>
+<td><a href="../proposed/0110_bernini_promotion_policy_decision/">Bernini-R 1.3B promotion policy decision</a></td>
+<td>Bernini, release policy, ADR</td>
+<td>Promote when the team is ready to decide the tuned-recipe promotion standard; requires an ADR and reconciling backlog 0106.</td>
+</tr>
+<tr>
+<td>0111</td>
+<td><a href="../proposed/0111_qwen_image_edit_instruction_scope_leakage/">Qwen image edit instruction-scope leakage</a></td>
+<td>Image editing, quality investigation</td>
+<td>Promote after a controlled reproduction measures off-target change and splits model behavior from implementation drift.</td>
+</tr>
+<tr>
+<td>## Completed ledger</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Area</th>
+<th>Completed</th>
+<th>Outcome</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0003</td>
+<td><a href="../completed/0003_bonsai_ternary_flux2_support/">Bonsai ternary FLUX.2 support</a></td>
+<td>T2I, FLUX.2, low-bit packed MLX</td>
+<td>2026-05-27</td>
+<td>Added Bonsai ternary 2-bit routing, packed transformer loading, q4 Qwen3 text-encoder loading, binary 1-bit runtime gating, docs, and local quality/speed validation against FLUX.2 Klein 4B q8.</td>
+</tr>
+<tr>
+<td>0007</td>
+<td><a href="../completed/0007_lora_capability_matrix_and_strict_application/">LoRA capability matrix and strict application</a></td>
+<td>LoRA, routing, validation</td>
+<td>2026-06-22</td>
+<td>Finished the route-level LoRA contract, strict loader/runtime rejection path, exact validation-profile surfacing, and current production-supported Qwen/Z-Image/FLUX.2/ERNIE/Wan proof rows.</td>
+</tr>
+<tr>
+<td>0008</td>
+<td><a href="../completed/0008_qwen_edit_parity_expansion/">Qwen edit parity expansion</a></td>
+<td>Qwen edit, inpaint, structured control</td>
+<td>2026-06-22</td>
+<td>Completed the current production-grade Qwen surface: route matrix, masked edit, structured control, base control-inpaint, and exact 2511 multi-reference/reframe/outpaint route proofs.</td>
+</tr>
+<tr>
+<td>0012</td>
+<td><a href="../completed/0012_wan_a14b_t2v_i2v_support/">Wan2.2 A14B T2V/I2V support</a></td>
+<td>Video, Wan A14B, Diffusers parity</td>
+<td>2026-05-31</td>
+<td>Added T2V-A14B and I2V-A14B configs, dynamic two-transformer loading, Wan2.1-style VAE support, boundary routing, optional <code>--guidance-2</code>, fail-closed model identity checks, docs, tests, and MP4 smoke validation.</td>
+</tr>
+<tr>
+<td>0014</td>
+<td><a href="../completed/0014_shared_progress_callbacks/">Shared progress callbacks for image and video pipelines</a></td>
+<td>Callbacks, Python API, image/video progress</td>
+<td>2026-06-03</td>
+<td>Added one shared <code>ProgressEvent</code>, image progress subscriptions, Wan shared step-based progress events, CLI denoise-step progress, docs, and focused tests.</td>
+</tr>
+<tr>
+<td>0016</td>
+<td><a href="../completed/0016_wan_video_integrity_release_gate/">Wan video integrity release gate</a></td>
+<td>Video, numerical integrity, release validation</td>
+<td>2026-06-06</td>
+<td>Added fail-closed decoded-frame/video-health gates, saved-video health metadata, Wan failure diagnostics, diagnostic opt-in behavior, and targeted T2V/I2V A14B q8 release-validation artifacts.</td>
+</tr>
+<tr>
+<td>0018</td>
+<td><a href="../completed/0018_taskless_generation_routing/">Taskless generation routing</a></td>
+<td>Routing, Python API, task validation</td>
+<td>2026-06-04</td>
+<td>Added public task inference, taskless T2I/I2I/T2V/I2V routing, FLUX.2 single-image I2I behavior, Wan A14B early fixed-task validation, generated-card/doc updates, and focused validation.</td>
+</tr>
+<tr>
+<td>0020</td>
+<td><a href="../completed/0020_generation_capability_contract/">Generation capability contract and route planning</a></td>
+<td>Routing, Python API, capabilities, I2I modes</td>
+<td>2026-06-04</td>
+<td>Added typed generation capabilities, public generation plans, <code>mlxgen capabilities</code>, <code>--i2i-mode</code>, metadata-aware route planning, local-path base-model hints, early option rejection, edit/I2I progress labeling, docs, and focused validation.</td>
+</tr>
+<tr>
+<td>0021</td>
+<td><a href="../completed/0021_wan_i2v_source_aspect_ratio/">Wan I2V source aspect-ratio preservation</a></td>
+<td>Video, I2V, geometry</td>
+<td>2026-06-04</td>
+<td>Wan image-to-video now resolves output dimensions from the source image ratio and model spatial multiples before conditioning, records requested/source/resolved dimensions in metadata, and has TI2V-5B plus A14B local proof outputs.</td>
+</tr>
+<tr>
+<td>0022</td>
+<td><a href="../completed/0022_i2i_source_aspect_ratio_policy/">I2I source aspect-ratio policy</a></td>
+<td>Image routing, I2I geometry, Python API</td>
+<td>2026-06-04</td>
+<td>Ordinary latent, edit/reference, and multi-reference I2I now default to source-aspect canvas resolution, expose canvas policy in capabilities and metadata, retain explicit exact-resize, and have focused tests plus a post-fix I2I compatibility matrix.</td>
+</tr>
+<tr>
+<td>0023</td>
+<td><a href="../completed/0023_i2i_capability_validation_matrix/">I2I capability validation matrix</a></td>
+<td>Image routing, I2I validation, release gate</td>
+<td>2026-06-05</td>
+<td>Produced a historical installed-model I2I proof matrix, but a 2026-06-05 correction report marks the matrix insufficient as comparable complex-edit proof; completed items 0025 and 0026 supersede it for standardized release validation.</td>
+</tr>
+<tr>
+<td>0025</td>
+<td><a href="../completed/0025_standardized_i2i_sequence_validation/">Standardized I2I sequence validation</a></td>
+<td>Image routing, I2I validation, release proof</td>
+<td>2026-06-05</td>
+<td>Ran a fixed source/prompt/seed 30-row matrix: FLUX.2 Klein q4/q8 passed all applicable steps; Qwen Edit 2511 4-bit failed complex crash/composition; Qwen Edit 2511 8-bit passed crash but not full composition; Qwen Image 2512 latent lost spaceship identity; Z-Image Turbo and ERNIE Turbo passed latent cinematic rows.</td>
+</tr>
+<tr>
+<td>0026</td>
+<td><a href="../completed/0026_edit_model_prepared_capability_contact_sheets/">Edit model prepared-package capability contact sheets</a></td>
+<td>Image edit, q8 validation, contact sheets</td>
+<td>2026-06-05</td>
+<td>Rebuilt source-handle and per-variant proof matrices: FLUX.2 Klein 4B/9B source/q8/q4 passed; Qwen Edit 2509 source/q8 passed and q4 is partial on multi-reference; the Qwen Edit 2511 rows were superseded by completed item 0029; FIBO Edit source validation failed and remains unsupported through unified generation.</td>
+</tr>
+<tr>
+<td>0028</td>
+<td><a href="../completed/0028_release_validation_registry/">Release validation registry for I2I evidence</a></td>
+<td>Image routing, validation API, release evidence</td>
+<td>2026-06-05</td>
+<td>Added route-separated release-validation metadata, public Python lookup helpers, <code>mlxgen validation</code>, clearer capabilities wording, exact-command manifest coverage for q4 matrix rows, and regenerated the legacy summary contact sheet as the clear 5x4 matrix.</td>
+</tr>
+<tr>
+<td>0029</td>
+<td><a href="../completed/0029_qwen_image_edit_2511_base_parity/">Qwen Image Edit 2511 base parity</a></td>
+<td>Image edit, Qwen 2511, Diffusers parity</td>
+<td>2026-06-06</td>
+<td>Fixed Qwen FlowMatch dynamic-shift scheduler parity and validated Qwen Image Edit 2511 source/q8/q4 on the focused pencil, crash, and multi-reference composition profile.</td>
+</tr>
+<tr>
+<td>0030</td>
+<td><a href="../completed/0030_seedvr2_upscale_smoke_and_metadata/">SeedVR2 upscale smoke, metadata, and quality defaults</a></td>
+<td>Upscale, SeedVR2, metadata</td>
+<td>2026-06-07</td>
+<td>Validated the SeedVR2 3B q8 upscaler on a small real image, fixed non-16-multiple output metadata, defaulted SeedVR2 to untiled VAE processing for image quality, added <code>--vae-tiling</code>, and added fast regression tests for final output dimensions, source-image metadata, and CLI routing.</td>
+</tr>
+<tr>
+<td>0031</td>
+<td><a href="../completed/0031_seedvr2_official_bytedance_checkpoint_support/">SeedVR2 official ByteDance checkpoint support</a></td>
+<td>Upscale, SeedVR2, official checkpoints</td>
+<td>2026-06-07</td>
+<td>Added direct official <code>ByteDance-Seed/SeedVR2-3B</code> and <code>ByteDance-Seed/SeedVR2-7B</code> <code>.pth</code> loading, switched SeedVR2 aliases to official sources, added q8/q4 <code>mlxgen prepare</code> support, generated reusable package cards, and validated source/q8/q4 5x upscale profiles.</td>
+</tr>
+<tr>
+<td>0032</td>
+<td><a href="../completed/0032_seedvr2_video_restoration_upscaling/">SeedVR2 video restoration and upscaling</a></td>
+<td>Video restoration, upscale, SeedVR2</td>
+<td>2026-06-21</td>
+<td>Added bounded and streamed <code>--video-path</code> restore under <code>mlxgen upscale</code>, official temporal clip handling, source-FPS preservation, explicit host-safe video guardrails, accepted June 21 five-second <code>1x 29/8</code> and <code>2x 29/8</code> proof bundles, and the release-quality visual validation surface that item 0046 then completed with audio copy-through.</td>
+</tr>
+<tr>
+<td>0046</td>
+<td><a href="../completed/0046_seedvr2_video_audio_copythrough/">SeedVR2 video audio copy-through</a></td>
+<td>Video restoration, audio, remux</td>
+<td>2026-06-21</td>
+<td>Added shared post-write audio copy-through for SeedVR2 video restore, made source-audio preservation the default saved-output contract with explicit <code>--drop-audio</code> opt-out, kept fail-closed metadata, and published a real-source Air France <code>25s–35s</code> proof bundle.</td>
+</tr>
+<tr>
+<td>0043</td>
+<td><a href="../completed/0043_zimage_native_inpaint/">Z-Image native inpaint</a></td>
+<td>Image edit, Z-Image, mask-based inpaint</td>
+<td>2026-06-21</td>
+<td>Added exact <code>z-image.inpaint</code> routing on <code>AbstractFramework/z-image-turbo-8bit</code>, fail-closed <code>--mask-path</code> validation, native latent-mask blending, and an accepted same-prompt same-seed engine-thruster proof against the old latent route.</td>
+</tr>
+<tr>
+<td>0033</td>
+<td><a href="../completed/0033_video_lora_for_t2v_i2v/">Video LoRA support for T2V and I2V</a></td>
+<td>Video, LoRA, Wan2.2</td>
+<td>2026-06-11</td>
+<td>Added Wan-specific LoRA mapping and explicit role routing, then validated all current Wan q8 public rows with model-backed A/B artifacts: TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, and I2V-A14B first-frame image-to-video.</td>
+</tr>
+<tr>
+<td>0040</td>
+<td><a href="../completed/0040_lightx2v_wan_4step_acceleration_profiles/">LightX2V Wan 4-step acceleration profiles</a></td>
+<td>Video, Wan, LightX2V, fast-path validation</td>
+<td>2026-06-12</td>
+<td>Validated the explicit LightX2V Lightning 4-step A14B fast path on q8 T2V and I2V with same-seed no-LoRA vs paired-LoRA A/B contact sheets, route-level validation profiles, and documented exact commands using <code>steps=4</code>, <code>flow_shift=5.0</code>, <code>guidance=1.0</code>, and <code>guidance_2=1.0</code>.</td>
+</tr>
+<tr>
+<td>0042</td>
+<td><a href="../completed/0042_github_actions_node24_migration/">GitHub Actions Node 24 migration</a></td>
+<td>CI, release automation, GitHub Actions</td>
+<td>2026-06-14</td>
+<td>Finished the Node 24 cleanup by replacing <code>softprops/action-gh-release@v2</code> with a GitHub CLI release step, validating PR checks and a non-publishing release rehearsal, and preserving the final PR as a reusable migration example.</td>
+</tr>
+<tr>
+<td>0037</td>
+<td><a href="../completed/0037_ernie_image_turbo_lora_runtime_support/">ERNIE Image Turbo LoRA runtime support</a></td>
+<td>ERNIE, LoRA, routing, validation</td>
+<td>2026-06-11</td>
+<td>Added ERNIE transformer LoRA mapping, public-route LoRA support, exact q8 text-to-image validation with an anime-style adapter, and kept latent img2img plus Bonsai packed-runtime work explicitly separate.</td>
+</tr>
+<tr>
+<td>0051</td>
+<td><a href="../completed/0051_safe_checkpoint_loading/">Safe Torch checkpoint loading</a></td>
+<td>Security, weights, model loading</td>
+<td>2026-06-27</td>
+<td>Switched Torch checkpoint loading to <code>weights_only=True</code>, rejected empty/mixed non-tensor payloads, preserved official SeedVR2 tensor/state-dict loading, and preserved BF16 tensors as MLX BF16.</td>
+</tr>
+<tr>
+<td>0052</td>
+<td><a href="../completed/0052_release_publish_fail_closed/">Fail closed on PyPI publish failures</a></td>
+<td>Release, PyPI, integrity</td>
+<td>2026-06-27</td>
+<td>Made local PyPI failures fatal before tag/release creation, preserved duplicate-version idempotency, added ReleaseManager coverage, and reordered GitHub Actions so PyPI succeeds before GitHub Release publication.</td>
+</tr>
+<tr>
+<td>0053</td>
+<td><a href="../completed/0053_prepare_model_class_registry_resolution/">Resolve prepare model class from model config</a></td>
+<td>Prepare, routing, model config</td>
+<td>2026-06-27</td>
+<td>Made <code>mlxgen prepare</code> select backends from resolved <code>ModelConfig</code>, covered explicit-base custom Qwen paths, and replaced the hidden Flux fallback with an explicit <code>--base-model</code> recovery error.</td>
+</tr>
+<tr>
+<td>0054</td>
+<td><a href="../completed/0054_inference_defaults_and_step_validation/">Centralize inference defaults and step validation</a></td>
+<td>Config, CLI, Python API</td>
+<td>2026-06-27</td>
+<td>Added early CLI/common-config/scheduler step validation and introduced a shared inference-step resolver used by CLI defaults, common Config, and confirmed direct-API drift points.</td>
+</tr>
+<tr>
+<td>0055</td>
+<td><a href="../completed/0055_low_ram_repeat_generation_safety/">Low-RAM repeat-generation safety</a></td>
+<td>Memory, CLI, callbacks</td>
+<td>2026-06-27</td>
+<td>Added parser-level fail-closed guards for low-RAM repeat cases that would need released encoders, covering multi-seed prompt-file and FIBO-family multi-seed combinations.</td>
+</tr>
+<tr>
+<td>0056</td>
+<td><a href="../completed/0056_wan_vlm_bf16_performance_hardening/">Wan, VLM, and BF16 performance hardening</a></td>
+<td>Video, VLM, precision</td>
+<td>2026-06-27</td>
+<td>Added Wan lazy batched-save routing, moved Qwen3 top-p sampling to MLX, vectorized image-token replacement, preserved Torch BF16 as MLX BF16, and split full Wan VAE streaming proof into follow-up item 0059, now completed.</td>
+</tr>
+<tr>
+<td>0057</td>
+<td><a href="../completed/0057_package_dependency_and_dist_hygiene/">Package dependency and distribution hygiene</a></td>
+<td>Packaging, build, dependencies</td>
+<td>2026-06-27</td>
+<td>Fixed dist artifact cleanup/extraction for <code>mlx_gen-*</code>, moved <code>twine</code> to optional dev/release extras, refreshed the lockfile, and verified <code>make build</code> against actual artifacts.</td>
+</tr>
+<tr>
+<td>0059</td>
+<td><a href="../completed/0059_wan_vae_streaming_memory_measurement/">Wan VAE streaming and memory measurement</a></td>
+<td>Video, Wan, memory, measurement</td>
+<td>2026-06-27</td>
+<td>Completed real eager-versus-streamed Wan TI2V validation: median MLX peak fell 29.1%, metadata physical footprint fell 68.9%, saved MP4 output was exact, and startup peak remains tracked separately by 0063/0065.</td>
+</tr>
+<tr>
+<td>0060</td>
+<td><a href="../completed/0060_runtime_memory_telemetry_and_manifests/">Runtime memory telemetry and manifests</a></td>
+<td>Memory, telemetry, manifests</td>
+<td>2026-06-28</td>
+<td>Completed real Z-Image telemetry-overhead validation: exact image parity, sampled RSS overhead +0.0019%, sampled Darwin physical-footprint overhead +0.3370%, wall overhead +1.0814%, and metadata physical footprint agreed with parent sampling.</td>
+</tr>
+<tr>
+<td>0061</td>
+<td><a href="../completed/0061_prompt_materialization_for_low_ram_release/">Prompt materialization for low-RAM release</a></td>
+<td>Memory, prompt encoders, low-RAM</td>
+<td>2026-06-28</td>
+<td>Completed real Flux2 and ERNIE prompt-materialization validation with exact image parity; peak sampled RSS fell 7.25% for ERNIE and 2.17% for Flux2, while MLX peak stayed effectively flat.</td>
+</tr>
+<tr>
+<td>0066</td>
+<td><a href="../completed/0066_image_finalization_memory_peak_and_metadata_rewrite/">Image finalization memory peak and metadata rewrite</a></td>
+<td>Memory, image finalization, metadata embedding</td>
+<td>2026-06-30</td>
+<td>Completed the default-save contract rewrite: default image save is now one-pass and metadata-light, embedded metadata remains opt-in and preserves EXIF/XMP/IPTC, and the dedicated <code>4096x4096</code> save-phase probe measured peak sampled RSS <code>-51.2316%</code> and peak Darwin physical footprint <code>-54.1496%</code> versus the legacy three-pass simulation.</td>
+</tr>
+<tr>
+<td>0067</td>
+<td><a href="../completed/0067_progress_event_contract_hardening/">Progress event contract hardening</a></td>
+<td>Progress, callbacks, image/video task semantics</td>
+<td>2026-06-29</td>
+<td>Fixed task labeling and terminal progress semantics across masked image routes and SeedVR2 image/video restore so subscribers only see <code>complete</code> after artifact-ready success.</td>
+</tr>
+<tr>
+<td>0068</td>
+<td><a href="../completed/0068_qwen_control_route_hardening/">Qwen control route hardening</a></td>
+<td>Qwen, control-inpaint, prompt contract</td>
+<td>2026-06-29</td>
+<td>Fixed the public base-Qwen control and control-inpaint no-LoRA crash, preserved base-Qwen blank-negative behavior, and refreshed the one-at-a-time control-inpaint proof.</td>
+</tr>
+<tr>
+<td>0069</td>
+<td><a href="../completed/0069_zimage_cfg_and_inpaint_repair/">Z-Image CFG and inpaint repair</a></td>
+<td>Z-Image, CFG, native inpaint quality</td>
+<td>2026-06-29</td>
+<td>Corrected Z-Image CFG math, reran the native inpaint engine case on the same prompt/source/mask/seed settings, and kept the route-level quality claim tied to the documented proof row.</td>
+</tr>
+<tr>
+<td>0070</td>
+<td><a href="../completed/0070_canonical_capability_identity_for_variant_routes/">Canonical capability identity for variant routes</a></td>
+<td>Routing, capabilities, model identity</td>
+<td>2026-06-29</td>
+<td>Hardened capability and route identity so spoofed local/custom names and remote-looking prepared ids cannot unlock unsupported Qwen, Z-Image, FLUX.2 base, or FIBO variant-sensitive routes.</td>
+</tr>
+<tr>
+<td>0071</td>
+<td><a href="../completed/0071_python_runtime_serial_multi_output_reuse/">Python runtime serial multi-output reuse</a></td>
+<td>Python API, runtime loading, multi-output execution</td>
+<td>2026-06-30</td>
+<td>Added route-resolved Python runtime loading plus <code>generate_output(...)</code> / <code>generate_outputs(...)</code>, overwrite-safe save handling, and published reuse-vs-reload validation across Qwen masked edit, FLUX.2 multi-reference, Wan A14B I2V, and large Z-Image generation.</td>
+</tr>
+<tr>
+<td>0072</td>
+<td><a href="../completed/0072_reader_first_video_workflow_boundary_and_generative_video_edit_contract/">Reader-first video workflow boundary and generative video-edit contract</a></td>
+<td>CLI help, docs, ADR alignment, validation discovery</td>
+<td>2026-07-03</td>
+<td>Aligned the current video workflow boundary across CLI help, docs, ADR 0006, and backlog sequencing so future source-video editing starts from a truthful public surface instead of hidden or ambiguous terminology.</td>
+</tr>
+<tr>
+<td>0073</td>
+<td><a href="../completed/0073_wan_vace_reference_validation_harness_and_bounded_source_cases/">Wan VACE reference validation harness and bounded source cases</a></td>
+<td>Video editing, Wan VACE, reference proof, memory</td>
+<td>2026-07-03</td>
+<td>Added a repeatable upstream VACE probe with preserved artifacts and memory metrics, then proved that the bounded <code>Wan2.1-VACE-1.3B</code> MPS path runs locally but did not meet a release-quality visual bar on the portrait and ship cases.</td>
+</tr>
+<tr>
+<td>0074</td>
+<td><a href="../completed/0074_wan_plain_generative_video_to_video_route/">Wan plain generative video-to-video route</a></td>
+<td>Video editing, public task surface, Wan runtime</td>
+<td>2026-07-03</td>
+<td>Shipped the bounded public Wan <code>video-to-video</code> route on <code>Wan2.2-T2V-A14B</code>, kept non-V2V Wan rows fail-closed, required <code>unipc</code> on the public V2V surface, aligned source-video conditioning with float32 warm-start prep, and preserved a model-backed ship-edit proof bundle.</td>
+</tr>
+<tr>
+<td>0076</td>
+<td><a href="../completed/0076_wan_masked_video_to_video_latent_compositing/">Wan masked video-to-video via latent compositing</a></td>
+<td>Video editing, masked conditioning, Wan runtime, planner roles</td>
+<td>2026-07-04</td>
+<td>Shipped <code>--video-mask-path</code> masked video-to-video on the existing A14B route with per-step latent plus UniPC-state compositing, exact background preservation at the measured H.264 floor (drift 1.7 vs 14.9 unmasked), typed planner role, replayable metadata, and an in-repo conference proof bundle.</td>
+</tr>
+<tr>
+<td>0077</td>
+<td><a href="../completed/0077_wan_v2v_fps_resampling_and_audio_copy_through/">Wan V2V fps resampling and audio copy-through</a></td>
+<td>Video editing, fps timeline, audio</td>
+<td>2026-07-05</td>
+<td>Made Wan A14B video-to-video resample the source onto the requested fps timeline at real-time speed and copy source audio onto the output best-effort, with a published conference proof bundle and documented contract.</td>
+</tr>
+<tr>
+<td>0078</td>
+<td><a href="../completed/0078_router_descriptors_wan_decomposition_mask_util_schema_version/">Router descriptors, Wan decomposition phase 1, MaskUtil, metadata schema version</a></td>
+<td>Router contract, Wan structure, masks, metadata</td>
+<td>2026-07-05</td>
+<td>Replaced ad-hoc router forwarding with a descriptor table locked by round-trip tests (fixing dropped <code>--debug</code>, late strength validation, and broken completions), started Wan runtime decomposition, centralized user-mask loading in <code>MaskUtil</code>, and introduced <code>metadata_schema_version</code> 1.</td>
+</tr>
+<tr>
+<td>0079</td>
+<td><a href="../completed/0079_wan_v2v_motion_fidelity_ladder/">Wan V2V motion-fidelity ladder and control run</a></td>
+<td>Video editing, motion preservation, measured docs</td>
+<td>2026-07-05</td>
+<td>Measured the strength-vs-gesture-preservation trade-off (r 0.86-0.90 at strength 0.5-0.6 vs 0.20 at the 0.8 default) with a paired Lightning control run, published the proof mirror, and documented a motion-preserving restyle recipe.</td>
+</tr>
+<tr>
+<td>0080</td>
+<td><a href="../completed/0080_wan_vace_1_3b_native_port/">Wan2.1-VACE-1.3B native MLX port</a></td>
+<td>Video editing, VACE conditioning, Wan2.1</td>
+<td>2026-07-06</td>
+<td>Shipped <code>wan-vace</code> reference-image object injection and learned masked source-video editing, parity-proven stage-by-stage against the diffusers reference, with controlled capability proofs and a committed validation mirror.</td>
+</tr>
+<tr>
+<td>0083</td>
+<td><a href="../completed/0083_bug_declared_cli_option_coverage_failure_diagnostics/">Bug: --failure-diagnostics advertised as common</a></td>
+<td>CLI help contract, router</td>
+<td>2026-07-15 (resolved pre-0.19.0)</td>
+<td>Root-level 2026-06-30 bug report moved into the backlog; the router help now scopes the flag to Wan routes, docs state the boundary, and a focused test pins the scoped help text.</td>
+</tr>
+<tr>
+<td>0084</td>
+<td><a href="../completed/0084_bug_image_finalization_memory_contract/">Bug: image finalization memory spike</a></td>
+<td>Memory, image save path</td>
+<td>2026-07-15 (resolved 2026-06-30)</td>
+<td>Root-level bug report moved into the backlog; authoritative completion record is item 0066 (one-pass metadata-light default save, measured -51%/-54% save-phase peaks).</td>
+</tr>
+<tr>
+<td>0085</td>
+<td><a href="../completed/0085_bug_machine_readable_cli_runtime_contract/">Bug: machine-readable CLI runtime contract</a></td>
+<td>CLI events, embedding apps</td>
+<td>2026-07-15 (resolved in 0.19.0)</td>
+<td>Root-level bug report moved into the backlog; <code>--json-events</code> shipped the JSONL runtime stream with authoritative identity, artifact-ready terminal semantics, diagnostics paths, and documented schema.</td>
+</tr>
+<tr>
+<td>0086</td>
+<td><a href="../completed/0086_wan_umt5_prompt_embed_cache/">Wan UMT5 prompt-embed residency and disk cache</a></td>
+<td>Video, memory, prompt encoding, embedding hosts</td>
+<td>2026-07-23 (released in 0.24.0)</td>
+<td>Exact on-disk prompt-embed cache (default on, LRU-bounded, torch-free hits), opt-in resident UMT5 encoder, and <code>model_kwargs</code> passthrough; smoke evidence recorded in 0091 (cache-hit runs bitwise identical, ~4 min miss vs ~27 s hit end to end).</td>
+</tr>
+<tr>
+<td>0087</td>
+<td><a href="../completed/0087_video_health_check_opt_out/">Post-save video health-check opt-out for embedded hosts</a></td>
+<td>Video, save path, embedding hosts</td>
+<td>2026-07-23 (released in 0.24.0)</td>
+<td><code>--no-validate-health</code> on Wan generation and SeedVR2 video restore plus enriched <code>save</code> events (fps/width/height/total_frames/health_check); skip marker verified live in the 0091 smoke run.</td>
+</tr>
+<tr>
+<td>0091</td>
+<td><a href="../completed/0091_release_0_24_0/">Release 0.24.0 (both 2026-07-22/23 waves)</a></td>
+<td>Release execution, smoke evidence</td>
+<td>2026-07-23</td>
+<td>v0.24.0 published to PyPI + GitHub Release from <code>2b496bf</code> (workflow 29977218806); ships 0086/0087 AND the geometry/perf wave (resize_mode, Wan canvas-policy, import diet, streamed decode, bf16 condition, RoPE cache); full smoke evidence incl. same-env bitwise output identity vs 0.23.1.</td>
+</tr>
+<tr>
+<td>0093</td>
+<td><a href="../completed/0093_weight_prefetch_at_load/">Sequential weight prefetch at model load</a></td>
+<td>Cold-start latency, weight loading, embedding hosts</td>
+<td>2026-07-25 (released in 0.25.0)</td>
+<td>HF-repo weight files are sequentially prefetched into the OS page cache before first use (measured mechanism: page-cold random access ran ~12x faster after a 0.9 s sequential prefetch, bytes identical); prepared MLX-Gen packages deliberately excluded (measured cold-load regression); <code>mincore</code> residency skip, half-RAM guard, <code>MFLUX_NO_WEIGHT_PREFETCH=1</code> opt-out.</td>
+</tr>
+<tr>
+<td>0094</td>
+<td><a href="../completed/0094_default_mlx_cache_limit/">Default MLX buffer-cache limit for Python API and CLI</a></td>
+<td>Memory defaults, embedding hosts, system health</td>
+<td>2026-07-25 (released in 0.25.0)</td>
+<td>When no limit is set, model load applies <code>total RAM / 8</code> clamped to <code>[1, 8] GiB</code> once per process with one stderr line (previously a bare Python-API session grew the cache unbounded to a measured 32.9 GB); host-managed <code>mx.set_cache_limit</code> is detected and preserved; <code>--mlx-cache-limit-gb</code> / <code>MFLUX_MLX_CACHE_LIMIT_GB</code> / <code>-1</code> unlimited opt-out win over the default.</td>
+</tr>
+<tr>
+<td>0095</td>
+<td><a href="../completed/0095_flux2_prompt_cache_and_compile_reuse/">flux2 prompt cache and compiled-predict reuse</a></td>
+<td>Fixed per-call costs, flux2, resident hosts</td>
+<td>2026-07-25 (released in 0.25.0)</td>
+<td>The write-only flux2 <code>prompt_cache</code> is now read (bounded 8-entry LRU; identical prompts on a resident instance skip the ~1 s Qwen3 re-encode across txt2img/edit/inpaint/outpaint), and the per-call <code>mx.compile</code> of the denoise predict is cached per instance with invalidation on transformer replacement, LoRA application/bake, training preview, and low-RAM release.</td>
+</tr>
+<tr>
+<td>0097</td>
+<td><a href="../completed/0097_wan_last_image_bracket_conditioning/">Wan A14B i2v <code>last_image</code> bracket conditioning</a></td>
+<td>Wan video, chained-scene identity, embedding hosts</td>
+<td>2026-07-25 (released in 0.25.0, EXPERIMENTAL)</td>
+<td><code>--last-image</code> / <code>last_image_path</code> ports the diffusers first+last bracket exactly, fails loudly off the A14B 36-channel i2v layout, and ships the additive <code>supports_last_image</code> capability field (schema_version 4 -&gt; 5); one measured Lightning 4-step probe pair (end-frame MAE 4.6/255 vs first-frame-only 56.1, no mid-clip exposure jumps) — broader recipes remain unverified.</td>
+</tr>
+<tr>
+<td>0098</td>
+<td><a href="../completed/0098_wan_prompt_truncation_warning/">Warn on silent UMT5 prompt truncation</a></td>
+<td>Wan video, prompt contract truthfulness</td>
+<td>2026-07-25 (released in 0.25.0)</td>
+<td>Wan encoding measures real token counts, prints one stderr warning per truncated prompt naming the counts, and records <code>prompt_tokens</code>/<code>prompt_truncated</code> (plus the negative-prompt pair when CFG encodes it) in metadata; the 0101 smoke exercised the rewritten path end to end with bitwise-identical output.</td>
+</tr>
+<tr>
+<td>0099</td>
+<td><a href="../completed/0099_wan_step_distill_scheduler_mode/">Wan step-distill scheduler mode (<code>denoising_step_list</code>)</a></td>
+<td>Wan video, sampling parity, drift-vs-cost</td>
+<td>2026-07-25 (released in 0.25.0)</td>
+<td><code>--denoising-step-list</code> runs exact distill timestep grids on both unipc and euler solvers, mutually exclusive with <code>--steps</code>/<code>--flow-shift</code>, rejected on video-to-video and VACE, recorded in metadata and replayed by <code>--config-from-metadata</code>; the grid-honest Lightning-vs-base chain A/B stays open in the item (loader question stays in 0041).</td>
+</tr>
+<tr>
+<td>0101</td>
+<td><a href="../completed/0101_release_0_25_0/">Release 0.25.0 (performance + Wan consistency waves)</a></td>
+<td>Release execution, smoke evidence</td>
+<td>2026-07-25</td>
+<td>v0.25.0 published to PyPI + GitHub Release from <code>2452f0c</code> (workflow 30162410505; first attempt hit a transient PyPI-probe network reset, green on rerun); ships 0093-0095 + 0097-0099; same-seed TI2V-5B raw-YUV output bitwise identical to 0.24.0 under identical locked deps (both runs <code>--no-prompt-cache</code>).</td>
+</tr>
+<tr>
+<td>0081</td>
+<td><a href="../completed/0081_flux2_klein_masked_edit/">FLUX.2 Klein masked edit / inpaint</a></td>
+<td>Image edit, FLUX.2 Klein, mask-based inpaint</td>
+<td>2026-07-15</td>
+<td>Ported the diffusers <code>Flux2KleinInpaintPipeline</code> semantics onto the Klein family: new <code>flux2.inpaint</code> capability with per-step source compositing and clean-source conditioning tokens, torch-parity bilinear mask downsampling, optional masked-area reference images on the backend/Python surface, adversarial review, and local q8 smoke proofs (published visual-QA rows remain follow-up).</td>
+</tr>
+<tr>
+<td>0082</td>
+<td><a href="../completed/0082_masked_edit_expansion_qwen_zimage/">Masked edit expansion: native base-Qwen and Z-Image non-turbo</a></td>
+<td>Image edit, Qwen base, Z-Image, mask routing</td>
+<td>2026-07-15</td>
+<td>Shipped native <code>qwen.base-inpaint</code> (diffusers <code>QwenImageInpaintPipeline</code> port, internal 0.85 warm start, <code>effective_steps</code> metadata, one masked route per row) and non-turbo <code>z-image.inpaint</code>, plan-time maskless rejection, the canonical <code>docs/masked-editing.md</code> page, and a published visual-smoke proof bundle with preservation measurements.</td>
+</tr>
+<tr>
+<td>0105</td>
+<td><a href="../completed/0105_bernini_r_1_3b_renderer_integration/">Bernini-R 1.3B renderer integration</a></td>
+<td>Video generation/editing, reference roles, factored sources, proof</td>
+<td>2026-08-04</td>
+<td>Shipped the exact BF16 renderer-only R2V/RV2V/V2V runtime and factored-source contracts. Post-completion audit withdrew the quality claim: every required visual row fails, the registry is <code>FAIL</code>, and item 0106 owns the blocking trajectory/quality work.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="deprecated-ledger">Deprecated ledger<a class="headerlink" href="#deprecated-ledger" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Deprecated</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0047</td>
+<td><a href="../deprecated/0047_seedvr2_7b_quality_and_safe_video_scale_revalidation/">SeedVR2 7B quality and safe video scale revalidation</a></td>
+<td>2026-06-21</td>
+<td>Release <code>0.18.20</code> closed the bounded 7B quality revalidation through completed item 0032; the only remaining question was split into proposed item 0048.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="recurrent-ledger">Recurrent ledger<a class="headerlink" href="#recurrent-ledger" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Item</th>
+<th>Area</th>
+<th>Cadence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0017</td>
+<td><a href="../recurrent/0017_backlog_release_hygiene/">Backlog release-state hygiene</a></td>
+<td>Backlog, release state, follow-up triage</td>
+<td>After each release, large validation run, or priority-changing item move.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="process">Process<a class="headerlink" href="#process" title="Permanent link">&para;</a></h2>
+<ul>
+<li>New backlog items must use a unique four-digit global prefix.</li>
+<li>Planned items need current code reality, scope, non-goals, validation, and ADR status.</li>
+<li>New model routes must follow <a href="../../adr/0001_runtime_smoke_validation_for_model_routes/">ADR 0001</a>:
+  do not mark support as working or release-ready without a model-backed smoke command and output
+  evidence, or an intentional unsupported-state failure.</li>
+<li>Model, backend, architecture, task, and quantization resolution must follow
+  <a href="../../adr/0002_no_silent_automatic_fallbacks/">ADR 0002</a>: ambiguous or unsupported requests fail
+  closed unless fallback behavior is explicitly requested by the caller.</li>
+<li>When implementation completes, move the item to <code>docs/backlog/completed/</code> and append completion
+  evidence instead of deleting the planning history.</li>
+<li>If a backlog item establishes lasting architecture policy, create or update an ADR before
+  closure.</li>
+</ul>
+<h2 id="planning-notes">Planning notes<a class="headerlink" href="#planning-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Completed 2026-08-04 Bernini-R 1.3B after five architecture, parity, framework, model-backed,
+  and closure cycles with two adversarial reviewers. The accepted claim is renderer-only BF16 at
+  bounded profiles: 9.45 GB maximum measured physical footprint on the 128 GB host, 18.36 GiB cold
+  selective-download preflight including headroom, and explicit retained quality limitations.</li>
+<li>Added 2026-08-03 MiniMax H3 license-blocked watch item after re-reading the formal license and
+  MiniMax's own Q&amp;A. The public grant excludes the EU, UK, United States, and Republic of Korea;
+  public repository access does not authorize local execution in France. If amended terms or
+  written permission clear that gate, start with a bounded FL2VA parity and resource spike before
+  considering the separate Ref2VA route or any public generated-audio contract.</li>
+<li>Created the backlog system on 2026-05-25 while triaging local and online model integration
+  candidates for MLX-Gen and AbstractVision.</li>
+<li>Refined the model roadmap on 2026-05-25 after checking Hugging Face model sizes, licenses,
+  local cache state, and current T2I/I2I/T2V/I2V popularity.</li>
+<li>Added 2026-05-25 AbstractFramework publication audit note: checked Qwen, FLUX.2 Klein/Base,
+  Z-Image, and Z-Image-Turbo q4/q8 repos are complete; future work should automate this audit.</li>
+<li>Added 2026-05-25 collection follow-up: several q8 and non-turbo Z-Image repos still need to be
+  added to the Hugging Face <code>AbstractFramework / mlx-gen</code> collection once collection write
+  permission is available.</li>
+<li>Added 2026-06-25 Krea watch item: <code>krea/Krea-2-Turbo</code> looks technically feasible enough for a
+  future MLX spike, but its custom Krea 2 Community License is materially restrictive
+  (revenue-capped, revocable, redistribution-constrained), so the item stays proposed and low
+  priority.</li>
+<li>Added 2026-06-27 code-only audit hardening band after two adversarial subagents confirmed the
+  unsafe Torch checkpoint loader, fail-open local release path, prepare class/config split, step
+  validation/default drift, low-RAM repeat-generation hazard, Wan/VLM/BF16 performance issues, and
+  package hygiene follow-ups.</li>
+<li>Added 2026-05-25 ERNIE follow-up: ERNIE Image Turbo text-to-image support exists with BF16,
+  q8, q4, and optional Prompt Enhancer validation; remaining work is parity coverage and
+  non-turbo ERNIE-Image.</li>
+<li>Added 2026-05-26 Wan follow-up: initial Wan2.2 TI2V text-to-video and first-frame
+  image-to-video support exists with MP4 output, focused tests, and opt-in full-model parity
+  fixtures for the Wan transformer, VAE encoder/decoder, prompt embeddings, scheduler replay, and
+  a tiny latent-only CFG denoise loop; remaining work is decoded-video quality validation,
+  quantized validation, cancellation APIs, and broader full-generation Diffusers parity. Shared
+  progress callbacks were completed later in item 0014.</li>
+<li>Added 2026-05-27 Wan focused item: fixed the q8 prepare blocker caused by unconditional LoRA
+  kwargs, prepared and smoke-tested a q8 Wan folder locally, analyzed the user's three 121-frame
+  videos for motion, and split remaining q8 quality/q4 policy work into planned item 0002.</li>
+<li>Added 2026-05-27 Wan q8 note: a same-settings 704x384, 25-frame, 12-step comparison found q8
+  visually close to BF16/source but slower in that smoke run; peak runtime memory was not captured.</li>
+<li>Added 2026-05-27 Bonsai planning split: ternary 2-bit is planned as a FLUX.2-compatible packed
+  loader; binary 1-bit is proposed/deferred because the local MLX runtime did not support the
+  required 1-bit packed affine matmul probe.</li>
+<li>Added 2026-05-27 Wan performance item: q8 prepared output was visually close in the short
+  comparison but took 217.4s versus 95.48s for source BF16, so a dedicated timing/memory
+  investigation now tracks that abnormal slowdown.</li>
+<li>Added 2026-06-04 TI2V-5B clean memory clarification: upstream stores FP32 transformer/VAE plus a
+  BF16 text encoder, while MLX-Gen loads transformer/VAE weights at BF16 runtime precision.
+  Prepared BF16 reduces storage/download size but not runtime memory; mixed q8/BF16 reduces storage
+  and MLX model/allocator footprint but did not reduce full-process physical peak in the 1280x704
+  clean profile.</li>
+<li>Added 2026-06-04 Wan memory-metric cleanup: docs now distinguish storage, Wan MLX model bytes,
+  MLX active-after-generation bytes, full-process physical footprint, max RSS, and MLX allocator
+  peak. Low-RAM mode now requests transformer-block cache boundaries in addition to step/decode
+  cleanup.</li>
+<li>Added 2026-06-04 Wan memory-profile correction: TI2V-5B <code>~103 GiB</code> physical peaks are historical
+  1280x704 normal-cache validation rows and are not comparable to the A14B 384px-class low-RAM
+  table as model-size evidence. A14B metric JSONs are now tracked under
+  <code>docs/assets/quantization/wan-a14b-lowram/</code>. Runtime cleanup was tightened with explicit CFG
+  prediction materialization, VAE temporal-slice cache clearing, and indexed prepared-shard loading.</li>
+<li>Added 2026-06-09 Wan TI2V-5B parity follow-up: M5 Max practical clips now favor A14B at
+  <code>480x240</code>, 25 steps, 101 frames, and 20 fps over TI2V-5B at <code>832x480</code> and <code>1280x704</code> for the
+  starship-takeoff prompt. Planned item 0035 tracks a source-model math and behavior comparison
+  against official Wan plus local Diffusers/Transformers before drawing model-quality conclusions.</li>
+<li>Added 2026-06-10 FLUX.2 Klein base validation follow-up: source-model base <code>4B/9B</code> now have
+  cropped-starship text/edit/strict-outpaint proof and a source-only validation profile. Planned
+  item 0036 keeps prepared base q8/q4 starship proof separate until those package rows are
+  actually generated and reviewed.</li>
+<li>Added 2026-06-12 Qwen and Wan expansion follow-up: promoted Qwen structured control/inpaint
+  work into planned item 0008, added Wan VACE as proposed item 0039, split LightX2V fast-video
+  work into planned item 0040 for LoRA-based 4-step A14B acceleration and proposed item 0041 for
+  native distilled-model loader support.</li>
+<li>Added 2026-06-15 opportunity refresh: updated the video-roadmap proposals to track the current
+  LTX family rather than only older LTX-2.3 framing, refreshed the image-edit watchlist with
+  Step1X-Edit, JoyAI, OmniGen2, and current HiDream/FLUX Kontext reality, tightened Wan VACE to
+  stay VACE-scoped despite newer Wan Animate/S2V releases, and added item 0043 for native
+  Z-Image inpaint.</li>
+<li>Added 2026-06-21 post-0.18.20 SeedVR2 hygiene: promoted item 0046 to active implementation
+  because the shipped restore route already had explicit accepted proof and the audio gap was the
+  next concrete delivery task; deprecated mixed-scope item 0047 because the bounded 7B-quality
+  revalidation was complete; and added proposed item 0048 for the narrower question of whether
+  enlarged SeedVR2 video should ever become a safe documented public profile.</li>
+<li>Added 2026-06-21 Boogu watch follow-up: created proposed item 0049 after a focused public-source
+  audit found Boogu interesting for bilingual text rendering and unified generation/editing, but
+  still too early and too custom to outrank the active Qwen, Z-Image, and Wan work.</li>
+<li>Added 2026-06-21 audio-copy closure: completed item 0046 after the shared post-write SeedVR2
+  audio copy-through path, focused automated coverage, and the published Air France <code>25s–35s</code>
+  proof bundle landed.</li>
+<li>Added 2026-06-12 post-0.18.17 hygiene: the release succeeded, LightX2V/Wan proof assets and
+  public LoRA docs were refreshed, and planned item 0042 now tracks the GitHub Actions Node 20
+  deprecation warning observed in release run <code>27440684820</code> before the Node 24 default switch.</li>
+<li>Added 2026-07-25 storyboard consistency follow-ups (items 0097-0100) after
+  the three-agent cross-scene investigation of the BlackPixel storyboard film
+  (mountains washed out, ship identity lost, tone drifting cartoonish across
+  four chained Lightning i2v scenes). Source facts verified in this repo's
+  code: single-VAE-frame conditioning; negatives never encoded under
+  guidance==1.0 (both A14B experts) while still recorded in metadata;
+  silent 512-token truncation; diffusers-layout <code>last_image</code> bracket ~30
+  lines away. Fixed-seed chain A/Bs (BlackPixel side) measured a 33-token
+  world anchor keeping upper-band structure at 672 vs 62 Laplacian-variance
+  edge energy at the critical handoff, and a sharpest-of-last-24 handoff
+  frame carrying 5x sharper conditioning (149 vs 30) into the next scene.
+  Full record: BlackPixel backlog <code>proposed/storyboard_consistency_2026_07/</code>.</li>
+<li>Added 2026-07-23 i2i latency audit follow-ups (items 0093-0095) after the
+  three-agent BlackPixel image-to-image audit reconciled the owner's
+  minutes-per-image report: the flux2 path itself was healthy (no Wan-style
+  per-prompt TE reload; the Klein Qwen3 TE loads once and stays resident),
+  but page-cold lazy-mmap fault-in cost ~100 s of a 165 s cold q8 run
+  (0093), the MLX buffer cache grew unbounded to 32.9 GB in two Python-API
+  generations (0094), and flux2's prompt_cache is written but never read
+  while 4-seed host clicks re-encode the same prompt 4x (0095). Measured
+  verification: 54.1 s/step at the owner's real 944x1680 edit geometry with
+  two rank-64 LoRAs (q8, idle machine), vs the 10.5 s/step 1024x768 no-LoRA
+  baseline — LoRA wrappers add runtime matmuls per step (not load-time
+  fusion), bounded 1.4-2.3x pending a clean isolation run.</li>
+<li>Completed 2026-06-12 GitHub Actions Node 24 migration: PR <code>#4</code> upgraded the affected actions,
+  release rehearsal <code>27443742691</code> passed without the earlier Node 20 deprecation warnings, and PR
+  CI run <code>27443720109</code> exposed only pre-existing repository lint drift unrelated to the migration.</li>
+<li>Added 2026-06-13 follow-up: release <code>0.18.18</code> still emitted one Node 20 warning from
+  <code>softprops/action-gh-release@v2</code>, so item 0042 was reopened and narrowed to a final GitHub
+  Release publication cleanup pass using the <code>gh</code> CLI as the reusable migration strategy.</li>
+<li>Completed 2026-06-14 GitHub Actions Node 24 migration follow-up: PR <code>#6</code> replaced
+  <code>softprops/action-gh-release@v2</code> with a <code>gh release create</code> / <code>gh release upload --clobber</code>
+  step, PR checks passed, and release rehearsal <code>27464789730</code> succeeded on the branch.</li>
+<li>Completed 2026-05-27 Bonsai ternary 2-bit support: <code>mlxgen generate</code> can run
+  <code>prism-ml/bonsai-image-ternary-4B-mlx-2bit</code> directly, binary 1-bit now fails with an explicit
+  unsupported-runtime message, and a local validation panel compares Bonsai ternary with FLUX.2
+  Klein 4B q8.</li>
+<li>Rechecked 2026-05-27 stock MLX 0.31.2 for Bonsai binary 1-bit. <code>bits=1, group_size=128</code>
+  quantization still fails while 2/3/4/5/6/8 succeed, so proposed item 0004 remains deferred and
+  the Bonsai ternary release can proceed.</li>
+<li>Added 2026-05-30 Wan A14B priority item after confirming local T2V-A14B cache and then the full
+  I2V-A14B cache. A14B is tracked separately from 5B quantization because it needs two-transformer
+  boundary routing, scalar timesteps, <code>flow_shift=3.0</code>, and a Wan2.1-style VAE.</li>
+<li>Added 2026-05-30 ADR 0001 after the A14B route exposed a validation gap: new model routes now
+  require model-backed smoke proof before support or release-readiness claims. The A14B T2V route
+  has source-checkpoint MP4 smoke evidence; I2V-A14B has source-conditioned MP4 smoke evidence
+  from the complete local I2V snapshot.</li>
+<li>Added 2026-05-30 ADR 0002 after Wan model resolution exposed silent default-config fallback risk:
+  model identity, backend, architecture, task, and quantization resolution now fail closed unless a
+  caller explicitly opts into fallback behavior.</li>
+<li>Completed 2026-05-31 Wan2.2 A14B T2V/I2V initial support. Remaining Wan work is tracked in the
+  quantization, motion parity, and q8 performance items rather than in the A14B wiring item.</li>
+<li>Added 2026-06-02 Wan A14B boundary-memory item after a full-size I2V run appeared to stop at
+  <code>denoise step 6/20</code>, which maps exactly to the high-noise/low-noise denoiser boundary for
+  I2V-A14B at 20 steps.</li>
+<li>Added 2026-06-02 Wan T2V-A14B q8 validation: full q8 collapsed to near-black/static video, so
+  Wan q8 now keeps <code>condition_embedder.*</code> and <code>proj_out</code> BF16. The rebuilt
+  <code>models/wan2.2-t2v-a14b-diffusers-8bit</code> folder is about 40 GiB and passes the preserved
+  384x224, 17-frame contact-sheet check, but short-run peak RSS did not improve versus BF16.</li>
+<li>Added 2026-06-02 Wan memory/speed follow-up: component-wise prepared-q8 loading produced a
+  byte-identical sample but did not materially reduce the 19.5 GiB prepared-q8 peak RSS. The video
+  conversion path now builds PIL frames one at a time to avoid full-video NumPy temporaries, which
+  should matter most for 81/121-frame outputs.</li>
+<li>Added 2026-06-02 Wan package-level memory follow-up: RSS alone under-reported source-package
+  memory pressure. MLX peak memory for the same 384x224 A14B T2V sample was 32.99 GiB from the
+  upstream source package, 33.11 GiB from the BF16 prepared package, and 20.84 GiB from the mixed
+  q8/BF16 prepared package. The BF16 prepared output was byte-identical to source; the mixed
+  package is the first measured usage-memory reduction.</li>
+<li>Completed 2026-06-03 shared progress callbacks: image and video generation now use one
+  lightweight <code>ProgressEvent</code>, image callers can subscribe through
+  <code>model.callbacks.subscribe_progress(...)</code>, Wan still supports direct <code>progress_callback</code>, and
+  CLI video progress advances by denoising step. Focused validation passed with 11 progress-related
+  tests.</li>
+<li>Added 2026-06-04 first-class I2I mode and outpaint/reframe item after reviewing current routing
+  semantics and FLUX Fill support. Public tasks should remain media-direction based, while
+  latent img2img, edit-conditioned I2I, multi-reference I2I, inpainting, and outpainting become
+  explicit internal modes or workflow options.</li>
+<li>Added 2026-06-04 I2I source aspect-ratio item after the Wan I2V canvas policy exposed the same
+  geometry risk for ordinary image-to-image: explicit mismatched dimensions should be size targets
+  for latent/edit/multi-reference I2I, not silent source-stretch instructions.</li>
+<li>Added 2026-06-03 Wan prompt-adherence parity item after source review confirmed MLX-Gen's Wan
+  negative-prompt and A14B guidance defaults match official Wan recommended config semantics, while
+  raw Diffusers omitted-argument defaults differ. No heavy validation was run because a long Wan
+  generation was active.</li>
+<li>Added 2026-06-03 Wan video integrity release gate after a full-size T2V-A14B mixed q8/BF16 run
+  completed after about 13h15m but encoded an all-black MP4 from non-finite decoded values. The q8
+  A14B card must stay validation-sized until exact full-size integrity and quality validation passes;
+  early tensor-health checks, CLI completion semantics, default video-health save validation, and
+  failure manifests are now implemented.</li>
+<li>Ran 2026-06-04 post-release backlog hygiene after <code>mlx-gen</code> 0.18.9: promoted LoRA strictness to
+  planned work because loader-level best-effort behavior conflicts with ADR 0002 and public docs,
+  narrowed Wan A14B boundary-memory work to the remaining full-size I2V retry evidence, kept the
+  Wan video integrity gate planned for release artifacts/full-size revalidation, and added recurrent
+  backlog release-state hygiene.</li>
+<li>Completed 2026-06-04 taskless generation routing: <code>mlxgen generate</code> now infers common T2I/I2I/T2V/I2V
+  tasks from model plus image inputs, keeps <code>--task</code> as an explicit override, rejects contradictory
+  task/image shapes early, exposes public Python <code>resolve_task</code>/<code>infer_task</code>, and updates normal Wan
+  docs and generated model-card usage snippets to omit unnecessary <code>--task</code>.</li>
+<li>Added 2026-06-04 generation capability contract item after image-edit routing review showed that
+  <code>edit</code> must become an internal I2I mode, <code>--image-strength</code> must be restricted to latent img2img,
+  and apps need a public capability/plan API before launching expensive generations.</li>
+<li>Completed 2026-06-04 generation capability contract: added typed capability descriptors,
+  <code>GenerationPlan</code>, public <code>get_model_capabilities(...)</code> / <code>resolve_generation_plan(...)</code>,
+  <code>mlxgen capabilities</code>, <code>--i2i-mode</code>, metadata-aware latent route replay, local-path
+  <code>--base-model</code> handling, early option rejection, image edit progress labeling, docs, and
+  lightweight route-plan artifacts. Focused resolver/router/progress validation passed with 86
+  tests, then reviewer-driven metadata/base-model/mask/family-conflict coverage expanded the
+  focused suite to 91 passing tests.</li>
+<li>Updated 2026-06-04 pre-0.18.10 backlog release state: current code has the taskless/capability
+  planner in completed items 0018 and 0020, with docs now explicitly distinguishing latent
+  img2img, edit/reference I2I, multi-reference I2I, <code>--image-strength</code>, and Wan video size rules.
+  First-class outpaint/reframe remains planned in item 0019, and full-size Wan A14B q8 readiness
+  remains gated by item 0016 rather than claimed in this release.</li>
+<li>Added 2026-06-04 TI2V-5B clean quantization validation: source and prepared BF16 are
+  byte-identical at 1280x704, 17 frames, 20 steps with <code>--negative-prompt ""</code>; the mixed q8/BF16
+  package stays visually in-family with mean frame MAE 1.66. Public docs now link the MP4s, contact
+  sheet, and metrics. Residual Wan work remains full-duration validation, q4 policy, A14B/I2V
+  exact-setting checks, and release-gated full-size claims.</li>
+<li>Completed 2026-06-04 Wan I2V source aspect-ratio preservation: image-to-video dimensions now
+  resolve from the input image ratio before conditioning, metadata records requested/source/resolved
+  sizes, and local TI2V-5B plus A14B proof videos confirm square source images no longer stretch
+  into a requested 16:9 canvas.</li>
+<li>Completed 2026-06-04 I2I source aspect-ratio policy and follow-up compatibility hardening:
+  ordinary latent, edit/reference, and multi-reference image-to-image now use <code>source-aspect</code> by
+  default with <code>exact-resize</code> as an explicit opt-in. Base FIBO no longer exposes unvalidated I2I,
+  base Qwen Image requires explicit latent <code>--image-strength</code>, and local route tests plus a real
+  generated I2I matrix cover runnable FLUX.2, Qwen Edit, Qwen latent, Z-Image Turbo, and ERNIE
+  packages.</li>
+<li>Added 2026-06-05 I2I capability validation matrix after a partial validation sheet showed that
+  one Qwen edit crash proof failed visually and that several advertised model/mode pairs were not
+  covered in one complete evidence table. Item 0023 now gates image edit release-readiness on a
+  model, capability, source, prompt, result, and visual-status table.</li>
+<li>Corrected 2026-06-05 I2I validation state after manual review: completed item 0023 should not be
+  cited as complete complex-edit proof because Qwen hard-landing/crash behavior was not proven and
+  older rows mixed source/reference assets.</li>
+<li>Completed 2026-06-05 standardized I2I sequence validation in item 0025: all 30 commands ran
+  successfully, but visual QA found FLUX.2 Klein q4/q8 is the only tested family that passed the
+  full B/C/D/E sequence; Qwen Edit 2511 remains unreliable for complex crash composition, Qwen
+  Image 2512 latent I2I lost spaceship identity at the tested strength, and FIBO Edit was still
+  excluded at the time of that matrix pending planned item 0024.</li>
+<li>Advanced 2026-06-05 FIBO Edit repair under planned item 0024: completed item 0026 and the
+  follow-up Diffusers baseline showed that FIBO Edit did not produce acceptable images in the
+  current validation environment. Unified capability discovery now exposes no FIBO Edit route;
+  base FIBO remains text-to-image only. Planned item 0027 tracks Diffusers parity, source-route
+  visual recovery, and any future re-enablement criteria.</li>
+<li>Completed 2026-06-06 Qwen Image Edit 2511 parity: MLX-Gen now uses the model-config FlowMatch
+  dynamic-shift scheduler contract for Qwen Image/Edit, and Qwen Image Edit 2511 source/q8/q4 pass
+  the focused pencil sketch, hard-landing edit, and multi-reference composition proof profile.</li>
+<li>Completed 2026-06-07 SeedVR2 upscaler smoke: the cached 3B q8 route produced valid
+  <code>640x384</code> and <code>960x576</code> scale-factor upscales from a <code>320x192</code> source, and a <code>426x256</code>
+  target-short-edge restoration smoke. SeedVR2 now records final output dimensions and source-image
+  metadata correctly, wires the CLI <code>--metadata</code> flag to JSON sidecar export, defaults to untiled
+  VAE processing for image quality, and exposes <code>--vae-tiling</code> as an explicit memory-saving opt-in.</li>
+<li>Completed 2026-06-07 SeedVR2 official package support: <code>seedvr2</code>/<code>seedvr2-3b</code> now route to the
+  official <code>ByteDance-Seed/SeedVR2-3B</code> source model, <code>seedvr2-7b</code> routes to
+  <code>ByteDance-Seed/SeedVR2-7B</code>, <code>mlxgen prepare</code> can write reusable SeedVR2 q8/q4 packages, and the
+  source/q8/q4 5x profiles are documented with storage, timing, memory, and contact-sheet evidence.</li>
+<li>Ran 2026-06-07 backlog priority refinement after the 0.18.13 release: FIBO Edit parity and
+  unified validation remain planned but deferred, first-class outpaint/reframe is now the top
+  image-routing priority, LoRA strictness now includes task-direction capability metadata, SeedVR2
+  video restoration/upscaling was added as proposed item 0032, and T2V/I2V video LoRA was split
+  into item 0033.</li>
+<li>Refined 2026-06-07 item 0019 after the FLUX.1 support concern: initial implementation and
+  validation starts with generative reframe and canvas outpaint for FLUX.2, then Qwen Image Edit
+  2511, while Z-Image/ERNIE remain lower-confidence candidates and native fill/inpaint outpaint
+  waits for a proven fill/mask backend.</li>
+<li>Ran 2026-06-08 LoRA backlog refinement after the 0.18.14 release. Item 0007 now treats LoRA as
+  a task/mode capability, requires fail-closed runtime loading, requires strict scale counts,
+  blocks unsupported-family LoRA before model load, and separately gates <code>mlxgen prepare
+  --lora-paths</code> for q4/q8 packages. Item 0033 remains video-only work and requires explicit Wan
+  target roles plus MP4 A/B proof before each exact row is promoted.</li>
+<li>Added 2026-06-08 FLUX.2-dev multi-angle LoRA item 0034 after checking the downloaded
+  <code>lovis93/Flux-2-Multi-Angles-LoRA-v2</code> model card and local matrix shapes. The adapter targets
+  <code>black-forest-labs/FLUX.2-dev</code>, so it is not valid FLUX.2 Klein proof. Current code rejects the
+  adapter for Klein and keeps first-class FLUX.2-dev support as a separate planned item.</li>
+<li>Updated 2026-06-11 Qwen Image Edit 2509 LoRA parity under item 0007: MLX-Gen had a real 2509
+  modulation-key mapping gap for <code>img_mod.1</code> / <code>txt_mod.1</code> <code>default.weight</code> tensors, which is now
+  fixed in the Qwen LoRA mapping. The exact <code>AbstractFramework/qwen-image-edit-2509-8bit</code>
+  <code>qwen.edit</code> row is now validated with the stacked <code>lightx2v/Qwen-Image-Lightning</code> plus
+  <code>dx8152/Qwen-Edit-2509-Multiple-angles</code> path on the proper Lightning profile (<code>8</code> steps,
+  <code>guidance 1</code>).</li>
+<li>Updated 2026-06-11 original Qwen Image Edit LoRA follow-up under item 0007:
+  <code>AbstractFramework/qwen-image-edit-8bit</code> now has an accepted exact q8 single-image edit proof
+  using the local <code>ghibli_style_qwen_v3.safetensors</code> adapter. The route matches <code>1680/1680</code>
+  tensors, applies <code>840</code> targets, and is now treated as validated for <code>qwen.edit</code>.</li>
+<li>Updated 2026-06-11 Qwen Image 2512 q8 LoRA parity under item 0007: the public
+  <code>prithivMLmods/Qwen-Image-2512-Pixel-Art-LoRA</code> adapter exposed a missing
+  <code>diffusion_model.transformer_blocks.*.img_mod.1</code> / <code>txt_mod.1</code> mapping family. After fixing that
+  Qwen modulation-key gap, <code>AbstractFramework/qwen-image-2512-8bit</code> now has an exact validated
+  <code>qwen.text</code> row with a visible pixel-art A/B proof.</li>
+<li>Updated 2026-06-11 base Qwen Image q8 LoRA follow-up under item 0007: the local
+  <code>AbstractFramework/qwen-image-8bit</code> package is now complete, and the exact-base
+  <code>flymy-ai/qwen-image-realism-lora</code> adapter loads cleanly (<code>480/480</code> matched keys, <code>240</code> targets
+  applied). The later June 22 route-completion pass closed the remaining adherence gap with a
+  separate exact latent proof on the same public q8 package.</li>
+<li>Added 2026-06-22 Qwen/LoRA completion note: item 0008 now ships the first-class Qwen route
+  matrix and the production-grade Qwen route family, and item 0007 closes the remaining current
+  image LoRA gaps with accepted proof rows for base Qwen latent, Qwen 2511 multi-reference,
+  reframe, and outpaint, FLUX.2 Klein 9B multi-reference, FLUX.2 Klein base 4B outpaint, plus the
+  earlier same-day Z-Image and ERNIE latent rows. FLUX.2 latent stayed out of the public support
+  set because the observed effect was still too marginal for an honest production claim.</li>
+<li>Ran 2026-06-11 post-release backlog refinement: promoted item 0008 from proposed to planned
+  because official Qwen control/inpaint pipelines and public control weights make structured Qwen
+  control a concrete next-step inside an already-supported family, added proposed item 0039 for
+  Wan VACE video editing/control, and raised SeedVR2 video restoration from a distant idea to a
+  near-term follow-up because the official SeedVR2 models are published as video-to-video
+  restoration checkpoints.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

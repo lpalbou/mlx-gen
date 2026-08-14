@@ -1,0 +1,1697 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/completed/0040_lightx2v_wan_4step_acceleration_profiles/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Completed: LightX2V Wan 4-step acceleration profiles - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#completed-lightx2v-wan-4-step-acceleration-profiles" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Completed: LightX2V Wan 4-step acceleration profiles
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#outcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outcome
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completion-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completion report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-code-reality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current code reality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-we-want-to-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What we want to do
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-proof-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public proof targets
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Public proof targets">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#preferred-a14b-t2v-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preferred A14B T2V files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#preferred-a14b-i2v-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Preferred A14B I2V files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#secondary-compatibility-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Secondary compatibility files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-baseline-settings-to-verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested baseline settings to verify
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies-and-related-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies and related tasks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-outcomes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expected outcomes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#progress-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progress checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Guidance for the implementing agent
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completion-notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completion notes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-checked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources checked
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="completed-lightx2v-wan-4-step-acceleration-profiles">Completed: LightX2V Wan 4-step acceleration profiles<a class="headerlink" href="#completed-lightx2v-wan-4-step-acceleration-profiles" title="Permanent link">&para;</a></h1>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Created: 2026-06-12</li>
+<li>Status: Completed</li>
+<li>Completed: 2026-06-12</li>
+</ul>
+<h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Governing ADRs: <a href="../../../adr/0001_runtime_smoke_validation_for_model_routes/">ADR 0001</a>, <a href="../../../adr/0002_no_silent_automatic_fallbacks/">ADR 0002</a></li>
+<li>ADR impact: None if MLX-Gen keeps LightX2V acceleration as an explicit Wan LoRA profile with
+  exact adapter files, exact target roles, and exact inference settings instead of a silent
+  alternate default.</li>
+</ul>
+<h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">&para;</a></h2>
+<p>Completed with the bounded <code>lightx2v/Wan2.2-Lightning</code> path on current Wan A14B q8 public routes.
+MLX-Gen now has curated 4-step LightX2V proof rows for:</p>
+<ul>
+<li><code>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit</code> on <code>wan.text-video</code></li>
+<li><code>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit</code> on <code>wan.first-frame</code></li>
+</ul>
+<p>The accepted proof uses:</p>
+<ul>
+<li><code>steps=4</code></li>
+<li><code>flow_shift=5.0</code></li>
+<li><code>guidance=1.0</code></li>
+<li><code>guidance_2=1.0</code></li>
+<li>exact paired <code>high_noise_model.safetensors</code> / <code>low_noise_model.safetensors</code> files from
+  <code>lightx2v/Wan2.2-Lightning</code></li>
+</ul>
+<p>Published proof assets:</p>
+<ul>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_4step_ab_contact_sheet.jpg</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_i2v_lightx2v_4step_ab_contact_sheet.jpg</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightning_quant_progress_m5max.jpg</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_i2v_lightning_quant_progress_m5max.jpg</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_q8_vs_bf16_frame_compare.png</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_lightning_quant_stats_m5max.json</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_81f_speed_comparison.jpg</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_i2v_lightx2v_81f_speed_comparison.jpg</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_81f_step_sweep_m5max.jpg</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_480p_probe_m5max.jpg</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_resolution_sweep_m5max.jpg</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/a14b_t2v_lightx2v_resolution_sweep_m5max.json</code></li>
+<li><code>docs/assets/validation/lightx2v-wan-4step-2026-06-12/long_run_speed_stats.json</code></li>
+</ul>
+<p>The no-LoRA 4-step baselines were materially worse on both routes, which is the point of this
+profile. They are useful as same-seed LoRA-effect proofs, not as the public performance baseline.
+No general runtime default was changed. The fast path stays explicit through paired LoRAs, exact
+target roles, and exact settings.</p>
+<p>Longer-run timing evidence also now exists against the current practical original A14B profiles at
+<code>81</code> frames and <code>20</code> fps:</p>
+<ul>
+<li>T2V-A14B q8 original practical profile: <code>20</code> steps, <code>guidance=4</code>, <code>guidance_2=3</code>,
+  <code>flow_shift=3</code> -&gt; <code>1356.45s</code></li>
+<li>T2V-A14B q8 LightX2V Lightning profile: <code>4</code> steps, <code>guidance=1</code>, <code>guidance_2=1</code>,
+  <code>flow_shift=5</code> -&gt; <code>163.94s</code></li>
+<li>measured T2V speedup: <code>8.27x</code></li>
+<li>I2V-A14B q8 original practical profile: <code>20</code> steps, <code>guidance=3.5</code>, <code>guidance_2=3.5</code>,
+  <code>flow_shift=3</code> -&gt; <code>887.40s</code></li>
+<li>I2V-A14B q8 LightX2V Lightning profile: <code>4</code> steps, <code>guidance=1</code>, <code>guidance_2=1</code>,
+  <code>flow_shift=5</code> -&gt; <code>144.70s</code></li>
+<li>measured I2V speedup: <code>6.13x</code></li>
+</ul>
+<p>These numbers are important because they show what the item actually delivered: a much faster
+explicit recipe on top of the current Wan runtime, not a claim that the 4-step profile is
+universally higher quality than the original longer Wan profile.</p>
+<p>Additional compact validation on the same <code>M5 Max</code> and the same <code>41</code>-frame target now exists for
+the prepared variants and public q8 route used in the external docs:</p>
+<ul>
+<li>T2V prepared BF16 + LightX2V <code>4</code>-step: <code>87.99s</code>, <code>32.77 GiB</code> max RSS</li>
+<li>T2V prepared q8 + LightX2V <code>4</code>-step: <code>92.98s</code>, <code>13.45 GiB</code> max RSS</li>
+<li>T2V prepared q8 original <code>20</code>-step: <code>516.45s</code>, <code>13.83 GiB</code> max RSS</li>
+<li>I2V prepared q8 + LightX2V <code>4</code>-step: <code>87.88s</code>, <code>13.45 GiB</code> max RSS</li>
+<li>I2V prepared q8 original <code>20</code>-step: <code>446.17s</code>, <code>13.73 GiB</code> max RSS</li>
+</ul>
+<p>That yields practical q8 speedups of <code>5.55x</code> for T2V and <code>5.08x</code> for I2V at the smaller
+<code>41</code>-frame proof size while keeping the same prompts, same seeds, and same target resolutions.</p>
+<p>Additional T2V-only quality investigation on the same <code>M5 Max</code> also showed:</p>
+<ul>
+<li>raising the Lightning quick profile from <code>4</code> to <code>6</code> or <code>8</code> steps at <code>480x240</code> recovers some
+  detail, but it still does not match the original <code>20</code>-step practical profile</li>
+<li>a <code>832x480</code>, <code>41</code>-frame, <code>4</code>-step Lightning probe is visibly stronger than the <code>240p</code> quick
+  profile</li>
+<li>the first bad-frame issue seen later on q8 <code>1280x720</code> T2V was a real runtime precision bug, not
+  a LightX2V warm-up artifact; the decisive fix was to keep the Wan FFN LoRA target family
+  (<code>ffn.net.0</code> and <code>ffn.net.1</code>) at BF16 runtime precision alongside the already protected
+  attention-family paths, after which the q8 <code>720p</code> run started clean from frame <code>0</code> and tracked
+  the BF16 reference</li>
+</ul>
+<p>That pushes the conclusion in one clear direction: the T2V weakness is mainly a quality-envelope
+tradeoff for the ultra-fast <code>240p</code> recipe, not evidence of a loader or scheduler bug in the
+current MLX-Gen LightX2V path once the q8 FFN runtime fix is present.</p>
+<h2 id="completion-report">Completion report<a class="headerlink" href="#completion-report" title="Permanent link">&para;</a></h2>
+<p>The final higher-resolution T2V check exposed one real q8-only runtime bug on the A14B Lightning
+path. The published q8 package itself did not need to be rebuilt. The failure came from MLX-Gen's
+runtime precision policy while applying the paired LightX2V LoRAs:</p>
+<ul>
+<li>the earlier q8 runtime carve-out already kept several Wan attention-family and conditioning paths
+  at BF16 runtime precision;</li>
+<li>the LightX2V A14B LoRAs also target the Wan FFN family, specifically <code>ffn.net.0</code> and
+  <code>ffn.net.1</code>;</li>
+<li>leaving those FFN targets quantized in memory caused the <code>1280x720</code>, <code>41</code>-frame, <code>4</code>-step q8
+  T2V run to start with corrupted early frames while the BF16 route stayed clean.</li>
+</ul>
+<p>The closing repair was narrow:</p>
+<ul>
+<li>extend the Wan q8 runtime-sensitive BF16 carve-out to include <code>ffn.net.0</code> and <code>ffn.net.1</code>;</li>
+<li>keep the package on disk unchanged;</li>
+<li>validate the repair with a same-seed BF16-versus-q8 <code>720p</code> comparison using the same LightX2V
+  prompt, LoRAs, frame count, and solver.</li>
+</ul>
+<p>The repaired q8 <code>720p</code> run then started clean from frame <code>0</code> and visually tracked the BF16
+reference. The public docs only describe the supported profile and proof assets; this report keeps
+the implementation detail for future maintenance.</p>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>LightX2V has published Wan2.2 acceleration work that reduces generation to four denoising steps.
+That is strategically interesting because MLX-Gen already has working Wan routing, Wan LoRA
+support, and explicit high-noise / low-noise role selection for A14B. If the LightX2V 4-step path
+works cleanly inside the current Wan runtime, it could provide the fastest useful local video path
+in MLX-Gen without introducing a second video architecture.</p>
+<p>The important upstream split is:</p>
+<ul>
+<li><code>lightx2v/Wan2.2-Distill-Loras</code>: LoRA files extracted from the distilled models and intended to
+  run on top of the base Wan2.2 models.</li>
+<li><code>lightx2v/Wan2.2-Lightning</code>: paired high-noise / low-noise 4-step LoRAs and related packaging.</li>
+<li><code>lightx2v/Wan2.2-Distill-Models</code>: full distilled checkpoints, which are a separate loader
+  problem and should not be conflated with the LoRA-based acceleration path.</li>
+</ul>
+<p>Update 2026-06-12: the native LightX2V distill configs use a dedicated step-distill scheduler with
+an explicit <code>denoising_step_list</code> and <code>boundary_step_index</code>, not the ordinary Wan linear-step
+schedule that MLX-Gen currently exposes. That means the first exact current-runtime target should
+prefer <code>Wan2.2-Lightning</code>, while <code>Wan2.2-Distill-Loras</code> should be treated as a second-stage target
+that depends on the native distill scheduler investigation in proposed item 0041.</p>
+<h2 id="current-code-reality">Current code reality<a class="headerlink" href="#current-code-reality" title="Permanent link">&para;</a></h2>
+<ul>
+<li>MLX-Gen already supports Wan LoRA loading through <code>mlxgen generate</code> and the dedicated Wan CLI.</li>
+<li><code>src/mflux/models/wan/wan_initializer.py</code> already supports explicit <code>lora_target_roles</code>:</li>
+<li><code>transformer</code> for TI2V-5B;</li>
+<li><code>high_noise_transformer</code> / <code>low_noise_transformer</code> for A14B.</li>
+<li>Completed item <a href="../0033_video_lora_for_t2v_i2v/">0033</a> already proved Wan q8 LoRA
+  routing across all current public Wan directions.</li>
+<li><code>src/mflux/models/wan/cli/wan_generate.py</code> already exposes the key knobs that LightX2V relies
+  on: <code>--steps</code>, <code>--guidance</code>, <code>--guidance-2</code>, and <code>--flow-shift</code>.</li>
+<li>The current MLX-Gen defaults are not LightX2V defaults. MLX-Gen generally defaults to long Wan
+  runs, while the LightX2V A14B examples use <code>4</code> steps, <code>flow_shift=5.0</code>, and guidance values of
+  <code>1.0</code>.</li>
+<li>The local audit of LightX2V assets found practical A14B paired LoRAs but not a clean public
+  4-step TI2V-5B proof file set yet. The LightX2V README lineage mentions TI2V-5B, but the
+  readily usable adapter files currently center on A14B.</li>
+<li>The <code>Wan2.2-Distill-Loras</code> configs do not just set <code>steps=4</code>; they also rely on explicit
+  distill-timestep lists such as <code>[1000, 750, 500, 250]</code>. MLX-Gen's current Wan scheduler does
+  not expose that schedule directly.</li>
+<li>MLX-Gen now surfaces exact route-level LightX2V 4-step validation profiles for the current A14B
+  q8 public routes. The route capability rows now point at the accepted 2026-06-12 LightX2V proof
+  profiles rather than the earlier effect-specific A14B adapter examples.</li>
+</ul>
+<h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen can already load Wan LoRAs, but that is not the same as exposing an officially guided
+4-step acceleration profile. Users currently have to guess:</p>
+<ul>
+<li>which LightX2V repo to use;</li>
+<li>which paired files belong to T2V-A14B versus I2V-A14B;</li>
+<li>which <code>--lora-target-roles</code> are correct;</li>
+<li>whether <code>guidance</code> should stay at the normal Wan defaults or drop to <code>1.0</code>;</li>
+<li>whether <code>flow_shift</code> should stay at MLX-Gen defaults or move to <code>5.0</code>.</li>
+</ul>
+<p>Without a bounded implementation pass, users can easily get weak outputs, misapply only one A14B
+LoRA file, or assume that native distilled-model support already exists when it does not.</p>
+<h2 id="what-we-want-to-do">What we want to do<a class="headerlink" href="#what-we-want-to-do" title="Permanent link">&para;</a></h2>
+<p>Add an explicit LightX2V 4-step acceleration track on top of the current Wan runtime:</p>
+<ol>
+<li>Audit the exact public adapter files to bless as the MLX-Gen proof set.</li>
+<li>Reproduce the official 4-step A14B settings faithfully inside MLX-Gen where the current Wan
+   runtime can do so exactly.</li>
+<li>Generate model-backed A/B MP4 proofs and contact sheets for:</li>
+<li><code>Wan2.2-T2V-A14B</code></li>
+<li><code>Wan2.2-I2V-A14B</code></li>
+<li>Publish clear CLI examples, validation profiles, and capability notes so AbstractVision can
+   surface the fast path honestly.</li>
+<li>Decide whether TI2V-5B belongs in this item or should stay deferred until an exact public
+   4-step file set is audited.</li>
+</ol>
+<h2 id="why">Why<a class="headerlink" href="#why" title="Permanent link">&para;</a></h2>
+<p>This is a high-value speed feature that fits the current architecture. It is more tractable than
+native distilled-model loading and more directly useful than another round of vague video speed
+claims with no official upstream alignment.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Keep the LightX2V path explicit. No automatic step reduction, guidance changes, or role
+  assignment just because a LightX2V adapter path was passed.</li>
+<li>Treat T2V-A14B and I2V-A14B as separate validated rows with separate proof artifacts.</li>
+<li>Record exact adapter files, exact target roles, and exact settings in metadata and docs.</li>
+<li>Fail closed if only one of the paired A14B files is supplied for a profile that expects both.</li>
+<li>Do not claim TI2V-5B 4-step support unless exact public TI2V-5B LightX2V files are audited and
+  visually proven.</li>
+</ul>
+<h2 id="suggested-implementation">Suggested implementation<a class="headerlink" href="#suggested-implementation" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Choose one primary public file family:</li>
+<li>preferred first target: <code>lightx2v/Wan2.2-Lightning</code></li>
+<li>secondary exactness target, after 0041 reduces scheduler ambiguity:
+     <code>lightx2v/Wan2.2-Distill-Loras</code></li>
+<li>Add validation profiles or equivalent documented recipes for:</li>
+<li><code>A14B T2V 4-step</code></li>
+<li><code>A14B I2V 4-step</code></li>
+<li>Keep the first pass recipe-driven rather than inventing a new public <code>--distilled</code> switch.</li>
+<li>Decide after proof generation whether MLX-Gen needs stricter helper validation for paired
+   A14B files, for example a profile-aware check that both high-noise and low-noise files were
+   supplied.</li>
+<li>Keep native LightX2V distilled checkpoints out of scope for this item; track them separately.</li>
+</ol>
+<h2 id="public-proof-targets">Public proof targets<a class="headerlink" href="#public-proof-targets" title="Permanent link">&para;</a></h2>
+<h3 id="preferred-a14b-t2v-files">Preferred A14B T2V files<a class="headerlink" href="#preferred-a14b-t2v-files" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>lightx2v/Wan2.2-Lightning</code></li>
+<li><code>Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors</code></li>
+<li><code>Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors</code></li>
+</ul>
+<h3 id="preferred-a14b-i2v-files">Preferred A14B I2V files<a class="headerlink" href="#preferred-a14b-i2v-files" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>lightx2v/Wan2.2-Lightning</code></li>
+<li><code>Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/high_noise_model.safetensors</code></li>
+<li><code>Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/low_noise_model.safetensors</code></li>
+</ul>
+<h3 id="secondary-compatibility-files">Secondary compatibility files<a class="headerlink" href="#secondary-compatibility-files" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>lightx2v/Wan2.2-Distill-Loras</code></li>
+<li><code>wan2.2_t2v_A14b_high_noise_lora_rank64_lightx2v_4step_1217.safetensors</code></li>
+<li><code>wan2.2_t2v_A14b_low_noise_lora_rank64_lightx2v_4step_1217.safetensors</code></li>
+<li><code>wan2.2_i2v_A14b_high_noise_lora_rank64_lightx2v_4step_1022.safetensors</code></li>
+<li><code>wan2.2_i2v_A14b_low_noise_lora_rank64_lightx2v_4step_1022.safetensors</code></li>
+</ul>
+<h2 id="suggested-baseline-settings-to-verify">Suggested baseline settings to verify<a class="headerlink" href="#suggested-baseline-settings-to-verify" title="Permanent link">&para;</a></h2>
+<ul>
+<li>For the first exact current-runtime pass, use the Lightning-style baseline:</li>
+<li><code>steps=4</code></li>
+<li><code>flow_shift=5.0</code></li>
+<li><code>guidance=1.0</code></li>
+<li><code>guidance_2=1.0</code> for A14B</li>
+<li>same-seed A/B with and without the LoRAs</li>
+</ul>
+<p>These settings come from the current <code>Wan2.2-Lightning</code> A14B configs and should be treated as
+upstream proof targets, not MLX-Gen defaults. The <code>Wan2.2-Distill-Loras</code> family carries a
+different distill-scheduler contract and should not be treated as an exact Lightning-equivalent
+baseline until proposed item 0041 settles the scheduler question.</p>
+<h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Official LightX2V 4-step LoRA-based acceleration for current Wan A14B routes, starting with the
+  Lightning family.</li>
+<li>Contact sheets, MP4 proof assets, validation profiles, and docs.</li>
+<li>Optional small helper validation around paired A14B file usage if needed.</li>
+</ul>
+<h2 id="non-goals">Non-goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Do not add native <code>lightx2v/Wan2.2-Distill-Models</code> support here.</li>
+<li>Do not claim exact <code>Wan2.2-Distill-Loras</code> parity on the current scheduler until item 0041
+  resolves the distill-timestep contract.</li>
+<li>Do not silently override normal Wan defaults outside the explicit LightX2V profile path.</li>
+<li>Do not claim TI2V-5B 4-step support from README mentions alone.</li>
+<li>Do not broaden this item into Wan VACE, SeedVR2 restoration, or second-family video work.</li>
+</ul>
+<h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../0007_lora_capability_matrix_and_strict_application/">0007 LoRA capability matrix and strict application</a></li>
+<li><a href="0015_wan_prompt_adherence_parity_validation.md">0015 Wan prompt adherence parity validation</a></li>
+<li><a href="../0033_video_lora_for_t2v_i2v/">0033 Video LoRA support for T2V and I2V</a></li>
+<li><a href="0035_wan_ti2v5b_math_and_behavior_parity.md">0035 Wan2.2 TI2V-5B math and behavior parity</a></li>
+<li><a href="../../proposed/0041_lightx2v_wan_distilled_model_loader_support/">0041 LightX2V Wan distilled-model loader support</a></li>
+<li><code>src/mflux/models/wan/</code></li>
+</ul>
+<h2 id="expected-outcomes">Expected outcomes<a class="headerlink" href="#expected-outcomes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>One validated 4-step A14B T2V profile.</li>
+<li>One validated 4-step A14B I2V profile.</li>
+<li>Proof assets and docs that distinguish “LoRA-based 4-step acceleration” from “native distilled
+  model support”.</li>
+<li>A clear answer on whether TI2V-5B belongs in a later follow-up or has a usable public 4-step
+  path now.</li>
+</ul>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Same prompt or source image, seed, dimensions, frames, and fps across no-LoRA vs 4-step-LoRA
+  runs.</li>
+<li>MP4 outputs plus frame strips or contact sheets for T2V-A14B and I2V-A14B.</li>
+<li>Saved metadata proving the exact adapter file names, target roles, scales, step count,
+  <code>flow_shift</code>, <code>guidance</code>, and <code>guidance_2</code>.</li>
+<li>Focused tests for any new validation-profile or paired-file helper logic.</li>
+</ul>
+<h2 id="progress-checklist">Progress checklist<a class="headerlink" href="#progress-checklist" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[x] Confirm the exact LightX2V proof files to support first.</li>
+<li>[x] Validate A14B T2V 4-step on the current Wan runtime.</li>
+<li>[x] Validate A14B I2V 4-step on the current Wan runtime.</li>
+<li>[x] Decide whether a profile-aware paired-file guard is needed.</li>
+<li>[x] Document the fast-path examples and promote only the exact rows that passed.</li>
+</ul>
+<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<p>Treat this as a bounded A14B acceleration task, not a general Wan redesign. Start from the exact
+LightX2V settings, keep the role assignment explicit, and produce proof assets before discussing
+speed claims in release docs.</p>
+<h2 id="completion-notes">Completion notes<a class="headerlink" href="#completion-notes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The paired <code>Wan2.2-Lightning</code> A14B files matched <code>1200/1200</code> keys on both the high-noise and
+  low-noise transformers and applied <code>400</code> targets per file.</li>
+<li>The accepted T2V proof used a starship takeoff prompt at <code>480x240</code>, <code>41</code> frames, <code>20</code> fps,
+  requested through the q8 prepared package.</li>
+<li>The accepted I2V proof used the canonical spaceship-snow source image at requested <code>480x240</code>,
+  which resolved to <code>448x256</code> because Wan I2V preserves source aspect ratio.</li>
+<li>A general runtime “both files required” guard was not added, because ordinary Wan LoRA routing
+  remains intentionally flexible. The exact fast path is instead fail-closed by recipe, validation
+  profile, and explicit documentation.</li>
+</ul>
+<h2 id="sources-checked">Sources checked<a class="headerlink" href="#sources-checked" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>src/mflux/models/wan/wan_initializer.py</code></li>
+<li><code>src/mflux/models/wan/cli/wan_generate.py</code></li>
+<li><a href="../0033_video_lora_for_t2v_i2v/">0033 Video LoRA support for T2V and I2V</a></li>
+<li>https://huggingface.co/lightx2v/Wan2.2-Distill-Loras</li>
+<li>https://huggingface.co/lightx2v/Wan2.2-Lightning</li>
+<li>https://huggingface.co/lightx2v/Wan2.2-Distill-Models</li>
+<li>https://github.com/ModelTC/Wan2.2-Lightning</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

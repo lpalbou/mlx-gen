@@ -1,0 +1,128 @@
+{
+  "validation_date": "2026-06-04",
+  "machine": "Apple M5 Max, 128 GiB unified memory",
+  "profile": {
+    "prompt": "A short cinematic video of a glowing orange glass sphere floating above calm teal water, soft reflections, gentle camera movement",
+    "negative_prompt": "",
+    "width": 1280,
+    "height": 704,
+    "frames": 17,
+    "steps": 20,
+    "guidance": 5,
+    "fps": 24,
+    "seed": 321
+  },
+  "layouts": {
+    "base_source": {
+      "repo": "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+      "storage_gib": 31.85,
+      "mp4": "base-source.mp4",
+      "total_seconds": 216.15181183815002,
+      "generation_seconds": 215.164,
+      "physical_peak_gib": 102.67981120198965,
+      "rss_peak_gib": 13.703689575195312,
+      "resident_peak_gib": 13.702316284179688,
+      "mlx_peak_gib": 58.507674764841795,
+      "mlx_active_after_generate_gib": 10.348156608641148,
+      "mlx_cache_after_generate_gib": 0.48403943702578545,
+      "logical_model_gib": 10.62639182060957,
+      "logical_transformer_gib": 9.313806891441345,
+      "logical_vae_gib": 1.3125849291682243,
+      "model_bits": null,
+      "health": {
+        "source": "validation_outputs/ti2v_memory_profile_2026_06_04/base_source.mp4",
+        "frame_count": 17,
+        "width": 1280,
+        "height": 704,
+        "fps": 24.0,
+        "luma_min": 7.228399753570557,
+        "luma_max": 246.07899475097656,
+        "luma_mean": 174.08145500631895,
+        "mean_temporal_delta": 0.7045322582125664
+      }
+    },
+    "prepared_bf16": {
+      "repo": "AbstractFramework/wan2.2-ti2v-5b-diffusers-bf16",
+      "storage_gib": 21.22,
+      "mp4": "prepared-bf16.mp4",
+      "total_seconds": 261.56354999542236,
+      "generation_seconds": 260.648,
+      "physical_peak_gib": 102.583978459239,
+      "rss_peak_gib": 14.515884399414062,
+      "resident_peak_gib": 14.515884399414062,
+      "mlx_peak_gib": 58.472518514841795,
+      "mlx_active_after_generate_gib": 10.348156608641148,
+      "mlx_cache_after_generate_gib": 0.48403943702578545,
+      "logical_model_gib": 10.62639182060957,
+      "logical_transformer_gib": 9.313806891441345,
+      "logical_vae_gib": 1.3125849291682243,
+      "model_bits": null,
+      "health": {
+        "source": "validation_outputs/ti2v_memory_profile_2026_06_04/prepared_bf16.mp4",
+        "frame_count": 17,
+        "width": 1280,
+        "height": 704,
+        "fps": 24.0,
+        "luma_min": 7.228399753570557,
+        "luma_max": 246.07899475097656,
+        "luma_mean": 174.08145500631895,
+        "mean_temporal_delta": 0.7045322582125664
+      }
+    },
+    "mixed_q8_bf16": {
+      "repo": "AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit",
+      "storage_gib": 16.86,
+      "mp4": "mixed-q8-bf16.mp4",
+      "total_seconds": 243.38612413406372,
+      "generation_seconds": 242.664,
+      "physical_peak_gib": 103.74846588075161,
+      "rss_peak_gib": 13.800796508789062,
+      "resident_peak_gib": 13.79901123046875,
+      "mlx_peak_gib": 54.187850546091795,
+      "mlx_active_after_generate_gib": 6.063488639891148,
+      "mlx_cache_after_generate_gib": 0.48403943702578545,
+      "logical_model_gib": 6.3417238518595695,
+      "logical_transformer_gib": 5.029138922691345,
+      "logical_vae_gib": 1.3125849291682243,
+      "model_bits": 8,
+      "health": {
+        "source": "validation_outputs/ti2v_memory_profile_2026_06_04/mixed_q8_bf16.mp4",
+        "frame_count": 17,
+        "width": 1280,
+        "height": 704,
+        "fps": 24.0,
+        "luma_min": 7.866199493408203,
+        "luma_max": 246.94140625,
+        "luma_mean": 174.77739491182214,
+        "mean_temporal_delta": 0.6711972616612911
+      }
+    }
+  },
+  "comparisons": {
+    "base_vs_prepared_bf16": {
+      "frame_count": 17,
+      "byte_identical_decoded_frames": true,
+      "mean_frame_mae": 0.0,
+      "max_frame_mae": 0.0,
+      "max_abs_channel_delta": 0
+    },
+    "base_vs_mixed_q8_bf16": {
+      "frame_count": 17,
+      "byte_identical_decoded_frames": false,
+      "mean_frame_mae": 1.6606264709363858,
+      "max_frame_mae": 1.7536328864820077,
+      "max_abs_channel_delta": 133
+    },
+    "prepared_bf16_vs_mixed_q8_bf16": {
+      "frame_count": 17,
+      "byte_identical_decoded_frames": false,
+      "mean_frame_mae": 1.6606264709363858,
+      "max_frame_mae": 1.7536328864820077,
+      "max_abs_channel_delta": 133
+    }
+  },
+  "interpretation": {
+    "prepared_bf16": "Storage/download reduction only for this profile; MLX-Gen already casts upstream Wan transformer and VAE weights to BF16 at runtime.",
+    "mixed_q8_bf16": "Reduces storage, logical model bytes, active MLX bytes, and MLX allocator peak. This profile did not reduce full-process Darwin physical peak because non-model transient memory dominated the run."
+  }
+}

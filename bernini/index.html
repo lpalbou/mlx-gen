@@ -1,0 +1,1838 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/bernini/">
+      
+      
+        <link rel="prev" href="../reframe-outpaint/">
+      
+      
+        <link rel="next" href="../lora/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Bernini-R 1.3B - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#bernini-r-13b" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Bernini-R 1.3B
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Workflows
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#official-public-13b-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Official Public 1.3B Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#download-and-capacity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Download And Capacity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generate-from-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate From References
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edit-a-video-with-a-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edit A Video With A Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prompt-guided-video-editing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prompt-Guided Video Editing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defaults-and-guidance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defaults And Guidance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-specific-recipes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task-Specific Recipes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#precision-and-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision And Quantization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proof-and-known-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proof And Known Limits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Proof And Known Limits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#current-official-example-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current official-example evidence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#historical-schema-v3-bundle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Historical schema-v3 bundle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#supported-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supported Workflows
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#official-public-13b-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Official Public 1.3B Examples
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#download-and-capacity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Download And Capacity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generate-from-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate From References
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edit-a-video-with-a-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Edit A Video With A Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prompt-guided-video-editing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prompt-Guided Video Editing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defaults-and-guidance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defaults And Guidance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#task-specific-recipes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Task-Specific Recipes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#precision-and-quantization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Precision And Quantization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python-api" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proof-and-known-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proof And Known Limits
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Proof And Known Limits">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#current-official-example-evidence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current official-example evidence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#historical-schema-v3-bundle" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Historical schema-v3 bundle
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current limits
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="bernini-r-13b">Bernini-R 1.3B<a class="headerlink" href="#bernini-r-13b" title="Permanent link">&para;</a></h1>
+<p>MLX-Gen supports ByteDance's Bernini-R 1.3B renderer for reference-guided video generation and
+editing on Apple Silicon. The integration is deliberately renderer-only: it exposes the useful
+reference and source-video paths without bundling the optional Qwen2.5-VL semantic planner.</p>
+<blockquote>
+<p><strong>Experimental.</strong> Eight of the ten upstream public example rows are accepted (<code>t2i</code>, <code>i2i</code>,
+<code>t2v</code>, <code>r2v</code>, <code>rv2v_case1</code>, <code>v2v_case1</code>, <code>mv2v</code>, and <code>ads2v</code> at mid profile), each with
+committed contact-sheet proof. The two remaining rows reflect 1.3B model limits at their
+upstream default settings; both improve substantially with the tuned settings described in
+<a href="#task-specific-recipes">Task-Specific Recipes</a>. Treat this route as experimental rather than
+production-ready.</p>
+</blockquote>
+<p>Upstream public Bernini examples are broader than the currently proven mlx-gen surface. The strict
+official-example target is tracked separately in the
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-04/official_example_parity_matrix.md">official public 1.3B example parity matrix</a>.</p>
+<p>Row-by-row status, caveats, and proof sheets live in the
+<a href="#official-public-13b-examples">Official Public 1.3B Examples</a> section below; the
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-04/official_example_parity_matrix.md">official public 1.3B example parity matrix</a>
+carries the detailed evidence record, including the local official-implementation comparison
+methodology used to validate parity.</p>
+<p>Use Bernini when ordinary images should act as reusable visual references, or when a source video
+should be edited with those references. Continue using Wan VACE for learned mask/control workflows
+and Wan A14B for general text/image-to-video generation.</p>
+<h2 id="supported-workflows">Supported Workflows<a class="headerlink" href="#supported-workflows" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Inputs</th>
+<th>MLX-Gen mode</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1-8 <code>--reference-image</code> values</td>
+<td>R2V (<code>reference-video</code>)</td>
+<td>Generates a new video from ordered ordinary reference images and a prompt.</td>
+</tr>
+<tr>
+<td>One <code>--video</code> plus 1-8 references</td>
+<td>RV2V (<code>reference-video-edit</code>)</td>
+<td>Edits the source clip while using the images as appearance/content references.</td>
+</tr>
+<tr>
+<td>One <code>--video</code>, no references</td>
+<td>V2V (<code>latent-video</code>)</td>
+<td>Performs prompt-guided source-video editing or motion change.</td>
+</tr>
+</tbody>
+</table>
+<p>The renderer does not currently expose Bernini's planner, T2I/I2I convenience routes, LoRA,
+video masks, warm-start strength, first/last frame anchors, multi-frame continuation, or multiple
+source videos. Motion-changing prompts can be used on V2V, but MLX-Gen does not claim the full
+planner-driven MV2V workflow.</p>
+<p>Internally, the Bernini runtime also accepts the official upstream <code>task_type</code> values <code>t2i</code>,
+<code>i2i</code>, <code>t2v</code>, <code>r2v</code>, <code>rv2v</code>, <code>v2v</code>, <code>mv2v</code>, and <code>ads2v</code> so the public cases can be replayed
+faithfully. Those typed rows are part of the parity harness; the stable user-facing guide here
+remains focused on the documented video workflows above.</p>
+<h2 id="official-public-13b-examples">Official Public 1.3B Examples<a class="headerlink" href="#official-public-13b-examples" title="Permanent link">&para;</a></h2>
+<p>Committed proof for every upstream public example row lives in the
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/README.md">official public parity bundle</a>. The bundle
+includes a <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/official_public_summary_contact_sheet_preview.png">summary contact sheet</a>
+built from the pinned accepted-case validation runs (full profile, August 2026 official-public pass).
+Each case directory contains the <strong>full upstream prompt</strong>, GitHub-friendly preview contact sheets plus
+full-resolution input/official/mlx sheets, reproduce command, generated artifact, and metadata when
+available. Row status follows the
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-04/official_example_parity_matrix.md">official example parity matrix</a>.</p>
+<table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Upstream case</th>
+<th>Status</th>
+<th>Proof (prompt + sheets)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>t2i</code></td>
+<td><code>assets/testcases/t2i/t2i.json</code></td>
+<td>Accepted</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/t2i/README.md">t2i</a></td>
+</tr>
+<tr>
+<td><code>i2i</code></td>
+<td><code>assets/testcases/i2i/i2i.json</code></td>
+<td>Accepted (minor wall-texture caveat)</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/i2i/README.md">i2i</a></td>
+</tr>
+<tr>
+<td><code>t2v</code></td>
+<td><code>assets/testcases/t2v/t2v.json</code></td>
+<td>Accepted</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/t2v/README.md">t2v</a></td>
+</tr>
+<tr>
+<td><code>r2v</code></td>
+<td><code>assets/testcases/r2v/r2v.json</code></td>
+<td>Accepted</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/r2v/README.md">r2v</a></td>
+</tr>
+<tr>
+<td><code>rv2v_case1</code></td>
+<td><code>assets/testcases/rv2v/rv2v_case1.json</code></td>
+<td>Accepted (shirt-closure caveat)</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/rv2v_case1/README.md">rv2v_case1</a></td>
+</tr>
+<tr>
+<td><code>v2v_case1</code></td>
+<td><code>assets/testcases/v2v/v2v_case1.json</code></td>
+<td>Accepted</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/v2v_case1/README.md">v2v_case1</a></td>
+</tr>
+<tr>
+<td><code>mv2v</code></td>
+<td><code>assets/testcases/v2v/v2v_case2.json</code></td>
+<td>Accepted (three named caveats)</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/mv2v/README.md">mv2v</a></td>
+</tr>
+<tr>
+<td><code>ads2v</code></td>
+<td><code>assets/testcases/rv2v/rv2v_case2.json</code></td>
+<td>Accepted at mid profile</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/ads2v/README.md">ads2v</a></td>
+</tr>
+</tbody>
+</table>
+<p>Rows with tuned recipes (upstream default settings under-deliver at this model size; the
+<a href="#task-specific-recipes">Task-Specific Recipes</a> recover them substantially):</p>
+<table>
+<thead>
+<tr>
+<th>Row</th>
+<th>Recipe</th>
+<th>Status</th>
+<th>Proof (prompt + sheets)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>r2v_case2</code></td>
+<td>Official (<code>r2v_case2.json</code>)</td>
+<td>Partial at official recipe</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/r2v_case2_official/README.md">r2v_case2_official</a></td>
+</tr>
+<tr>
+<td><code>r2v_case2</code></td>
+<td>Tuned (<code>--reference-guidance 6.0</code>, seed 43)</td>
+<td>Substantial recovery</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/r2v_case2_tuned/README.md">r2v_case2_tuned</a></td>
+</tr>
+<tr>
+<td><code>v2v_case3</code></td>
+<td>Official (<code>v2v_case3.json</code>)</td>
+<td>Official recipe fails at 1.3B</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/v2v_case3_official/README.md">v2v_case3_official</a></td>
+</tr>
+<tr>
+<td><code>v2v_case3</code></td>
+<td>Recovery (<code>mv2v</code> task prefix, guidance 5.0)</td>
+<td>Quadruped dog outcome</td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/v2v_case3_mv2vprefix/README.md">v2v_case3_mv2vprefix</a></td>
+</tr>
+</tbody>
+</table>
+<p>The <code>r2v_case2</code> upstream prompt is 571+ UMT5 tokens and truncates to 512 on both engines. The
+<code>ads2v</code> accepted proof uses the mid profile (<code>480</code> condition cap, <code>61</code> frames, <code>24</code> fps) because
+the official <code>1280x672/121f</code> recipe is computationally intractable on the validation host for
+either implementation.</p>
+<h2 id="download-and-capacity">Download And Capacity<a class="headerlink" href="#download-and-capacity" title="Permanent link">&para;</a></h2>
+<p>Two pinned packages are available. The BF16 package is the recommended download — it ships the
+exact runtime dtypes and is 42% smaller:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b-bf16
+</code></pre></div>
+<p>This alias selects the pinned <code>AbstractFramework/bernini-r-1.3B-diffusers-bf16</code> revision
+(approximately 15.6 GiB cold). It stores the dtypes the runtime uses — BF16 text encoder and
+transformer with their FP32 keep-sets preserved, FP32 VAE — and produces bit-identical output to
+the FP32 source package at the same settings and seed (verified on image and video use cases).</p>
+<p>The FP32 source package remains available:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b
+</code></pre></div>
+<p>This alias selects only the pinned <code>ByteDance/Bernini-R-1.3B-Diffusers</code> revision (approximately
+27 GiB cold, since the upstream checkpoint ships in FP32). The main <code>ByteDance/Bernini-R</code> A14B
+repository and similarly named third-party repositories intentionally fail closed; MLX-Gen never
+rewrites them to the 1.3B renderer.</p>
+<p>Both packages preflight with 2 GiB of free-space headroom, skip sources already present at their
+pinned revisions, and execute identically at run time: text encoder and transformer in BF16 (with
+small FP32 keep-sets), VAE in FP32, so resident memory is far below the download size.</p>
+<p>On the 128 GB validation host, the bounded low-RAM profiles peaked at 9.45 GB whole-process
+physical footprint. A separate 33-frame, eight-reference 848-condition structural probe peaked at
+8.17 GB, so those tested shapes fit inside an 18 GB memory envelope. This is not a direct 18 GB
+host measurement. Capacity is separate from the official-example acceptance status above.</p>
+<h2 id="generate-from-references">Generate From References<a class="headerlink" href="#generate-from-references" title="Permanent link">&para;</a></h2>
+<p>The following commands are diagnostic bounded-profile examples. For official full-profile prompts
+and settings, use the <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/README.md">official public parity bundle</a>.</p>
+<p>Reference order is semantic. The prompt names the first image <code>image0</code>, the next <code>image1</code>, and so
+on. Keep each reference focused on the subject or property it is meant to contribute.</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reference-image<span class="w"> </span>subject.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reference-image<span class="w"> </span>garment.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Place the subject from image0 in a studio, wearing the garment from image1, slowly turning toward the camera&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">320</span><span class="w"> </span>--height<span class="w"> </span><span class="m">192</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span>--max-condition-size<span class="w"> </span><span class="m">256</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>referenced.mp4
+</code></pre></div>
+<p>The renderer supports at most eight references. If the packed conditioning stream has more than
+five source segments, source IDs are interpolated across the trained <code>[1, 5]</code> range instead of
+extrapolating beyond it. The source video counts as one segment in RV2V, so interpolation starts
+at five references plus the video; R2V starts at six references.</p>
+<h2 id="edit-a-video-with-a-reference">Edit A Video With A Reference<a class="headerlink" href="#edit-a-video-with-a-reference" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video<span class="w"> </span>source.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reference-image<span class="w"> </span>garment.jpg<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Replace the outer shirt with the garment from image0 while preserving the person, framing, background, and motion&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">176</span><span class="w"> </span>--height<span class="w"> </span><span class="m">320</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span>--max-condition-size<span class="w"> </span><span class="m">320</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>garment-edit.mp4
+</code></pre></div>
+<p>Bernini video input always uses <code>source-aspect</code> canvas resolution and resize-only conditioning.
+Matching the official renderer exactly, the source video's long edge is capped at
+<code>--max-condition-size</code> (never upscaled, snapped to multiples of 16) and that resolved size is the
+output canvas; <code>--width</code>/<code>--height</code> do not override a video-driven canvas. For source-video modes,
+<code>--frames</code> is a maximum:
+the renderer samples at the requested fps, clamps to the source duration, and returns a <code>4n+1</code>
+count no greater than the request. Read the returned <code>num_frames</code> or metadata <code>output_frames</code> for
+the actual duration. Crop, pad, exact-resize, <code>--video-strength</code>, and <code>--video-mask-path</code> are
+rejected.</p>
+<h2 id="prompt-guided-video-editing">Prompt-Guided Video Editing<a class="headerlink" href="#prompt-guided-video-editing" title="Permanent link">&para;</a></h2>
+<p>Omit references for source-only V2V:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video<span class="w"> </span>source.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Add a realistic snowman beside the path while keeping the dog, camera, and winter scene unchanged&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">320</span><span class="w"> </span>--height<span class="w"> </span><span class="m">176</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span>--max-condition-size<span class="w"> </span><span class="m">320</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>edited.mp4
+</code></pre></div>
+<h2 id="defaults-and-guidance">Defaults And Guidance<a class="headerlink" href="#defaults-and-guidance" title="Permanent link">&para;</a></h2>
+<p>The official quality defaults are 848x480, 81 frames, 16 fps, 40 steps, UniPC, and flow shift 5;
+they are not the bounded proof profile or an 18 GB-host recommendation. Reference/source inputs
+default to a maximum condition side of 848 pixels. The accepted range is 16-1280 in multiples of
+16. Prompts have a hard 512-token UMT5 budget and warn when truncated.</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Active guidance defaults</th>
+<th>Inactive options</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R2V</td>
+<td>text <code>4.0</code>, reference <code>4.5</code>, APG eta <code>0.5</code>, norm <code>50</code>, momentum <code>0</code></td>
+<td>source guidance</td>
+</tr>
+<tr>
+<td>RV2V</td>
+<td>text <code>4.0</code>, reference <code>4.5</code>, source <code>1.25</code></td>
+<td>APG controls</td>
+</tr>
+<tr>
+<td>V2V</td>
+<td>text <code>4.0</code>, APG eta <code>0.5</code>, norm <code>50</code>, momentum <code>0</code></td>
+<td>reference/source guidance</td>
+</tr>
+</tbody>
+</table>
+<p>Use <code>--reference-guidance</code>, <code>--source-guidance</code>, <code>--apg-eta</code>, <code>--apg-norm-threshold</code>, and
+<code>--apg-momentum</code> only where the table marks them active. Metadata records both active and inactive
+parameters, the selected guidance mode, reference order, condition shapes, source IDs, component
+revisions, prompt truncation, and video health.</p>
+<h2 id="task-specific-recipes">Task-Specific Recipes<a class="headerlink" href="#task-specific-recipes" title="Permanent link">&para;</a></h2>
+<p>Two tuned recipes measurably improve hard cases beyond the upstream default settings:</p>
+<ul>
+<li><strong>Many-reference property binding (R2V with 5-8 references).</strong> Raise the reference guidance and
+  try more than one seed; binding of individual reference properties is guidance- and
+  seed-sensitive at this model size:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reference-image<span class="w"> </span>...<span class="w"> </span>--prompt<span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reference-guidance<span class="w"> </span><span class="m">6</span>.0<span class="w"> </span>--seed<span class="w"> </span><span class="m">43</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">848</span><span class="w"> </span>--height<span class="w"> </span><span class="m">480</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">81</span><span class="w"> </span>--steps<span class="w"> </span><span class="m">40</span><span class="w"> </span>--output<span class="w"> </span>out.mp4
+</code></pre></div>
+<ul>
+<li><strong>Structure-changing video edits (replace or restructure the subject).</strong> Use the <code>mv2v</code> task
+  type through the Python API; its prompt conditioning explicitly licenses changing the subject's
+  pose, action, and structure, which the default <code>v2v</code> conditioning holds back:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="n">video</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">generate_video</span><span class="p">(</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Replace the humanoid robot with a four-legged robotic dog ...&quot;</span><span class="p">,</span>
+    <span class="n">video_path</span><span class="o">=</span><span class="s2">&quot;source.mp4&quot;</span><span class="p">,</span>
+    <span class="n">task_type</span><span class="o">=</span><span class="s2">&quot;mv2v&quot;</span><span class="p">,</span>
+    <span class="n">guidance</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">848</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span> <span class="n">num_frames</span><span class="o">=</span><span class="mi">81</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">max_condition_size</span><span class="o">=</span><span class="mi">848</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Worked examples of both recipes, with contact sheets, are in the
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/README.md">official public parity bundle</a>
+(<code>r2v_case2_tuned</code> and <code>v2v_case3_mv2vprefix</code>).</p>
+<h2 id="precision-and-quantization">Precision And Quantization<a class="headerlink" href="#precision-and-quantization" title="Permanent link">&para;</a></h2>
+<p>Bernini runs <strong>BF16-only</strong>; omit <code>--quantize</code>. The runtime executes the transformer and UMT5 text
+encoder in BF16 with a small FP32 keep-set for precision-sensitive transformer layers, and the VAE
+in FP32. Quantized (8-bit or 4-bit) Bernini variants are not supported: no low-bit policy has
+passed this model's numeric and visual validation gates yet, so every <code>--quantize</code> value is
+rejected rather than silently degrading output.</p>
+<h2 id="python-api">Python API<a class="headerlink" href="#python-api" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.wan.variants</span><span class="w"> </span><span class="kn">import</span> <span class="n">BerniniRenderer</span>
+
+<span class="n">renderer</span> <span class="o">=</span> <span class="n">BerniniRenderer</span><span class="p">()</span>
+<span class="n">video</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">generate_video</span><span class="p">(</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Bring the subject from image0 to life in a fixed medium shot&quot;</span><span class="p">,</span>
+    <span class="n">reference_image_paths</span><span class="o">=</span><span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;subject.png&quot;</span><span class="p">)],</span>
+    <span class="n">width</span><span class="o">=</span><span class="mi">320</span><span class="p">,</span>
+    <span class="n">height</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span>
+    <span class="n">num_frames</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
+    <span class="n">fps</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">max_condition_size</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+    <span class="n">clear_cache_each_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">clear_cache_each_transformer_block</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;referenced.mp4&quot;</span><span class="p">,</span> <span class="n">export_json_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p>The renderer stays reusable in this form. A one-shot bounded-memory host may pass
+<code>release_denoisers_before_decode=True</code>, but that releases the renderer before VAE decode; construct
+a new <code>BerniniRenderer</code> before generating another clip. The CLI enables this destructive release
+only for a single-seed low-RAM invocation.</p>
+<p>The CLI remains the recommended integration surface for isolated desktop/application jobs because
+it supplies final MP4 health validation, failure manifests, output naming, and process-level memory
+isolation.</p>
+<h2 id="proof-and-known-limits">Proof And Known Limits<a class="headerlink" href="#proof-and-known-limits" title="Permanent link">&para;</a></h2>
+<p>The implementation passes scheduler/source-ID tests, APG edge cases, focused FP32/runtime-BF16
+transformer comparisons, VAE encode/decode comparisons, and framework regression tests.</p>
+<h3 id="current-official-example-evidence">Current official-example evidence<a class="headerlink" href="#current-official-example-evidence" title="Permanent link">&para;</a></h3>
+<p>The committed
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/README.md">official public parity bundle</a> holds every
+accepted and dispositioned row with full prompts, contact sheets, and generated artifacts. Start with
+the <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/official_public_summary_contact_sheet_preview.png">summary contact sheet</a>
+for a one-page mlx-gen overview of all pinned rows. Use the
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-04/official_example_parity_matrix.md">official example parity matrix</a>
+for the row-by-row status, caveats, and oracle methodology.</p>
+<h3 id="historical-schema-v3-bundle">Historical schema-v3 bundle<a class="headerlink" href="#historical-schema-v3-bundle" title="Permanent link">&para;</a></h3>
+<p>The earlier
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-04/README.md">schema-v3 validation bundle</a> used a
+bounded 17-frame/20-step profile and is superseded by the full-profile parity bundle above for
+official-example status. It remains available through the framework validation registry:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>validation<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b
+</code></pre></div>
+<p>That command returns the <code>bernini_r_1_3b_2026_08_04</code> record with its package identity,
+route-scoped notes, upstream input references, and direct artifact paths.</p>
+<h3 id="current-limits">Current limits<a class="headerlink" href="#current-limits" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>v2v_case3</code> and <code>r2v_case2</code> need the tuned settings in
+  <a href="#task-specific-recipes">Task-Specific Recipes</a> to reach their best results; at upstream default
+  settings they under-deliver on subject restructuring and many-reference binding respectively.
+  These are 1.3B model limits, validated against the official implementation at matched settings.</li>
+<li>The <code>r2v_case2</code> upstream prompt exceeds the 512-token UMT5 budget and is truncated; MLX-Gen
+  warns when truncation happens.</li>
+<li>The full <code>1280x672/121f</code> ads2v profile exceeds what the validation host can verify; the accepted
+  proof uses the mid profile.</li>
+<li>Bernini stays experimental and fails closed in release validation until a promotion decision.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

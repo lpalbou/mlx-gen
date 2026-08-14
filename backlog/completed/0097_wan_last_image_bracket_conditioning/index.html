@@ -1,0 +1,1451 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/completed/0097_wan_last_image_bracket_conditioning/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Completed: Wan A14B i2v last_image bracket conditioning (first+last frame) - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#completed-wan-a14b-i2v-last_image-bracket-conditioning-firstlast-frame" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Completed: Wan A14B i2v last_image bracket conditioning (first+last frame)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context-investigation-provenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context (investigation provenance)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-it-might-matter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why it might matter
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#honesty-constraints-quality-gate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Honesty constraints (quality gate)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-we-want-to-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What we want to do
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies-and-related-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies and related tasks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#progress-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progress checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-record-2026-07-25-pending-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation record (2026-07-25, pending release)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quality-probe-2026-07-25-adr-0001-gate-passed-shipped-as-experimental" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quality probe (2026-07-25, ADR 0001 gate) — PASSED, shipped as EXPERIMENTAL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cycle-2-adversarial-review-2026-07-25-no-code-defects-found" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cycle-2 adversarial review (2026-07-25, no code defects found)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="completed-wan-a14b-i2v-last_image-bracket-conditioning-firstlast-frame">Completed: Wan A14B i2v <code>last_image</code> bracket conditioning (first+last frame)<a class="headerlink" href="#completed-wan-a14b-i2v-last_image-bracket-conditioning-firstlast-frame" title="Permanent link">&para;</a></h1>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Created: 2026-07-25</li>
+<li>Status: Completed (shipped as EXPERIMENTAL; quality probe PASSED, measured
+  below — one Lightning 4-step probe pair, in-distribution target; broader
+  recipes remain unverified)</li>
+<li>Completed: 2026-07-25 — released in 0.25.0 (tag <code>v0.25.0</code> from <code>2452f0c</code>,
+  workflow 30162410505 green; PyPI + GitHub Release verified); release
+  checklist and smoke evidence in <a href="../0101_release_0_25_0/">0101</a>.</li>
+<li>Effort: S (code) + A/B gate (quality evidence)</li>
+</ul>
+<h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Governing ADRs: <a href="../../../adr/0001_runtime_smoke_validation_for_model_routes/">ADR 0001</a>
+  (the route needs real-checkpoint proof before any capability row ships),
+  <a href="../../../adr/0002_no_silent_automatic_fallbacks/">ADR 0002</a> (if A14B quality
+  fails the gate, reject the flag on that route — no silent single-frame fallback).</li>
+<li>ADR impact: None until the route ships.</li>
+</ul>
+<h2 id="context-investigation-provenance">Context (investigation provenance)<a class="headerlink" href="#context-investigation-provenance" title="Permanent link">&para;</a></h2>
+<p>The 2026-07-25 three-agent storyboard consistency investigation (BlackPixel
+backlog <code>proposed/storyboard_consistency_2026_07/</code>) traced why chained
+storyboard scenes lose subject identity: each scene conditions on exactly ONE
+VAE-encoded frame (the predecessor's last frame), which is systematically the
+most degraded frame of a drifting clip. Measured on the real film chain:
+predecessor-tail Laplacian-variance sharpness collapsed 952 → 497 → 93 across
+the three handoffs, and a chain rerun reproduced the same collapse class
+(30 at the S3→S4 handoff).</p>
+<p>A verified porting fact makes a second anchor cheap: the local diffusers
+reference (<code>diffusers/pipelines/wan/pipeline_wan_i2v.py</code>,
+<code>prepare_latents</code>) implements <code>last_image</code> bracket conditioning in EXACTLY the
+tensor layout this repo already ported for single-frame i2v:</p>
+<ul>
+<li>without <code>last_image</code>: <code>video_condition = cat([image, zeros(num_frames-1)])</code>
+  — identical to <code>_build_first_frame_video_condition</code> in
+  <code>src/mflux/models/wan/variants/wan2_2_ti2v.py</code>;</li>
+<li>with <code>last_image</code>: <code>video_condition = cat([image, zeros(num_frames-2),
+  last_image])</code> and the latent mask keeps BOTH frame 0 and the final frame at
+  1 before the same temporal-scale expansion this repo already performs in
+  <code>_load_video_condition</code>.</li>
+</ul>
+<p>The delta is ~30 lines in <code>_load_video_condition</code> (accept an optional second
+image, pad with <code>num_frames-2</code> zeros, set the tail mask row) plus CLI/config
+plumbing for a <code>--last-image</code> style flag.</p>
+<h2 id="why-it-might-matter">Why it might matter<a class="headerlink" href="#why-it-might-matter" title="Permanent link">&para;</a></h2>
+<p>For chained storyboards, bracket conditioning lets a host pin a scene's END
+state (e.g. the next scene's intended start, or a clean subject reference),
+turning open-loop drift into interpolation between two anchors. It is the
+strongest identity lever that stays on the full-quality A14B path (unlike the
+VACE 1.3B reference route, see 0100).</p>
+<h2 id="honesty-constraints-quality-gate">Honesty constraints (quality gate)<a class="headerlink" href="#honesty-constraints-quality-gate" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Official first+last-frame training exists for Wan 2.1 (<code>Wan2.1-FLF2V-14B</code>);
+  Wan 2.2 A14B first+last quality is EMPIRICAL — community reports are
+  positive but this repo must gate on its own A/B before advertising it.</li>
+<li>Gate: fixed-seed pairs (single-frame vs bracketed) on the preserved
+  storyboard chain case; verdict on subject identity at the far end plus
+  mid-clip motion plausibility (bracketing can produce a "morph" if the two
+  anchors are inconsistent).</li>
+<li>If A14B fails the bar, reject <code>last_image</code> on 2.2 A14B routes with a clear
+  error naming the evidence (ADR 0002), and record the verdict here.</li>
+</ul>
+<h2 id="what-we-want-to-do">What we want to do<a class="headerlink" href="#what-we-want-to-do" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Port the bracket layout in <code>_load_video_condition</code> (optional last frame,
+   mask tail row), mirroring the diffusers reference exactly.</li>
+<li>Expose it on the Wan A14B i2v route (<code>--last-image &lt;path&gt;</code>), fail-closed on
+   variants whose conditioning layout differs (TI2V-5B <code>expand_timesteps</code>
+   path, VACE).</li>
+<li>Run the fixed-seed A/B gate on the preserved storyboard case; keep the
+   clips as the proof bundle.</li>
+<li>Ship the capability row + docs only on a pass verdict.</li>
+</ol>
+<h2 id="non-goals">Non-goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Prefix-K-frames conditioning (K&gt;1 leading frames): expressible in the same
+  function but out-of-distribution for every Wan 2.x checkpoint this repo
+  ships; SkyReels-V2-class territory. Not gated here; do not fold it in.</li>
+<li>Wan 2.1 FLF2V checkpoint integration (separate model family decision).</li>
+</ul>
+<h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
+<ul>
+<li>BlackPixel companion: <code>proposed/storyboard_consistency_2026_07/</code> (handoff
+  frame picker is the host-side half of the same failure).</li>
+<li>Related here: 0099 (step-grid scheduler parity for honest Lightning A/Bs),
+  0100 (VACE identity-anchor recipe, the draft-tier alternative).</li>
+</ul>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Layout parity: tensor-shape and mask-row assertions against the diffusers
+  reference implementation on a tiny synthetic case.</li>
+<li>Quality: the fixed-seed A/B gate above, on real checkpoints (ADR 0001).</li>
+</ul>
+<h2 id="progress-checklist">Progress checklist<a class="headerlink" href="#progress-checklist" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[x] Bracket layout ported behind an optional argument</li>
+<li>[x] Route gating (A14B i2v only; fail-closed elsewhere)</li>
+<li>[x] Fixed-seed A/B gate on the storyboard chain case (probe below)</li>
+<li>[x] Capability row + docs (shipped as EXPERIMENTAL with the probe verdict)</li>
+</ul>
+<h2 id="implementation-record-2026-07-25-pending-release">Implementation record (2026-07-25, pending release)<a class="headerlink" href="#implementation-record-2026-07-25-pending-release" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>_load_video_condition</code> ports the diffusers <code>WanImageToVideoPipeline</code>
+  <code>last_image</code> variant exactly: condition video
+  <code>[first, zeros x (num_frames - 2), last]</code> (built via <code>_build_video_condition</code>
+  with the F2/0089 precision-first discipline — the no-last path is bitwise
+  unchanged, test-pinned) and the latent mask keeps BOTH endpoint frames at 1
+  before the existing temporal-scale packing. The mask packing is
+  test-verified against a line-for-line numpy port of the diffusers reference
+  (<code>tests/wan/test_wan_last_image_bracket.py</code>).</li>
+<li>The last image maps through the SAME resolved canvas and <code>resize_mode</code> as
+  the first frame (<code>_normalized_condition_frame</code>, one geometry for both
+  anchors); the canvas itself stays derived from the FIRST image (i2v
+  source-aspect rules unchanged).</li>
+<li>Condition-cache identity: <code>_encode_video_condition</code> keys now include the
+  last-image identity <code>(path, mtime_ns, size)</code> (or None), so a bracketed
+  condition can never alias the single-frame condition of the same first
+  image, and overwriting either source file invalidates the entry.</li>
+<li>Surface: <code>generate_video(last_image_path=...)</code> on BOTH Wan variant
+  signatures (WanVace accepts and rejects explicitly — the bind-contract
+  lesson), <code>--last-image</code> CLI flag, metadata <code>last_image_path</code>,
+  <code>--config-from-metadata</code> replay, additive <code>supports_last_image</code> capability
+  field on <code>wan.first-frame</code> rows (True only for non-expand-timesteps i2v =
+  A14B i2v), failure-manifest field. Runtime start event unchanged.</li>
+<li>Fail-closed routes (ADR 0002): text-to-video and video-to-video (no
+  image_path), TI2V-5B (<code>expand_timesteps</code> — its 48-channel first-frame path
+  has no last-frame slot; the 36-channel concat path this feature rides is
+  <code>is_image_to_video and not expand_timesteps</code>, i.e. exactly I2V-A14B),
+  Wan VACE, and <code>num_frames &lt; 2</code>. CLI rejects before weight load.</li>
+</ul>
+<h2 id="quality-probe-2026-07-25-adr-0001-gate-passed-shipped-as-experimental">Quality probe (2026-07-25, ADR 0001 gate) — PASSED, shipped as EXPERIMENTAL<a class="headerlink" href="#quality-probe-2026-07-25-adr-0001-gate-passed-shipped-as-experimental" title="Permanent link">&para;</a></h2>
+<p>Fixed-seed pair on the preserved storyboard chain case (<code>/tmp/bpx_ab/</code>
+armA_s2, the film's ship scene): first anchor = frame 0, target last anchor =
+frame 48 (2.0 s of REAL future motion from the same continuous shot, so the
+target is in-distribution but non-trivial: first-vs-target MAE 43.2/255,
+gray NCC 0.475). Both runs: I2V-A14B q8, Lightning 4-step CFG-off storyboard
+recipe (<code>steps 4, guidance 1.0/1.0, flow_shift 5.0, unipc</code>, Seko-V1 rank-64
+LoRAs), 480x240, 33 frames, seed 4242, identical prompt. Artifacts + metrics
+script preserved in <code>untracked/flf_probe_2026_07_25/</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Metric (final frame vs target)</th>
+<th>baseline (first only)</th>
+<th>bracket (first+last)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>MAE (0-255)</td>
+<td>56.1</td>
+<td><strong>4.6</strong> (first-anchor reproduction floor is 3.2)</td>
+</tr>
+<tr>
+<td>PSNR</td>
+<td>11.1 dB</td>
+<td><strong>31.1 dB</strong></td>
+</tr>
+<tr>
+<td>gray NCC</td>
+<td>0.335</td>
+<td><strong>0.9948</strong></td>
+</tr>
+<tr>
+<td>final-frame Laplacian-variance sharpness</td>
+<td>55 (whiteout blur)</td>
+<td><strong>711</strong> (target: 713)</td>
+</tr>
+</tbody>
+</table>
+<p>Artifact scan (mid-clip plausibility): bracket max consecutive-frame
+brightness step 5.9 gray levels (baseline 17.5), max inter-frame MAE 11.8 at
+mid-motion (baseline 23.6), final hop 9.0 — BELOW the clip's own mid-motion
+peaks, so no terminal snap onto the anchor; brightness arc is smooth
+(112 -&gt; 152 -&gt; 132), no flashes or exposure jumps; mid-frame visual check
+clean (no ghosting/morph, ship + mountains intact). Side effect worth
+noting: the baseline run ends in the investigation's documented
+drift-to-whiteout failure (ship swallowed by blur clouds), which the bracket
+suppressed entirely in this pair.</p>
+<p>Verdict: bracket adherence VALIDATED on this probe — the clip ends at
+VAE/codec-floor distance from the requested last frame with no mid-clip
+artifacts. Honesty bounds: ONE pair, Lightning 4-step CFG-off only, target
+drawn from the same shot's real future (the favorable storyboard handoff
+case; adversarial targets — different shot, mismatched lighting — were not
+probed). The 20-step CFG-on pair was NOT run: ~10x Lightning cost per scene
+exceeded this wave's GPU budget (~2 short runs used of 4). The flag therefore
+ships as EXPERIMENTAL with these numbers quoted in docs; item 0100's
+supersession decision (VACE recipe) can now be taken against a measured
+result.</p>
+<h2 id="cycle-2-adversarial-review-2026-07-25-no-code-defects-found">Cycle-2 adversarial review (2026-07-25, no code defects found)<a class="headerlink" href="#cycle-2-adversarial-review-2026-07-25-no-code-defects-found" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Packing re-verified line-for-line against the diffusers reference
+  (<code>pipeline_wan_i2v.py</code> <code>prepare_latents</code>), including the
+  repeat-interleave/view/transpose mask packing semantics and the
+  bracket-endpoint rows; the port's extra <code>[:, :, :latent_frames]</code> slice is a
+  no-op under the enforced <code>num_frames % temporal_scale == 1</code> contract. The
+  F2 build-in-precision path is cast-commutative with the reference's
+  concat-then-cast (bitwise; zeros cast exactly).</li>
+<li>Probe audited: both sidecars share seed 4242 and every parameter except
+  <code>last_image_path</code>; the metrics script re-run reproduced every quoted
+  number exactly (MAE 4.62/56.13, NCC 0.9948/0.3354, sharpness 711.2/713.3,
+  brightness steps 5.94/17.53, final hop 8.98 vs mid-motion 11.83). Wording
+  in docs/CHANGELOG confirmed appropriately hedged (EXPERIMENTAL + bounds).</li>
+<li>Replay round-trip executed against the probe bundle's real bracket sidecar:
+  every recorded field restores exactly (seed, steps 4, flow_shift 5.0, both
+  anchors, LoRAs, quantize 8).</li>
+<li>One convention fix: <code>supports_last_image</code> shipped without the additive-field
+  capabilities <code>schema_version</code> bump the <code>supports_video_mask</code> precedent
+  established; bumped 4 -&gt; 5 (no host reads the version today — verified
+  BlackPixel never consumes it).</li>
+<li>New regression pins: condition-cache FIFO eviction order with plain +
+  bracketed pairs, and resize_mode reaching the LAST anchor through the same
+  geometry as the first frame (pad letterbox vs stretch discriminates).</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

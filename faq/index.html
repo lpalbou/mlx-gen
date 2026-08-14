@@ -1,0 +1,2848 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/faq/">
+      
+      
+        <link rel="prev" href="../architecture/">
+      
+      
+        <link rel="next" href="../troubleshooting/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>FAQ - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#faq" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              FAQ
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#where-is-the-save-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where Is The Save Command?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-the-difference-between-download-and-prepare" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is The Difference Between Download And Prepare?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-generate-prepare-a-model-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can Generate Prepare A Model Package?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-generation-download-missing-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does Generation Download Missing Files?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#is-hf_hub_enable_hf_transfer1-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Is HF_HUB_ENABLE_HF_TRANSFER=1 Required?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#which-models-should-i-start-with-on-an-18-gb-24-gb-32-gb-64-gb-or-128-gb-mac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which Models Should I Start With On An 18 GB, 24 GB, 32 GB, 64 GB, Or 128+ GB Mac?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-mlx-gen-packages-load-in-diffusers-or-transformers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can MLX-Gen Packages Load In Diffusers Or Transformers?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-use-the-official-bfl-flux2-fp8-or-nvfp4-repos-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I Use The Official BFL FLUX.2 FP8 Or NVFP4 Repos Directly?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-can-q8-show-the-same-physical-peak-as-bf16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Can q8 Show The Same Physical Peak As BF16?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-quantize-ernie-image-turbo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I Quantize ERNIE Image Turbo?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-prepare-or-quantize-bonsai-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I Prepare Or Quantize Bonsai Image?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-ernie-image-turbo-support-image-input-or-prompt-enhancer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does ERNIE Image Turbo Support Image Input Or Prompt Enhancer?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-bonsai-image-support-lora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does Bonsai Image Support LoRA?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-wan-video-support-lora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does Wan Video Support LoRA?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-treat-mlx-gen-q8-packages-like-third-party-fp8-checkpoints-for-lightning-loras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I Treat MLX-Gen q8 Packages Like Third-Party FP8 Checkpoints For Lightning LoRAs?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-i-choose-between-latent-i2i-and-image-edit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Do I Choose Between Latent I2I And Image Edit?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-i-do-masked-edit-or-inpaint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Do I Do Masked Edit Or Inpaint?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-i-use-qwen-structured-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Do I Use Qwen Structured Control?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-is-qwen-masked-edit-different-from-controlnet-inpaint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Is Qwen Masked Edit Different From ControlNet Inpaint?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#which-qwen-image-edit-model-should-i-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which Qwen Image Edit Model Should I Use?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-negative-prompts-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Do Negative Prompts Work?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#should-integrations-call-mflux-generate-commands-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Should Integrations Call mflux-generate-* Commands Directly?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-does-image-to-image-choose-output-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Does Image-To-Image Choose Output Size?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-does-seedvr2-upscale-sizing-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Does SeedVR2 Upscale Sizing Work?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-does-a-seedvr2-restored-image-show-a-fine-mesh-texture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Does A SeedVR2 Restored Image Show A Fine Mesh Texture?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-seedvr2-restore-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can SeedVR2 Restore Video?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-seedvr2-use-the-official-bytedance-checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can SeedVR2 Use The Official ByteDance Checkpoint?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-does-image-to-image-run-fewer-steps-than-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Does Image-To-Image Run Fewer Steps Than --steps?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-mlx-gen-outpaint-or-reframe-an-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can MLX-Gen Outpaint Or Reframe An Image?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-wan-video-resolutions-should-i-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Wan Video Resolutions Should I Use?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-does-a-long-image-to-video-clip-return-to-its-first-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Does A Long Image-To-Video Clip Return To Its First Frame?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-wan-support-video-to-video-editing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does Wan Support Video-To-Video Editing?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-i-change-one-thing-without-changing-anything-else-in-video-to-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Do I Change One Thing Without Changing Anything Else In Video-To-Video?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-should-i-prompt-wan-image-to-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Should I Prompt Wan Image-To-Video?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-do-some-imports-or-paths-still-say-mflux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Do Some Imports Or Paths Still Say mflux?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-does-this-relate-to-abstractvision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Does This Relate To AbstractVision?
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#where-is-the-save-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where Is The Save Command?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-is-the-difference-between-download-and-prepare" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Is The Difference Between Download And Prepare?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-generate-prepare-a-model-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can Generate Prepare A Model Package?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-generation-download-missing-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does Generation Download Missing Files?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#is-hf_hub_enable_hf_transfer1-required" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Is HF_HUB_ENABLE_HF_TRANSFER=1 Required?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#which-models-should-i-start-with-on-an-18-gb-24-gb-32-gb-64-gb-or-128-gb-mac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which Models Should I Start With On An 18 GB, 24 GB, 32 GB, 64 GB, Or 128+ GB Mac?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-mlx-gen-packages-load-in-diffusers-or-transformers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can MLX-Gen Packages Load In Diffusers Or Transformers?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-use-the-official-bfl-flux2-fp8-or-nvfp4-repos-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I Use The Official BFL FLUX.2 FP8 Or NVFP4 Repos Directly?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-can-q8-show-the-same-physical-peak-as-bf16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Can q8 Show The Same Physical Peak As BF16?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-quantize-ernie-image-turbo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I Quantize ERNIE Image Turbo?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-prepare-or-quantize-bonsai-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I Prepare Or Quantize Bonsai Image?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-ernie-image-turbo-support-image-input-or-prompt-enhancer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does ERNIE Image Turbo Support Image Input Or Prompt Enhancer?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-bonsai-image-support-lora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does Bonsai Image Support LoRA?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-wan-video-support-lora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does Wan Video Support LoRA?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-i-treat-mlx-gen-q8-packages-like-third-party-fp8-checkpoints-for-lightning-loras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can I Treat MLX-Gen q8 Packages Like Third-Party FP8 Checkpoints For Lightning LoRAs?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-i-choose-between-latent-i2i-and-image-edit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Do I Choose Between Latent I2I And Image Edit?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-i-do-masked-edit-or-inpaint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Do I Do Masked Edit Or Inpaint?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-i-use-qwen-structured-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Do I Use Qwen Structured Control?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-is-qwen-masked-edit-different-from-controlnet-inpaint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Is Qwen Masked Edit Different From ControlNet Inpaint?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#which-qwen-image-edit-model-should-i-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Which Qwen Image Edit Model Should I Use?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-negative-prompts-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Do Negative Prompts Work?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#should-integrations-call-mflux-generate-commands-directly" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Should Integrations Call mflux-generate-* Commands Directly?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-does-image-to-image-choose-output-size" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Does Image-To-Image Choose Output Size?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-does-seedvr2-upscale-sizing-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Does SeedVR2 Upscale Sizing Work?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-does-a-seedvr2-restored-image-show-a-fine-mesh-texture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Does A SeedVR2 Restored Image Show A Fine Mesh Texture?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-seedvr2-restore-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can SeedVR2 Restore Video?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-seedvr2-use-the-official-bytedance-checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can SeedVR2 Use The Official ByteDance Checkpoint?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-does-image-to-image-run-fewer-steps-than-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Does Image-To-Image Run Fewer Steps Than --steps?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-mlx-gen-outpaint-or-reframe-an-image" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can MLX-Gen Outpaint Or Reframe An Image?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-wan-video-resolutions-should-i-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Wan Video Resolutions Should I Use?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-does-a-long-image-to-video-clip-return-to-its-first-frame" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Does A Long Image-To-Video Clip Return To Its First Frame?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#does-wan-support-video-to-video-editing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does Wan Support Video-To-Video Editing?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-do-i-change-one-thing-without-changing-anything-else-in-video-to-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Do I Change One Thing Without Changing Anything Else In Video-To-Video?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-should-i-prompt-wan-image-to-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Should I Prompt Wan Image-To-Video?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-do-some-imports-or-paths-still-say-mflux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Do Some Imports Or Paths Still Say mflux?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-does-this-relate-to-abstractvision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Does This Relate To AbstractVision?
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="faq">FAQ<a class="headerlink" href="#faq" title="Permanent link">&para;</a></h1>
+<h2 id="where-is-the-save-command">Where Is The Save Command?<a class="headerlink" href="#where-is-the-save-command" title="Permanent link">&para;</a></h2>
+<p>Use <code>mlxgen prepare</code>.</p>
+<p><code>prepare</code> creates a local MLX-Gen model package: a directory with MLX-Gen weights, config files,
+and a Hugging Face <code>README.md</code> model card. Use it when you want a reusable local package or a
+quantized package made specifically for MLX-Gen.</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>Qwen/Qwen-Image<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--path<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--quantize<span class="w"> </span><span class="m">8</span>
+</code></pre></div>
+<p>New MLX-Gen integrations should not call a separate save workflow; use <code>mlxgen prepare</code>.</p>
+<h2 id="what-is-the-difference-between-download-and-prepare">What Is The Difference Between Download And Prepare?<a class="headerlink" href="#what-is-the-difference-between-download-and-prepare" title="Permanent link">&para;</a></h2>
+<p><code>mlxgen download</code> populates the local Hugging Face cache with source files. It does not create a separate MLX-Gen package and does not write a model card.</p>
+<p><code>mlxgen prepare</code> creates a reusable local MLX-Gen package at <code>--path</code>. It can quantize weights and writes a generated Hugging Face model card.</p>
+<h2 id="can-generate-prepare-a-model-package">Can Generate Prepare A Model Package?<a class="headerlink" href="#can-generate-prepare-a-model-package" title="Permanent link">&para;</a></h2>
+<p>No. <code>mlxgen generate</code> is only for inference. It does not accept <code>--path</code> for model preparation.</p>
+<p>To create a model package, use:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>black-forest-labs/FLUX.2-klein-4B<span class="w"> </span>--path<span class="w"> </span>models/flux.2-klein-4b-4bit<span class="w"> </span>--quantize<span class="w"> </span><span class="m">4</span>
+</code></pre></div>
+<p>To choose the output image path during generation, use <code>--output</code>.</p>
+<h2 id="does-generation-download-missing-files">Does Generation Download Missing Files?<a class="headerlink" href="#does-generation-download-missing-files" title="Permanent link">&para;</a></h2>
+<p>No. Generation and ordinary Python model construction use files that are already available locally. Missing artifacts raise <code>DownloadRequiredError</code> with the exact <code>mlxgen download</code> or <code>mlxgen prepare</code> command to run.</p>
+<h2 id="is-hf_hub_enable_hf_transfer1-required">Is <code>HF_HUB_ENABLE_HF_TRANSFER=1</code> Required?<a class="headerlink" href="#is-hf_hub_enable_hf_transfer1-required" title="Permanent link">&para;</a></h2>
+<p>No. It is optional acceleration for explicit Hugging Face downloads and prepare operations. <code>mlxgen download</code> and <code>mlxgen prepare</code> already authorize network access.</p>
+<h2 id="which-models-should-i-start-with-on-an-18-gb-24-gb-32-gb-64-gb-or-128-gb-mac">Which Models Should I Start With On An 18 GB, 24 GB, 32 GB, 64 GB, Or 128+ GB Mac?<a class="headerlink" href="#which-models-should-i-start-with-on-an-18-gb-24-gb-32-gb-64-gb-or-128-gb-mac" title="Permanent link">&para;</a></h2>
+<p>Use <a href="../recommendations/">Model Recommendations</a>.</p>
+<p>That page groups the current published MLX-Gen model families by unified-memory tier and uses the
+measured benchmark envelope for each recommended route. It is intentionally conservative: Wan rows
+prefer full-process physical-peak measurements when they are available, and the page does not
+promote model families whose public memory evidence is still too thin.</p>
+<p>Bernini-R 1.3B fits the tested 18 GB-class memory shapes when <code>--low-ram</code> is enabled: the bounded
+BF16 R2V/RV2V/V2V matrix peaked at 9.45 GB whole-process physical footprint on the 128 GB
+validation host. That is not a production recommendation. Every required visual-quality row
+failed because of weak motion, missed reference fidelity, cadence seams, or corrupted frames, and
+the official 81-frame profile is unmeasured. Do not confuse memory with storage: a cold selective
+Bernini download needs 18.36 GiB free including headroom, so an 18 GB fresh disk budget is also
+slightly too small.</p>
+<h2 id="can-mlx-gen-packages-load-in-diffusers-or-transformers">Can MLX-Gen Packages Load In Diffusers Or Transformers?<a class="headerlink" href="#can-mlx-gen-packages-load-in-diffusers-or-transformers" title="Permanent link">&para;</a></h2>
+<p>No. MLX-Gen packages use the MLX/mflux saved-weight layout and MLX quantization tensors. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers <code>from_pretrained()</code> loading.</p>
+<h2 id="can-i-use-the-official-bfl-flux2-fp8-or-nvfp4-repos-directly">Can I Use The Official BFL FLUX.2 FP8 Or NVFP4 Repos Directly?<a class="headerlink" href="#can-i-use-the-official-bfl-flux2-fp8-or-nvfp4-repos-directly" title="Permanent link">&para;</a></h2>
+<p>No.</p>
+<p>MLX-Gen <code>generate</code> and <code>prepare</code> flows support the standard FLUX.2 source repositories and
+MLX-Gen model packages. The official <code>black-forest-labs/FLUX.2-klein-base-*-fp8</code> and
+<code>black-forest-labs/FLUX.2-klein-base-*-nvfp4</code> repositories are not direct MLX-Gen inputs.</p>
+<p>Those repositories use a different transformer packaging format from MLX-Gen model packages, and
+the current MLX-Gen loader does not treat them as ready-to-run local models. Use the BF16 source
+repository or an MLX-Gen package today.</p>
+<h2 id="why-can-q8-show-the-same-physical-peak-as-bf16">Why Can q8 Show The Same Physical Peak As BF16?<a class="headerlink" href="#why-can-q8-show-the-same-physical-peak-as-bf16" title="Permanent link">&para;</a></h2>
+<p>For Wan specifically, since the 2026-06-12 runtime-precision fix the answer is simple: Wan q8
+packages store transformer-block linears quantized on disk but dequantize all of them to BF16 at
+load to protect output quality. At runtime a Wan q8 package therefore uses BF16-class memory
+(MLX peak and physical peak match the BF16 package); q8 saves disk and download only. Plan Wan
+memory as if running BF16.</p>
+<p>For other families where q8 stays quantized at runtime, metric definitions still matter:
+<code>Physical Peak</code> is a full-process Darwin high-water sample that includes MLX/Metal allocations,
+any PyTorch encoders, activation graphs, decode/save buffers, and native-library transients;
+<code>Max RSS</code> can under-report Apple unified-memory/Metal pressure; <code>MLX Peak</code> is only the MLX
+allocator high-water mark. A quantized model can be much smaller on disk and in loaded model
+memory while a specific profile shows a similar full-process peak because temporary activations
+or decode buffers dominate that run. See <a href="../quantization/">Quantization</a> for the current tables,
+definitions, and the dated Wan correction.</p>
+<p>Bernini is a separate exception. Its generic q4 output collapsed, and nominal q8 quantized zero
+renderer linears and produced a byte-identical BF16 video. MLX-Gen therefore rejects every
+Bernini <code>--quantize</code> value instead of reporting a misleading optimization.</p>
+<h2 id="can-i-quantize-ernie-image-turbo">Can I Quantize ERNIE Image Turbo?<a class="headerlink" href="#can-i-quantize-ernie-image-turbo" title="Permanent link">&para;</a></h2>
+<p>Yes. ERNIE Image Turbo supports MLX-Gen 8-bit and 4-bit optimized packages:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span>--path<span class="w"> </span>./models/ernie-image-turbo-8bit<span class="w"> </span>--quantize<span class="w"> </span><span class="m">8</span>
+mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span>--path<span class="w"> </span>./models/ernie-image-turbo-4bit<span class="w"> </span>--quantize<span class="w"> </span><span class="m">4</span>
+</code></pre></div>
+<p>ERNIE q4 uses a model-specific mixed q4/q8 policy. Fully q4 ERNIE checkpoints can drift from BF16/q8 behavior, so MLX-Gen keeps Mistral3 text linears plus selected ERNIE transformer attention-output and conditioning paths at q8.</p>
+<h2 id="can-i-prepare-or-quantize-bonsai-image">Can I Prepare Or Quantize Bonsai Image?<a class="headerlink" href="#can-i-prepare-or-quantize-bonsai-image" title="Permanent link">&para;</a></h2>
+<p>No. Bonsai Image repositories from Prism are already packed MLX artifacts. Use <code>download</code> and
+generate directly:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>prism-ml/bonsai-image-ternary-4B-mlx-2bit
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>prism-ml/bonsai-image-ternary-4B-mlx-2bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A bonsai tree in a quiet ceramic studio, soft morning light&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>bonsai.png
+</code></pre></div>
+<p>The ternary 2-bit checkpoint is supported. The binary 1-bit checkpoint is detected and rejected
+with an explicit unsupported-runtime message until stock MLX can execute the required 1-bit packed
+affine matmul. The latest published stock MLX checked for the 0.18.7 release was 0.31.2, and it
+still rejected <code>bits=1</code>.</p>
+<h2 id="does-ernie-image-turbo-support-image-input-or-prompt-enhancer">Does ERNIE Image Turbo Support Image Input Or Prompt Enhancer?<a class="headerlink" href="#does-ernie-image-turbo-support-image-input-or-prompt-enhancer" title="Permanent link">&para;</a></h2>
+<p>Prompt Enhancer is supported for ERNIE Image Turbo when the full source snapshot is available:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span>--all-files
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A ceramic mug&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--use-prompt-enhancer
+</code></pre></div>
+<p>ERNIE Image Turbo supports single-image latent image-to-image in MLX-Gen:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the scene into a pencil sketch&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.25<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>edited.png
+</code></pre></div>
+<p>Multi-image edit is not supported for ERNIE. ERNIE's single-image path is latent image-to-image, so
+<code>--image-strength</code> follows latent img2img denoising semantics: higher values add more noise and
+allow more transformation, while lower positive values stay closer to the encoded source image.</p>
+<p>ERNIE q8/q4 MLX-Gen packages do not bundle Prompt Enhancer files; use the full source snapshot path or the Hugging Face repo after <code>mlxgen download --all-files</code> when you need <code>--use-prompt-enhancer</code>.</p>
+<p>ERNIE LoRA support is route-specific. <code>AbstractFramework/ernie-image-turbo-8bit</code> has exact
+validated text-to-image and latent img2img LoRA rows. Use
+<code>mlxgen capabilities --model AbstractFramework/ernie-image-turbo-8bit</code> to inspect the exact
+current status before relying on a specific adapter workflow.</p>
+<h2 id="does-bonsai-image-support-lora">Does Bonsai Image Support LoRA?<a class="headerlink" href="#does-bonsai-image-support-lora" title="Permanent link">&para;</a></h2>
+<p>No. MLX-Gen currently rejects Bonsai LoRA requests.</p>
+<p>The practical blocker is architectural, not just missing validation. Bonsai runs through a packed
+ternary/low-bit transformer path, while MLX-Gen's LoRA loader applies adapters by replacing normal
+linear modules. That replacement boundary does not exist in the current packed Bonsai runtime, so
+MLX-Gen fails closed instead of pretending the adapter applied.</p>
+<h2 id="does-wan-video-support-lora">Does Wan Video Support LoRA?<a class="headerlink" href="#does-wan-video-support-lora" title="Permanent link">&para;</a></h2>
+<p>Yes, for the supported Wan q8 public routes. Exact validated rows exist for:</p>
+<ul>
+<li><code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code> on <code>wan.text-video</code></li>
+<li><code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code> on <code>wan.first-frame</code></li>
+<li><code>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit</code> on <code>wan.text-video</code></li>
+<li><code>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit</code> on <code>wan.first-frame</code></li>
+</ul>
+<p>Wan is not blocked the way Bonsai is. The current MLX Wan path still uses normal linear attention
+and FFN layers, so LoRA injection is technically viable. Use <code>mlxgen capabilities --model &lt;model&gt;</code>
+and check <code>lora_status</code>, <code>lora_target_roles</code>, and <code>lora_validation_profile</code> before relying on a
+specific Wan LoRA workflow. For the current A14B Lightning example, start with:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>lightx2v/Wan2.2-Lightning<span class="w"> </span>--all-files
+</code></pre></div>
+<p>Then use the paired T2V or I2V files from that repository as
+<code>lightx2v/Wan2.2-Lightning:&lt;subdir&gt;/&lt;file&gt;.safetensors</code>; the copy-paste commands are in
+<a href="../lora/">LoRA</a>. You can also point directly at absolute local <code>.safetensors</code> files after
+downloading them. For Wan A14B, pass each file as its own <code>--lora-paths</code> argument rather than one
+quoted combined string.</p>
+<h2 id="can-i-treat-mlx-gen-q8-packages-like-third-party-fp8-checkpoints-for-lightning-loras">Can I Treat MLX-Gen q8 Packages Like Third-Party FP8 Checkpoints For Lightning LoRAs?<a class="headerlink" href="#can-i-treat-mlx-gen-q8-packages-like-third-party-fp8-checkpoints-for-lightning-loras" title="Permanent link">&para;</a></h2>
+<p>No.</p>
+<p>The current MLX-Gen recommendation is to use the validated <code>AbstractFramework/*-8bit</code> q8 package
+for the route you want and pair it with the exact documented Lightning adapter for that route.</p>
+<p>That is not the same thing as taking an arbitrary external FP8 checkpoint and assuming it will
+behave like MLX-Gen q8. The upstream LightX2V Qwen Lightning README explicitly warns that
+BF16-trained Lightning LoRAs do not automatically behave correctly on every FP8 Qwen base:</p>
+<ul>
+<li><a href="https://github.com/ModelTC/LightX2V-Qwen-Image-Lightning#-using-lightning-loras-with-fp8-models">https://github.com/ModelTC/LightX2V-Qwen-Image-Lightning#-using-lightning-loras-with-fp8-models</a></li>
+</ul>
+<p>For MLX-Gen, the practical rule is simple:</p>
+<ul>
+<li>prefer the validated q8 MLX-Gen package when one exists;</li>
+<li>use the exact Lightning adapter example documented for that route;</li>
+<li>do not generalize those q8 results to unrelated external FP8 checkpoints.</li>
+</ul>
+<h2 id="how-do-i-choose-between-latent-i2i-and-image-edit">How Do I Choose Between Latent I2I And Image Edit?<a class="headerlink" href="#how-do-i-choose-between-latent-i2i-and-image-edit" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen keeps one public <code>image-to-image</code> task and exposes different internal modes through model
+capabilities. Use <code>mlxgen capabilities --model &lt;model&gt;</code> to inspect the selected model before a long
+run. For a mode-by-mode guide with examples, see <a href="../image-edit-modes/">Image Edit Modes</a>.</p>
+<p>Use latent img2img when you want a whole-image variation or broad restyle from one source image:
+make the lighting more cinematic, change the mood, loosely restyle the whole scene, or preserve the
+source while allowing the model to reinterpret details. Select it with <code>--image-strength</code> or
+<code>--i2i-mode latent</code> on a model that supports <code>latent-img2img</code>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--i2i-mode<span class="w"> </span>latent<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.35<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Make the scene a moody graphite and charcoal illustration&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>latent-restyle.png
+</code></pre></div>
+<p>Use edit/reference I2I when the prompt is an instruction: remove an object, change a subject's
+color, turn a scene into a pencil sketch while preserving layout, reposition or reshape an object,
+or keep the composition stable. Select it with an edit-capable model and no <code>--image-strength</code>, or
+force it with <code>--i2i-mode edit</code>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--i2i-mode<span class="w"> </span>edit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the scene into a clean pencil sketch while preserving the object layout&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>edit-sketch.png
+</code></pre></div>
+<p>Use multi-reference I2I when two or more input images provide different references, such as one
+image for content and another for style:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>content.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>style.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Use the first image composition and the second image drawing style&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>multi-reference.png
+</code></pre></div>
+<p><code>--image-strength</code> is not used by edit/reference or multi-reference modes. Those modes use source
+images as conditioning or references, not as a noised latent initialization. MLX-Gen rejects
+<code>--image-strength</code> for those modes before loading weights.</p>
+<p>For Qwen edit models, use the exact version you intend. <code>qwen-image-edit</code> is the original
+single-reference edit checkpoint. Use <code>qwen-image-edit-2509</code> or <code>qwen-image-edit-2511</code> when you
+need a Qwen edit model that can route multi-reference requests.</p>
+<h2 id="how-do-i-do-masked-edit-or-inpaint">How Do I Do Masked Edit Or Inpaint?<a class="headerlink" href="#how-do-i-do-masked-edit-or-inpaint" title="Permanent link">&para;</a></h2>
+<p>Use a model that supports masked edit or inpaint, then pass one input image plus <code>--mask-path</code>.
+White mask pixels are repainted and black mask pixels are preserved.</p>
+<p>Without <code>--mask-path</code>, the same edit route can still recompose the whole frame. The mask is what
+keeps the change local.</p>
+<p>Masked editing is supported on Qwen edit models, base Qwen models (native <code>qwen.base-inpaint</code>,
+or the validated control-inpaint sidecar on the exact <code>AbstractFramework/qwen-image-8bit</code> row),
+Z-Image Turbo, and FLUX.2 Klein distilled and base (with optional masked-area
+reference images on the backend route). <a href="../masked-editing/">Masked editing</a> is the canonical
+page for the model matrix, per-family behavior, and proof grades.</p>
+<p>The recommended fast public Qwen masked-edit path uses the dedicated
+<code>lightx2v/Qwen-Image-Edit-2511-Lightning</code> adapter:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>lightx2v/Qwen-Image-Edit-2511-Lightning<span class="w"> </span>--all-files
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2511-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mask-path<span class="w"> </span>mask.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Repair the damaged hull inside the mask and keep the rest of the scene unchanged.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>repaired.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>lightx2v/Qwen-Image-Edit-2511-Lightning:Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">1</span>
+</code></pre></div>
+<p>For the accepted contact sheet, timings, and full example commands, see
+<a href="../edit-capabilities/">Image Edit Capabilities</a> and <a href="../lora/">LoRA</a>.</p>
+<h2 id="how-do-i-use-qwen-structured-control">How Do I Use Qwen Structured Control?<a class="headerlink" href="#how-do-i-use-qwen-structured-control" title="Permanent link">&para;</a></h2>
+<p>Use a capability row that reports <code>supports_control_image=true</code>, then pass one control image with
+<code>--controlnet-image-path</code>. This is a structured text-to-image route, not a source-image edit
+route, so do not combine it with <code>--image</code>.</p>
+<p>The current exact public proof row is <code>AbstractFramework/qwen-image-8bit</code> on <code>qwen.control</code>. The
+recommended fast public path uses the dedicated <code>lightx2v/Qwen-Image-Lightning</code> adapter:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>lightx2v/Qwen-Image-Lightning<span class="w"> </span>--all-files
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Aesthetics art, traditional asian pagoda, elaborate golden accents, sky blue and white color palette, swirling cloud pattern, digital illustration, east asian architecture, ornamental rooftop, intricate detailing on building, cultural representation.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;blurry, low quality, distorted, deformed, text, watermark, ugly&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">576</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">864</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">5802</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--controlnet-image-path<span class="w"> </span>canny.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>lightx2v/Qwen-Image-Lightning:Qwen-Image-Lightning-4steps-V2.0-bf16.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>controlled.png
+</code></pre></div>
+<p>The exact sidecar is injected automatically for that validated row. For the accepted contact sheet,
+timings, and full example commands, see <a href="../edit-capabilities/">Image Edit Capabilities</a> and
+<a href="../lora/">LoRA</a>.</p>
+<h2 id="how-is-qwen-masked-edit-different-from-controlnet-inpaint">How Is Qwen Masked Edit Different From ControlNet Inpaint?<a class="headerlink" href="#how-is-qwen-masked-edit-different-from-controlnet-inpaint" title="Permanent link">&para;</a></h2>
+<p>Today, MLX-Gen ships:</p>
+<ul>
+<li>Qwen masked edit / inpaint on the Qwen edit route;</li>
+<li>Qwen native masked edit on base Qwen rows (<code>qwen.base-inpaint</code>, no sidecar);</li>
+<li>Qwen structured control on the exact validated base row;</li>
+<li>Qwen base control-inpaint on the exact validated <code>AbstractFramework/qwen-image-8bit</code> row.</li>
+</ul>
+<p>The practical difference is:</p>
+<ul>
+<li>masked edit means “edit this existing image, but only inside the white mask”;</li>
+<li>structured control means “generate from text, but use a guide image to lock the layout”;</li>
+<li>control-inpaint means “still edit only one masked region, but use an extra control model to make
+  that local replacement more disciplined.”</li>
+</ul>
+<p>So control-inpaint is not mainly a new kind of prompt. It is a stricter backend for harder local
+edits.</p>
+<p>ControlNet is not a LoRA. It is an extra model package loaded beside the base model for one route.
+When MLX-Gen docs say “sidecar”, that is all they mean: an extra model package loaded alongside the
+main one.</p>
+<p>For the detailed route comparison, pros/cons, and the current proof sheets, see
+<a href="../qwen-localized-editing/">Qwen localized editing</a>.</p>
+<h2 id="which-qwen-image-edit-model-should-i-use">Which Qwen Image Edit Model Should I Use?<a class="headerlink" href="#which-qwen-image-edit-model-should-i-use" title="Permanent link">&para;</a></h2>
+<p>Use the exact Qwen edit handle for the capability you need:</p>
+<table>
+<thead>
+<tr>
+<th>Model family</th>
+<th>Best use</th>
+<th>Multi-reference composition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Qwen/Qwen-Image-Edit</code></td>
+<td>One-source semantic or appearance edits, such as pencil sketch, object-state changes, color/style edits, and layout-preserving instruction edits.</td>
+<td>No. MLX-Gen exposes this as <code>max_images=1</code>.</td>
+</tr>
+<tr>
+<td><code>Qwen/Qwen-Image-Edit-2509</code></td>
+<td>One-source edits and multi-image reference composition.</td>
+<td>Yes, when the selected source model or MLX-Gen optimized package passes validation for the prompt profile.</td>
+</tr>
+<tr>
+<td><code>Qwen/Qwen-Image-Edit-2511</code></td>
+<td>One-source edits and multi-image reference composition with the 2511 checkpoint.</td>
+<td>Yes. Source, q8, and q4 have passing 2026-06-06 proof for the documented pencil/crash/composition profile.</td>
+</tr>
+</tbody>
+</table>
+<p>For composition with multiple images, repeat <code>--image</code> and use a multi-reference edit model:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2509-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>crash-reference.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>sketch-reference.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Use the first image for the crashed spaceship layout and the second image for the graphite sketch style&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>composition.png
+</code></pre></div>
+<p>The regular <code>qwen-image-edit</code> route intentionally rejects multi-reference input before loading
+weights. Use <code>mlxgen capabilities --model &lt;model&gt;</code> to see the image-count contract and
+<code>mlxgen validation --model &lt;model&gt;</code> to inspect the published release evidence for an exact package.</p>
+<h2 id="how-do-negative-prompts-work">How Do Negative Prompts Work?<a class="headerlink" href="#how-do-negative-prompts-work" title="Permanent link">&para;</a></h2>
+<p>Use <code>--negative-prompt</code> or its shorter alias <code>--negative</code> in <code>mlxgen generate</code>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Convert the scene into a clean graphite pencil sketch while preserving layout&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;color, blur, crop, text, watermark&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>sketch.png
+</code></pre></div>
+<p>Python callers pass the same value as <code>negative_prompt=...</code> on the model-specific generation
+method. For Qwen image edit, guidance above <code>1</code> uses true classifier-free guidance when a negative
+prompt is present. If you omit the CLI option, MLX-Gen uses the official blank negative-prompt
+behavior for Qwen edit models, so true CFG remains enabled by default; explicit negative prompts are
+still useful for blocking concrete failure modes such as crop, blur, text, unwanted color, or an
+object remaining intact when the prompt asks for damage.</p>
+<p>Wan video models are different: when the negative prompt is omitted, MLX-Gen uses Wan's official
+default negative prompt. Pass <code>--negative ""</code> or <code>--negative-prompt ""</code> only when you intentionally
+want no negative prompt.</p>
+<p>FLUX.2 is different again: FLUX.2 Klein routes do not support negative prompts in MLX-Gen. Omit
+<code>--negative</code> / <code>--negative-prompt</code> entirely for FLUX.2 runs.</p>
+<h2 id="should-integrations-call-mflux-generate-commands-directly">Should Integrations Call <code>mflux-generate-*</code> Commands Directly?<a class="headerlink" href="#should-integrations-call-mflux-generate-commands-directly" title="Permanent link">&para;</a></h2>
+<p>No. New integrations should call the public <code>mlxgen</code> commands instead:</p>
+<ul>
+<li><code>mlxgen generate</code></li>
+<li><code>mlxgen upscale</code></li>
+<li><code>mlxgen capabilities</code></li>
+<li><code>mlxgen validation</code></li>
+<li><code>mlxgen download</code></li>
+<li><code>mlxgen prepare</code></li>
+</ul>
+<p>MLX-Gen still installs some <code>mflux-generate-*</code> compatibility entry points from the upstream
+codebase, but they are not the recommended integration contract for new tools.</p>
+<p>For example, a FLUX.2 integration should use:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic wide shot of a compact sci-fi spaceship resting in deep snow&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">768</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">432</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">6107</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>spaceship.png
+</code></pre></div>
+<p>Do not call <code>mflux-generate-flux2</code> or <code>mflux-generate-flux2-edit</code> directly from a package unless
+you are deliberately targeting the legacy compatibility layer.</p>
+<h2 id="how-does-image-to-image-choose-output-size">How Does Image-To-Image Choose Output Size?<a class="headerlink" href="#how-does-image-to-image-choose-output-size" title="Permanent link">&para;</a></h2>
+<p>Ordinary image-to-image uses <code>--canvas-policy source-aspect</code> by default. The first input image
+defines the output aspect ratio for latent img2img, edit/reference I2I, and multi-reference I2I.
+<code>--width</code> and <code>--height</code> are size targets, not forced stretch dimensions. MLX-Gen resolves the
+nearest model-compatible canvas that preserves the first image's ratio and stores the requested,
+source, and final dimensions in image metadata.</p>
+<p>Examples:</p>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Request</th>
+<th>Default output behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>432x240</code></td>
+<td><code>--width 320 --height 320</code></td>
+<td>wide output near the source ratio, not square</td>
+</tr>
+<tr>
+<td><code>512x512</code></td>
+<td><code>--width 832 --height 480</code></td>
+<td>square-ish output near the source ratio, not 16:9</td>
+</tr>
+<tr>
+<td><code>720x1280</code></td>
+<td><code>--height 640 --width auto</code></td>
+<td>portrait output near the source ratio</td>
+</tr>
+</tbody>
+</table>
+<p>Use <code>--canvas-policy exact-resize</code> when you intentionally want the exact requested canvas:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-2512-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--i2i-mode<span class="w"> </span>latent<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--canvas-policy<span class="w"> </span>exact-resize<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Restyle the source as a graphite sketch&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>exact-square.png
+</code></pre></div>
+<p>Exact resize can reshape or recompose the source. Use it for deliberate whole-image remixes, not
+for preserving original pixels in place.</p>
+<h2 id="how-does-seedvr2-upscale-sizing-work">How Does SeedVR2 Upscale Sizing Work?<a class="headerlink" href="#how-does-seedvr2-upscale-sizing-work" title="Permanent link">&para;</a></h2>
+<p>SeedVR2 uses <code>mlxgen upscale</code>. Its <code>--resolution</code> option supports two sizing styles:</p>
+<table>
+<thead>
+<tr>
+<th>Form</th>
+<th>Meaning</th>
+<th>Example from <code>320x192</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--resolution 1024</code></td>
+<td>Set the shorter output edge to 1024px and preserve the source aspect ratio.</td>
+<td><code>1707x1024</code></td>
+</tr>
+<tr>
+<td><code>--resolution 2x</code></td>
+<td>Multiply both source dimensions by 2.</td>
+<td><code>640x384</code></td>
+</tr>
+<tr>
+<td><code>--resolution 3x</code></td>
+<td>Multiply both source dimensions by 3.</td>
+<td><code>960x576</code></td>
+</tr>
+</tbody>
+</table>
+<p>Shortest-edge sizing is useful when you want a predictable target class across different source
+ratios. Scale factors are useful when you want direct 2x/3x comparisons. Image restoration keeps
+the requested geometry exactly — <code>--resolution 1x</code> returns the input dimensions pixel-for-pixel
+with no resampling or cropping, so restored output overlays its source without any shift.</p>
+<p>SeedVR2 is a diffusion super-resolution/restoration model, so it may also denoise and reconstruct
+detail. If the target is only slightly larger than the source, the result can mainly demonstrate
+restoration rather than upscale quality. For visual upscale validation, use a source with visible
+low-resolution artifacts and choose a target that materially increases pixel dimensions, such as
+<code>2x</code>, <code>3x</code>, or a much larger shorter-edge target.</p>
+<p>For noisy low-resolution sources, use <code>--softness 0.25</code> to <code>0.5</code> to smooth source grain before the
+diffusion reconstruction. <code>--softness 0.0</code> keeps the source conditioning most direct. Higher values
+temporarily downsample and re-enlarge the conditioning image, which can reduce grain or JPEG
+texture but can also soften fine details. SeedVR2 keeps small image outputs untiled for quality and
+automatically uses tiled VAE decode for large image outputs. Use <code>--vae-tiling</code> when you also want
+tiled VAE encoding or the same tiled image path for smaller outputs. Video restore rejects
+<code>--vae-tiling</code>; use <code>--low-ram</code> and temporal chunking instead.</p>
+<p>See <a href="../upscaling/">Image Upscaling</a> for a checked-in 5x SeedVR2 comparison where the original
+source is enlarged to the generated output resolution for side-by-side assessment.</p>
+<h2 id="why-does-a-seedvr2-restored-image-show-a-fine-mesh-texture">Why Does A SeedVR2 Restored Image Show A Fine Mesh Texture?<a class="headerlink" href="#why-does-a-seedvr2-restored-image-show-a-fine-mesh-texture" title="Permanent link">&para;</a></h2>
+<p>On content dominated by smooth gradients or darkness — night scenes, astrophotography, fog —
+SeedVR2's official one-step inference retains a small residue of its sampling noise, which
+decodes as a faint regular texture aligned to an 8-pixel grid and can erase the faintest real
+detail. MLX-Gen detects this automatically: the default <code>--steps</code> mode measures the artifact in
+the one-step output and re-runs the restoration at 4 steps only when it is present, dissolving
+the regular pattern into irregular film-like grain and keeping faint structure better. The
+metadata sidecar records the decision as <code>steps_mode</code> with the measured residue. If you still
+see the texture, force <code>--steps 4</code> explicitly. Some synthesized micro-texture remains on content
+this far outside the model's training data, so for archival astrophotography a dedicated
+astronomical denoiser is still the better tool. See "Steps for Flat or Dark Content" in
+<a href="../upscaling/">Image Upscaling</a>.</p>
+<h2 id="can-seedvr2-restore-video">Can SeedVR2 Restore Video?<a class="headerlink" href="#can-seedvr2-restore-video" title="Permanent link">&para;</a></h2>
+<p>Yes, through <code>mlxgen upscale --video-path ...</code>.</p>
+<p>Use <code>--start-seconds</code> and <code>--max-frames</code> for a real five-second validation clip before you try a
+longer source:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-3B<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>input.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--start-seconds<span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--max-frames<span class="w"> </span><span class="m">149</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>1x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--softness<span class="w"> </span><span class="m">0</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--color-correction<span class="w"> </span>wavelet<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-size<span class="w"> </span><span class="m">29</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-overlap<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mlx-cache-limit-gb<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>restored.mp4
+</code></pre></div>
+<p>Current behavior:</p>
+<ul>
+<li>source FPS is preserved by default;</li>
+<li>temporary SeedVR2 padding is trimmed back to the requested clip length before save;</li>
+<li>by default, MLX-Gen preserves the matching source audio segment when the source clip has audio;</li>
+<li>if copied audio cannot be proven safe, the run fails instead of silently dropping it;</li>
+<li>use <code>--drop-audio</code> only when you intentionally want a silent restored MP4;</li>
+<li>the public CLI safe profile defaults to <code>1x</code>, enables <code>--low-ram</code> automatically, uses
+  <code>--mlx-cache-limit-gb 8</code> as part of the MLX cache policy, and rejects enlarged video output
+  unless you explicitly pass <code>--force-unsafe-video-memory</code>;</li>
+<li>the public Eiffel quality proof is a five-second <code>70s</code> to <code>75s</code> reader-first clip, with safe
+  bounded <code>1x</code> and explicit enlarged <code>2x</code> 3B/7B comparison MP4s, motion strips, detail crops, and
+  a readable report.</li>
+</ul>
+<p>It is a better fit for visibly degraded, noisy, low-resolution, or compressed footage than for
+already-clean high-resolution footage. In local validation, archival material improved cleanly,
+while already-clean modern footage could over-smooth instead of improving.</p>
+<p>For long archival clips, start with:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-3B<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>input.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>1x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--softness<span class="w"> </span><span class="m">0</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--color-correction<span class="w"> </span>wavelet<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-size<span class="w"> </span><span class="m">29</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-overlap<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mlx-cache-limit-gb<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>restored.mp4
+</code></pre></div>
+<p>Validate a five-second slice first with <code>--start-seconds</code> and <code>--max-frames</code>, then use the same
+profile for the longer clip.</p>
+<h2 id="can-seedvr2-use-the-official-bytedance-checkpoint">Can SeedVR2 Use The Official ByteDance Checkpoint?<a class="headerlink" href="#can-seedvr2-use-the-official-bytedance-checkpoint" title="Permanent link">&para;</a></h2>
+<p>Yes. The <code>seedvr2</code> and <code>seedvr2-3b</code> aliases resolve to the official
+<code>ByteDance-Seed/SeedVR2-3B</code> checkpoint, and <code>seedvr2-7b</code> resolves to
+<code>ByteDance-Seed/SeedVR2-7B</code>. To run the 3B source model directly, download it and pass the full
+Hugging Face handle:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-3B
+
+mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-3B<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-path<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>2x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>input_seedvr2_official_3b_2x.png
+</code></pre></div>
+<p>For day-to-day use, prefer the published MLX-Gen packages:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/seedvr2-3b-8bit
+
+mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/seedvr2-3b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-path<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>2x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>input_seedvr2_q8_2x.png
+</code></pre></div>
+<p><code>AbstractFramework/seedvr2-3b-8bit</code> and <code>AbstractFramework/seedvr2-3b-4bit</code> are reusable
+MLX-Gen packages generated from the official 3B source model. See <a href="../quantization/">Quantization</a>
+for package sizes and the measured 5x validation profile.</p>
+<p>For 7B, download the official source and run <code>--model seedvr2-7b</code>, use
+<code>AbstractFramework/seedvr2-7b-8bit</code> or <code>AbstractFramework/seedvr2-7b-4bit</code>, or prepare a local
+q8/q4 package:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-7B<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--path<span class="w"> </span>./models/seedvr2-7b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--quantize<span class="w"> </span><span class="m">8</span>
+</code></pre></div>
+<p>The 7B source, q8, and q4 local packages are documented in <a href="../upscaling/">Image Upscaling</a>.</p>
+<h2 id="why-does-image-to-image-run-fewer-steps-than-steps">Why Does Image-To-Image Run Fewer Steps Than <code>--steps</code>?<a class="headerlink" href="#why-does-image-to-image-run-fewer-steps-than-steps" title="Permanent link">&para;</a></h2>
+<p>This is normal for latent image-to-image pipelines. They commonly start partway through the
+denoising schedule instead of running all requested steps from pure noise. In MLX-Gen,
+<code>--image-strength</code> is the latent img2img denoising strength: higher values add more noise, allow
+more transformation, and run more effective denoise iterations. Lower values stay closer to the
+encoded source image. Edit/reference I2I modes do not use <code>--image-strength</code>; they use the input
+image as conditioning.</p>
+<p>Latent image-to-image requires an explicit <code>--image-strength</code>. With <code>--steps 50</code> and
+<code>--image-strength 0.4</code>, generation starts at scheduler index 30 and runs 20 denoise iterations:</p>
+<div class="highlight"><pre><span></span><code>effective_denoise_steps = floor(steps * image_strength)
+floor(50 * 0.4) = 20
+</code></pre></div>
+<p>The CLI progress bar shows the effective denoise iterations, not the original requested step count.
+If you want a stronger transformation from the source image, raise <code>--image-strength</code>; if you want
+more source preservation, lower it. Use text-to-image without <code>--image</code> when you want all requested
+steps to run from pure noise.</p>
+<h2 id="can-mlx-gen-outpaint-or-reframe-an-image">Can MLX-Gen Outpaint Or Reframe An Image?<a class="headerlink" href="#can-mlx-gen-outpaint-or-reframe-an-image" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen supports generative reframe for edit models that advertise
+<code>supports_reframe=true</code> in <code>mlxgen capabilities</code>. Use <code>--reframe-padding</code> with one input image to
+ask the edit model for a larger view:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-4b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reframe-padding<span class="w"> </span><span class="s2">&quot;25%,50%,25%,50%&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Generatively reframe this close-up into a wider establishing shot. Reveal the full subject and extend the background naturally.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>reframed.png
+</code></pre></div>
+<p>This is a generative edit. It is useful for zoom-out, background extension, and plausible
+reconstruction of missing object boundaries, but the model may redraw source content. The prompt
+remains important, especially when the source object is cropped and the missing parts must be
+inferred.</p>
+<p>Use <code>--outpaint-padding</code> when you want MLX-Gen to create a larger canvas and guide a
+supported edit model to fill the expanded view:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2511-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">&quot;5%,35%,5%,35%&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Outpaint this close crop into a wider realistic shot. Complete the missing subject and background outside the original frame.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;text, border, frame, hard seam, duplicate subject&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>outpaint.png
+</code></pre></div>
+<p>Outpaint is backend-specific. Qwen Image Edit variants still use expanded-canvas generation plus
+adaptive source restoration. Current FLUX.2 Klein strict outpaint is base-only and uses
+source-locked denoising with a narrow latent transition band instead of post-generation source
+pasting. The current proof is in <a href="../edit-capabilities/#reframe-and-outpaint">Image Edit Capabilities</a>
+and <a href="../reframe-outpaint/">Reframe and Outpaint</a>.</p>
+<p>This is not a native fill/inpaint backend with an explicit diffusion mask, and it is not an exact
+pixel-lock guarantee. Latent I2I models, Z-Image, ERNIE, FIBO, base Qwen Image, Qwen Image 2512,
+distilled FLUX.2 Klein, Wan, SeedVR2, and unsupported edit models reject <code>--outpaint-padding</code>
+before loading weights. Exact current prepared-package outpaint proof exists for
+<code>AbstractFramework/flux.2-klein-base-4b-8bit</code>; broader package claims should still follow the
+published validation rows.</p>
+<p>For ordinary image-to-image, the default <code>source-aspect</code> canvas policy keeps the output ratio close
+to the first source image. That prevents accidental stretching, but it does not expand the original
+canvas or preserve source pixels in place. Use <code>--canvas-policy exact-resize</code> only for deliberate
+whole-image recomposition. When the canvas ratio differs from the source, <code>--resize-mode</code> chooses
+how source pixels map onto it: <code>resize</code> stretches to fill (default), <code>crop</code> center-crops without
+distortion, and <code>pad</code> letterboxes the full source without distortion. Masks always follow the same
+geometry as the source pixels.</p>
+<h2 id="what-wan-video-resolutions-should-i-use">What Wan Video Resolutions Should I Use?<a class="headerlink" href="#what-wan-video-resolutions-should-i-use" title="Permanent link">&para;</a></h2>
+<p>Wan width and height are normalized to the selected model's VAE/patch multiple. For text-to-video,
+MLX-Gen uses the requested canvas after model-multiple normalization. Plain video-to-video uses the
+same requested-canvas rule, and source frames are stretched to that canvas by default: if the
+source clip's aspect ratio differs from the requested <code>--width</code>/<code>--height</code> ratio, the source is
+distorted to fit and MLX-Gen prints a warning, so match the requested ratio to the source — or pass
+<code>--canvas-policy source-aspect</code> to derive the canvas from the clip, or <code>--resize-mode crop|pad</code> to
+map the frames without distortion. For image-to-video, MLX-Gen preserves the source image aspect
+ratio: requested <code>--width</code> and <code>--height</code> define the approximate size target, and the runtime
+resolves the closest supported canvas from the input image ratio before conditioning the model. The
+video is generated directly at the resolved canvas; MLX-Gen does not generate a stretched canvas
+and then crop or resize it back afterward. Pass <code>--canvas-policy exact-resize</code> when the requested
+canvas itself is the requirement; combine it with <code>--resize-mode crop</code> or <code>pad</code> to avoid
+distortion on a mismatched source.</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th style="text-align: right;">Required multiple</th>
+<th>Recommended/native size</th>
+<th>Lower-cost diagnostic sizes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>TI2V-5B T2V/I2V</td>
+<td style="text-align: right;">32 px</td>
+<td><code>1280x704</code> or <code>704x1280</code></td>
+<td><code>832x480</code>, <code>480x832</code>; smaller sizes such as <code>448x256</code> are smoke checks only</td>
+</tr>
+<tr>
+<td>T2V-A14B</td>
+<td style="text-align: right;">16 px</td>
+<td><code>1280x720</code> or <code>720x1280</code></td>
+<td><code>832x480</code>, <code>480x832</code>, <code>448x256</code>, <code>256x448</code>, <code>432x240</code></td>
+</tr>
+<tr>
+<td>I2V-A14B</td>
+<td style="text-align: right;">16 px</td>
+<td><code>1280x720</code> or <code>720x1280</code></td>
+<td><code>832x480</code>, <code>480x832</code>, <code>448x256</code>, <code>256x448</code>, <code>432x240</code></td>
+</tr>
+<tr>
+<td>Bernini-R 1.3B</td>
+<td style="text-align: right;">16 px</td>
+<td><code>848x480</code> or source-ratio equivalent</td>
+<td><code>320x192</code> and <code>176x320</code> are bounded functional proofs only</td>
+</tr>
+</tbody>
+</table>
+<p>For TI2V-5B text-to-video, <code>1280x720</code> adjusts to <code>1280x736</code>, and <code>432x240</code> adjusts to <code>448x256</code>.
+For A14B text-to-video, <code>1280x720</code>, <code>832x480</code>, <code>448x256</code>, and <code>432x240</code> are already valid multiples
+of 16. Plain A14B video-to-video follows that same requested-canvas rule. For TI2V-5B, use at least <code>832x480</code> for visual prompt checks; smaller canvases are useful for
+route checks only. Use the
+recommended/native size, frame count, and step count when judging visual quality.</p>
+<h2 id="why-does-a-long-image-to-video-clip-return-to-its-first-frame">Why Does A Long Image-To-Video Clip Return To Its First Frame?<a class="headerlink" href="#why-does-a-long-image-to-video-clip-return-to-its-first-frame" title="Permanent link">&para;</a></h2>
+<p>Wan 2.2 image-to-video is trained at 81 frames, and the conditioning image is the trajectory's
+only anchor. Beyond roughly the trained length, the motion tends to reverse and settle back
+toward the first frame — a ping-pong ending that appears across implementations of these models,
+not just MLX-Gen, and that prompts alone do not reliably prevent. A measured example: the same
+request at 121 frames returned to a 0.91 frame-similarity with its start, while the identical
+81-frame request held its final pose.</p>
+<p>To get long clips without the loop-back:</p>
+<ul>
+<li>keep a single image-to-video shot at or below 81 frames;</li>
+<li>for longer results, chain shots with SVI continuation or context-frame conditioning instead of
+  raising <code>--frames</code> on one shot;</li>
+<li>use first/last-frame bracketing when the ending must differ from the start;</li>
+<li>distilled low-step LoRA profiles make the effect stronger on long shots, so prefer full-step
+  runs when a long single shot is unavoidable.</li>
+</ul>
+<h2 id="does-wan-support-video-to-video-editing">Does Wan Support Video-To-Video Editing?<a class="headerlink" href="#does-wan-support-video-to-video-editing" title="Permanent link">&para;</a></h2>
+<p>Yes, in a narrow public form.</p>
+<p>MLX-Gen currently supports prompt-guided video-to-video on <code>Wan2.2-T2V-A14B</code>. You pass one source
+video plus one prompt, and MLX-Gen regenerates the clip while keeping the source clip's camera
+path and composition. Subject gestures and timing are re-synthesized at typical strengths, not
+copied - prompts like "keep the same motion" cannot force exact motion through. Add
+<code>--video-mask-path</code> when you need preserved regions locked to the source (their motion is
+preserved exactly too), or lower <code>--video-strength</code> to 0.5-0.6 at 20 steps with CFG on for
+motion-preserving restyles - the measured band where source gestures survive (gesture-timing
+correlation 0.86-0.90 vs 0.20 at the 0.8 default; see the motion-fidelity ladder in
+<a href="../wan-video/#motion-fidelity-versus-strength">Wan Video</a>). The edit still landed at 0.5 in the
+measured runs, but low strength is weaker for adding brand-new objects - use a mask for those.</p>
+<p>Use this route. The sizes and counts below are bounded diagnostic settings for a quick check, not
+quality settings; for quality, use the A14B defaults (<code>832x480</code> or <code>1280x720</code>, <code>81</code> frames,
+<code>40</code> steps):</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-T2V-A14B-Diffusers<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>source.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Keep the same setting and camera framing, but redesign the main subject&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">448</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">256</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance-2<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-strength<span class="w"> </span><span class="m">0</span>.7<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--solver<span class="w"> </span>unipc<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">4242</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>edited.mp4
+</code></pre></div>
+<p><code>--video-strength</code> defaults to <code>0.8</code> and controls how far the result may move from the source: the
+run denoises <code>floor(steps x video_strength)</code> effective steps (the example above resolves to <code>3</code>),
+and saved metadata records both the requested <code>steps</code> and the resolved <code>effective_steps</code>. Below
+roughly <code>0.7</code>, the A14B high-noise stage is skipped and <code>--guidance</code> becomes inactive; MLX-Gen
+prints a warning when that happens.</p>
+<p>Limits that matter:</p>
+<ul>
+<li>this is not SeedVR2 restore or upscale;</li>
+<li>plain video-to-video (no mask) re-synthesizes everything, so background text and logos drift;
+  pass <code>--video-mask-path</code> to lock everything outside a mask to the source video exactly;</li>
+<li>source audio is copied onto the output best-effort (trimmed to the output duration); if the
+  copy cannot complete, the output is saved silent with a printed reason and a manual remux
+  command, and metadata records <code>audio_copied</code> / <code>audio_copy_reason</code>;</li>
+<li>the source is resampled onto the <code>--fps</code> timeline, so the output keeps real-time speed;
+  requesting an fps above the source duplicates frames (a warning says so); matching fps passes
+  frames through untouched, and metadata records <code>source_video_resampled</code>;</li>
+<li>the A14B route does not accept extra reference images or VACE-style controls - use the
+  natively ported <code>wan-vace</code> model for learned controls, or <a href="../bernini/">Bernini-R</a> for ordinary
+  role-aware reference images plus optional source video;</li>
+<li>source frames are stretched to the requested canvas by default, so match the aspect ratio to the
+  source, derive the canvas from the clip with <code>--canvas-policy source-aspect</code>, or map without
+  distortion via <code>--resize-mode crop|pad</code>;</li>
+<li>TI2V-5B and I2V-A14B do not currently accept <code>--video-path</code>.</li>
+</ul>
+<h2 id="how-do-i-change-one-thing-without-changing-anything-else-in-video-to-video">How Do I Change One Thing Without Changing Anything Else In Video-To-Video?<a class="headerlink" href="#how-do-i-change-one-thing-without-changing-anything-else-in-video-to-video" title="Permanent link">&para;</a></h2>
+<p>Use masked video-to-video: add <code>--video-mask-path mask.png</code> to the video-to-video command. This
+is the recommended tool for local add/remove/replace edits ("add a red tie", "remove the logo"):
+white regions of the mask are regenerated under your prompt; black regions - background AND
+subject, including their exact motion and gestures - are locked to the source video at every
+denoising step and match it up to VAE round-trip precision. Keep edit masks tight: motion that
+crosses into the white region is re-synthesized inside it. Draw the mask over the union of the
+edited region's positions if it moves. All-black masks are rejected (they would edit nothing),
+and an all-white mask is equivalent to plain video-to-video. See
+<a href="../wan-video/#masked-video-to-video">Wan Video</a> for the full contract and a reproducible example.</p>
+<p>For a full explanation and a reproducible example with the exact accepted command, see <a href="../wan-video/">Wan Video</a>.</p>
+<p>TI2V-5B also has a flow-matching schedule shift. MLX-Gen uses the model default <code>5.0</code> for native
+<code>1280x704</code> or <code>704x1280</code> runs. For new 480p-class TI2V-5B checks such as <code>832x480</code>, pass
+<code>--flow-shift 3</code>.</p>
+<p>For practical five-second prompt iteration on an M5 Max, the A14B T2V/I2V routes have looked good
+at <code>480x240</code> or <code>240x480</code> with <code>101</code> frames, <code>20</code> fps, and <code>20-25</code> steps. A <code>101</code>-frame, 20 fps
+clip is about five seconds and takes roughly 30 minutes at <code>480x240</code> with A14B in the recorded
+starship-takeoff profile. In that same prompt family, TI2V-5B at <code>832x480</code>, <code>25</code> steps, <code>101</code>
+frames, and 20 fps took about 12 minutes but was weaker visually; rerun this 480p-class profile
+with <code>--flow-shift 3</code> for current testing. TI2V-5B at its <code>1280x704</code> native size took about 35
+minutes and improved but still did not match the A14B result at lower resolution. See
+<a href="../wan-video/">Wan Video</a> for the comparison clips and commands.</p>
+<p>For image-to-video, the source ratio controls the final canvas. These are typical resolved outputs:</p>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Source ratio</th>
+<th style="text-align: right;">Requested target</th>
+<th style="text-align: right;">Generated canvas</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I2V-A14B</td>
+<td><code>16:9</code></td>
+<td style="text-align: right;"><code>1280x720</code></td>
+<td style="text-align: right;"><code>1280x720</code></td>
+</tr>
+<tr>
+<td>I2V-A14B</td>
+<td><code>9:16</code></td>
+<td style="text-align: right;"><code>1280x720</code></td>
+<td style="text-align: right;"><code>720x1280</code></td>
+</tr>
+<tr>
+<td>I2V-A14B</td>
+<td><code>16:9</code></td>
+<td style="text-align: right;"><code>832x480</code></td>
+<td style="text-align: right;"><code>848x480</code></td>
+</tr>
+<tr>
+<td>I2V-A14B</td>
+<td><code>1:1</code></td>
+<td style="text-align: right;"><code>432x240</code></td>
+<td style="text-align: right;"><code>320x320</code></td>
+</tr>
+<tr>
+<td>TI2V-5B I2V</td>
+<td><code>20:11</code></td>
+<td style="text-align: right;"><code>1280x704</code></td>
+<td style="text-align: right;"><code>1280x704</code></td>
+</tr>
+<tr>
+<td>TI2V-5B I2V</td>
+<td><code>16:9</code></td>
+<td style="text-align: right;"><code>1280x704</code></td>
+<td style="text-align: right;"><code>1248x704</code></td>
+</tr>
+<tr>
+<td>TI2V-5B I2V</td>
+<td><code>16:9</code></td>
+<td style="text-align: right;"><code>432x240</code></td>
+<td style="text-align: right;"><code>448x256</code></td>
+</tr>
+<tr>
+<td>TI2V-5B I2V</td>
+<td><code>1:1</code></td>
+<td style="text-align: right;"><code>432x240</code></td>
+<td style="text-align: right;"><code>320x320</code></td>
+</tr>
+</tbody>
+</table>
+<p>If you need an exact output size, prepare the source image at the same aspect ratio as the requested
+target and choose dimensions that match the model multiple. For A14B I2V, a <code>16:9</code> source requested
+at <code>1280x720</code> produces <code>1280x720</code>. For <code>480p</code>-class A14B I2V, <code>832x480</code> produces exactly <code>832x480</code>
+when the source also has the <code>832:480</code> aspect ratio; a true <code>16:9</code> source resolves to <code>848x480</code>.
+For TI2V-5B I2V, <code>1280x704</code> produces exactly <code>1280x704</code> when the source uses the same <code>20:11</code>
+aspect ratio. Alternatively, pass <code>--canvas-policy exact-resize</code> to honor the requested
+(multiple-adjusted) canvas directly, with <code>--resize-mode crop</code> or <code>pad</code> mapping a mismatched
+source onto it without distortion.</p>
+<h2 id="how-should-i-prompt-wan-image-to-video">How Should I Prompt Wan Image-To-Video?<a class="headerlink" href="#how-should-i-prompt-wan-image-to-video" title="Permanent link">&para;</a></h2>
+<p>Wan image-to-video responds best when the input image and prompt agree on a plausible motion path.
+Use a source frame with the whole subject visible, enough margin around moving limbs or objects, and
+minimal occlusion for body parts that need to move. MLX-Gen resolves the output canvas from the
+source image aspect ratio, so a portrait source stays portrait and a landscape source stays
+landscape. TI2V-5B normalizes width and height to multiples of 32, so keep enough edge margin for
+the adjusted canvas.</p>
+<p>Keep the main subject inside the rendered frame for the whole intended motion. If a face, hand,
+foot, product edge, or other identity-critical region leaves the frame and later re-enters, the
+model may reconstruct it inconsistently. Once that region leaves the visible image, the model no
+longer has rendered pixels to anchor its identity or geometry. When it comes back, it is effectively
+reconstructed from latent and temporal context, so faces, hands, limbs, logos, edges, and other
+details can drift or mutate. For human motion, a pose that already suggests the intended action is
+usually more reliable than a neutral pose, but avoid edge-reaching poses unless the prompt keeps the
+camera wide enough to preserve head, hands, and feet.</p>
+<p>For faces and other front-facing identity cues, also constrain rotation. If a person turns far enough
+that the face is no longer visible, the model may reassign the back of the head, hair, shoulders, or
+clothing as the new front when the subject turns back. When face continuity matters, ask for
+front-facing or three-quarter-front motion, keep torso pivots below about 60-90 degrees, and block
+rear views in the negative prompt. This usually improves identity stability, but it can make motion
+more restrained.</p>
+<p>Wan uses the model's official default negative prompt when <code>--negative-prompt</code> is omitted. That is a
+good starting point for many human/action prompts, but it can over-constrain simple abstract scenes
+and introduce noisy texture. Use <code>--negative-prompt ""</code> when you intentionally want no negative
+prompt, especially for minimal object, water, sky, or studio-light tests.</p>
+<p>Write the positive prompt as a concrete motion plan instead of a general style request. Name the
+subject, camera style, body parts or object parts that should move, and the continuity constraints
+that should remain stable:</p>
+<div class="highlight"><pre><span></span><code>Cinematic 5 second full-body motion video of the athlete performing controlled lateral steps:
+torso pivots, head turns, arms sweeping naturally from high and low positions, legs crossing and
+uncrossing, weight shifting forward and backward, knees bending and straightening, full head visible,
+full body visible, arms attached naturally at shoulders and wrists, natural hands and feet,
+consistent outfit, smooth studio camera.
+</code></pre></div>
+<p>For object motion, use the same pattern:</p>
+<div class="highlight"><pre><span></span><code>Cinematic 5 second takeoff video of the spacecraft clearly lifting away from the snowy landing
+field, landing gear leaving the snow, bright engines firing underneath, snow and ice blowing
+outward, stable hull geometry, consistent metal panels, smooth upward camera tracking, no scene cut.
+</code></pre></div>
+<p>Use the negative prompt to block common failure modes for the subject and motion:</p>
+<div class="highlight"><pre><span></span><code>static still image, only arms moving, only camera movement, cropped head, cropped feet, hands out of
+frame, back to camera, rear view, turned away, profile-only view, over-rotated body, detached arm,
+disconnected arm, detached hand, broken wrist, extra limbs, malformed hands, oversized foot, melted
+foot, deformed face, duplicate body, black frames, green frames, low quality, flicker, subject exits
+frame, sudden scene cut
+</code></pre></div>
+<p>Prompting reduces but does not eliminate video-model brittleness. Complex human motion can still
+degrade around hands, wrists, feet, ankles, self-occluding poses, and out-of-frame re-entry. To
+reduce those failures, make the subject smaller in the source frame, leave generous margins above
+raised hands and below feet, choose poses whose full motion stays inside the frame, ask for a wide
+or camera-follow shot, keep motion restrained near boundaries, constrain subject rotation when face
+identity matters, and shorten clips when identity details approach the edge. If the action requires
+the subject to leave the frame, turn away fully, or return from an occluded/back-facing pose, split it
+into separate clips or use a later keyframe/image input rather than relying on one long single-image
+conditioning run. For production checks, use seed sweeps and inspect decoded frames or contact
+sheets rather than relying only on MP4 existence.</p>
+<h2 id="why-do-some-imports-or-paths-still-say-mflux">Why Do Some Imports Or Paths Still Say <code>mflux</code>?<a class="headerlink" href="#why-do-some-imports-or-paths-still-say-mflux" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen is built on the mflux codebase. Some internal modules and compatibility entry points still
+use <code>mflux.*</code> names, while the public package and command surface use <code>mlx-gen</code> and <code>mlxgen</code>.</p>
+<h2 id="how-does-this-relate-to-abstractvision">How Does This Relate To AbstractVision?<a class="headerlink" href="#how-does-this-relate-to-abstractvision" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen is intended to be the Apple Silicon / MLX backend dependency for
+<a href="https://github.com/lpalbou/abstractvision">AbstractVision</a>, which sits inside the wider
+<a href="https://abstractframework.ai/">AbstractFramework</a> ecosystem. AbstractVision abstracts generative
+image and video capabilities across local and hosted providers, while MLX-Gen owns MLX model
+loading, quantized local formats, capability reporting, progress callbacks, and Apple Silicon
+runtime behavior.</p>
+<p>That split also means higher-level convenience such as curated model-to-adapter pairing, preset
+selection, or UI-facing adapter recommendations should live in AbstractVision. MLX-Gen is the
+runtime authority: it reports which exact routes work, which options are legal, and which
+adapter/base-model combinations fail closed.</p>
+<p><a href="https://abstractcore.ai/">AbstractCore</a> can expose OpenAI-compatible endpoints backed by
+AbstractVision providers. <a href="https://github.com/lpalbou/abstractflow">AbstractFlow</a> can use those
+capabilities in visual workflows alongside other media, text, and agent tasks.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

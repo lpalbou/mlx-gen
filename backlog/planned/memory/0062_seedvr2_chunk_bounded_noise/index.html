@@ -1,0 +1,1679 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/planned/memory/0062_seedvr2_chunk_bounded_noise/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Planned: SeedVR2 chunk-bounded video noise - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#planned-seedvr2-chunk-bounded-video-noise" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Planned: SeedVR2 chunk-bounded video noise
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-code-reality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current code reality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-we-want-to-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What we want to do
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies-and-related-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies and related tasks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-outcomes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expected outcomes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#progress-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progress checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Guidance for the implementing agent
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completion-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completion report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reopen-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reopen report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quantitative-validation-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quantitative validation update
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-seedvr2-1280px-image-validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional SeedVR2 1280px image validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#superseded-quantitative-completion-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Superseded quantitative completion report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#correction-reopen-report" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Correction reopen report
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#research-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Research update
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#temporal-quality-repair-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Temporal quality repair update
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="planned-seedvr2-chunk-bounded-video-noise">Planned: SeedVR2 chunk-bounded video noise<a class="headerlink" href="#planned-seedvr2-chunk-bounded-video-noise" title="Permanent link">&para;</a></h1>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Created: 2026-06-27</li>
+<li>Status: Planned</li>
+<li>Completed: N/A</li>
+<li>Reopened: 2026-06-27; 2026-06-28</li>
+</ul>
+<h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Governing ADRs: ADR 0004</li>
+<li>ADR impact: None</li>
+</ul>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>SeedVR2 video restore streams source frames and output writes, but it still builds one global noise
+tensor for the whole requested clip before chunk processing.</p>
+<h2 id="current-code-reality">Current code reality<a class="headerlink" href="#current-code-reality" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>restore_video_to_path()</code> plans chunks, rejects production multi-chunk profiles below 29 frames
+  or below 8 frames of overlap, and then processes each chunk through the streamed writer.</li>
+<li><code>_build_streamed_video_noise_provider()</code> keeps ordinary package execution on coherent
+  <code>seedvr2_noise_mode=global</code> noise. The bounded <code>absolute_latent_frame</code> path is internal
+  benchmark-only because it changes restored pixels.</li>
+<li>ADR 0004 requires explicit host-safety boundaries for SeedVR2 video.</li>
+</ul>
+<h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h2>
+<p>Global device-resident noise means long clips still scale with total requested length, not only chunk
+size.</p>
+<h2 id="what-we-want-to-do">What we want to do<a class="headerlink" href="#what-we-want-to-do" title="Permanent link">&para;</a></h2>
+<p>Preserve one coherent noise timeline while keeping only the active chunk slice in MLX memory.</p>
+<h2 id="why">Why<a class="headerlink" href="#why" title="Permanent link">&para;</a></h2>
+<p>This makes streamed video restore closer to its public memory contract and reduces unified-memory
+pressure on long clips.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Preserve overlap consistency across chunks.</li>
+<li>Avoid independent per-chunk noise that creates seam risk.</li>
+<li>Do not reduce temporal context below the production floor to save memory.</li>
+<li>Keep deterministic behavior for a fixed seed as much as practical.</li>
+<li>Clean up temporary backing stores on success and failure.</li>
+</ul>
+<h2 id="suggested-implementation">Suggested implementation<a class="headerlink" href="#suggested-implementation" title="Permanent link">&para;</a></h2>
+<p>Use a chunk-addressable host or disk-backed noise store for long streamed videos, and convert only
+requested slices to MLX arrays during chunk processing.</p>
+<h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li>SeedVR2 streamed video restore path.</li>
+<li>Unit tests for slice shape, overlap consistency, and cleanup behavior.</li>
+</ul>
+<h2 id="non-goals">Non-goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Do not change the in-memory single-image or direct small-video path.</li>
+<li>Do not weaken safe-video budget checks.</li>
+<li>Do not silently enable unsafe enlarged-video profiles.</li>
+</ul>
+<h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../../completed/0060_runtime_memory_telemetry_and_manifests/">0060 runtime memory telemetry</a></li>
+<li>Proposed <a href="../../../proposed/0048_seedvr2_enlarged_video_safe_profile_certification/">0048 SeedVR2 enlarged-video safe-profile certification</a></li>
+</ul>
+<h2 id="expected-outcomes">Expected outcomes<a class="headerlink" href="#expected-outcomes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Streamed video restore no longer keeps full-clip noise as a live MLX tensor.</li>
+<li>Chunk overlap slices are stable and coherent.</li>
+<li>Memory metadata distinguishes chunk-bounded noise mode.</li>
+</ul>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Unit tests for a synthetic clip plan and noise store.</li>
+<li>Existing SeedVR2 metadata and CLI tests continue to pass.</li>
+</ul>
+<h2 id="progress-checklist">Progress checklist<a class="headerlink" href="#progress-checklist" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[x] Add chunk-addressable noise store.</li>
+<li>[x] Route streamed restore through chunk slice conversion.</li>
+<li>[x] Add cleanup and metadata.</li>
+<li>[x] Add focused tests.</li>
+</ul>
+<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<p>Do not use independent per-chunk random seeds as a shortcut; overlap consistency is part of output
+quality.</p>
+<h2 id="completion-report">Completion report<a class="headerlink" href="#completion-report" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Date: 2026-06-27</li>
+<li>Original path: <code>docs/backlog/planned/memory/0062_seedvr2_chunk_bounded_noise.md</code></li>
+<li>Final path: <code>docs/backlog/completed/0062_seedvr2_chunk_bounded_noise.md</code></li>
+<li>Summary: Replaced always-global SeedVR2 streamed-video noise residency with a bounded provider
+  that preserves the old global tensor path for small clips and uses deterministic absolute-frame
+  slices for larger clips.</li>
+<li>Implementation: Added <code>SeedVR2StreamedVideoNoiseProvider</code>, routed restore chunk processing
+  through it, recorded noise mode/version/estimated bytes in metadata, and released provider state
+  before validation.</li>
+<li>Behavior changes: Small clips stay on materialized global noise to preserve existing behavior.
+  Large clips avoid a full-clip MLX noise tensor and use deterministic absolute latent-frame noise
+  to keep overlap windows coherent.</li>
+<li>Validation: Focused SeedVR2 chunk metadata and global-slice tests passed. The full
+  <code>tests/arg_parser/test_seedvr2_upscale_argparser.py</code> file still segfaults cumulatively in the
+  local pytest process after many tests, including during pytest <code>tmp_path</code> setup, so broad-file
+  parser validation remains a local native-runner limitation rather than a clean pass.</li>
+<li>Residual risk: The large-clip provider intentionally changes the exact random sequence compared
+  with a hypothetical full global tensor for very large videos, so public quality claims should use
+  real visual validation on the target safe profile.</li>
+</ul>
+<h2 id="reopen-report">Reopen report<a class="headerlink" href="#reopen-report" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Date: 2026-06-27</li>
+<li>Reason: The implementation avoids full-clip noise in large mode, but closure requires quantitative
+  memory statistics and quality/continuity evidence from runs that actually exercise
+  <code>seedvr2_noise_mode=absolute_latent_frame</code>.</li>
+<li>Required evidence before closure: process-isolated baseline-versus-bounded runs or a controlled
+  real-profile threshold test with peak physical footprint/RSS, MLX peak, wall time, metadata mode
+  fields, overlap consistency, and temporal boundary-quality checks.</li>
+</ul>
+<h2 id="quantitative-validation-update">Quantitative validation update<a class="headerlink" href="#quantitative-validation-update" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Date: 2026-06-27</li>
+<li>Evidence artifact:
+  <code>validation_outputs/memory/real_generation_20260627_seedvr2_r3/generation_memory_benchmark.json</code>.</li>
+<li>Real profile: <code>mlxgen upscale</code>, <code>AbstractFramework/seedvr2-3b-4bit</code>, 640x480 source, 9 frames,
+  1x restore, chunk size 9, overlap 0, seed 7171. The benchmark forced the baseline
+  <code>seedvr2_noise_mode=global</code> and candidate <code>seedvr2_noise_mode=absolute_latent_frame</code> with three
+  fresh CLI runs per variant.</li>
+<li>Result: all six runs exited 0 after production fixes for video finalization. Median metadata
+  physical footprint fell from 3.241 GB to 3.172 GB, median metadata RSS fell from 3.099 GB to
+  3.030 GB, and median sampled RSS fell from 3.174 GB to 3.160 GB. Median MLX peak stayed flat at
+  about 22.59 GB because chunk/model compute dominates this small profile.</li>
+<li>Quality result: saved videos were valid 9-frame 640x480 outputs, but bounded-noise output was
+  not pixel-identical to global-noise output (<code>mae=6.6854</code>, <code>rmse=11.8118</code>, <code>psnr=26.7432 dB</code>).</li>
+<li>Status: Still planned. The candidate is stable and measured, but the small real profile is not
+  enough to close the long-clip memory claim, and the bounded RNG path needs explicit visual or
+  continuity acceptance for non-identical noise.</li>
+</ul>
+<h2 id="additional-seedvr2-1280px-image-validation">Additional SeedVR2 1280px image validation<a class="headerlink" href="#additional-seedvr2-1280px-image-validation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Date: 2026-06-27</li>
+<li>Evidence artifacts:
+  <code>validation_outputs/memory/real_generation_20260627_seedvr2_image_1280_r2/generation_memory_benchmark.json</code>
+  and
+  <code>validation_outputs/memory/real_generation_20260627_seedvr2_image_1280_tiling_r2/generation_memory_benchmark.json</code>.</li>
+<li>Real image profiles: <code>mlxgen upscale</code>, <code>AbstractFramework/seedvr2-3b-4bit</code> and
+  <code>AbstractFramework/seedvr2-7b-4bit</code>, deterministic 960x960 source upscaled to 1280x1280, seed
+  8181, two fresh CLI runs per variant, offline Hugging Face cache enforced.</li>
+<li>Stability fix: SeedVR2 image <code>--low-ram</code> no longer registers the generic <code>MemorySaver</code> callback.
+  The callback path segfaulted native MLX/Pillow execution on 1280px image restore; the stable path
+  applies the MLX cache policy before generation and preserves the default SeedVR2 VAE encode
+  behavior unless <code>--vae-tiling</code> is explicit.</li>
+<li><code>--low-ram</code> result: output stayed pixel-identical for both model sizes (<code>mae=0</code>, <code>rmse=0</code>,
+  <code>max_abs=0</code>). Median metadata physical footprint fell from 6.423 GB to 4.249 GB for 3B
+  (-33.85%) and from 8.246 GB to 6.638 GB for 7B (-19.50%). Median MLX peak stayed flat
+  (13.412 GB for 3B, 12.618 GB for 7B), so this is a retained-footprint/stability improvement,
+  not a peak-memory solution.</li>
+<li>Tuned explicit <code>--vae-tiling</code> result: SeedVR2 CLI tiling now uses 768px encode tiles with 128px
+  overlap. Median MLX peak fell from 13.412 GB to 7.210 GB for 3B (-46.24%) and from 12.618 GB to
+  9.569 GB for 7B (-24.16%). Output changed measurably but moderately: 3B <code>mae=1.969</code>,
+  <code>rmse=2.9851</code>, <code>psnr=38.6316 dB</code>; 7B <code>mae=1.9514</code>, <code>rmse=3.0425</code>, <code>psnr=38.4662 dB</code>.</li>
+<li>Status: Still planned. The 1280px image path is now measured and safer, but the original
+  long-video chunk-bounded-noise claim remains open. Keep SeedVR2 image <code>--vae-tiling</code> explicit
+  because it is the only measured peak reducer here and it is not pixel-identical.</li>
+</ul>
+<h2 id="superseded-quantitative-completion-report">Superseded quantitative completion report<a class="headerlink" href="#superseded-quantitative-completion-report" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Date: 2026-06-28</li>
+<li>Evidence artifacts:
+  <code>validation_outputs/memory/real_generation_20260628_0062_seedvr2_3b_bounded_scaling_r2/generation_memory_benchmark.json</code>,
+  <code>validation_outputs/memory/real_generation_20260628_0062_seedvr2_3b_mode_149/generation_memory_benchmark.json</code>,
+  and
+  <code>validation_outputs/memory/real_generation_20260628_0062_seedvr2_7b_bounded_scaling_r2/generation_memory_benchmark.json</code>.</li>
+<li>Real source: <code>validation_outputs/seedvr2_video_2026_06_20/eiffel_70s_149f_source.mp4</code>, real
+  <code>mlxgen upscale</code> video restore, offline cached <code>AbstractFramework/seedvr2-3b-4bit</code> and
+  <code>AbstractFramework/seedvr2-7b-4bit</code>, positive temporal chunk overlap, and two fresh CLI runs
+  per scaling variant.</li>
+<li>3B bounded scaling result: frame count grew from 53 to 149 (2.81x) while median sampled RSS grew
+  from 3.0875 GB to 3.1292 GB (+1.3516%), metadata Darwin physical footprint grew from 3.1292 GB
+  to 3.1450 GB (+0.5034%), metadata process RSS grew from 2.9603 GB to 2.9760 GB (+0.5283%), and
+  MLX peak stayed flat at 9.9736 GB. The 53-frame output used 4 chunks and the 149-frame output
+  used 10 chunks, both with overlap 8.</li>
+<li>3B same-frame mode result: bounded 149-frame mode compared against global 149-frame mode with the
+  same input and seed. Median sampled RSS moved from 3.1384 GB global to 3.1308 GB bounded
+  (-0.2422%), metadata physical footprint moved from 3.1705 GB to 3.1224 GB (-1.5164%), metadata
+  process RSS moved from 3.0014 GB to 2.9536 GB (-1.5937%), and MLX peak stayed effectively flat.
+  Video comparison succeeded with 149 frames at 320x240; bounded and global noise are intentionally
+  not pixel-identical (<code>mae=6.8291</code>, <code>rmse=11.626</code>, <code>psnr=26.8616 dB</code>).</li>
+<li>7B bounded scaling result: frame count grew from 53 to 101 (1.91x) while median sampled RSS grew
+  from 5.3991 GB to 5.4240 GB (+0.4617%), metadata Darwin physical footprint grew from 5.4316 GB
+  to 5.4372 GB (+0.1029%), metadata process RSS grew from 5.2616 GB to 5.2756 GB (+0.2662%), and
+  median MLX peak fell from 11.7686 GB to 11.0169 GB. The 53-frame output used 7 chunks and the
+  101-frame output used 13 chunks, both with overlap 4.</li>
+<li>Continuity checks: all scaling outputs passed video health and expected frame counts. Boundary
+  continuity ratios stayed below the accepted gates: 3B 53f median boundary/non-boundary ratio
+  0.8745 and max/p95 0.6469; 3B 149f 0.8198 and 0.6914; 7B 53f 0.8130 and 0.6746; 7B 101f
+  0.8975 and 0.9197.</li>
+<li>Production hardening: SeedVR2 video restore no longer calls <code>os._exit(0)</code> after success, restores
+  cyclic GC after success and failure, and video health now fails closed when a file cannot be
+  decoded for visual statistics. The noise-mode byte limit override is also gated behind explicit
+  internal benchmark mode, so ordinary package use cannot accidentally change SeedVR2 noise policy
+  from ambient environment state. Focused SeedVR2 CLI, generated-video, and chunking tests passed
+  after those changes.</li>
+<li>Superseded status at the time: Completed. This status was revoked by the 2026-06-28 correction
+  reopen report below because the evidence accepted non-identical bounded-noise output and did not
+  include a 7B normal same-video 1:1 baseline/candidate proof.</li>
+</ul>
+<h2 id="correction-reopen-report">Correction reopen report<a class="headerlink" href="#correction-reopen-report" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Date: 2026-06-28</li>
+<li>Reason: The 2026-06-28 completion standard was wrong. A memory optimization for a premium
+  restoration path must not reduce output quality. The bounded <code>absolute_latent_frame</code> path changes
+  restored pixels for the same source, seed, frame count, and chunking, so it cannot count as a
+  quality-preserving memory optimization.</li>
+<li>Adversarial review findings: the 3B same-job A/B changed output
+  (<code>mae=6.8291</code>, <code>rmse=11.626</code>, <code>max_abs=207</code>, <code>psnr=26.8616 dB</code>), while the 7B closure evidence
+  used a <code>53f -&gt; 101f</code> scaling run rather than a normal same-video 1:1 baseline/candidate test.
+  Scaling evidence can show memory growth behavior, but it does not prove quality preservation for
+  one restoration job.</li>
+<li>Code correction: normal package execution now keeps SeedVR2 streamed-video noise in <code>global</code>
+  mode. The byte cap that can force <code>absolute_latent_frame</code> is gated behind explicit internal
+  benchmark mode and cannot be activated by an ordinary environment variable during package use.</li>
+<li>Superseded normal 1:1 evidence rejected by temporal-quality review:
+  <code>validation_outputs/memory/seedvr2_1to1_memory_quality_20260628/generation_memory_benchmark.json</code>
+  and proof bundle <code>validation_outputs/seedvr2_1to1_memory_quality_20260628/</code>.</li>
+<li>Rejection note: the 2026-06-28 3B <code>25/8</code> and 7B <code>13/4</code> proof bundle is not production
+  evidence. It preserved frame count but used temporal windows below the accepted <code>29/8</code> profile,
+  so it is retained only as diagnostic material for the temporal-quality regression.</li>
+<li>3B rejected diagnostic run: source and restored videos both contain exactly 149 frames at 320x240 and
+  29.97002997002997 fps, <code>seedvr2_noise_mode=global</code>, chunk size 25, overlap 8, 10 chunks.
+  Across three isolated runs, median sampled RSS was 3.1518 GB, median metadata physical footprint
+  was 3.1282 GB, and median MLX peak was 9.9760 GB.</li>
+<li>7B rejected diagnostic run: source and restored videos both contain exactly 149 frames at 320x240 and
+  29.97002997002997 fps, <code>seedvr2_noise_mode=global</code>, chunk size 13, overlap 4, 19 chunks.
+  Across three isolated runs, median sampled RSS was 5.4408 GB, median metadata physical footprint
+  was 5.4489 GB, and median MLX peak was 11.0195 GB.</li>
+<li>Rejected diagnostic artifacts: the bundle contains the copied original MP4, copied restored 3B/7B
+  MP4s, side-by-side source/restored videos, timeline contact sheets, boundary contact sheets,
+  per-model quality stats, per-model memory stats, and <code>manifest.json</code>, but those artifacts are
+  retained for regression diagnosis only and are not release or production proof.</li>
+<li>Status: Planned. Item 0062 remains open until a same-source, same-frame, same-seed 3B and 7B
+  baseline/candidate run proves a real memory reduction without output degradation. For a
+  memory-only implementation, the acceptance gate is pixel-identical output (<code>mae=0</code>, <code>rmse=0</code>,
+  <code>max_abs=0</code>) or a stricter explicitly approved quality gate before any non-identical output is
+  accepted.</li>
+</ul>
+<h2 id="research-update">Research update<a class="headerlink" href="#research-update" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Date: 2026-06-29</li>
+<li>External evidence: MLX follows a JAX-style splittable PRNG model, and the upstream MLX source
+  implements <code>normal(...)</code> from keyed uniform bits rather than exposing a public counter-offset
+  slice API. See the JAX PRNG design note, MLX random source, and MLX Python random docs:
+  <code>https://docs.jax.dev/en/latest/jep/263-prng.html</code>,
+  <code>https://github.com/ml-explore/mlx/blob/main/mlx/random.cpp</code>,
+  <code>https://ml-explore.github.io/mlx/build/html/python/random.html</code>.</li>
+<li>Local proof: repeated smaller <code>mx.random.normal(...)</code> calls are not an exact reconstruction of
+  one larger call. A local check with <code>seed=123</code> compared
+  <code>mx.random.normal(shape=(1, 16, 5, 2, 3), key=mx.random.key(seed))</code> against smaller repeated
+  calls and observed non-zero deltas in every candidate path (<code>max_abs</code> about <code>3.8301</code> to
+  <code>4.5771</code>). Stateful seeded calls also failed exact concatenation, so a simple rolling RNG state
+  does not preserve the current global-noise output.</li>
+<li>Current interpretation: an exact-quality chunk-bounded implementation is not available through
+  current public MLX Python APIs by re-generating smaller slices. Remaining exact options are:
+  <code>1.</code> materialize the exact global tensor once and spill it to a host/disk-backed exact slice
+  store; <code>2.</code> add or adopt a lower-level MLX API that exposes deterministic counter-offset or
+  bits-based slice generation; <code>3.</code> retire or defer the item for current supported profiles if the
+  measured win remains economically negligible.</li>
+<li>Memory math: the current global noise bytes are
+  <code>16 * latent_frames * latent_height * latent_width * 4</code>, which is approximately
+  <code>width * height * frame_count / 4</code> bytes for multi-frame clips. On the accepted 149-frame
+  <code>320x240</code> <code>29/8</code> proof profile this is <code>2.918 MB</code> global versus <code>0.614 MB</code> chunk-live, so the
+  theoretical maximum live-noise reduction is only <code>2.304 MB</code>. At <code>149f 1280x720</code> it is
+  <code>35.021 MB</code> global versus <code>7.373 MB</code> chunk-live. At <code>600f 1920x1080</code> it is <code>311.040 MB</code> global
+  versus <code>16.589 MB</code> chunk-live.</li>
+<li>Consequence: for the currently validated low-resolution 149-frame restore proofs, item 0062 is a
+  residency-cleanliness issue rather than a dominant whole-process peak-memory lever. It becomes
+  more interesting only for materially longer and higher-resolution future safe-video profiles.</li>
+<li>Required next proof before more product effort: if this item stays planned, run one larger still
+  supported SeedVR2 profile with explicit memory snapshots immediately before and after
+  global-noise materialization. If the delta is still only in the MiB-to-low-tens-of-MiB range
+  relative to total peak, treat the item as low-value for the current public profile set.</li>
+</ul>
+<h2 id="temporal-quality-repair-update">Temporal quality repair update<a class="headerlink" href="#temporal-quality-repair-update" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Date: 2026-06-28</li>
+<li>Reason: The normal 1:1 repair evidence above still used unsafe temporal profiles: 3B used
+  <code>25/8</code>, while 7B used <code>13/4</code> and produced 19 chunks. Adversarial review found that this could
+  preserve frame count while creating object-continuity distortions, especially on 7B.</li>
+<li>Code correction: SeedVR2 video restore now rejects production multi-chunk profiles below
+  29 frames or below 8 frames of overlap from both the CLI planner and the public Python
+  <code>restore_video_to_path()</code> API. The temporary internal <code>seedvr2_tiny_temporal_chunks</code> bypass was
+  removed from production code after adversarial review, so user-set environment variables cannot
+  reopen the unsafe path. <code>_aligned_chunk_overlap()</code> now returns stride-aligned overlap values only,
+  so the previous invalid effective overlap <code>3</code> cannot be passed to the chunk planner; explicit
+  CLI overlap values are either honored or rejected, not silently capped downward.</li>
+<li>Benchmark correction: the real 149-frame 3B and 7B restoration profiles in
+  <code>tools/generation_memory_benchmark.py</code> now use <code>29/8</code>. The proof bundle now writes all production
+  chunk boundaries into the boundary contact sheet and records per-boundary temporal-delta stats.</li>
+<li>Corrected evidence artifact:
+  <code>validation_outputs/memory/seedvr2_temporal_quality_repair_20260628/generation_memory_benchmark.json</code>.</li>
+<li>Corrected proof bundle:
+  <code>validation_outputs/seedvr2_temporal_quality_repair_20260628/</code>.</li>
+<li>3B corrected proof: source and restored videos both contain exactly 149 frames at 320x240 and
+  29.97002997002997 fps, <code>seedvr2_noise_mode=global</code>, chunk size 29, overlap 8, 8 chunks.
+  Peak sampled RSS was 3.1625 GB, metadata physical footprint was 3.1440 GB, MLX peak was
+  10.1068 GB, and video health reported temporal continuity <code>ok</code>.</li>
+<li>7B corrected proof: source and restored videos both contain exactly 149 frames at 320x240 and
+  29.97002997002997 fps, <code>seedvr2_noise_mode=global</code>, chunk size 29, overlap 8, 8 chunks.
+  Peak sampled RSS was 5.5445 GB, metadata physical footprint was 5.5334 GB, MLX peak was
+  12.4665 GB, and video health reported temporal continuity <code>ok</code>.</li>
+<li>Measurement caveat: the corrected proof used one isolated run per model, so it proves exact
+  single-run process measurements and output artifacts, not multi-run variance. Use sampled RSS,
+  metadata process RSS/physical footprint, and MLX peak as the proof fields; macOS
+  <code>/usr/bin/time -l</code> peak memory footprint was not coherent for these runs.</li>
+<li>Post-review guardrail validation: focused SeedVR2 parser/chunking tests passed after removing the
+  internal tiny-chunk bypass and adding explicit-overlap regression coverage:
+  <code>uv run pytest tests/seedvr2/test_seedvr2_video_chunking.py tests/arg_parser/test_seedvr2_upscale_argparser.py -q</code>
+  reported 74 passed. A real CLI rejection check for <code>AbstractFramework/seedvr2-7b-4bit</code>,
+  <code>--max-frames 149</code>, <code>--temporal-chunk-size 13</code>, <code>--temporal-chunk-overlap 4</code>, and
+  <code>--force-unsafe-video-memory</code> exited 2 with the expected "refuses temporal chunks smaller than
+  29 frames" error before generation.</li>
+<li>7B repair delta against the superseded <code>13/4</code> proof: chunk count fell from 19 to 8, restored
+  temporal ratio fell from 1.5440 to 1.3370, and the new all-boundary sheet covers boundary frames
+  20, 40, 60, 80, 100, 120, and 140.</li>
+<li>Status: Planned. This repair fixes the production temporal guardrail and invalid proof profile,
+  but it still does not close the chunk-bounded-noise memory-reduction item because normal package
+  execution intentionally stays on quality-preserving global noise.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

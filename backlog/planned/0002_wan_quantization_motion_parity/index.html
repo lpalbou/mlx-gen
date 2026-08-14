@@ -1,0 +1,1500 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/planned/0002_wan_quantization_motion_parity/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Planned: Wan quantization and motion parity - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#planned-wan-quantization-and-motion-parity" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Planned: Wan quantization and motion parity
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-code-reality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current code reality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-we-want-to-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What we want to do
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies-and-related-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies and related tasks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-outcomes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expected outcomes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#progress-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progress checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Guidance for the implementing agent
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="planned-wan-quantization-and-motion-parity">Planned: Wan quantization and motion parity<a class="headerlink" href="#planned-wan-quantization-and-motion-parity" title="Permanent link">&para;</a></h1>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Created: 2026-05-27</li>
+<li>Status: Planned</li>
+<li>Completed: N/A</li>
+</ul>
+<h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Governing ADRs: None</li>
+<li>ADR impact: Needs new ADR only if Wan cancellation or reporting beyond the existing
+  <code>ProgressEvent</code> callback contract becomes a stable AbstractVision provider API contract. No ADR
+  is required for the current narrow prepare, validation, and Diffusers-parity fixes.</li>
+</ul>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>Wan2.2 TI2V is the first MLX-Gen text-to-video and first-frame image-to-video backend. It is also
+large enough that small routing bugs, bad quantization policy, or subtle scheduler drift can waste
+hours of local compute. A user reported that <code>mlxgen prepare</code> could not create a q8 Wan folder and
+that three 121-frame, 50-step videos generated at 1280x704 felt too static.</p>
+<h2 id="current-code-reality">Current code reality<a class="headerlink" href="#current-code-reality" title="Permanent link">&para;</a></h2>
+<ul>
+<li>An earlier requested checkout path was stale; the active working repository for this backlog
+  pass was the MLX-Gen repository root.</li>
+<li><code>src/mflux/models/common/cli/save.py</code> previously passed <code>lora_paths</code> and <code>lora_scales</code> to every
+  prepare backend. <code>Wan2_2_TI2V.__init__()</code> does not accept those kwargs, so Wan q8/q4 prepare
+  failed before model loading or quantization.</li>
+<li>A local fix now inspects the selected model class signature and passes LoRA kwargs only to
+  backends that declare <code>lora_paths</code>; <code>tests/cli/test_prepare_save.py</code> covers both Wan and Qwen.</li>
+<li><code>WanWeightDefinition.quantization_predicate()</code> now keeps Wan <code>condition_embedder.*</code> and
+  <code>proj_out</code> linears BF16 for q8 while quantizing the bulky transformer block linears. This was
+  added after full q8 T2V-A14B validation collapsed to near-black/static output.</li>
+<li>The local Wan source snapshot declares <code>WanPipeline</code>, <code>expand_timesteps: true</code>,
+  <code>UniPCMultistepScheduler</code>, <code>flow_shift: 5.0</code>, <code>prediction_type: flow_prediction</code>, 30 transformer
+  layers, and transformer <code>in_channels: 48</code>.</li>
+<li>MLX-Gen already has parity tests for Wan expanded timestep masks, scheduler timesteps/sigmas,
+  scheduler replay, UMT5 prompt embeddings, transformer output, VAE encode/decode, and a tiny CFG
+  denoise loop against Diffusers fixtures.</li>
+<li>On 2026-05-27, <code>mlxgen prepare --model Wan-AI/Wan2.2-TI2V-5B-Diffusers --quantize 8 --path
+  models/wan2.2-ti2v-5b-diffusers-8bit</code> succeeded. The prepared folder is about 17 GiB:
+  transformer 5.0 GiB, VAE 1.3 GiB, text encoder 11 GiB, tokenizer 16 MiB.</li>
+<li>Wan generated model cards now use <code>pipeline_tag: text-to-video</code>, Apache 2.0 frontmatter,
+  video-generation tags, q8 Wan transformer/VAE wording, and a <code>video.mp4</code> usage example.</li>
+<li>A q8 prepared-folder smoke generation succeeded from that folder at 128x128, 5 frames, 2 steps,
+  8 fps, guidance 1.0. This validates reload/wiring only, not quality.</li>
+<li>A same-settings 25-frame smoke comparison now exists for source BF16 versus the prepared q8
+  folder at 704x384, 25 frames, 12 steps, 24 fps, guidance 5.0, seed 321. The source run took
+  95.48 seconds; the prepared q8 run took 217.4 seconds. The q8 output stayed visually close in
+  the contact sheet, but this run shows no speed win. Runtime peak memory was not captured by the
+  Wan CLI/metadata path.</li>
+<li>Three user-provided 1280x704 reference videos were inspected at 121 frames, 24 fps, and about
+  5.04 seconds each. Analysis artifacts live in <code>validation_outputs/wan/user_video_analysis/</code>.</li>
+<li>On 2026-06-02, <code>Wan-AI/Wan2.2-T2V-A14B-Diffusers</code> mixed q8 prepare succeeded at
+  <code>models/wan2.2-t2v-a14b-diffusers-8bit</code>. The prepared folder is about 39.5 GiB: <code>transformer</code>
+  14 GiB, <code>transformer_2</code> 14 GiB, text encoder 11 GiB, VAE 242 MiB, tokenizer 16 MiB. The source
+  snapshot is about 117.5 GiB when following symlinks.</li>
+<li>A controlled T2V-A14B 384x224, 17-frame, 12-step, guidance 4/guidance-2 3, fps 8, seed 4242
+  validation showed full q8 is not publishable: sampled frame MAE against BF16 was 99.95 and
+  sampled temporal change collapsed to 2.03 versus 16.61 for BF16. The mixed q8 policy restored
+  visual quality: prepared mixed q8 MAE against BF16 was 11.57 and sampled temporal change was
+  17.39. The final contact sheet and report are under <code>validation_outputs/wan/a14b_q8_t2v/</code>.</li>
+<li>On 2026-06-03, a full-size T2V-A14B mixed q8/BF16 run at 1280x720, 81 frames, 40 steps,
+  guidance 4/guidance-2 3, and fps 16 completed after about 13h15m but saved an all-black MP4 after
+  non-finite decoded values reached <code>VideoUtil</code>. Version 0.18.9 shipped fail-closed tensor and
+  video-health guards, but the full-size q8 path should not get broader quality claims until
+  <a href="0016_wan_video_integrity_release_gate.md">item 0016</a> captures release artifacts and exact
+  settings pass.</li>
+<li>Wan BF16 and mixed q8/BF16 A14B packages have been published with cards that describe the measured
+  storage and memory tradeoff. This item now tracks residual quantization quality and policy work,
+  especially I2V-A14B validation, q4 decisions, and motion/prompt checks not covered by items 0015
+  and 0016.</li>
+<li>On 2026-06-04, a clean TI2V-5B source/BF16/q8 validation passed at 1280x704, 17 frames,
+  20 steps, guidance 5, fps 24, seed 321, with <code>--negative-prompt ""</code>. The current source run and
+  prepared BF16 run were byte-identical after MP4 decode. The mixed q8/BF16 run stayed visually in
+  the same family with mean frame MAE 1.66 versus source/BF16. The MP4s, contact sheet, and metrics
+  are tracked under <code>docs/assets/quantization/wan-ti2v5b-clean/</code> and documented in
+  <code>docs/quantization.md</code>.</li>
+<li>The TI2V-5B source snapshot is not already all 16-bit on disk: safetensors headers show FP32
+  transformer and VAE files plus a BF16 UMT5 text encoder. MLX-Gen loads Wan transformer/VAE
+  weights at BF16 runtime precision, so the prepared BF16 package reduces storage/download size
+  from 31.9 GiB to 21.2 GiB but does not reduce runtime memory in the clean profile.</li>
+<li>TI2V-5B clean-profile memory measured on 2026-06-04: source 102.7 GiB physical peak, 13.7 GiB
+  max RSS, 58.5 GiB MLX peak, 216.2s; prepared BF16 102.6 GiB physical peak, 14.5 GiB max RSS,
+  58.5 GiB MLX peak, 261.6s; mixed q8/BF16 103.7 GiB physical peak, 13.8 GiB max RSS, 54.2 GiB
+  MLX peak, 243.4s. q8 reduces storage, Wan MLX model bytes from 10.6 to 6.3 GiB, active MLX bytes
+  after generation from 10.3 to 6.1 GiB, and MLX peak. This was a 1280x704 normal-cache profile,
+  not a low-RAM profile and not comparable to the A14B 384px-class low-RAM rows as model-size
+  evidence. It did not reduce full-process physical peak in this profile because transient
+  prompt/denoise/decode/save allocations dominated the sampled high-water mark.</li>
+<li>The same prompt with the official default Wan negative prompt produced a visibly noisy textured
+  background. <code>Wan2_2_TI2V.generate_video()</code> now distinguishes an omitted negative prompt from an
+  explicit empty string: omitted uses the model default, while <code>negative_prompt=""</code> disables the
+  default. This is covered by <code>test_wan_explicit_empty_negative_prompt_disables_default</code>.</li>
+<li>Wan spatial size normalization now rounds up to the required VAE/patch multiple instead of
+  rounding down, so TI2V-5B <code>432x240</code> becomes <code>448x256</code> rather than <code>416x224</code>. This is covered by
+  <code>test_wan_spatial_size_rounds_up_to_patch_multiple</code>.</li>
+</ul>
+<h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h2>
+<p>Wan q8 prepare had a concrete CLI/backend argument bug. Beyond that, MLX-Gen needs evidence that
+its Wan implementation is not accidentally suppressing motion, that q8 keeps acceptable quality,
+and that q4 should either remain unsupported, use full q4, or get a model-specific mixed q4/q8
+policy.</p>
+<h2 id="what-we-want-to-do">What we want to do<a class="headerlink" href="#what-we-want-to-do" title="Permanent link">&para;</a></h2>
+<p>Make Wan video support publication-ready for AbstractFramework model repos and standalone users:
+fix prepare, validate q8 reload and quality, compare motion behavior against Diffusers, decide q4
+policy from evidence, and keep docs/backlog clear about what is verified versus experimental.</p>
+<h2 id="why">Why<a class="headerlink" href="#why" title="Permanent link">&para;</a></h2>
+<p>Wan runs are expensive. A 121-frame, 50-step generation at the recommended 1280x704 settings takes
+about two hours on the user's M5 Max. Users need reliable progress, correct prepared folders, and
+clear guidance before uploading or depending on quantized Wan checkpoints.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>mlxgen prepare</code> must not pass unsupported LoRA kwargs to Wan.</li>
+<li>Prepared q8 Wan folders must reload and generate MP4 output.</li>
+<li>q8 quality must be compared with BF16/source at realistic settings before public model-card
+  claims go beyond "loads and runs".</li>
+<li>Wan timing and memory reporting must remain profile-specific: the TI2V-5B clean profile now has
+  full-process physical, RSS, MLX peak, and timing measurements, while older smoke comparisons and
+  future full-duration A14B claims still need the same package-level measurement discipline.</li>
+<li>q4 must not be published as good unless side-by-side tests show acceptable quality. If full q4
+  degrades motion or detail, define a mixed q4/q8 policy and document the retained q8/BF16 layers.</li>
+<li>Static-feeling outputs must be evaluated with frame contact sheets, frame-difference or optical
+  flow metrics, and at least one Diffusers comparison using the same prompt/settings where
+  feasible.</li>
+<li>Video model cards should identify <code>pipeline_tag: text-to-video</code> or image-to-video coverage, not
+  inherit image-only wording.</li>
+</ul>
+<h2 id="suggested-implementation">Suggested implementation<a class="headerlink" href="#suggested-implementation" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Keep the <code>save.py</code> signature-based LoRA forwarding fix and tests.</li>
+<li>Add a Wan q8 prepared-folder quality panel at a documented lower-cost setting and, if compute
+   allows, one 121-frame quality run.</li>
+<li>Run the same prompt through upstream Diffusers from the local snapshot for a short comparison,
+   or record why the hardware/runtime cost blocks it.</li>
+<li>Prepare q4 only after enough disk is available, then compare BF16/q8/q4 with the same prompt,
+   seed, dimensions, frames, steps, guidance, and fps.</li>
+<li>If q4 fails quality, inspect layer sensitivity and implement a Wan-specific quantization
+   predicate rather than reusing Qwen/ERNIE rules blindly.</li>
+<li>Add or update generated Hugging Face cards for Wan q8/q4 once the quantization policy is known.</li>
+</ol>
+<h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Wan2.2 TI2V 5B prepare, q8/q4 quantization validation, motion-quality checks, and docs/model-card
+  readiness.</li>
+<li>Text-to-video and first-frame image-to-video only.</li>
+</ul>
+<h2 id="non-goals">Non-goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Do not publish new q4 repos or expand q8 claims beyond the exact settings that have passed
+  quality and video-health validation.</li>
+<li>Do not port Wan A14B, Wan VACE, Wan Animate, or video-to-video in this item.</li>
+<li>Do not delete large local model folders automatically to recover disk; ask first.</li>
+<li>Do not treat q8 smoke tests at 128x128/5 frames as quality evidence.</li>
+</ul>
+<h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../0001_model_integration_roadmap/">Model integration roadmap</a></li>
+<li><code>src/mflux/models/common/cli/save.py</code></li>
+<li><code>src/mflux/models/wan/variants/wan2_2_ti2v.py</code></li>
+<li><code>src/mflux/models/wan/scheduler/wan_unipc_multistep_scheduler.py</code></li>
+<li><code>src/mflux/models/wan/weights/wan_weight_definition.py</code></li>
+<li><code>tests/cli/test_prepare_save.py</code></li>
+<li><code>tests/wan/test_wan_local_parity.py</code></li>
+<li><code>tests/wan/test_wan_scheduler_and_timesteps.py</code></li>
+<li>Local Diffusers checkout reference: <code>diffusers/src/diffusers/pipelines/wan/</code></li>
+<li>Local Transformers checkout reference: <code>transformers/src/transformers/models/umt5/</code></li>
+</ul>
+<h2 id="expected-outcomes">Expected outcomes<a class="headerlink" href="#expected-outcomes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Wan q8 prepare and reload are no longer blocked by the LoRA argument bug.</li>
+<li>A future agent can see which Wan quantization levels are verified, which are only smoke-tested,
+  and which remain unsafe to publish.</li>
+<li>Static or low-motion Wan outputs are evaluated against objective frame metrics and Diffusers
+  parity instead of by impression alone.</li>
+<li>AbstractVision can depend on a clear Wan support state and the shared step-based progress
+  reporting behavior.</li>
+</ul>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>uv run ruff check src/mflux/models/common/cli/save.py tests/cli/test_prepare_save.py</code></li>
+<li><code>uv run pytest tests/cli/test_prepare_save.py -q</code></li>
+<li><code>uv run pytest tests/wan/test_wan_scheduler_and_timesteps.py tests/wan/test_wan_progress.py -q</code></li>
+<li><code>MFLUX_RUN_LOCAL_WAN_PARITY=1 uv run pytest tests/wan/test_wan_local_parity.py -q</code></li>
+<li><code>uv run mlxgen prepare --model Wan-AI/Wan2.2-TI2V-5B-Diffusers --quantize 8 --path
+  models/wan2.2-ti2v-5b-diffusers-8bit</code></li>
+<li><code>uv run mlxgen generate --model models/wan2.2-ti2v-5b-diffusers-8bit --task text-to-video
+  --width 128 --height 128 --frames 5 --steps 2 --guidance 1 --fps 8 ...</code></li>
+<li><code>uv run mlxgen prepare --model Wan-AI/Wan2.2-T2V-A14B-Diffusers --path
+  models/wan2.2-t2v-a14b-diffusers-8bit --quantize 8</code></li>
+<li><code>uv run mlxgen generate --model models/wan2.2-t2v-a14b-diffusers-8bit --task text-to-video
+  --width 384 --height 224 --frames 17 --steps 12 --guidance 4 --guidance-2 3 --fps 8 ...</code></li>
+<li>Contact sheets and motion metrics for user videos under
+  <code>validation_outputs/wan/user_video_analysis/</code>.</li>
+</ul>
+<h2 id="progress-checklist">Progress checklist<a class="headerlink" href="#progress-checklist" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[x] Identify the q8 prepare crash as unsupported LoRA kwargs passed into Wan.</li>
+<li>[x] Patch prepare backend instantiation to pass LoRA kwargs only to compatible model classes.</li>
+<li>[x] Add focused tests for Wan no-LoRA kwargs and Qwen LoRA preservation.</li>
+<li>[x] Verify Wan scheduler/timestep/progress tests.</li>
+<li>[x] Verify full local Wan parity fixtures against Diffusers.</li>
+<li>[x] Prepare a q8 Wan folder locally and measure size.</li>
+<li>[x] Fix generated Wan q8 model-card metadata and video usage.</li>
+<li>[x] Smoke-generate an MP4 from the prepared q8 folder.</li>
+<li>[x] Run a same-settings BF16/source versus prepared q8 short comparison.</li>
+<li>[x] Run a clean TI2V-5B source/BF16/q8 comparison at 1280x704, 17 frames, 20 steps,
+      guidance 5, fps 24, seed 321, with <code>--negative-prompt ""</code>, and publish the MP4/contact-sheet
+      evidence in <code>docs/assets/quantization/wan-ti2v5b-clean/</code>.</li>
+<li>[x] Generate contact sheets and motion metrics for the three user-provided videos.</li>
+<li>[x] Validate T2V-A14B mixed q8 against BF16/source with a contact sheet and frame metrics.</li>
+<li>[x] Add a documented TI2V-5B runtime memory profile with full-process Darwin physical footprint,
+      max RSS, MLX allocator peak, logical model bytes, generation time, MP4 health, and decoded
+      frame metrics.</li>
+<li>[ ] Generalize Wan runtime peak-memory reporting into reusable validation metadata or a documented
+      release harness for future full-size A14B and q4/q8 comparisons. The harness should preserve
+      phase-labeled samples and distinguish storage, Wan MLX model bytes, MLX active bytes,
+      full-process physical footprint, max RSS, MLX allocator peak, cache limit, denoiser-release
+      flags, block/slice cache-clearing flags, tensor-health interval, and save-health settings.</li>
+<li>[ ] Run a normalized Wan memory matrix before making any cross-family memory claim: same
+      resolution, frames, steps, fps, seed, guidance, negative-prompt policy, cache limit,
+      <code>--low-ram</code> behavior, tensor-health interval, save-health policy, and sampler.</li>
+<li>[ ] Add q8 quality comparison at full-duration/full-step settings where practical. TI2V-5B now
+      has clean 1280x704 validation at 17 frames and 20 steps; full-duration A14B mixed q8/BF16
+      still needs exact-setting validation under item 0016 before broader claims.</li>
+<li>[ ] Decide and validate Wan q4 or mixed q4/q8 policy.</li>
+<li>[x] Update generated Wan q8 model cards and public docs for the mixed q8/BF16 policy.</li>
+<li>[ ] Validate I2V-A14B mixed q8 with source-image conditioning before publishing an I2V repo.</li>
+</ul>
+<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<p>Re-check free disk before preparing more Wan folders. The prepared q8 folder consumed about 17 GiB
+and only about 29 GiB remained afterward. Preserve user videos and generated model folders unless
+the user explicitly authorizes cleanup.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,1394 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/completed/0094_default_mlx_cache_limit/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Completed: Default MLX buffer-cache limit for Python API and CLI - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#completed-default-mlx-buffer-cache-limit-for-python-api-and-cli" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Completed: Default MLX buffer-cache limit for Python API and CLI
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proposal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proposal
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expected impact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#promotion-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Promotion criteria
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-record-2026-07-23" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation record (2026-07-23)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation record (2026-07-23)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#design-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design decision
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cycle-2-fix-2026-07-23-adversarial-review-host-managed-limits-are-detected-and-preserved" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cycle-2 fix (2026-07-23, adversarial review): host-managed limits are detected and preserved
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#measured-numbers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured numbers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#files-changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files changed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Gates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="completed-default-mlx-buffer-cache-limit-for-python-api-and-cli">Completed: Default MLX buffer-cache limit for Python API and CLI<a class="headerlink" href="#completed-default-mlx-buffer-cache-limit-for-python-api-and-cli" title="Permanent link">&para;</a></h1>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Created: 2026-07-23</li>
+<li>Status: Completed</li>
+<li>Completed: 2026-07-25 — released in 0.25.0 (tag <code>v0.25.0</code> from <code>2452f0c</code>,
+  workflow 30162410505 green; PyPI + GitHub Release verified). The default
+  announced itself exactly as documented in the 0101 smoke run ("Applying
+  default MLX cache limit: 8.0 GiB..."), output bitwise identical to 0.24.0;
+  evidence in <a href="../0101_release_0_25_0/">0101</a>.</li>
+</ul>
+<h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Governing ADRs: <a href="../../../adr/0002_no_silent_automatic_fallbacks/">ADR 0002</a>
+  (a silent new default must be documented and overridable, not hidden)</li>
+<li>ADR impact: possibly a small ADR note fixing the default-cap policy</li>
+</ul>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p><code>RuntimeMemory.resolve_cache_limit_bytes(None, low_ram=False)</code> returns None,
+and <code>CallbackManager</code> only applies a limit when <code>--mlx-cache-limit-gb</code> is
+passed or low-RAM mode picks the 1 GB default. A bare Python-API consumer
+(<code>load_generation_model(...).generate_outputs(...)</code> or direct model classes)
+never gets ANY cache limit. Measured 2026-07-23: after two Klein 9B q8 edit
+generations at 1024x768 in one process, the MLX buffer cache had grown to
+32.9 GB and stays there — memory that competes with other processes' page
+cache (including the model weights themselves), recreating the cold fault-in
+tax system-wide and feeding the within-batch slowdown the BlackPixel audit
+measured (218 -&gt; 310 s/image across one warm 4-seed batch at 944x1680).</p>
+<p>Precedents already in the ecosystem: low-RAM mode defaults to 1 GB here, and
+BlackPixel's worker (its backlog 0054-A) now sets 8 GiB on &gt;=64 GB machines
+and 1 GiB below — but that only covers BlackPixel's worker path at its HEAD;
+bare API users, <code>mlxgen</code> CLI runs, and BlackPixel's own cold-CLI jobs
+(masked/outpaint) still run uncapped.</p>
+<h2 id="proposal">Proposal<a class="headerlink" href="#proposal" title="Permanent link">&para;</a></h2>
+<p>Pick and document a default cache limit applied at model-load/runtime-init
+time when the caller has not set one, e.g. machine-size derived (8 GB at</p>
+<blockquote>
+<p>=64 GB total RAM, 2-4 GB at 32-64 GB, 1 GB below — mirroring the two
+existing precedents), always overridable via the existing
+<code>--mlx-cache-limit-gb</code> / constructor argument, including an explicit
+"unlimited" opt-out. <code>mx.set_cache_limit</code> bounds only the FREE cache
+(reclaim happens at the next allocation), so resident weights and in-flight
+activations are unaffected; the risk is limited to some buffer-pool rebuild
+cost for workloads that alternated between very different tensor shapes.</p>
+</blockquote>
+<h2 id="expected-impact">Expected impact<a class="headerlink" href="#expected-impact" title="Permanent link">&para;</a></h2>
+<p>Bounds multi-generation processes to the cap instead of tens of GB
+(measured 32.9 GB after two generations), protecting page cache on shared
+machines. Per-generation speed is expected neutral for same-shape repeats
+(the bounded pool still serves them); validate that claim with the 0090
+benchmark harness before promoting.</p>
+<h2 id="promotion-criteria">Promotion criteria<a class="headerlink" href="#promotion-criteria" title="Permanent link">&para;</a></h2>
+<p>Promote when (a) a benchmark shows same-shape repeat generations are not
+measurably slowed by the cap on at least one image and one video family,
+and (b) the default is written into docs and <code>--help</code> so it is not a silent
+behavior change (ADR 0002).</p>
+<h2 id="implementation-record-2026-07-23">Implementation record (2026-07-23)<a class="headerlink" href="#implementation-record-2026-07-23" title="Permanent link">&para;</a></h2>
+<h3 id="design-decision">Design decision<a class="headerlink" href="#design-decision" title="Permanent link">&para;</a></h3>
+<p>Machine-derived ladder: <code>total RAM / DEFAULT_CACHE_LIMIT_RAM_DIVISOR (8)</code>,
+clamped to <code>[1 GiB, 8 GiB]</code>, resolved by
+<code>RuntimeMemory.default_cache_limit_bytes()</code> (pure, injectable RAM size for
+tests). Justification of the numbers:</p>
+<ul>
+<li>8 GiB ceiling: the BlackPixel WorkerCachePolicy number for &gt;=64 GB
+  machines, chosen there to cover "the transient buffer working set of the
+  largest supported generations (Wan A14B video scenes)" — i.e. the 8 GiB
+  precedent was already sized for video, not just images, and pool-rebuild
+  churn below it was measured at ~0.5-2 s/scene in that work.</li>
+<li>1 GiB floor: mirrors the long-standing low-RAM default (1 GB decimal;
+  that constant is untouched) and the BlackPixel small-machine bound.</li>
+<li>The smooth RAM/8 ladder lands exactly on both precedents (128 GB -&gt; 8 GiB
+  via ceiling, 64 GB -&gt; 8 GiB, 32 GB -&gt; 4 GiB, 16 GB -&gt; 2 GiB) instead of a
+  two-step function, so mid-size machines get proportionate caps.</li>
+<li>Task-aware or size-aware defaults were considered and rejected for now:
+  the load seam has no task knowledge, <code>mx.set_cache_limit</code> bounds only the
+  FREE cache (resident weights/activations unaffected), and the one measured
+  churn-sensitive workload (Wan A14B) is covered by the ceiling. Revisit if
+  a video family measures churn at 8 GiB.</li>
+</ul>
+<p>Precedence (documented and tested): explicit <code>--mlx-cache-limit-gb</code> &gt;
+<code>MFLUX_MLX_CACHE_LIMIT_GB</code> env (new; serves bare Python-API hosts) &gt;
+low-RAM 1 GB default &gt; machine ladder. <code>-1</code> (flag or env) is the explicit
+"unlimited" opt-out (<code>0</code> stays rejected at the parser to avoid ambiguity —
+<code>mx.set_cache_limit(0)</code> would disable caching entirely). Application seams:</p>
+<ul>
+<li>CLI runs: unchanged call order (<code>apply_runtime_memory_options</code> before
+  model construction) now resolves the ladder instead of <code>None</code>.</li>
+<li>Bare Python API: <code>RuntimeMemory.apply_default_cache_limit_once()</code> runs at
+  <code>WeightLoader.load</code>/<code>load_single</code> — exactly once per process, and never
+  after any explicit application (including an explicit unlimited opt-out).</li>
+<li>Visibility (ADR 0002): applying the DEFAULT prints one stderr line naming
+  the cap and both override paths; stderr keeps <code>--json-events</code> stdout
+  machine-readable. Explicit applications stay silent as before.</li>
+<li>SeedVR2 safe video mode clamps <code>-1</code> like any over-bound value, with the
+  existing visible clamp notice (the certified safe profile is
+  memory-bounded by contract).</li>
+</ul>
+<p>Coordination note for hosts that call <code>mx.set_cache_limit</code> directly
+(BlackPixel WorkerCachePolicy): mlx-gen cannot detect a limit set outside
+its own seams, so the load-time default would override it (to a practically
+identical value on both their ladder rungs). Such hosts should export
+<code>MFLUX_MLX_CACHE_LIMIT_GB</code> (their value, or <code>-1</code>) — flagged to the
+BlackPixel-side sibling working this wave.</p>
+<h3 id="cycle-2-fix-2026-07-23-adversarial-review-host-managed-limits-are-detected-and-preserved">Cycle-2 fix (2026-07-23, adversarial review): host-managed limits are detected and preserved<a class="headerlink" href="#cycle-2-fix-2026-07-23-adversarial-review-host-managed-limits-are-detected-and-preserved" title="Permanent link">&para;</a></h3>
+<p>The coordination note above understated the problem: the stomp was real and
+demonstrated live (host sets 2 GiB via <code>mx.set_cache_limit</code>, then the first
+<code>WeightLoader.load</code> silently raised it to the 8 GiB ladder value). On
+128 GB machines both BlackPixel rungs coincide with the ladder (8 GiB) so
+the bug was masked; on &lt;64 GB machines BlackPixel's deliberate 1 GiB cap
+would have been raised to 2-8 GiB behind the worker's back.</p>
+<p>Fix: MLX 0.31.0 exposes no cache-limit getter, but <code>mx.set_cache_limit</code>
+RETURNS the previous limit, so applying the default doubles as a probe. A
+pre-existing limit at or below HALF of physical RAM is classified as a
+deliberate host cap (MLX's own untouched process default measured
+~0.95x total RAM — 121.6 GiB on the 128 GiB dev machine — while deliberate
+caps are single-digit GiB): the probe restores it, marks the latch
+"explicit", and prints one stderr line
+(<code>Respecting pre-existing MLX cache limit: ...</code>). Anything above the
+threshold is treated as the untouched MLX default and the ladder applies as
+before. A non-int probe return (older MLX, test stubs) is inconclusive and
+falls back to the pre-fix behavior. Explicit callers
+(<code>--mlx-cache-limit-gb</code>, env var, low-RAM) still win over any pre-existing
+value — the probe only guards the DEFAULT path. The env-var coordination
+advice above remains valid but is no longer load-bearing.</p>
+<p>Verified live both ways (2 GiB host cap respected + restored; untouched
+121.6 GiB default replaced by the 8 GiB ladder). Regression tests:
+<code>TestDefaultRespectsHostManagedLimit</code> (host cap preserved, latch behavior,
+untouched-default ladder, explicit-override-wins).</p>
+<h3 id="measured-numbers">Measured numbers<a class="headerlink" href="#measured-numbers" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Disease (from tonight's audit, context above): 32.9 GB MLX free cache
+  after two Klein 9B q8 generations with no cap; that resident cache is the
+  memory pressure that produces the 0093 fault-in regime system-wide.</li>
+<li>Perf-neutrality of the cap on same-shape repeats: not re-benchmarked
+  tonight (the 0090 harness run is the promotion gate); the claim rests on
+  <code>mx.set_cache_limit</code> semantics (free-cache-only) plus the BlackPixel
+  precedent that shipped the same 8 GiB bound for the same workloads
+  without measured per-scene regression. The 512x512 q8 bench runs tonight
+  executed under the new default cap (8 GiB) with second-generation times of
+  3.5-3.6 s, consistent between legs.</li>
+</ul>
+<h3 id="files-changed">Files changed<a class="headerlink" href="#files-changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>src/mflux/utils/runtime_memory.py</code> (ladder, env var, precedence,
+  apply-once state, stderr notice)</li>
+<li><code>src/mflux/models/common/weights/loading/weight_loader.py</code> (apply-once
+  hook)</li>
+<li><code>src/mflux/cli/parser/parsers.py</code> (<code>cache_limit_gb_value</code> type: positive
+  or exactly <code>-1</code>; updated <code>--mlx-cache-limit-gb</code> help)</li>
+<li><code>src/mflux/models/wan/cli/wan_generate.py</code> (same type + help)</li>
+<li><code>src/mflux/callbacks/callback_manager.py</code> (negative-value guard in the
+  legacy resolve helper)</li>
+<li><code>src/mflux/models/seedvr2/cli/seedvr2_upscale.py</code> (safe-mode clamp covers
+  <code>-1</code>)</li>
+<li><code>tests/utils/test_runtime_memory_cache_limit.py</code> (new: ladder values,
+  precedence, opt-outs, invalid env fail-loud, apply-once state machine,
+  visible-notice assertion, CLI value parsing)</li>
+<li>Docs: <code>docs/api.md</code>, <code>docs/python-integration.md</code>, <code>CHANGELOG.md</code>.</li>
+</ul>
+<h3 id="gates">Gates<a class="headerlink" href="#gates" title="Permanent link">&para;</a></h3>
+<p>Cycle-1: <code>make lint</code> clean; fast suite 1457 passed / 7 skipped (baseline
+1413/7). Cycle-2 (after the host-cap probe fix): <code>make lint</code> clean; fast
+suite 1465 passed / 7 skipped.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

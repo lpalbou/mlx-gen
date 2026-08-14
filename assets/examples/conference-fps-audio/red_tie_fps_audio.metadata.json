@@ -1,0 +1,107 @@
+{
+    "mflux_version": "0.18.26",
+    "model": "AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit",
+    "base_model": "Wan-AI/Wan2.2-T2V-A14B-Diffusers",
+    "task": "video-to-video",
+    "seed": 4242,
+    "steps": 4,
+    "guidance": 1.0,
+    "guidance_2": 1.0,
+    "flow_shift": 5.0,
+    "solver": "unipc",
+    "height": 832,
+    "width": 480,
+    "requested_height": 832,
+    "requested_width": 480,
+    "source_image_height": 832,
+    "source_image_width": 480,
+    "frames": 17,
+    "fps": 16,
+    "duration_seconds": 1.062,
+    "precision": "mlx.core.bfloat16",
+    "quantize": 8,
+    "generation_time_seconds": 312.62,
+    "created_at": "2026-07-05T13:05:22.787406",
+    "image_path": null,
+    "video_path": "validation_outputs/fps_audio_proof_2026_07_05/conference_30fps_with_audio.mp4",
+    "prompt": "A man in a dark blue suit stands at a conference speaking to the audience, wearing a bright red necktie, photorealistic, stage lighting",
+    "negative_prompt": "cartoon, illustration, low quality, blurry, distorted face",
+    "lora_paths": [
+        "/Users/albou/Library/Caches/mflux/loras/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors",
+        "/Users/albou/Library/Caches/mflux/loras/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors"
+    ],
+    "lora_scales": [
+        1.0,
+        1.0
+    ],
+    "runtime_memory": {
+        "phase": "video-metadata",
+        "timestamp": 1783249522.8610518,
+        "pid": 17010,
+        "platform": "macOS-26.3-arm64-arm-64bit",
+        "synchronized": false,
+        "mlx_active_memory_bytes": 114507408,
+        "mlx_peak_memory_bytes": 32503820148,
+        "mlx_cache_memory_bytes": 1998848,
+        "process_rss_bytes": 1645985792,
+        "process_peak_rss_bytes": 14471708672,
+        "darwin_physical_footprint_bytes": 1390790984,
+        "errors": {},
+        "darwin_peak_physical_footprint_bytes": 37573910616
+    },
+    "lora_application_reports": [
+        {
+            "requested_path": "lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors",
+            "resolved_path": "/Users/albou/Library/Caches/mflux/loras/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors",
+            "scale": 1.0,
+            "role": "high_noise_transformer",
+            "total_key_count": 1200,
+            "matched_key_count": 1200,
+            "unmatched_key_count": 0,
+            "applied_target_count": 400
+        },
+        {
+            "requested_path": "lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors",
+            "resolved_path": "/Users/albou/Library/Caches/mflux/loras/Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors",
+            "scale": 1.0,
+            "role": "low_noise_transformer",
+            "total_key_count": 1200,
+            "matched_key_count": 1200,
+            "unmatched_key_count": 0,
+            "applied_target_count": 400
+        }
+    ],
+    "lora_applied_file_count": 2,
+    "lora_applied_target_count": 800,
+    "lora_target_roles": [
+        "high_noise_transformer",
+        "low_noise_transformer"
+    ],
+    "video_strength": 0.75,
+    "effective_steps": 3,
+    "high_noise_stage_skipped": false,
+    "source_video_frame_count": 47,
+    "source_video_duration_seconds": 1.566667,
+    "source_video_fps": 30.0,
+    "source_video_audio_present": true,
+    "source_video_resampled": true,
+    "wan_decode_mode": "streamed_vae_slices",
+    "generation_time_scope": "pre-save",
+    "video_health": {
+        "file": {
+            "source": "validation_outputs/fps_audio_proof_2026_07_05/red_tie_fps_audio.mp4",
+            "frame_count": 17,
+            "width": 480,
+            "height": 832,
+            "fps": 16.0,
+            "luma_min": 0.0,
+            "luma_max": 255.0,
+            "luma_mean": 95.82913567038143,
+            "mean_temporal_delta": 2.950388580560684
+        }
+    },
+    "audio_present": true,
+    "audio_copied": true,
+    "audio_copy_mode": "ffmpeg_copy_video_aac_audio",
+    "audio_copy_reason": null
+}

@@ -1,0 +1,1573 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/completed/0032_seedvr2_video_restoration_upscaling/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Completed: SeedVR2 video restoration and upscaling - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#completed-seedvr2-video-restoration-and-upscaling" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Completed: SeedVR2 video restoration and upscaling
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#outcome" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outcome
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-backlog-items" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related backlog items
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#closing-code-reality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Closing code reality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-changed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What changed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#acceptance-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Acceptance criteria
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-it-mattered" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why it mattered
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#docs-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Docs impact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals-that-remain" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-goals that remain
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#follow-ups" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Follow-ups
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="completed-seedvr2-video-restoration-and-upscaling">Completed: SeedVR2 video restoration and upscaling<a class="headerlink" href="#completed-seedvr2-video-restoration-and-upscaling" title="Permanent link">&para;</a></h1>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Created: 2026-06-07</li>
+<li>Status: Completed</li>
+<li>Completed: 2026-06-21</li>
+</ul>
+<h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Governing ADRs: <a href="../../../adr/0001_runtime_smoke_validation_for_model_routes/">ADR 0001</a>, <a href="../../../adr/0002_no_silent_automatic_fallbacks/">ADR 0002</a>, <a href="../../../adr/0004_seedvr2_video_host_safety_and_proof_boundaries/">ADR 0004</a>, <a href="../../../adr/0005_seedvr2_video_quality_proof_requires_five_second_reader_first_clips/">ADR 0005</a></li>
+<li>ADR impact: This item now has explicit SeedVR2 host-safety and reader-first proof governance.</li>
+</ul>
+<h2 id="outcome">Outcome<a class="headerlink" href="#outcome" title="Permanent link">&para;</a></h2>
+<p>Completed as a SeedVR2 video restore v1 under <code>mlxgen upscale</code>.</p>
+<p>Update 2026-06-21: the accepted public quality proof is the five-second Eiffel archival slice from
+<code>70s</code> to <code>75s</code> at source-size <code>320x240</code>, preserved under
+<code>docs/assets/validation/seedvr2-video-2026-06-21/</code>. The accepted public profiles are
+<code>1x 29/8 wavelet</code> for route-correctness proof and <code>2x 29/8 wavelet</code> for the stronger bounded
+<code>3B</code> versus <code>7B</code> quality comparison.</p>
+<p>MLX-Gen now supports:</p>
+<ul>
+<li><code>--video-path</code> on the existing SeedVR2 upscale route;</li>
+<li>bounded clip restore with <code>--start-seconds</code> and <code>--max-frames</code>;</li>
+<li>full-video restore through sequential temporal chunking for longer clips;</li>
+<li>official temporal input handling instead of silent framewise fallback;</li>
+<li>source-FPS preservation by default;</li>
+<li><code>GeneratedVideo</code> metadata for source clip geometry, timing, padding, and audio state;</li>
+<li>public proof for:</li>
+<li><code>ByteDance-Seed/SeedVR2-3B</code></li>
+<li><code>ByteDance-Seed/SeedVR2-7B</code></li>
+<li><code>seedvr2-7b-sharp</code></li>
+<li>five-second Eiffel source-video proof on the official <code>3B</code> and <code>7B</code> routes</li>
+<li>bounded q8 smoke on <code>AbstractFramework/seedvr2-3b-8bit</code></li>
+</ul>
+<p>Current explicit limitation:</p>
+<ul>
+<li>the host-safe public CLI profile is source-size-oriented and keeps enlarged video output behind
+  explicit unsafe override.</li>
+</ul>
+<h2 id="related-backlog-items">Related backlog items<a class="headerlink" href="#related-backlog-items" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../0014_shared_progress_callbacks/">0014 Shared progress callbacks for image and video pipelines</a></li>
+<li><a href="../0016_wan_video_integrity_release_gate/">0016 Wan video integrity release gate</a></li>
+<li><a href="../0030_seedvr2_upscale_smoke_and_metadata/">0030 SeedVR2 upscale smoke, metadata, and quality defaults</a></li>
+<li><a href="../0031_seedvr2_official_bytedance_checkpoint_support/">0031 SeedVR2 official ByteDance checkpoint support</a></li>
+</ul>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>SeedVR2 is officially a video restoration model. The ByteDance-Seed Hugging Face collection lists
+<code>ByteDance-Seed/SeedVR2-3B</code> and <code>ByteDance-Seed/SeedVR2-7B</code> as video-to-video models, and the
+SeedVR2 paper describes one-step video restoration. MLX-Gen 0.18.13 added direct official 3B/7B
+checkpoint loading and reusable q8/q4 package preparation, but only for single-image restoration
+and upscaling.</p>
+<p>Update 2026-06-15: the published <code>ByteDance-Seed/SeedVR2-3B</code> route type is explicitly
+<code>Video-to-Video</code>, so MLX-Gen's current image-only upscale path should now be treated as a useful
+subset rather than an approximate match for the official model purpose.</p>
+<p>Sources checked:</p>
+<ul>
+<li>ByteDance-Seed SeedVR collection: https://huggingface.co/collections/ByteDance-Seed/seedvr</li>
+<li><code>ByteDance-Seed/SeedVR2-3B</code>: https://huggingface.co/ByteDance-Seed/SeedVR2-3B</li>
+<li><code>ByteDance-Seed/SeedVR2-7B</code>: https://huggingface.co/ByteDance-Seed/SeedVR2-7B</li>
+<li>Official SeedVR repository: https://github.com/ByteDance-Seed/SeedVR</li>
+<li>SeedVR2 paper: https://arxiv.org/abs/2506.05301</li>
+</ul>
+<h2 id="closing-code-reality">Closing code reality<a class="headerlink" href="#closing-code-reality" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>mlxgen upscale</code> and <code>mflux-upscale-seedvr2</code> route to
+  <code>src/mflux/models/seedvr2/cli/seedvr2_upscale.py</code>.</li>
+<li><code>SeedVR2.generate_image(...)</code> still handles the original image-only path.</li>
+<li><code>SeedVR2.generate_video(...)</code> still exists as a bounded internal path and returns
+  <code>GeneratedVideo</code>, but the public CLI safe profile routes video restore through
+  <code>SeedVR2.restore_video_to_path(...)</code>.</li>
+<li><code>SeedVR2.restore_video_to_path(...)</code> now handles longer clips through sequential temporal
+  chunks, overlap-aware context windows, and streamed MP4 output.</li>
+<li><code>src/mflux/utils/video_util.py</code> now provides source inspection, bounded clip decode, frame-window
+  decode, sequential overlapping window iteration, and writer cleanup helpers, all with source FPS,
+  source dimensions, duration, frame count, and audio-presence metadata.</li>
+<li>Video save goes through the shared <code>GeneratedVideo</code>/MP4 path and existing video-health
+  validation, even for chunked full-video restore.</li>
+<li>The public restore contract is explicit: preserve source FPS, trim temporary temporal padding
+  back to the requested clip length, and record copied-vs-skipped audio state through
+  <code>audio_present</code>, <code>audio_copied</code>, <code>audio_copy_mode</code>, and <code>audio_copy_reason</code>.</li>
+<li>Existing q4/q7B SeedVR2 package work remains image-only evidence. This item closes on bounded
+  official <code>3B</code> and <code>7B</code> source proof plus the earlier q8 3B package smoke.</li>
+</ul>
+<h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h2>
+<p>Video restoration/upscaling would be valuable for AbstractVision and direct CLI users: low-quality
+or compressed videos could be corrected, denoised, sharpened, and upscaled without converting each
+frame manually. Silently applying the image upscaler frame-by-frame would have been the wrong
+default because it can introduce temporal flicker and does not prove the official video model
+contract. The implementation had to follow the official temporal path closely enough to earn a real
+video-support claim.</p>
+<h2 id="what-changed">What changed<a class="headerlink" href="#what-changed" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>mlxgen upscale</code> now accepts exactly one of <code>--image-path</code> or <code>--video-path</code>.</li>
+<li>SeedVR2 video restore gained bounded clip controls:</li>
+<li><code>--start-seconds</code></li>
+<li><code>--max-frames</code></li>
+<li>Longer video restore gained explicit chunk controls:</li>
+<li><code>--temporal-chunk-size</code></li>
+<li><code>--temporal-chunk-overlap</code></li>
+<li><code>--color-correction</code></li>
+<li>The public video path now:</li>
+<li>decodes a bounded source clip with original FPS;</li>
+<li>preprocesses video frames as a clip, not as independent images;</li>
+<li>pads the temporal length to the official <code>T == 1</code> or <code>(T - 1) % 4 == 0</code> rule for <code>sp_size=1</code>;</li>
+<li>creates video-shaped condition tensors and noise latents;</li>
+<li>trims decoded output back to the requested frame count;</li>
+<li>writes <code>GeneratedVideo</code> metadata including source clip and audio state;</li>
+<li>streams longer clips through sequential frame windows instead of keeping the full decoded
+    source in memory at once;</li>
+<li>cleans up partial output files on failure.</li>
+<li>SeedVR2 CLI now treats source audio as part of the default restore contract, with explicit
+  <code>drop_audio=True</code> / <code>--drop-audio</code> opt-out handled later by completed item 0046.</li>
+<li>Video restore rejects <code>--vae-tiling</code>; the public low-memory path for long clips is
+  <code>--low-ram --mlx-cache-limit-gb 8</code> plus temporal chunking, with enlarged video output kept
+  behind explicit unsafe override.</li>
+<li>Public docs now cover image and full-video restore together and include model-backed video
+  commands plus proof artifacts.</li>
+</ul>
+<h2 id="acceptance-criteria">Acceptance criteria<a class="headerlink" href="#acceptance-criteria" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>mlxgen upscale</code> accepts exactly one of <code>--image-path</code> or <code>--video-path</code>.</li>
+<li>Default video restore uses the official temporal path; any framewise mode is explicit.</li>
+<li>Source frame count and FPS are preserved by default unless the user explicitly asks otherwise.</li>
+<li>Video save goes through the existing <code>GeneratedVideo</code>/MP4 path and passes video-health
+   validation.</li>
+<li>Failures preserve enough context to debug model, seed, dimensions, FPS, frame count, and error
+   phase.</li>
+<li>Metadata records source video path, source/output dimensions, requested/final resolution, FPS,
+   frame counts, duration, model identity, quantization, softness, temporal padding/chunking, and
+   audio-copied state.</li>
+<li>Audio behavior is explicit and never silently dropped.</li>
+<li>One tiny official-source MP4 smoke is required before docs claim support.</li>
+<li>If q8/q4 video support is claimed, preserve model-backed tiny video proof artifacts for those
+   package rows.</li>
+<li>Do not expand <code>mlxgen generate</code>, <code>mlxgen capabilities</code>, or the public generation-task resolver
+    in this item.</li>
+<li>Do not reuse existing image-only SeedVR2 evidence as video-readiness proof.</li>
+</ol>
+<p>All criteria are met for the full-video v1 scope. Audio copy-through is now closed by completed
+item 0046 instead of remaining as a follow-up blocker.</p>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Focused tests:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/arg_parser/test_seedvr2_upscale_argparser.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/metadata/test_generated_video.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/image_generation/test_seedvr2_upscale_metadata.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-q
+</code></pre></div>
+<ul>
+<li>CLI router checks:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/cli/test_mlx_gen_router.py::test_upscale_subcommand_routes_to_seedvr2_command<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/cli/test_mlx_gen_router.py::test_upscale_subcommand_does_not_enable_downloads<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-q
+</code></pre></div>
+<ul>
+<li>Fast suite:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>test-fast
+</code></pre></div>
+<ul>
+<li>Accepted 3B five-second <code>1x</code> public proof on the exact current route:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-3B<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span><span class="s1">&#39;/Users/albou/Downloads/Panorama of the Eiffel Tower in 1900 Thomas Edison Vintage Video.mp4&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--start-seconds<span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--max-frames<span class="w"> </span><span class="m">149</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>1x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--softness<span class="w"> </span><span class="m">0</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--color-correction<span class="w"> </span>wavelet<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-size<span class="w"> </span><span class="m">29</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-overlap<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mlx-cache-limit-gb<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>validation_outputs/seedvr2_video_2026_06_21_pass2/eiffel_70s_149f_3b_chunk29_overlap8_wavelet_1x_after_causal_slicing.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--replace
+</code></pre></div>
+<ul>
+<li>Accepted 7B five-second <code>1x</code> public proof on the exact current route:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-7B<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span><span class="s1">&#39;/Users/albou/Downloads/Panorama of the Eiffel Tower in 1900 Thomas Edison Vintage Video.mp4&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--start-seconds<span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--max-frames<span class="w"> </span><span class="m">149</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>1x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--softness<span class="w"> </span><span class="m">0</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--color-correction<span class="w"> </span>wavelet<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-size<span class="w"> </span><span class="m">29</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-overlap<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mlx-cache-limit-gb<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>validation_outputs/seedvr2_video_2026_06_21_pass2/eiffel_70s_149f_7b_chunk29_overlap8_wavelet_1x_after_causal_slicing.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--replace
+</code></pre></div>
+<ul>
+<li>Accepted 3B five-second <code>2x</code> public proof on the exact current route:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-3B<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span><span class="s1">&#39;/Users/albou/Downloads/Panorama of the Eiffel Tower in 1900 Thomas Edison Vintage Video.mp4&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--start-seconds<span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--max-frames<span class="w"> </span><span class="m">149</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>2x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--softness<span class="w"> </span><span class="m">0</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--color-correction<span class="w"> </span>wavelet<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-size<span class="w"> </span><span class="m">29</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-overlap<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mlx-cache-limit-gb<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--force-unsafe-video-memory<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>validation_outputs/seedvr2_video_2026_06_21_pass1/eiffel_70s_149f_3b_chunk29_overlap8_wavelet_2x_after_causal_slicing.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--replace
+</code></pre></div>
+<ul>
+<li>Accepted 7B five-second <code>2x</code> public proof on the exact current route:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-7B<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span><span class="s1">&#39;/Users/albou/Downloads/Panorama of the Eiffel Tower in 1900 Thomas Edison Vintage Video.mp4&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--start-seconds<span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--max-frames<span class="w"> </span><span class="m">149</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>2x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--softness<span class="w"> </span><span class="m">0</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--color-correction<span class="w"> </span>wavelet<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-size<span class="w"> </span><span class="m">29</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-overlap<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mlx-cache-limit-gb<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--force-unsafe-video-memory<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>validation_outputs/seedvr2_video_2026_06_21_pass1/eiffel_70s_149f_7b_chunk29_overlap8_wavelet_2x_after_causal_slicing.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--replace
+</code></pre></div>
+<p>Published proof assets:</p>
+<ul>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/eiffel_70s_149f_3b_chunk29_overlap8_wavelet_1x_after_causal_slicing.mp4</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/eiffel_70s_149f_7b_chunk29_overlap8_wavelet_1x_after_causal_slicing.mp4</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/eiffel_70s_149f_3b_vs_7b_wavelet_1x_after_causal_slicing_comparison.mp4</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/eiffel_70s_149f_3b_vs_7b_wavelet_1x_after_causal_slicing_contact_sheet.jpg</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/motion_strip_1x_after_causal_slicing_frames_64_72.jpg</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/motion_strip_1x_after_causal_slicing_frames_141_148.jpg</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/eiffel_70s_149f_3b_chunk29_overlap8_wavelet_2x_after_causal_slicing.mp4</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/eiffel_70s_149f_7b_chunk29_overlap8_wavelet_2x_after_causal_slicing.mp4</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/eiffel_70s_149f_3b_vs_7b_wavelet_2x_after_causal_slicing_comparison.mp4</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/eiffel_70s_149f_3b_vs_7b_wavelet_2x_after_causal_slicing_contact_sheet.jpg</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/motion_strip_2x_after_causal_slicing_frames_64_72.jpg</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/motion_strip_2x_after_causal_slicing_frames_141_149.jpg</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/detail_crop_crowd_2x_after_causal_slicing_64_72.jpg</code></li>
+<li><code>docs/assets/validation/seedvr2-video-2026-06-21/eiffel_70s_149f_validation_report.md</code></li>
+</ul>
+<p>Observed timings on <code>M5 Max</code> for the accepted five-second proof:</p>
+<ul>
+<li>official <code>ByteDance-Seed/SeedVR2-3B</code> at <code>1x 29/8</code>: <code>71.33s</code> generation, <code>74.54s</code> wall time,
+  peak MLX memory <code>14.55 GB</code>, max RSS <code>27.40 GB</code></li>
+<li>official <code>ByteDance-Seed/SeedVR2-7B</code> at <code>1x 29/8</code>: <code>107.44s</code> generation, <code>112.93s</code> wall time,
+  peak MLX memory <code>24.54 GB</code>, max RSS <code>66.18 GB</code></li>
+<li>official <code>ByteDance-Seed/SeedVR2-3B</code> at <code>2x 29/8</code>: <code>539.03s</code> generation, <code>542.30s</code> wall time,
+  peak MLX memory <code>34.40 GB</code>, max RSS <code>27.40 GB</code></li>
+<li>official <code>ByteDance-Seed/SeedVR2-7B</code> at <code>2x 29/8</code>: <code>454.46s</code> generation, <code>460.61s</code> wall time,
+  peak MLX memory <code>44.27 GB</code>, max RSS <code>66.18 GB</code></li>
+</ul>
+<p>All accepted visual-quality proof clips preserved source FPS. The shipped audio contract is now
+validated separately by completed item 0046 on the published Air France <code>25s–35s</code> proof bundle.</p>
+<p>Supporting sampled metrics on the accepted public proofs, after downscaling each candidate back to
+the original <code>320x240</code> source resolution before scoring:</p>
+<ul>
+<li><code>3B 1x 29/8</code>: <code>sharpness_gain 1.5240</code>, <code>contrast_gain 1.1046</code>, <code>temporal_ratio 1.5097</code>,
+  <code>drift_mae 0.056926</code>, <code>heuristic_score 58.65</code></li>
+<li><code>7B 1x 29/8</code>: <code>sharpness_gain 1.2258</code>, <code>contrast_gain 1.0682</code>, <code>temporal_ratio 1.2874</code>,
+  <code>drift_mae 0.041031</code>, <code>heuristic_score 60.72</code></li>
+<li><code>3B 2x 29/8</code>: <code>sharpness_gain 1.4096</code>, <code>contrast_gain 1.0504</code>, <code>temporal_ratio 1.3493</code>,
+  <code>drift_mae 0.035856</code>, <code>heuristic_score 61.63</code></li>
+<li><code>7B 2x 29/8</code>: <code>sharpness_gain 1.4176</code>, <code>contrast_gain 1.0523</code>, <code>temporal_ratio 1.3563</code>,
+  <code>drift_mae 0.033749</code>, <code>heuristic_score 62.57</code></li>
+</ul>
+<p>These metrics are supporting route-health evidence only. The current public conclusion is visual:
+<code>1x 29/8</code> is the accepted native-resolution proof surface, while <code>2x 29/8</code> is the stronger bounded
+quality comparison for this clip and shows <code>7B</code> slightly ahead of <code>3B</code>.</p>
+<p>Local limitation check:</p>
+<ul>
+<li>a bounded q8 run on <code>/Users/albou/Movies/SF.mp4</code> completed successfully but over-smoothed the
+  already-clean modern source. The public docs now describe this as a fit limitation instead of a
+  proof row.</li>
+</ul>
+<h2 id="why-it-mattered">Why it mattered<a class="headerlink" href="#why-it-mattered" title="Permanent link">&para;</a></h2>
+<p>This makes MLX-Gen useful for bounded local video cleanup and enhancement workflows, not only image
+upscaling and generation. It also finally matches the official SeedVR2 model purpose with a real
+video-backed support claim instead of an image-only approximation.</p>
+<h2 id="docs-impact">Docs impact<a class="headerlink" href="#docs-impact" title="Permanent link">&para;</a></h2>
+<p>Completed:</p>
+<ul>
+<li><code>README.md</code></li>
+<li><code>docs/README.md</code></li>
+<li><code>docs/getting-started.md</code></li>
+<li><code>docs/api.md</code></li>
+<li><code>docs/upscaling.md</code></li>
+<li><code>docs/faq.md</code></li>
+<li><code>docs/architecture.md</code></li>
+<li><code>CHANGELOG.md</code></li>
+<li><code>llms.txt</code></li>
+<li><code>llms-full.txt</code></li>
+</ul>
+<h2 id="non-goals-that-remain">Non-goals that remain<a class="headerlink" href="#non-goals-that-remain" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Do not treat this as video generation.</li>
+<li>Do not silently process video as independent images.</li>
+<li>Do not claim q4 or 7B video support from this item.</li>
+<li>Do not add automatic downloads during restoration.</li>
+<li>Do not expand <code>mlxgen generate</code>, <code>mlxgen capabilities</code>, or the public generation-task resolver
+  in this item.</li>
+</ul>
+<h2 id="follow-ups">Follow-ups<a class="headerlink" href="#follow-ups" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../0046_seedvr2_video_audio_copythrough/">0046 SeedVR2 video audio copy-through</a></li>
+<li>Broader q4 / 7B / longer-clip public proof should stay separate until those rows are actually
+  generated and reviewed.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

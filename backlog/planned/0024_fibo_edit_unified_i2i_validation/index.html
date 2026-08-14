@@ -1,0 +1,1528 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/planned/0024_fibo_edit_unified_i2i_validation/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Planned: FIBO Edit unified I2I validation - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#planned-fibo-edit-unified-i2i-validation" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Planned: FIBO Edit unified I2I validation
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-we-want-to-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What we want to do
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-outcomes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expected outcomes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-progress-2026-06-05" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current progress - 2026-06-05
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#compatibility-pass-2026-06-05" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility pass - 2026-06-05
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#porting-correction-2026-06-05" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Porting correction - 2026-06-05
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#correction-2026-06-05" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Correction - 2026-06-05
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="planned-fibo-edit-unified-i2i-validation">Planned: FIBO Edit unified I2I validation<a class="headerlink" href="#planned-fibo-edit-unified-i2i-validation" title="Permanent link">&para;</a></h1>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Created: 2026-06-05</li>
+<li>Status: Planned</li>
+<li>Completed: N/A</li>
+</ul>
+<h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Governing ADRs: <a href="../../../adr/0001_runtime_smoke_validation_for_model_routes/">ADR 0001</a>, <a href="../../../adr/0002_no_silent_automatic_fallbacks/">ADR 0002</a></li>
+<li>ADR impact: None</li>
+</ul>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>Item <a href="../../completed/0023_i2i_capability_validation_matrix/">0023</a> downloaded and tested
+<code>briaai/Fibo-Edit</code> during the I2I validation matrix. The route executed, but the generated images
+failed visual QA across masked minimal JSON, unmasked minimal JSON, full-schema JSON at 432x240,
+and full-schema JSON at 640x352. The natural-language VLM prompt-conversion path also spent
+minutes before denoising, which is not acceptable without explicit progress reporting.</p>
+<p>This item was originally opened while unified <code>mlxgen capabilities</code> failed closed for FIBO Edit.
+That is again the current release state: unified <code>mlxgen generate</code> exposes no public FIBO Edit
+capability. The dedicated FIBO Edit command remains available only for parity testing.</p>
+<p>Priority note, 2026-06-07: this item is retained as future validation history only. FIBO Edit is
+deprioritized and should stay behind its dedicated command until item 0027 or a later parity effort
+produces release-quality source-model proof.</p>
+<p>The upstream <code>briaai/Fibo-Edit</code> model card identifies the package as <code>pipeline_tag: image-to-image</code>
+with <code>image-editing</code> and <code>inpainting</code> tags, and describes a source-image plus optional-mask JSON
+editing contract. So FIBO Edit is supposed to support editing in principle; MLX-Gen simply does not
+yet have a passing local unified-route proof.</p>
+<h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h2>
+<p>FIBO Edit is an image-conditioned editor in the underlying model family, but current release
+validation has not produced a passing source/BF16/q8 prepared-package proof for the standardized
+spaceship edit sequence. Advertising it as a broad, release-quality generic I2I backend would let
+applications auto-select a route that can produce unusable images.</p>
+<h2 id="what-we-want-to-do">What we want to do<a class="headerlink" href="#what-we-want-to-do" title="Permanent link">&para;</a></h2>
+<p>Repair or re-scope FIBO Edit support. Keep FIBO Edit unavailable through unified public capability
+discovery until model-backed visual proof passes.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Compare the MLX implementation against the upstream FIBO Edit inference contract.</li>
+<li>Confirm required prompt schema, VLM conversion behavior, scheduler, guidance, dimensions, VAE
+  scaling, conditioning image packing, and mask handling.</li>
+<li>Add progress events around the VLM prompt-conversion phase if prose prompts remain supported.</li>
+<li>Validate with at least one plain edit, one masked edit, and one RMBG run if <code>Fibo-Edit-RMBG</code> is
+  installed.</li>
+<li>Keep unified FIBO Edit capability unavailable until source-model visual proof passes.</li>
+</ul>
+<h2 id="non-goals">Non-goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Do not block the current installed-model I2I validation matrix.</li>
+<li>Do not claim generic inpaint/outpaint support; item 0019 tracks first-class fill/outpaint UX.</li>
+</ul>
+<h2 id="expected-outcomes">Expected outcomes<a class="headerlink" href="#expected-outcomes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Either FIBO Edit has passing local proof for the relevant public surface, or docs clearly mark
+  the unsupported/validation-limited surfaces.</li>
+<li>Failed prompt contracts are rejected early instead of producing garbage images.</li>
+<li>FIBO VLM preprocessing emits progress events or a clear pre-denoise status.</li>
+</ul>
+<h2 id="current-progress-2026-06-05">Current progress - 2026-06-05<a class="headerlink" href="#current-progress-2026-06-05" title="Permanent link">&para;</a></h2>
+<p>Six independent review charters were applied:</p>
+<table>
+<thead>
+<tr>
+<th>Charter</th>
+<th>Finding</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Architect/platform</td>
+<td>Keep FIBO Edit unavailable through unified capability discovery until model-backed proof passes.</td>
+</tr>
+<tr>
+<td>Upstream contract</td>
+<td>FIBO Edit expects JSON with <code>edit_instruction</code>; optional masks are folded into the conditioning image rather than used as a hard latent mask.</td>
+</tr>
+<tr>
+<td>Text/transformer audit</td>
+<td>Prompt padding masks were discarded before transformer attention, which could let padded prompt tokens influence generation.</td>
+</tr>
+<tr>
+<td>CLI and routing audit</td>
+<td>FIBO LoRA flags were accepted but ignored; base FIBO CLI could accept an edit config; edit JSON missing <code>edit_instruction</code> could fall back to VLM conversion.</td>
+</tr>
+<tr>
+<td>Visual QA</td>
+<td>Historical FIBO Edit rows from item 0023 were not acceptable visual proof.</td>
+</tr>
+<tr>
+<td>Review/release gate</td>
+<td>Do not claim release-quality FIBO Edit until true-handle source/BF16/q8 rows pass focused validation.</td>
+</tr>
+</tbody>
+</table>
+<p>Implemented fixes:</p>
+<ul>
+<li><code>PromptEncoder.encode_prompt()</code> now returns a prompt attention mask, uses upstream-scale
+  <code>max_sequence_length=3000</code>, and uses an empty negative prompt when none is supplied.</li>
+<li>FIBO transformer attention now consumes the prompt attention mask and rejects incompatible mask
+  shapes instead of rebuilding an all-ones text mask.</li>
+<li>Base FIBO and FIBO Edit pass prompt attention masks into the denoiser.</li>
+<li>FIBO Edit default guidance is 5.0.</li>
+<li>JSON prompts that parse successfully but do not contain <code>edit_instruction</code> are rejected before
+  generation instead of falling back to prose/VLM conversion.</li>
+<li>FIBO LoRA flags are rejected for generation and prepare workflows until a real FIBO LoRA mapping
+  exists.</li>
+<li>FIBO generation rejects edit-only configs, and the FIBO Edit CLI reports missing/invalid prompt
+  errors through the parser instead of a raw traceback.</li>
+<li>Unified route discovery exposes no public FIBO Edit route; current release validation still
+  reports source/BF16/q8 FIBO Edit rows as failing.</li>
+</ul>
+<p>Focused tests passed:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/image_generation/test_fibo_edit_util.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/image_generation/test_fibo_attention_mask.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/arg_parser/test_cli_argparser.py::test_fibo_args<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/arg_parser/test_cli_argparser.py::test_fibo_generate_rejects_edit_model_config<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/arg_parser/test_cli_argparser.py::test_fibo_edit_args<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/arg_parser/test_cli_argparser.py::test_fibo_edit_args_can_parse_without_prompt_for_runtime_validation<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/arg_parser/test_cli_argparser.py::test_fibo_edit_rejects_non_edit_model_restored_from_metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/cli/test_prepare_save.py::test_prepare_rejects_fibo_lora<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/cli/test_fibo_cli.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/test_task_inference.py<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/cli/test_mlx_gen_router.py::test_fibo_edit_mask_path_is_not_advertised_by_unified_router<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>tests/cli/test_mlx_gen_router.py::test_fibo_edit_masked_image_path_alias_is_not_advertised_by_unified_router<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-q
+</code></pre></div>
+<p>Result: 35 passed.</p>
+<p>Model-backed validation assets:</p>
+<table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Source</th>
+<th>Prompt</th>
+<th>Output</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Plain pencil edit</td>
+<td><code>validation_outputs/fibo_edit_repair_2026_06_05/source_spaceship_snow_768x432.png</code></td>
+<td><code>validation_outputs/fibo_edit_repair_2026_06_05/plain_pencil_prompt.json</code></td>
+<td><code>validation_outputs/fibo_edit_repair_2026_06_05/plain_pencil_672x384_seed8986.png</code></td>
+<td>Passed: coherent pencil sketch, source geometry preserved.</td>
+</tr>
+<tr>
+<td>Masked engine edit</td>
+<td>same source, <code>engine_mask_768x432.png</code></td>
+<td><code>masked_engine_prompt.json</code></td>
+<td><code>masked_engine_672x384_seed8987.png</code></td>
+<td>Partial: scene preserved, prompt color change weak.</td>
+</tr>
+<tr>
+<td>Masked strict amber edit</td>
+<td>same source, <code>engine_mask_768x432.png</code></td>
+<td><code>masked_engine_prompt_strict_amber.json</code></td>
+<td><code>masked_engine_strict_amber_672x384_seed8988.png</code></td>
+<td>Partial: amber improved, but engine area over-edited.</td>
+</tr>
+<tr>
+<td>Tight masked strict amber edit</td>
+<td>same source, <code>engine_mask_tight_768x432.png</code></td>
+<td><code>masked_engine_prompt_tight_amber.json</code></td>
+<td><code>masked_engine_tight_amber_672x384_seed8989.png</code></td>
+<td>Failed visual QA: scene over-edited and oversaturated.</td>
+</tr>
+</tbody>
+</table>
+<p>Contact sheet:</p>
+<ul>
+<li><code>validation_outputs/fibo_edit_repair_2026_06_05/fibo_edit_repair_contact_sheet.jpg</code></li>
+</ul>
+<h2 id="compatibility-pass-2026-06-05">Compatibility pass - 2026-06-05<a class="headerlink" href="#compatibility-pass-2026-06-05" title="Permanent link">&para;</a></h2>
+<p>Five additional review charters were applied after the first repair pass:</p>
+<table>
+<thead>
+<tr>
+<th>Charter</th>
+<th>Finding</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Architect/platform</td>
+<td>Re-enable only the narrow one-image unmasked <code>edit-reference</code> path if unified visual proof passes; keep masked FIBO and RMBG fail-closed.</td>
+</tr>
+<tr>
+<td>Upstream parity</td>
+<td>A later Diffusers parity audit found that empty CFG rows must encode to FIBO's begin-of-text token, not to a zero-length prompt.</td>
+</tr>
+<tr>
+<td>Mask/conditioning math</td>
+<td>FIBO mask handling is soft conditioning, not hard inpaint/outpaint preservation, so it must not be advertised through <code>supports_mask</code>.</td>
+</tr>
+<tr>
+<td>CLI/API audit</td>
+<td><code>mlxgen prepare</code> must route FIBO Edit/RMBG through <code>FIBOEdit</code>; completion scripts must not advertise ignored LoRA flags.</td>
+</tr>
+<tr>
+<td>Review/release gate</td>
+<td>Require real unified <code>mlxgen generate</code> proof for default and q8 plain edit before exposing the capability.</td>
+</tr>
+</tbody>
+</table>
+<p>Additional fixes:</p>
+<ul>
+<li><code>fibo-edit</code> now exposes no unified public generation capabilities after local Diffusers and MLX
+  validation failed to produce acceptable edit images.</li>
+<li><code>fibo-edit-rmbg</code> exposes no unified capabilities until local RMBG proof and a clean public
+  contract exist.</li>
+<li><code>--mask-path</code>, multiple <code>--image</code> inputs, and <code>--image-strength</code> are rejected for FIBO Edit
+  before weight loading.</li>
+<li>FIBO Edit prompt parsing accepts Python dictionaries for direct API use.</li>
+<li>Masked natural-language prompt conversion is rejected early; masked FIBO tests require explicit
+  JSON with <code>edit_instruction</code>.</li>
+<li>FIBO/FIBO Edit VLM prompt conversion prints a clear pre-denoise status in CLI flows.</li>
+<li><code>mflux-generate-fibo-edit</code> exits non-zero on recoverable validation errors.</li>
+<li>FIBO Edit prepare uses the FIBO Edit model class instead of the base FIBO class.</li>
+</ul>
+<p>Superseded validation note:</p>
+<ul>
+<li>Earlier alias/runtime-q8 proof accepted the pre-existing empty-negative behavior because one
+  sketch-style row looked better locally. Item
+  <a href="../../completed/0026_edit_model_prepared_capability_contact_sheets/">0026</a> invalidated that as
+  release evidence because it did not use the true source handle or prepared packages. A later
+  Diffusers parity audit restored upstream-compatible empty CFG tokenization.</li>
+</ul>
+<p>Historical unified proof assets:</p>
+<table>
+<thead>
+<tr>
+<th>Case</th>
+<th>Command shape</th>
+<th>Output</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Plain FIBO Edit q8</td>
+<td><code>uv run mlxgen generate --model fibo-edit --quantize 8 --image source_spaceship_snow_768x432.png --prompt-file plain_pencil_prompt.json --width 672 --height 384 --canvas-policy exact-resize --steps 50 --guidance 5 --seed 8986</code></td>
+<td><code>validation_outputs/fibo_edit_repair_2026_06_05/unified_plain_pencil_q8_reverted_empty_672x384_seed8986.png</code></td>
+<td>Passed visual QA: coherent pencil sketch, source geometry preserved.</td>
+</tr>
+<tr>
+<td>Plain FIBO Edit default weights</td>
+<td><code>uv run mlxgen generate --model fibo-edit --image source_spaceship_snow_768x432.png --prompt-file plain_pencil_prompt.json --width 672 --height 384 --canvas-policy exact-resize --steps 50 --guidance 5 --seed 8986</code></td>
+<td><code>validation_outputs/fibo_edit_repair_2026_06_05/unified_plain_pencil_bf16_reverted_empty_672x384_seed8986.png</code></td>
+<td>Passed visual QA: coherent pencil sketch, source geometry preserved.</td>
+</tr>
+</tbody>
+</table>
+<p>Those rows prove the unified route can execute, but they are not release evidence for prepared
+FIBO Edit packages because they used the short alias and runtime quantization. Current package
+validation is tracked in
+<a href="../../completed/0026_edit_model_prepared_capability_contact_sheets/">0026</a> with the true source
+handle <code>briaai/Fibo-Edit</code> and prepared local folders.</p>
+<p>Current decision: keep this item planned for future masked FIBO Edit and RMBG work only. Plain
+FIBO Edit remains unavailable through unified <code>mlxgen generate</code>; prepared-package visual status is
+tracked separately in item 0026 and follow-up parity work is tracked in item 0027. Masked FIBO Edit
+remains dedicated-command gated because visual QA still fails for localized mask edits, and
+<code>briaai/Fibo-Edit-RMBG</code> still lacks a local release-quality proof.</p>
+<p>Scheduling decision, 2026-06-07: do not promote or implement this before outpaint/reframe and LoRA
+strictness. If FIBO becomes important again, start with item 0027 source-route parity, not this
+unified validation item.</p>
+<h2 id="porting-correction-2026-06-05">Porting correction - 2026-06-05<a class="headerlink" href="#porting-correction-2026-06-05" title="Permanent link">&para;</a></h2>
+<p>Diffusers parity review against
+The local Diffusers Bria FIBO pipeline audit found two concrete MLX
+porting issues:</p>
+<ul>
+<li>Empty negative prompt rows in FIBO CFG now encode as <code>&lt;|begin_of_text|&gt;</code> / token <code>128000</code>,
+  matching Diffusers' FIBO prompt contract.</li>
+<li>FIBO transformer <code>norm_out.linear.bias</code> is now represented in the MLX module. Prepared FIBO
+  folders created by older builds are rejected before generation if that weight is missing.</li>
+</ul>
+<p>These fixes do not convert the historical failed images into passing evidence. Item
+<a href="../0027_fibo_edit_diffusers_parity_release_quality/">0027</a> tracks re-preparing FIBO Edit BF16/q8
+folders with the corrected code and rerunning the standardized sequence.</p>
+<h2 id="correction-2026-06-05">Correction - 2026-06-05<a class="headerlink" href="#correction-2026-06-05" title="Permanent link">&para;</a></h2>
+<p>The compatibility pass above is not sufficient release evidence for q8 FIBO Edit packaging. It
+used the <code>fibo-edit</code> alias and runtime <code>--quantize 8</code>; release validation must use the true source
+handle <code>briaai/Fibo-Edit</code> and a prepared q8 folder or HF repo. Broader prepared-package edit
+validation is now tracked in
+<a href="../../completed/0026_edit_model_prepared_capability_contact_sheets/">0026</a>.</p>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Focused unit tests for capability routing and prompt validation.</li>
+<li>Model-backed visual proofs for plain edit and masked edit.</li>
+<li>Failed-attempt assets preserved if a mode remains unsupported.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

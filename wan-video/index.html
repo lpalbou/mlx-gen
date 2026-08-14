@@ -1,0 +1,1958 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/wan-video/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Wan Video - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#wan-video" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Wan Video
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#current-practical-guidance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Practical Guidance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Current Practical Guidance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#motion-fidelity-versus-strength" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Motion Fidelity Versus Strength
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#continuing-a-clip-multi-frame-context-conditioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Continuing A Clip: Multi-Frame Context Conditioning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chaining-clips-with-a-persistent-identity-anchor-svi-20-pro" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Chaining Clips With A Persistent Identity Anchor: SVI 2.0 Pro
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#masked-video-to-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Masked Video-To-Video
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vace-reference-images-and-learned-mask-conditioning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VACE: Reference Images And Learned Mask Conditioning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fast-video-to-video-with-lightning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fast Video-To-Video With Lightning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a14b-size-families" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A14B Size Families
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-canvas-and-source-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Canvas And Source Mapping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example Prompt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#m5-max-comparison-clips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        M5 Max Comparison Clips
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="M5 Max Comparison Clips">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#ti2v-5b-at-832x480" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TI2V-5B At 832x480
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#t2v-a14b-at-480x240" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        T2V-A14B At 480x240
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ti2v-5b-at-1280x704" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TI2V-5B At 1280x704
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#command-shape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Command Shape
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repeat-run-and-application-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repeat-Run And Application Performance
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="wan-video">Wan Video<a class="headerlink" href="#wan-video" title="Permanent link">&para;</a></h1>
+<p>MLX-Gen supports Wan2.2 text-to-video and image-to-video through <code>mlxgen generate</code>, plus
+prompt-guided video-to-video on <code>Wan2.2-T2V-A14B</code> in plain form or with <code>--video-mask-path</code>. Use
+this page for practical size, frame, and runtime guidance; use <a href="../api/#wan-video">API and CLI</a> for
+the full command surface.</p>
+<p>For ordinary reference-image-to-video and reference-guided source-video editing, use the separate
+<a href="../bernini/">Bernini-R 1.3B</a> renderer. Bernini shares Wan components but has different packed
+source-ID conditioning, guidance, precision, and canvas contracts.</p>
+<h2 id="current-practical-guidance">Current Practical Guidance<a class="headerlink" href="#current-practical-guidance" title="Permanent link">&para;</a></h2>
+<p>Single shots default to <code>81</code> frames across the Wan family, and 81 is the recommended shot
+length: the A14B models train at 81 frames, and longer single shots drift toward a ping-pong
+ending that returns to the first frame (see the
+<a href="../faq/#why-does-a-long-image-to-video-clip-return-to-its-first-frame">FAQ entry on long image-to-video clips</a>).
+For longer results, chain shots with SVI continuation or context-frame conditioning rather than
+raising <code>--frames</code> on one shot. TI2V-5B natively supports up to <code>121</code> frames; pass <code>--frames 121</code>
+explicitly for its full-length shots.</p>
+<p>Wan A14B is the stronger local option in the measured starship example below when you can accept a
+smaller canvas. On an Apple M5 Max, a 5.05 second clip at <code>480x240</code> or <code>240x480</code>, <code>101</code> frames,
+<code>20</code> fps, and <code>20</code> to <code>25</code> steps takes about 30 minutes in the local profiles below. For the
+specific starship prompt shown here, the documented A14B text-to-video result at <code>480x240</code> is the
+preferred practical setting over TI2V-5B at <code>832x480</code>.</p>
+<p>TI2V-5B remains useful as the smaller 5B route and supports both text-to-video and first-frame
+image-to-video. It uses 32-pixel spatial multiples and is designed around <code>1280x704</code> or
+<code>704x1280</code>; <code>832x480</code> is a practical lower-cost size. A <code>1280x704</code>, <code>25</code> step, <code>101</code> frame local
+run takes about the same time as the A14B <code>480x240</code> profile in this page.
+For TI2V-5B, treat smaller canvases below <code>832x480</code> as command and prompt-routing checks rather
+than visual-quality settings.</p>
+<p>Wan uses a flow-matching schedule shift. MLX-Gen uses the selected model's default unless you pass
+<code>--flow-shift</code>: TI2V-5B defaults to <code>5.0</code> for native 720p-class runs, while A14B defaults to <code>3.0</code>.
+For new 480p-class TI2V-5B checks such as <code>832x480</code>, use <code>--flow-shift 3</code>.</p>
+<p>The public Wan video-to-video route stays intentionally narrow:</p>
+<p>Plain video-to-video means one source clip plus one text prompt. MLX-Gen uses the source clip as a
+composition anchor, then regenerates the video under the prompt. It is useful for broad
+whole-scene or whole-subject changes while keeping the overall camera path. Be precise about what
+survives: camera path, framing, and scene layout carry through at typical strengths, but subject
+gestures and timing are re-synthesized - the model generates plausible motion, not the source's
+exact motion. The measured motion-fidelity ladder below shows where that transition happens. For
+exact preservation of a region (including its motion), use <code>--video-mask-path</code>.</p>
+<h3 id="motion-fidelity-versus-strength">Motion Fidelity Versus Strength<a class="headerlink" href="#motion-fidelity-versus-strength" title="Permanent link">&para;</a></h3>
+<p><code>--video-strength</code> is not linear: the flow shift warps it, so the warm start keeps far less
+source signal than the number suggests. Measured on a subject-swap edit (25 frames, 20 steps,
+CFG on, one seed; gesture-timing correlation of the subject region's motion against the source,
+where 1.0 = source motion and values below ~0.42 are statistically indistinguishable from
+zero). The Lightning row comes from the paired 17-frame control clip, not the 25-frame ladder:</p>
+<table>
+<thead>
+<tr>
+<th><code>--video-strength</code></th>
+<th>Warm-start sigma (shift 3)</th>
+<th>Source signal kept</th>
+<th>Gesture timing r</th>
+<th>What you get (in the measured runs)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.5</td>
+<td>0.75</td>
+<td>25%</td>
+<td>0.86</td>
+<td>edit applied, source gestures preserved</td>
+</tr>
+<tr>
+<td>0.6</td>
+<td>0.82</td>
+<td>18%</td>
+<td>0.90</td>
+<td>edit applied, source gestures preserved</td>
+</tr>
+<tr>
+<td>0.7</td>
+<td>0.88</td>
+<td>12%</td>
+<td>0.73</td>
+<td>mostly preserved</td>
+</tr>
+<tr>
+<td>0.8 (default)</td>
+<td>0.92</td>
+<td>8%</td>
+<td>0.20</td>
+<td>gestures re-synthesized</td>
+</tr>
+<tr>
+<td>Lightning recipe (0.75 at shift 5)</td>
+<td>0.94</td>
+<td>6%</td>
+<td>-0.16 to 0.45 (prompt-dependent, paired control)</td>
+<td>gestures re-synthesized</td>
+</tr>
+</tbody>
+</table>
+<p>Practical guidance from the ladder (proof bundle with commands, per-run metrics, and contact
+sheets: <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/motion-ladder-2026-07-05/README.md">motion-ladder-2026-07-05</a>):</p>
+<ul>
+<li>For "keep the motion, change the look" restyles, use <code>--video-strength 0.5-0.6</code> at 20 steps
+  with CFG on. Below 0.7 the A14B high-noise stage is skipped (<code>--guidance</code> is inert and a
+  warning prints; <code>--guidance-2</code> carries the CFG on the low-noise expert) - fine for restyling,
+  weaker for adding brand-new objects; use a mask for those.</li>
+<li>The 4-step Lightning fast path cannot reach the motion-preserving band: at 4 steps, strength
+  0.5-0.65 leaves 2 effective steps and drops the high-noise LoRA entirely. Fast and
+  motion-preserving are currently mutually exclusive; pick per clip.</li>
+<li>Prompt wording matters at high noise but cannot lock timing: in a paired control run at the
+  Lightning point, adding "gesturing naturally with his hands" to the prompt restored gesturing
+  where the same seed without it produced hands-on-podium - the class of motion returned, not
+  the source's exact timing.</li>
+</ul>
+<p>Motion-preserving restyle recipe (measured settings; adjust canvas, frames, and prompt to your
+clip):</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>source.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Describe the restyled subject and what must stay the same&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">480</span><span class="w"> </span>--height<span class="w"> </span><span class="m">832</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">25</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span>--guidance-2<span class="w"> </span><span class="m">3</span><span class="w"> </span>--video-strength<span class="w"> </span><span class="m">0</span>.6<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--solver<span class="w"> </span>unipc<span class="w"> </span>--seed<span class="w"> </span><span class="m">8602</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>restyled.mp4
+</code></pre></div>
+<p>Expect the boundary-skip warning: below strength 0.7 the high-noise stage never runs, so
+<code>--guidance 4</code> is inert and <code>--guidance-2 3</code> provides the classifier-free guidance.</p>
+<p>The measured rows are published for inspection (the exact ladder commands are in the bundle
+README; the strength-0.6 run below used the recipe above with the woman-swap prompt and its
+custom negative prompt, seed 8602):</p>
+<ul>
+<li>strength 0.6 output (edit applied, gestures preserved, r 0.90): <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/motion-ladder-2026-07-05/ladder_s06.mp4">ladder_s06.mp4</a> + <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/motion-ladder-2026-07-05/ladder_s06.metadata.json">metadata</a></li>
+<li>strength 0.8 output (gestures re-synthesized, r 0.20): <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/motion-ladder-2026-07-05/ladder_s08.mp4">ladder_s08.mp4</a> + <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/motion-ladder-2026-07-05/ladder_s08.metadata.json">metadata</a></li>
+<li>paired prompt control at the Lightning point: <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/motion-ladder-2026-07-05/control_gesture_prompt.mp4">control_gesture_prompt.mp4</a> + <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/motion-ladder-2026-07-05/control_gesture_prompt.metadata.json">metadata</a></li>
+<li>edit-success face crops (source, 0.5, 0.6, 0.7, 0.8):</li>
+</ul>
+<p><img alt="Face crops at frame 12 across the strength ladder" src="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/motion-ladder-2026-07-05/face_crops_frame12.png" /></p>
+<p>Temporal and audio contract, in plain terms:</p>
+<ul>
+<li>MLX-Gen resamples the source onto the <code>--fps</code> timeline at decode, so the output keeps real-time
+  speed regardless of the source frame rate: <code>--frames 17 --fps 16</code> always consumes the first
+  1.06 s of the source. Downsampling (for example 30 fps -&gt; 16 fps) drops intermediate frames and
+  prints an informational note; upsampling above the source fps duplicates frames and prints a
+  warning, because duplicated conditioning frames reduce motion smoothness. When source and
+  requested fps already match, frames pass through untouched (bit-identical with earlier
+  releases). Metadata records <code>source_video_fps</code> and <code>source_video_resampled</code>.</li>
+<li>When the source clip has an audio track, the matching audio segment is copied onto the saved
+  output (trimmed to the output duration). The copy is best-effort: if it cannot be completed
+  (for example, <code>ffmpeg</code> missing), the video is saved silent, a warning prints the reason plus a
+  manual remux command, and metadata records <code>audio_copied</code> / <code>audio_copy_reason</code>. This is
+  deliberately softer than the SeedVR2 restore contract, which fails on unpreserved audio: a
+  failed mux must not discard a finished generation.</li>
+</ul>
+<p>Included proof (a 30 fps source with an audio track, edited at <code>--fps 16</code>; the output keeps
+real-time speed and carries the audio - play the MP4 to hear it):</p>
+<ul>
+<li>source (30 fps, 47 frames, 440 Hz tone): <a href="../assets/examples/conference-fps-audio/conference_30fps_with_audio.mp4">conference_30fps_with_audio.mp4</a></li>
+<li>output (16 fps, 17 frames, AAC audio, red-necktie edit): <a href="../assets/examples/conference-fps-audio/red_tie_fps_audio.mp4">red_tie_fps_audio.mp4</a></li>
+<li>run metadata (<code>source_video_resampled: true</code>, <code>audio_copied: true</code>): <a href="../assets/examples/conference-fps-audio/red_tie_fps_audio.metadata.json">red_tie_fps_audio.metadata.json</a></li>
+<li>contact sheets: <a href="../assets/examples/conference-fps-audio/source_contact_sheet.png">source</a> / <a href="../assets/examples/conference-fps-audio/output_contact_sheet.png">output</a></li>
+</ul>
+<p>This exact command produced the output above (Lightning fast recipe; the source was derived
+from the seed-8601 clip in <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/lightning-v2v-2026-07-04/README.md">lightning-v2v-2026-07-04</a>
+via <code>ffmpeg -filter_complex "[0:v]fps=30[v]"</code> plus a <code>sine=frequency=440</code> audio track):</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>conference_30fps_with_audio.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A man in a dark blue suit stands at a conference speaking to the audience, wearing a bright red necktie, photorealistic, stage lighting&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative-prompt<span class="w"> </span><span class="s2">&quot;cartoon, illustration, low quality, blurry, distorted face&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">480</span><span class="w"> </span>--height<span class="w"> </span><span class="m">832</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span>--video-strength<span class="w"> </span><span class="m">0</span>.75<span class="w"> </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span>--guidance-2<span class="w"> </span><span class="m">1</span><span class="w"> </span>--flow-shift<span class="w"> </span><span class="m">5</span><span class="w"> </span>--solver<span class="w"> </span>unipc<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors&quot;</span><span class="w"> </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-target-roles<span class="w"> </span>high_noise_transformer<span class="w"> </span>low_noise_transformer<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">4242</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>red_tie_fps_audio.mp4
+</code></pre></div>
+<p>Route rules:</p>
+<ul>
+<li>use <code>Wan-AI/Wan2.2-T2V-A14B-Diffusers</code> or the matching prepared A14B T2V package;</li>
+<li>pass exactly one <code>--video</code> or <code>--video-path</code>;</li>
+<li>keep <code>--solver unipc</code>;</li>
+<li>use <code>--video-strength</code> when you want more or less change from the source clip (default <code>0.8</code>);</li>
+<li>know the strength contract: the run denoises <code>floor(steps x video_strength)</code> effective steps, so
+  the saved metadata records both your requested <code>steps</code> and the resolved <code>effective_steps</code>;</li>
+<li>know that below roughly <code>--video-strength 0.7</code> the A14B high-noise stage is skipped, <code>--guidance</code>
+  becomes inactive, and only <code>--guidance-2</code> shapes the result; MLX-Gen prints a warning when this
+  happens;</li>
+<li>match the requested <code>--width</code>/<code>--height</code> aspect ratio to the source clip: plain video-to-video
+  stretches source frames to the requested canvas and warns on a mismatch, unlike image-to-video
+  which preserves the source aspect ratio;</li>
+<li>use <code>--video-mask-path</code> when you want the background locked to the source (see
+  <a href="#masked-video-to-video">Masked Video-To-Video</a> below);</li>
+<li>do not expect reference images, control videos, SeedVR2-style restore/upscale behavior, or
+  VACE-style learned conditioning on this A14B route - those live on the natively ported
+  <code>wan-vace</code> model (see <a href="#vace-reference-images-and-learned-mask-conditioning">VACE</a> below) or the
+  role-aware <a href="../bernini/">Bernini renderer</a>;</li>
+<li>do not expect TI2V-5B or I2V-A14B to accept source-video input on the public CLI.</li>
+</ul>
+<h2 id="continuing-a-clip-multi-frame-context-conditioning">Continuing A Clip: Multi-Frame Context Conditioning<a class="headerlink" href="#continuing-a-clip-multi-frame-context-conditioning" title="Permanent link">&para;</a></h2>
+<p>When a new A14B image-to-video clip continues an existing shot, seeding it from ONE still frame
+resets the motion: one frame carries no velocity, so the continuation restarts at whatever speed
+and direction the model guesses. <code>--context-frames</code> hands over the predecessor's last K frames
+instead (the SkyReels-V2/SVI-class multi-frame handover): <code>--image-path</code> takes the FIRST frame of
+the handover window and <code>--context-frames</code> the ordered rest — 4, 8, or 12 frames, so the
+conditioned head (5, 9, or 13 frames) fills whole 4x VAE latent groups.</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Predecessor tail frames f44..f48 extracted as ONGs; head = 5 frames.</span>
+mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;the ship continues rising, camera static&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>f44.png<span class="w"> </span>--context-frames<span class="w"> </span>f45.png<span class="w"> </span>f46.png<span class="w"> </span>f47.png<span class="w"> </span>f48.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">480</span><span class="w"> </span>--height<span class="w"> </span><span class="m">272</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">49</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span>--guidance<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span>--guidance-2<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span>--flow-shift<span class="w"> </span><span class="m">5</span>.0<span class="w"> </span>--seed<span class="w"> </span><span class="m">5151</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/high_noise_model.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">               </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/low_noise_model.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span>--lora-target-roles<span class="w"> </span>high_noise_transformer<span class="w"> </span>low_noise_transformer
+</code></pre></div>
+<p>The continuation regenerates the head frames (conditioned, not copied), so a host assembling a
+film should trim the predecessor at the FIRST handover frame to avoid double-play. This is
+EXPERIMENTAL zero-shot behavior on Wan 2.2 A14B — measured bounds, the boundary flare artifact,
+and the <code>--context-noise</code> knob are documented in the API table and backlog item 0102.</p>
+<h2 id="chaining-clips-with-a-persistent-identity-anchor-svi-20-pro">Chaining Clips With A Persistent Identity Anchor: SVI 2.0 Pro<a class="headerlink" href="#chaining-clips-with-a-persistent-identity-anchor-svi-20-pro" title="Permanent link">&para;</a></h2>
+<p>Multi-frame context conditioning carries momentum, but nothing in it re-states WHO the subject is:
+over long chains the subject drifts. SVI 2.0 Pro (Stable Video Infinity, ICLR'26 Oral, trained for
+Wan 2.2 A14B i2v) restructures the conditioning of every clip as
+<code>[anchor_latent, motion_latent, zero-latents]</code>: one persistent anchor image is re-injected into
+EVERY clip of the chain (identity), the previous clip's final denoised latent hands the motion
+over losslessly (momentum), and an error-recycling LoRA pair teaches the model to recover from its
+own accumulated errors (drift resistance). MLX-Gen ships this as an EXPERIMENTAL mode:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Clip 1: the anchor IS the first frame; the run exports clip1.svi_latent.safetensors.</span>
+mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;a silver survey drone hovering low over a geyser field, camera static&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--svi-anchor-image<span class="w"> </span>anchor.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--svi-lora-high<span class="w"> </span><span class="s2">&quot;vita-video-gen/svi-model:version-2.0/SVI_Wan2.2-I2V-A14B_high_noise_lora_v2.0_pro.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--svi-lora-low<span class="w">  </span><span class="s2">&quot;vita-video-gen/svi-model:version-2.0/SVI_Wan2.2-I2V-A14B_low_noise_lora_v2.0_pro.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">480</span><span class="w"> </span>--height<span class="w"> </span><span class="m">240</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">49</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span>--guidance<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span>--guidance-2<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span>--flow-shift<span class="w"> </span><span class="m">5</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/high_noise_model.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">               </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-I2V-A14B-4steps-lora-rank64-Seko-V1/low_noise_model.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.6<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span>--lora-target-roles<span class="w"> </span>high_noise_transformer<span class="w"> </span>low_noise_transformer<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>clip1.mp4
+
+<span class="c1"># Clip 2: SAME anchor, the exported latent as motion handover, a NEW seed.</span>
+mlxgen<span class="w"> </span>generate<span class="w"> </span>...<span class="w"> </span>--svi-anchor-image<span class="w"> </span>anchor.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--svi-motion-latent<span class="w"> </span>clip1.svi_latent.safetensors<span class="w"> </span>--seed<span class="w"> </span><span class="m">202</span><span class="w"> </span>--output<span class="w"> </span>clip2.mp4
+</code></pre></div>
+<p>Contract highlights (every violation fails loudly before weight load where possible):</p>
+<ul>
+<li>the SVI LoRA pair is REQUIRED (<code>--svi-lora-high</code>/<code>--svi-lora-low</code>, fixed scale 1.0, strict
+  key-match: any unmatched key aborts) and FORBIDDEN outside SVI mode — the pair retrains the
+  conditioning convention, so each without the other produces garbage;</li>
+<li><code>--svi-anchor-image</code> replaces <code>--image-path</code> and conflicts with <code>--last-image</code>,
+  <code>--context-frames</code>, and <code>--video-path</code>; TI2V-5B and VACE reject it;</li>
+<li>every SVI run exports its final latent as <code>&lt;output&gt;.svi_latent.safetensors</code> for the next clip;
+  the chain must keep ONE canvas end to end (mismatches are rejected at load);</li>
+<li>assembly must drop the first <code>svi_assembly_trim_frames</code> frames (metadata; <code>1 + 4 x count</code>, i.e.
+  5 for the default one motion latent) of every CONTINUATION clip: they re-render the anchor
+  restoration and the predecessor's tail;</li>
+<li>use a UNIQUE seed per clip (author guidance: identical seeds accumulate artifacts) and keep
+  continuation segments at or below 65 frames (a longer segment prints a trained-length advisory);</li>
+<li>when stacking with the Lightning 4-step pair, the author-documented trade-off is the lightx2v
+  scale on the HIGH-noise expert: 1.0 = weaker dynamics/text-following and anchor snap-back,
+  0.5-0.6 recommended; keep low-noise lightx2v and both SVI files at 1.0.</li>
+</ul>
+<h2 id="masked-video-to-video">Masked Video-To-Video<a class="headerlink" href="#masked-video-to-video" title="Permanent link">&para;</a></h2>
+<p>Plain video-to-video re-synthesizes every pixel, so background details (text, logos, posters)
+drift even when the prompt asks to keep them. Masked video-to-video fixes that: pass one static
+image mask with <code>--video-mask-path</code>, and MLX-Gen locks everything outside the mask to the source
+video at every denoising step, then composites the exact source latents back at the end. Preserved
+regions match the source up to VAE round-trip precision; only the white region is regenerated.</p>
+<p>Mask contract:</p>
+<ul>
+<li>one static image (PNG or similar); white marks the region the model may change, black is
+  preserved; values are binarized at 50% after downsampling to the latent grid;</li>
+<li>the mask is resized to the requested canvas, so match its aspect ratio to the output;</li>
+<li>for moving subjects, draw the mask over the union of the subject's positions across the clip;</li>
+<li><code>--video-strength</code> applies inside the mask; an all-black mask is rejected before model load;</li>
+<li>masked video-to-video follows the same route rules as plain video-to-video
+  (<code>Wan2.2-T2V-A14B</code>, <code>--solver unipc</code>).</li>
+</ul>
+<p>Example (this exact command produced the masked proof below):</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>source.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-mask-path<span class="w"> </span>person_mask.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A realistic wide shot of a woman giving a talk on a conference stage. Keep the exact same stage, podium, screen, and framing. She wears the same dark blue suit.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">480</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">832</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance-2<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-strength<span class="w"> </span><span class="m">0</span>.8<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--solver<span class="w"> </span>unipc<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">8602</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>edited.mp4
+</code></pre></div>
+<p>Included proof artifacts (measured on the conference gender-swap case, 480x832, 25 frames):</p>
+<ul>
+<li>mask: <a href="../assets/examples/conference-masked-v2v/person_mask.png">person_mask.png</a></li>
+<li>output video: <a href="../assets/examples/conference-masked-v2v/woman_masked_v2v.mp4">woman_masked_v2v.mp4</a></li>
+<li>run metadata: <a href="../assets/examples/conference-masked-v2v/woman_masked_v2v.metadata.json">woman_masked_v2v.metadata.json</a></li>
+<li>side-by-side with zooms: <a href="../assets/examples/conference-masked-v2v/comparison_masked_vs_plain.png">comparison_masked_vs_plain.png</a></li>
+</ul>
+<p>Measured preservation on that proof: preserved-region drift dropped from <code>14.9</code> (plain
+video-to-video) to <code>1.7</code> mean per-pixel delta - at the measured H.264 re-encode floor of <code>1.9</code>,
+meaning preserved regions are indistinguishable from a lossless copy of the source. The edited
+region still changed strongly (delta <code>23.4</code>), so the man -&gt; woman edit went through. Overhead
+versus plain video-to-video is negligible (three elementwise blends per step).</p>
+<h2 id="vace-reference-images-and-learned-mask-conditioning">VACE: Reference Images And Learned Mask Conditioning<a class="headerlink" href="#vace-reference-images-and-learned-mask-conditioning" title="Permanent link">&para;</a></h2>
+<p><code>Wan-AI/Wan2.1-VACE-1.3B-diffusers</code> (alias <code>wan-vace</code>) is a natively ported single-transformer
+Wan2.1 model with VACE conditioning blocks: instead of the SDEdit warm start that plain
+video-to-video uses, VACE feeds the source video, the mask, and optional reference images
+through learned control layers at every denoising step.</p>
+<p>Why a Wan2.1 model: VACE is a Wan2.1-generation release - the only official Wan-AI VACE
+checkpoints are <code>Wan2.1-VACE-1.3B</code> and <code>Wan2.1-VACE-14B</code>; there is no official Wan2.2 VACE
+(the community <code>alibaba-pai/Wan2.2-VACE-Fun-A14B</code> is a third-party fine-tune in the 64 GB
+class). The 1.3B checkpoint is the small official rung and the first Wan2.1 model in this
+runtime; it reuses the same Wan2.1 16-channel VAE and UMT5-XXL encoder the A14B route already
+ships, so the port adds the VACE control blocks rather than a new stack.</p>
+<p>VACE buys two things the A14B routes cannot do:</p>
+<ul>
+<li><strong>Reference-image object injection</strong>: pass <code>--reference-image object.png</code> (repeatable) with a
+  text prompt and no source video, and the model generates a new scene containing the pictured
+  subject. Reference preparation decides whether this works: SEGMENT the subject onto a plain
+  white background (the format the official VACE examples use). A rectangular crop that keeps
+  background gives only a style-level match, and a full-scene reference loses the subject
+  entirely - both failure modes are demonstrated in the proof bundle, and the identity claim
+  is backed by a same-seed no-reference control.</li>
+<li><strong>Learned masked editing</strong>: pass <code>--video-path</code> + <code>--video-mask-path</code> and the white region is
+  re-synthesized under prompt + reference guidance while the black region conditions the
+  result through the VACE branch (a learned preserve, unlike the exact latent lock of masked
+  A14B video-to-video; combine with the A14B masked route when you need codec-floor
+  preservation).   <code>--vace-masked-region</code> selects what the model sees inside the white region:</li>
+<li><code>generate</code> (default): the region is gray-filled before conditioning, following the
+    official VACE inpainting convention ("gray = missing part"). The model synthesizes new
+    structure there - use this to REPLACE or substantially transform an object (measured on
+    the bundle case: silhouette IoU vs source 0.16-0.20 with in-mask change 63.8, against a
+    3.8-3.9 codec-floor background).</li>
+<li><code>repaint</code>: the source content is kept as conditioning, so structure and motion are
+    preserved and only style/color/materials change (measured: silhouette IoU 0.80-0.88,
+    in-mask 14-17). Use this for recolor/restyle-in-place edits.
+  Keep the mask a TIGHT corridor around the object's trajectory: an over-wide mask hands the
+  model scenery it will re-render (a wide-mask iteration in the proof bundle recolored a
+  cliff top that sat inside the editable region). The mask contract is the same as
+  elsewhere: one static image, binarized at 50% - soft or per-frame masks are not part of
+  the public surface yet. Do NOT also pass the source frame as <code>--reference-image</code> when
+  asking for a change: a self-reference anchors the subject to its current appearance and
+  suppresses the edit even in repaint mode (measured: in-mask change dropped from ~15-17 to
+  ~8-11).</li>
+</ul>
+<p>Route contract:</p>
+<ul>
+<li><code>--reference-image</code> and <code>--conditioning-scale</code> are backend flags on <code>mlxgen-generate-wan</code>
+  (the <code>mlxgen generate</code> router forwards them unchanged);</li>
+<li><code>--solver unipc</code> only; <code>--video-strength</code> is rejected (no SDEdit warm start);</li>
+<li><code>--conditioning-scale</code> (default <code>1.0</code>) scales the VACE branch at every control layer:
+  higher values push the output harder toward the source video/mask/reference conditioning,
+  lower values give the text prompt more freedom;</li>
+<li>480p-class canvases (<code>832x480</code> / <code>480x832</code>; the 1.3B checkpoint is unstable at 720p per its
+  model card); defaults: 81 frames, 30 steps, guidance 5.0, fps 16;</li>
+<li>reference images and <code>--conditioning-scale</code> are recorded in metadata and replayed by
+  <code>--config-from-metadata</code>;</li>
+<li>measured cost (BF16, <code>--low-ram</code>, M-series 128 GB host): 448x256x17f/16 steps = 239 s at
+  ~11-12 GiB peak; 832x480x17-33f/20 steps = ~10-24 min at ~19-26 GiB; the flag-free
+  defaults (832x480x81f/30 steps) = 1 h 56 min at 31.7 GiB - iterate at 17-33 frames and
+  scale up when the composition is right.</li>
+</ul>
+<p>What reference injection looks like end to end - the reference image (subject segmented onto
+white) is the ONLY visual input, the ocean scene is invented from the text, and the control
+row shows the same seed WITHOUT the reference producing an unrelated ship - the reference
+branch, not the prompt, carries the identity:</p>
+<p><img alt="Reference injection: segmented reference, output with reference, same-seed control without" src="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/wan-vace-2026-07-06/proof_reference_injection_panel.png" /></p>
+<p>Reference-injection example (this exact command produced the "with reference" row above; the
+control row is the same command without <code>--reference-image</code>):</p>
+<div class="highlight"><pre><span></span><code>mlxgen-generate-wan<span class="w"> </span>--model<span class="w"> </span>Wan-AI/Wan2.1-VACE-1.3B-diffusers<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reference-image<span class="w"> </span>ship_segmented_on_white.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;The starship from the reference image flying low over a calm turquoise ocean at golden sunset, side view, large in frame, cinematic tracking shot, photorealistic&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative-prompt<span class="w"> </span><span class="s2">&quot;duplicate ships, warped hull, washed out frame, blown highlights, tiny distant object&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">832</span><span class="w"> </span>--height<span class="w"> </span><span class="m">480</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span>--guidance<span class="w"> </span><span class="m">5</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">4242</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span>--output<span class="w"> </span>ship_over_ocean.mp4
+</code></pre></div>
+<p>And the documented failure mode - the same request with a full-scene reference instead of a
+segmented subject loses the subject entirely (effectively a text-to-video result):</p>
+<p><img alt="Failure mode: full-scene reference input and failed output" src="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/wan-vace-2026-07-06/proof_reference_failure_panel.png" /></p>
+<p>What a masked edit looks like end to end - request, inputs (source video + mask), and both
+mode outputs in one panel; the red overlay marks the only region the model may change.
+GENERATE mode replaces the ship with a new vehicle; REPAINT mode restyles the existing one in
+place. Same seed and source clip; the repaint row comes from its own earlier run with the
+wider union mask (16 steps, guidance 3.5), as the panel caption states:</p>
+<p><img alt="Masked edit: request, source video, mask, generate-mode and repaint-mode outputs" src="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/wan-vace-2026-07-06/proof_masked_edit_panel.png" /></p>
+<p>Masked-edit example (this exact command produced the generate-mode row above; pass
+<code>--vace-masked-region repaint</code> to restyle in place instead of replacing):</p>
+<div class="highlight"><pre><span></span><code>mlxgen-generate-wan<span class="w"> </span>--model<span class="w"> </span>Wan-AI/Wan2.1-VACE-1.3B-diffusers<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>source.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-mask-path<span class="w"> </span>ship_trajectory_corridor_mask.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Keep the same icy cliffs, snow haze, soft sunrise lighting, and lift-off camera motion. A massive bulky smuggler starship, wider and longer than the frame center, gritty weathered matte metal hull with a bright circular rear reactor and two side engine nacelles, rises steadily off the snow gaining altitude through the clip, photorealistic, film grain.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative-prompt<span class="w"> </span><span class="s2">&quot;duplicate ships, warped hull, melted nacelles, unreadable reactor, washed out frame, blown highlights, iridescent, rainbow highlights, stylized, toon, painterly&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">448</span><span class="w"> </span>--height<span class="w"> </span><span class="m">256</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">10</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span>--guidance<span class="w"> </span><span class="m">5</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">7302</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span>--output<span class="w"> </span>edited.mp4
+</code></pre></div>
+<p>Full proof bundle (parity evidence, request/inputs/output panels with controls, the upstream
+same-inputs A/B, exact commands, timings, the flag-free defaults-run cost, and the documented
+first-attempt pitfalls - self-reference suppressing edits, unsegmented references diluting
+identity): <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/wan-vace-2026-07-06/README.md">wan-vace-2026-07-06</a>. The port
+is verified stage-by-stage against the diffusers reference: bit-exact mask preparation and
+scheduler, transformer deltas at the model's intrinsic fp32 noise floor.</p>
+<p>Not yet demonstrated (honest gaps tracked in backlog 0080): person/identity injection and
+multi-reference generations (unit-verified only).</p>
+<h2 id="fast-video-to-video-with-lightning">Fast Video-To-Video With Lightning<a class="headerlink" href="#fast-video-to-video-with-lightning" title="Permanent link">&para;</a></h2>
+<p>The <code>lightx2v/Wan2.2-Lightning</code> T2V-A14B 4-step LoRA pairs work on the video-to-video route
+through the public <code>unipc</code> path, cutting the denoise loop from 28 transformer forwards
+(20 steps, CFG on) to 3. Validated in a bounded matrix (two seeds, two clips at two
+resolutions, two adapter versions, plus the masked combination):
+<code>Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1</code> and <code>...-Seko-V2.0</code>. The I2V-A14B and TI2V-5B
+Lightning adapters do not apply here (public video-to-video runs on the T2V-A14B route only).</p>
+<p>The on-grid recipe keeps the truncated schedule exactly on the 4-step distillation grid:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>lightx2v/Wan2.2-Lightning<span class="w"> </span>--all-files
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>source.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-strength<span class="w"> </span><span class="m">0</span>.75<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance-2<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--flow-shift<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--solver<span class="w"> </span>unipc<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">               </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-target-roles<span class="w"> </span>high_noise_transformer<span class="w"> </span>low_noise_transformer<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>edited_fast.mp4
+</code></pre></div>
+<p>Contract and trade-offs:</p>
+<ul>
+<li>the strength setting is a lattice at 4 steps: <code>0.75-0.99</code> gives 3 effective steps with the
+  high-noise LoRA engaged, <code>1.0</code> gives 4, and <code>0.7</code> drops to 2 steps and silently skips the
+  high-noise LoRA;</li>
+<li>guidance 1 disables classifier-free guidance, so negative prompts have no effect on this
+  recipe;</li>
+<li>without a mask, Lightning re-synthesizes the scene more than the 20-step CFG-on baseline
+  (measured background drift 26-32 vs 15-17);</li>
+<li>Lightning cannot reach the motion-preserving band: strength 0.5-0.65 at 4 steps leaves 2
+  effective steps and drops the high-noise LoRA, so fast and motion-preserving are mutually
+  exclusive - see <a href="#motion-fidelity-versus-strength">Motion Fidelity Versus Strength</a>;</li>
+<li>combine with <code>--video-mask-path</code> to remove that trade-off where it matters: the masked +
+  Lightning combination measured preserved-region drift <code>1.9</code> - at the H.264 re-encode floor -
+  while still applying the edit inside the mask.</li>
+</ul>
+<p>Included proof: the matrix summary, metrics, and side-by-side comparison live in
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/lightning-v2v-2026-07-04/README.md">docs/assets/validation/lightning-v2v-2026-07-04/</a>,
+and <code>mlxgen capabilities</code> reports this route's LoRA support as <code>validated</code> through the
+<code>lora_wan_a14b_q8_lightning_v2v_2026_07_04</code> profile.</p>
+<h2 id="a14b-size-families">A14B Size Families<a class="headerlink" href="#a14b-size-families" title="Permanent link">&para;</a></h2>
+<p>The official A14B quality envelope centers on <code>480P</code> and <code>720P</code>, but MLX-Gen accepts a broader set
+of 16-pixel-multiple target sizes for both A14B routes:</p>
+<ul>
+<li>square: <code>240x240</code>, <code>480x480</code>, <code>720x720</code>, <code>960x960</code>, <code>1280x1280</code>, <code>1440x1440</code></li>
+<li>portrait targets: <code>240x480</code>, <code>480x832</code>, <code>720x1280</code>, <code>832x1104</code>, <code>1248x1648</code>, <code>1080x1920</code></li>
+<li>landscape targets: <code>480x240</code>, <code>832x480</code>, <code>1280x720</code>, <code>1104x832</code>, <code>1648x1248</code>, <code>1920x1080</code></li>
+</ul>
+<p>Practical reading:</p>
+<ul>
+<li><code>480x240</code> / <code>240x480</code>: quick local previews</li>
+<li><code>832x480</code> / <code>480x832</code>: strong lower-cost working sizes</li>
+<li><code>1280x720</code> / <code>720x1280</code>: better presentation-quality targets</li>
+</ul>
+<p>For A14B image-to-video, treat these as target size classes rather than exact guarantees. MLX-Gen
+preserves the source image aspect ratio and resolves to the nearest supported canvas.</p>
+<h2 id="output-canvas-and-source-mapping">Output Canvas And Source Mapping<a class="headerlink" href="#output-canvas-and-source-mapping" title="Permanent link">&para;</a></h2>
+<p>Two orthogonal options control geometry on routes that take a source input:</p>
+<ul>
+<li><code>--canvas-policy</code> picks the output canvas. Image-to-video defaults to <code>source-aspect</code>: the
+  requested <code>--width</code>/<code>--height</code> act as a size target and the canvas is resolved from the source
+  image ratio. Video-to-video defaults to the requested (multiple-adjusted) canvas. Pass
+  <code>exact-resize</code> on image-to-video to honor the requested canvas exactly, or <code>source-aspect</code> on
+  video-to-video to derive the canvas from the clip. VACE requires the exact canvas and rejects
+  <code>source-aspect</code>.</li>
+<li><code>--resize-mode</code> picks how source pixels (image-to-video first frame, video-to-video frames, VACE
+  conditioning, and their masks) map onto that canvas: <code>resize</code> stretches to fill (default),
+  <code>crop</code> center-crops without distortion, <code>pad</code> letterboxes the full source without distortion.
+  Masks always map through the same geometry as the pixels, so masked edits stay aligned;
+  letterboxed borders count as preserved regions.</li>
+</ul>
+<p>Both values are recorded in metadata and replayed by <code>--config-from-metadata</code>. When source and
+canvas ratios differ by more than 2% under the stretching <code>resize</code> mode, plain video-to-video and
+VACE print a warning. With <code>--json-events</code>, the <code>start</code> event carries the resolved output
+<code>width</code>/<code>height</code>, so applications learn the final geometry before the first frame is generated.</p>
+<h2 id="example-prompt">Example Prompt<a class="headerlink" href="#example-prompt" title="Permanent link">&para;</a></h2>
+<p>The comparison clips use this prompt:</p>
+<div class="highlight"><pre><span></span><code>A cinematic wide-angle movie shot of a massive futuristic starship taking off from a frozen tundra. The ship features sleek dark metallic armor. Two massive warp nacelles pulsate with intensely glowing blue plasma. Violent snow squalls and heavy blizzards whip around the hull. The swirling snow is illuminated by stark volumetric blue light from the engines. The camera slowly tilts up. The camera simulates a violent shake as the thrusters ignite. Massive clouds of pristine white snow and ice blast away from the launch pad. Photorealistic, highly detailed, dramatic lighting.
+</code></pre></div>
+<h2 id="m5-max-comparison-clips">M5 Max Comparison Clips<a class="headerlink" href="#m5-max-comparison-clips" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th style="text-align: right;">Size</th>
+<th style="text-align: right;">Steps</th>
+<th style="text-align: right;">Frames / FPS</th>
+<th style="text-align: right;">Approx. time on M5 Max</th>
+<th>Asset</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wan2.2 TI2V-5B</td>
+<td style="text-align: right;"><code>832x480</code></td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">101 / 20</td>
+<td style="text-align: right;">12 min</td>
+<td><a href="../assets/examples/wan-video-comparison/wan22-ti2v-5b-832x480-25steps-20fps-101frames.mp4">MP4</a></td>
+</tr>
+<tr>
+<td>Wan2.2 T2V-A14B</td>
+<td style="text-align: right;"><code>480x240</code></td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">101 / 20</td>
+<td style="text-align: right;">30 min</td>
+<td><a href="../assets/examples/wan-video-comparison/wan22-t2v-14b-480x240-25steps-20fps-101frames.mp4">MP4</a></td>
+</tr>
+<tr>
+<td>Wan2.2 TI2V-5B</td>
+<td style="text-align: right;"><code>1280x704</code></td>
+<td style="text-align: right;">25</td>
+<td style="text-align: right;">101 / 20</td>
+<td style="text-align: right;">35 min</td>
+<td><a href="../assets/examples/wan-video-comparison/wan22-ti2v-5b-1280x704-25steps-20fps-101frames.mp4">MP4</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="ti2v-5b-at-832x480">TI2V-5B At 832x480<a class="headerlink" href="#ti2v-5b-at-832x480" title="Permanent link">&para;</a></h3>
+<p><img alt="Wan2.2 TI2V-5B 832x480 frame strip" src="../assets/examples/wan-video-comparison/wan22-ti2v-5b-832x480-frame-strip.jpg" /></p>
+<video controls src="assets/examples/wan-video-comparison/wan22-ti2v-5b-832x480-25steps-20fps-101frames.mp4"></video>
+
+<h3 id="t2v-a14b-at-480x240">T2V-A14B At 480x240<a class="headerlink" href="#t2v-a14b-at-480x240" title="Permanent link">&para;</a></h3>
+<p><img alt="Wan2.2 T2V-A14B 480x240 frame strip" src="../assets/examples/wan-video-comparison/wan22-t2v-14b-480x240-frame-strip.jpg" /></p>
+<video controls src="assets/examples/wan-video-comparison/wan22-t2v-14b-480x240-25steps-20fps-101frames.mp4"></video>
+
+<h3 id="ti2v-5b-at-1280x704">TI2V-5B At 1280x704<a class="headerlink" href="#ti2v-5b-at-1280x704" title="Permanent link">&para;</a></h3>
+<p><img alt="Wan2.2 TI2V-5B 1280x704 frame strip" src="../assets/examples/wan-video-comparison/wan22-ti2v-5b-1280x704-frame-strip.jpg" /></p>
+<video controls src="assets/examples/wan-video-comparison/wan22-ti2v-5b-1280x704-25steps-20fps-101frames.mp4"></video>
+
+<h2 id="command-shape">Command Shape<a class="headerlink" href="#command-shape" title="Permanent link">&para;</a></h2>
+<p>Use A14B T2V when the prompt does not need an input image:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic wide-angle movie shot of a massive futuristic starship taking off from a frozen tundra. The ship features sleek dark metallic armor. Two massive warp nacelles pulsate with intensely glowing blue plasma. Violent snow squalls and heavy blizzards whip around the hull. The swirling snow is illuminated by stark volumetric blue light from the engines. The camera slowly tilts up. The camera simulates a violent shake as the thrusters ignite. Massive clouds of pristine white snow and ice blast away from the launch pad. Photorealistic, highly detailed, dramatic lighting.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">480</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">240</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance-2<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>starship_takeoff_a14b.mp4
+</code></pre></div>
+<p>Use TI2V-5B when you want the 5B route or first-frame image-to-video route:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic wide-angle movie shot of a massive futuristic starship taking off from a frozen tundra. The ship features sleek dark metallic armor. Two massive warp nacelles pulsate with intensely glowing blue plasma. Violent snow squalls and heavy blizzards whip around the hull. The swirling snow is illuminated by stark volumetric blue light from the engines. The camera slowly tilts up. The camera simulates a violent shake as the thrusters ignite. Massive clouds of pristine white snow and ice blast away from the launch pad. Photorealistic, highly detailed, dramatic lighting.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">832</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">480</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--flow-shift<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>starship_takeoff_ti2v5b.mp4
+</code></pre></div>
+<p>For native TI2V-5B runs at <code>1280x704</code> or <code>704x1280</code>, omit <code>--flow-shift</code> or pass <code>--flow-shift 5</code>.
+For image-to-video, pass one <code>--image</code>. A14B I2V uses the separate
+<code>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit</code> package; TI2V-5B uses the same TI2V package and
+selects first-frame image-to-video when one image is supplied.</p>
+<p>Use TI2V-5B image-to-video like this:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>docs/assets/examples/spaceship-snow/01_t2i_spaceship_snow.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic lift-off from the input frame. Keep the frozen cliffs, snow haze, and sunrise palette while the ship rises with glowing blue engines and drifting snow.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">832</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">480</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--flow-shift<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>starship_takeoff_ti2v5b_i2v.mp4
+</code></pre></div>
+<p>Use TI2V-5B at its native landscape size like this:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic wide-angle movie shot of a massive futuristic starship taking off from a frozen tundra. The ship features sleek dark metallic armor. Two massive warp nacelles pulsate with intensely glowing blue plasma. Violent snow squalls and heavy blizzards whip around the hull. The swirling snow is illuminated by stark volumetric blue light from the engines. The camera slowly tilts up. The camera simulates a violent shake as the thrusters ignite. Massive clouds of pristine white snow and ice blast away from the launch pad. Photorealistic, highly detailed, dramatic lighting.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">704</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>starship_takeoff_ti2v5b_1280x704.mp4
+</code></pre></div>
+<p>Use A14B I2V like this:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>docs/assets/examples/spaceship-snow/01_t2i_spaceship_snow.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic lift-off from the input frame. Keep the same frozen landscape and sunrise tones while the ship rises with snow blast and glowing engines.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">480</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">240</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance-2<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>starship_takeoff_a14b_i2v.mp4
+</code></pre></div>
+<p>Use A14B T2V for the current plain public video-to-video route. This is the exact command that
+produced the included proof artifacts. It uses bounded diagnostic settings (<code>448x256</code>, <code>17</code> frames,
+<code>5</code> requested steps, which resolve to <code>3</code> effective steps at <code>--video-strength 0.7</code>) so it runs in
+about 4-5 minutes end to end (measured <code>298.7 s</code> on 0.23.0, <code>13.8 GiB</code> peak RSS with <code>--low-ram</code>);
+it is a route and behavior proof, not a quality setting:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>docs/assets/examples/spaceship-snow/06_i2v_a14b_spaceship_takeoff_from_source.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Keep the same icy cliffs, snow haze, soft sunrise lighting, and lift-off camera motion. Transform the ship into a bulkier smuggler-style starship with a bright circular rear reactor and two side nacelles while preserving realistic vehicle detail.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative-prompt<span class="w"> </span><span class="s2">&quot;Bright tones, overexposed, static, blurred details, subtitles, paintings, still picture, low quality, JPEG residue, duplicate ships, warped hull, melted nacelles, unreadable reactor, washed out frame, blown highlights&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">448</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">256</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance-2<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-strength<span class="w"> </span><span class="m">0</span>.7<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--solver<span class="w"> </span>unipc<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">4242</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>starship_v2v_a14b.mp4
+</code></pre></div>
+<p>For quality output rather than a route check, start from the A14B defaults and keep the strength
+contract in mind: <code>--width 832 --height 480</code> (or <code>1280x720</code>), <code>--frames 81</code>, <code>--steps 40</code>
+(about <code>32</code> effective steps at <code>--video-strength 0.8</code>), <code>--fps 16</code>. Expect a long run at those
+settings; see the timing profiles above.</p>
+<p>The proof used this source clip:
+<a href="../assets/examples/spaceship-snow/06_i2v_a14b_spaceship_takeoff_from_source.mp4">06_i2v_a14b_spaceship_takeoff_from_source.mp4</a></p>
+<p>Included proof artifacts (see the
+<a href="../assets/examples/spaceship-v2v/">proof card</a> for the cross-release verification
+record — the 0.23.0 rerun reproduced the archived clip bit-identically):</p>
+<ul>
+<li>output video: <a href="../assets/examples/spaceship-v2v/starship_v2v_a14b.mp4">starship_v2v_a14b.mp4</a></li>
+<li>run metadata: <a href="../assets/examples/spaceship-v2v/starship_v2v_a14b.metadata.json">starship_v2v_a14b.metadata.json</a></li>
+<li>source contact sheet: <a href="../assets/examples/spaceship-v2v/starship_v2v_source_contact_sheet.png">starship_v2v_source_contact_sheet.png</a></li>
+<li>output contact sheet: <a href="../assets/examples/spaceship-v2v/starship_v2v_output_contact_sheet.png">starship_v2v_output_contact_sheet.png</a></li>
+</ul>
+<h2 id="repeat-run-and-application-performance">Repeat-Run And Application Performance<a class="headerlink" href="#repeat-run-and-application-performance" title="Permanent link">&para;</a></h2>
+<p>Options that matter when Wan runs repeatedly in one process or inside an application:</p>
+<ul>
+<li><strong>Prompt-embed disk cache (default on)</strong>: identical prompt encodes are served from a small
+  on-disk cache instead of reloading the ~11 GB UMT5 text encoder. Opt out with
+  <code>--no-prompt-cache</code> or <code>prompt_embed_disk_cache=False</code>.</li>
+<li><strong>Resident text encoder</strong>: <code>--keep-text-encoder</code> / <code>keep_text_encoder_resident=True</code> keeps the
+  UMT5 encoder loaded between generations in one process, for hosts that chain scene generations
+  with new prompts. The default releases it after encoding.</li>
+<li><strong><code>--no-validate-health</code></strong>: skips the post-save full-file health re-decode for applications that
+  probe the saved file themselves. The skip is recorded as <code>health_check: "skipped"</code> in metadata
+  and the <code>save</code> runtime event.</li>
+<li><strong><code>--compile-transformer</code> (opt-in)</strong>: runs each denoiser as a compiled MLX graph for roughly
+  2-6% per-step gain. Output is close to but not bit-identical with eager mode, so it never
+  becomes a default.</li>
+<li><strong>A14B inactive-expert release (automatic)</strong>: on dual-expert A14B runs from disk-prequantized
+  packages, the ~14 GB high-noise expert is released after its denoise phase and rebuilt when the
+  next item needs it. Override with <code>--release-inactive-denoiser</code> /
+  <code>--no-release-inactive-denoiser</code>.</li>
+<li><strong><code>--json-events</code></strong>: the <code>start</code> event carries resolved output <code>width</code>/<code>height</code>; the <code>save</code>
+  event carries <code>fps</code>, <code>width</code>, <code>height</code>, <code>total_frames</code>, and <code>health_check</code>, so applications can
+  build artifact records without probe decodes.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

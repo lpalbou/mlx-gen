@@ -1,0 +1,1658 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/troubleshooting/">
+      
+      
+        <link rel="prev" href="../faq/">
+      
+      
+        <link rel="next" href="../release/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Troubleshooting - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#troubleshooting" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Troubleshooting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mlx-gen-will-not-download-files-during-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MLX-Gen Will Not Download Files During Generation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-path-cannot-be-classified" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local Path Cannot Be Classified
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-package-calls-mflux-generate-flux2-directly-and-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A Package Calls mflux-generate-flux2* Directly And Fails
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ernie-images-look-cropped-at-tiny-sizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERNIE Images Look Cropped At Tiny Sizes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-file-already-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output File Already Exists
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ernie-prompt-enhancer-files-are-missing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERNIE Prompt Enhancer Files Are Missing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ernie-rejects-multiple-image-inputs-or-edit-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERNIE Rejects Multiple Image Inputs Or Edit Tasks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#image-to-image-output-size-differs-from-width-and-height" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image-To-Image Output Size Differs From --width And --height
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wan-video-quality-looks-weak-at-tiny-sizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wan Video Quality Looks Weak At Tiny Sizes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bernini-rejects-quantization-or-produces-weak-reference-fidelity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bernini Rejects Quantization Or Produces Weak Reference Fidelity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generate-path-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generate --path Fails
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lora-is-missing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LoRA Is Missing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lora-is-not-compatible-with-the-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LoRA Is Not Compatible With The Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hf_transfer-error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hf_transfer Error
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#mlx-gen-will-not-download-files-during-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MLX-Gen Will Not Download Files During Generation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-path-cannot-be-classified" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local Path Cannot Be Classified
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-package-calls-mflux-generate-flux2-directly-and-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A Package Calls mflux-generate-flux2* Directly And Fails
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ernie-images-look-cropped-at-tiny-sizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERNIE Images Look Cropped At Tiny Sizes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-file-already-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output File Already Exists
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ernie-prompt-enhancer-files-are-missing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERNIE Prompt Enhancer Files Are Missing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ernie-rejects-multiple-image-inputs-or-edit-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ERNIE Rejects Multiple Image Inputs Or Edit Tasks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#image-to-image-output-size-differs-from-width-and-height" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image-To-Image Output Size Differs From --width And --height
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wan-video-quality-looks-weak-at-tiny-sizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wan Video Quality Looks Weak At Tiny Sizes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bernini-rejects-quantization-or-produces-weak-reference-fidelity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bernini Rejects Quantization Or Produces Weak Reference Fidelity
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generate-path-fails" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        generate --path Fails
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lora-is-missing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LoRA Is Missing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lora-is-not-compatible-with-the-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LoRA Is Not Compatible With The Model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#hf_transfer-error" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        hf_transfer Error
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h1>
+<h2 id="mlx-gen-will-not-download-files-during-generation">MLX-Gen Will Not Download Files During Generation<a class="headerlink" href="#mlx-gen-will-not-download-files-during-generation" title="Permanent link">&para;</a></h2>
+<p>This is expected. Runtime generation uses files that are already available locally. Run the command shown in the error message, then retry the generation.</p>
+<p>Common commands:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>Qwen/Qwen-Image
+mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>Qwen/Qwen-Image<span class="w"> </span>--path<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span>--quantize<span class="w"> </span><span class="m">8</span>
+mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>depth-pro
+</code></pre></div>
+<p>If you created a local MLX-Gen package under <code>./models/&lt;repo-name&gt;</code>, you can use either that local path or
+the matching Hugging Face handle. MLX-Gen checks the local MLX-Gen package only when it is complete:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>./models/wan2.2-i2v-a14b-diffusers-8bit<span class="w"> </span>...
+mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit<span class="w"> </span>...
+</code></pre></div>
+<h2 id="local-path-cannot-be-classified">Local Path Cannot Be Classified<a class="headerlink" href="#local-path-cannot-be-classified" title="Permanent link">&para;</a></h2>
+<p>When using a local model path, MLX-Gen may not be able to infer the model family from the folder name. Add <code>--family</code>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--family<span class="w"> </span>qwen<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean studio product photo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>image.png
+</code></pre></div>
+<p>Supported router families are <code>qwen</code>, <code>flux2</code>, <code>bonsai</code>, <code>fibo</code>, <code>z-image</code>, <code>ernie-image</code>, and <code>wan</code>.</p>
+<h2 id="a-package-calls-mflux-generate-flux2-directly-and-fails">A Package Calls <code>mflux-generate-flux2*</code> Directly And Fails<a class="headerlink" href="#a-package-calls-mflux-generate-flux2-directly-and-fails" title="Permanent link">&para;</a></h2>
+<p>If another package shells out to <code>mflux-generate-flux2</code> or <code>mflux-generate-flux2-edit</code>, treat that
+as a legacy integration path. New integrations should call <code>mlxgen generate</code> instead.</p>
+<p>For FLUX.2, this difference matters because MLX-Gen's public FLUX.2 contract is:</p>
+<ul>
+<li>use <code>mlxgen generate</code>;</li>
+<li>omit <code>--negative-prompt</code> entirely;</li>
+<li>use <code>--image</code> for image-conditioned edit/reference workflows;</li>
+<li>use <code>mlxgen capabilities --model &lt;flux2-model&gt;</code> when you need the route contract before running.</li>
+</ul>
+<p>Example migration:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Legacy compatibility entry point</span>
+mflux-generate-flux2-edit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-paths<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Add sunglasses&quot;</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># Supported public entry point</span>
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Add sunglasses&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>edited.png
+</code></pre></div>
+<p>If the old integration also forwarded <code>--negative-prompt</code>, remove that option for FLUX.2. MLX-Gen
+rejects negative prompts on FLUX.2 routes by design.</p>
+<h2 id="ernie-images-look-cropped-at-tiny-sizes">ERNIE Images Look Cropped At Tiny Sizes<a class="headerlink" href="#ernie-images-look-cropped-at-tiny-sizes" title="Permanent link">&para;</a></h2>
+<p>ERNIE Image Turbo is validated for practical generation at 384px and above. Very small outputs, such as 256x256, can crop or truncate subjects even when the pipeline is working.</p>
+<p>Use 512x512 for small benchmark runs:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean centered product photo of a white ceramic mug&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>image.png
+</code></pre></div>
+<h2 id="output-file-already-exists">Output File Already Exists<a class="headerlink" href="#output-file-already-exists" title="Permanent link">&para;</a></h2>
+<p>Generation commands replace the requested output path by default. If <code>--output image.png</code> already exists, MLX-Gen writes the new image to <code>image.png</code>.</p>
+<p>Use <code>--replace false</code> or <code>--no-replace</code> when you want to preserve an existing output file. In that mode, MLX-Gen writes the new image as <code>image_1.png</code>, then <code>image_2.png</code>, and keeps incrementing the suffix without overwriting the existing file.</p>
+<h2 id="ernie-prompt-enhancer-files-are-missing">ERNIE Prompt Enhancer Files Are Missing<a class="headerlink" href="#ernie-prompt-enhancer-files-are-missing" title="Permanent link">&para;</a></h2>
+<p><code>--use-prompt-enhancer</code> requires ERNIE's <code>pe/</code> and <code>pe_tokenizer/</code> files. The default ERNIE download skips those files to keep ordinary generation setup smaller.</p>
+<p>Run:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span>--all-files
+</code></pre></div>
+<p>Then retry generation with <code>--use-prompt-enhancer</code>.</p>
+<h2 id="ernie-rejects-multiple-image-inputs-or-edit-tasks">ERNIE Rejects Multiple Image Inputs Or Edit Tasks<a class="headerlink" href="#ernie-rejects-multiple-image-inputs-or-edit-tasks" title="Permanent link">&para;</a></h2>
+<p>ERNIE Image Turbo supports text-to-image and single-image latent image-to-image. It
+does not support edit/reference or multi-reference image-to-image.</p>
+<p>Use one input image for ERNIE image-to-image:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the scene into a pencil sketch&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.25<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>edited.png
+</code></pre></div>
+<p>If you pass <code>--task edit</code>, <code>--i2i-mode edit</code>, multiple <code>--images</code>, or <code>--image-strength</code> without an
+image, MLX-Gen fails before loading the model and tells you which input shape and mode ERNIE
+supports.</p>
+<p>If ERNIE image-to-image changes the source too much, lower <code>--image-strength</code> or use Qwen Image
+Edit for a true image-conditioned edit. If ERNIE barely applies the requested style, raise
+<code>--image-strength</code> or increase <code>--steps</code> to 12-16.</p>
+<h2 id="image-to-image-output-size-differs-from-width-and-height">Image-To-Image Output Size Differs From <code>--width</code> And <code>--height</code><a class="headerlink" href="#image-to-image-output-size-differs-from-width-and-height" title="Permanent link">&para;</a></h2>
+<p>This is expected with the default <code>--canvas-policy source-aspect</code>. For ordinary I2I, MLX-Gen treats
+<code>--width</code> and <code>--height</code> as a size target and preserves the first input image's aspect ratio. Check
+the generated metadata for <code>canvas_policy</code>, <code>requested_width</code>, <code>requested_height</code>,
+<code>source_image_width</code>, <code>source_image_height</code>, and final <code>width</code>/<code>height</code>.</p>
+<p>Use <code>--canvas-policy exact-resize</code> only when you intentionally want the exact requested canvas and
+accept that the model may reshape or recompose the source. When the exact canvas has a different
+aspect ratio than the source, add <code>--resize-mode crop</code> (center-crop) or <code>--resize-mode pad</code>
+(letterbox) to map the source onto it without distortion; the default <code>resize</code> stretches to fill.</p>
+<h2 id="wan-video-quality-looks-weak-at-tiny-sizes">Wan Video Quality Looks Weak At Tiny Sizes<a class="headerlink" href="#wan-video-quality-looks-weak-at-tiny-sizes" title="Permanent link">&para;</a></h2>
+<p>Wan2.2 supports TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, T2V-A14B prompt-guided video-to-video (plain or masked with <code>--video-mask-path</code>), and I2V-A14B image-to-video. Very small or very short runs are useful for quick command checks, but they are not quality settings.</p>
+<p>Use the upstream TI2V-5B settings when validating that route at its intended native scale:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-TI2V-5B-Diffusers<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A short cinematic video of a glowing orange glass sphere floating above teal water&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">704</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">121</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">50</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>video.mp4
+</code></pre></div>
+<p>For practical five-second prompt iteration on an M5 Max, A14B has produced stronger results than
+TI2V-5B in the recorded starship-takeoff profile at much smaller dimensions: <code>480x240</code> or
+<code>240x480</code>, <code>101</code> frames, 20 fps, and <code>20-25</code> steps. That profile takes about 30 minutes at
+<code>480x240</code> on the recorded machine. TI2V-5B at <code>832x480</code>, <code>101</code> frames, 20 fps, and 25 steps took
+about 12 minutes but was visually weaker; TI2V-5B at <code>1280x704</code> took about 35 minutes and improved
+without matching the A14B result. See <a href="../wan-video/">Wan Video</a> for the comparison clips and exact
+prompt.</p>
+<p>Use lower dimensions, frame counts, or step counts only to validate routing and MP4 writing. For
+image-to-video, pass exactly one input image; MLX-Gen infers I2V from the image input and selected
+Wan model. Multi-image Wan interpolation is not enabled.</p>
+<p>For Wan image-to-video prompts, describe concrete motion rather than only a style. Name the moving
+body parts or object parts, keep continuity constraints in the positive prompt, and put common
+failure modes such as <code>static still image</code>, <code>only camera movement</code>, <code>detached arm</code>, <code>malformed
+hands</code>, <code>oversized foot</code>, <code>black frames</code>, and <code>sudden scene cut</code> in the negative prompt. See
+<a href="../faq/#how-should-i-prompt-wan-image-to-video">How Should I Prompt Wan Image-To-Video?</a> for
+examples.</p>
+<p>Wan defaults to the model's official negative prompt when the option is omitted. If a simple
+abstract scene turns into noisy texture, retry with <code>--negative-prompt ""</code> to disable the default
+negative prompt explicitly.</p>
+<p>For T2V-A14B source/BF16 quality checks, use 1280x720 or 720x1280, 81 frames, 40 steps, <code>--guidance 4</code>, optional <code>--guidance-2 3</code>, and 16 fps. For mixed q8/BF16 packages, use the exact documented benchmark settings when comparing published measurements, and measure your target full-size profile before planning a long job. The separate I2V-A14B path requires a complete local <code>Wan-AI/Wan2.2-I2V-A14B-Diffusers</code> snapshot and one <code>--image</code> input.</p>
+<p>Wan uses frame-count control rather than a separate duration flag. Duration is <code>frames / fps</code>; at 24 fps, 121 frames is about 5.04 seconds, and at 16 fps, 81 frames is about 5.06 seconds. Frame counts are normalized to <code>4n + 1</code>, and width/height are normalized to the selected Wan model's VAE/patch multiple. TI2V-5B requires 32-pixel width/height multiples; A14B requires 16-pixel multiples. For image-to-video, MLX-Gen also preserves the source image aspect ratio and resolves the final output canvas from the input image plus the requested size target. See <a href="../faq/#what-wan-video-resolutions-should-i-use">What Wan Video Resolutions Should I Use?</a> for the full table.</p>
+<p>If Wan generation or MP4 save validation fails, the CLI writes a failure manifest next to the intended output path, for example <code>video.failure.json</code> for <code>video.mp4</code>. The manifest includes the error, tensor-health report when available, seed, prompt, dimensions, frames, steps, guidance, fps, output path, and memory-related runtime flags.</p>
+<h2 id="bernini-rejects-quantization-or-produces-weak-reference-fidelity">Bernini Rejects Quantization Or Produces Weak Reference Fidelity<a class="headerlink" href="#bernini-rejects-quantization-or-produces-weak-reference-fidelity" title="Permanent link">&para;</a></h2>
+<p>Bernini-R 1.3B is currently BF16-only. Omit <code>--quantize</code>. Generic Wan q4 was tested and produced
+invalid overexposed latent-like output; nominal q8 quantized zero Bernini transformer linear
+layers while labeling the run q8. Current MLX-Gen releases reject both instead of silently
+returning a broken or misleading result.</p>
+<p>The BF16 route itself is experimental and not yet promoted. Seven official public 1.3B example rows
+plus <code>ads2v</code> at mid profile are qualitatively accepted with committed proof in
+<code>docs/assets/validation/bernini-r-1.3b-2026-08-11/</code>. The historical schema-v3 bundle from 2026-08-04
+still fails visual quality at the bounded 17-frame profile. Weak motion, missed references,
+four-frame cadence jumps, or corruption from roughly frame 13 are known blockers on that historical
+profile, not settings that the current docs claim to solve. Preserve the MP4 and metadata and
+compare them with the committed parity bundle before assuming a successful exit means a successful
+edit.</p>
+<p>For a memory-constrained host, keep <code>--low-ram</code> enabled. The bounded model-backed proof peaked at
+9.45 GB whole-process physical footprint on the 128 GB validation host, which predicts a useful
+margin on an 18 GB Mac but is not a direct 18 GB-host proof. That does not mean 18 GB of fresh disk
+is sufficient: the pinned factored selective download is about 16.36 GiB and requires 2 GiB
+headroom, for 18.36 GiB free. Run:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b
+</code></pre></div>
+<p>If R2V is coherent but misses requested accessories, check these before treating it as a runtime
+bug:</p>
+<ul>
+<li>name references in their exact CLI order (<code>image0</code>, <code>image1</code>, ...);</li>
+<li>keep the prompt within the 512-token warning boundary;</li>
+<li>use the official 40-step quality budget and 848px default condition cap;</li>
+<li>use focused source images; a low-resolution 20-step proof can establish routing without
+  retaining every reference detail;</li>
+<li>do not compare MLX and PyTorch integer seeds as pixel parity—export exact initial tensors for
+  numerical comparison.</li>
+</ul>
+<p>For RV2V/V2V, Bernini requires source-aspect, resize-only video conditioning. It intentionally
+rejects crop, pad, exact-resize, <code>--video-strength</code>, masks, LoRA, and non-UniPC solvers. See
+<a href="../bernini/">Bernini-R 1.3B</a> and its <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/README.md">validation bundle</a>.</p>
+<h2 id="generate-path-fails"><code>generate --path</code> Fails<a class="headerlink" href="#generate-path-fails" title="Permanent link">&para;</a></h2>
+<p><code>--path</code> belongs to <code>mlxgen prepare</code>, where it names the local MLX-Gen package to create. It is not a generation option.</p>
+<p>To create a quantized MLX-Gen package:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>black-forest-labs/FLUX.2-klein-4B<span class="w"> </span>--path<span class="w"> </span>models/flux.2-klein-4b-4bit<span class="w"> </span>--quantize<span class="w"> </span><span class="m">4</span>
+</code></pre></div>
+<p>To choose the generated image or video path, use <code>--output</code> with <code>mlxgen generate</code>.</p>
+<h2 id="lora-is-missing">LoRA Is Missing<a class="headerlink" href="#lora-is-missing" title="Permanent link">&para;</a></h2>
+<p>LoRA support is route-specific. User-requested LoRAs are required: MLX-Gen no
+longer ignores a missing LoRA and continues without it. Download the LoRA repository or use a local
+<code>.safetensors</code> file path.</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>RiverZ/normal-lora<span class="w"> </span>--all-files
+</code></pre></div>
+<p>If a repository contains several <code>.safetensors</code> files, specify the file:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>&lt;compatible-model&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;&lt;prompt&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>owner/repo:adapter.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>image.png
+</code></pre></div>
+<p><code>--lora-scales</code> must have exactly one value per adapter, and it cannot be used without
+<code>--lora-paths</code>.</p>
+<h2 id="lora-is-not-compatible-with-the-model">LoRA Is Not Compatible With The Model<a class="headerlink" href="#lora-is-not-compatible-with-the-model" title="Permanent link">&para;</a></h2>
+<p>LoRA adapters are trained for a specific base model. If MLX-Gen can read cached model-card
+metadata, it rejects known incompatible combinations before loading model weights. It also checks
+LoRA matrix shapes while applying the adapter.</p>
+<p>For example, <code>lovis93/Flux-2-Multi-Angles-LoRA-v2</code> targets <code>black-forest-labs/FLUX.2-dev</code>.
+Current FLUX.2 support in MLX-Gen is FLUX.2 Klein 4B/9B, so that adapter is not accepted for
+<code>flux2-klein-*</code> or <code>AbstractFramework/flux.2-klein-*</code> models. Use an adapter trained for the exact
+model family, or wait for first-class FLUX.2-dev support.</p>
+<h2 id="hf_transfer-error">hf_transfer Error<a class="headerlink" href="#hf_transfer-error" title="Permanent link">&para;</a></h2>
+<p><code>HF_HUB_ENABLE_HF_TRANSFER=1</code> is optional. It can make explicit Hugging Face downloads faster, but it is not required to authorize downloads.</p>
+<p>If you enable it and the <code>hf_transfer</code> package is unavailable, install MLX-Gen with the extra package available to the environment:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>mlx-gen<span class="w"> </span>--with<span class="w"> </span>hf_transfer
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

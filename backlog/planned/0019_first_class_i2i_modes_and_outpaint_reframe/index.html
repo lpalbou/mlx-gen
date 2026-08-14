@@ -1,0 +1,1842 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/planned/0019_first_class_i2i_modes_and_outpaint_reframe/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Planned: First-class I2I modes and outpaint/reframe UX - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#planned-first-class-i2i-modes-and-outpaintreframe-ux" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Planned: First-class I2I modes and outpaint/reframe UX
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-code-reality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current code reality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-capability-assessment-and-priority" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model capability assessment and priority
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-decision" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture decision
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-we-want-to-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What we want to do
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies-and-related-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies and related tasks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-outcomes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expected outcomes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-release-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current release boundary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#progress-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progress checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Guidance for the implementing agent
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="planned-first-class-i2i-modes-and-outpaintreframe-ux">Planned: First-class I2I modes and outpaint/reframe UX<a class="headerlink" href="#planned-first-class-i2i-modes-and-outpaintreframe-ux" title="Permanent link">&para;</a></h1>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Created: 2026-06-04</li>
+<li>Status: Planned</li>
+<li>Completed: N/A</li>
+</ul>
+<h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Governing ADRs: <a href="../../../adr/0001_runtime_smoke_validation_for_model_routes/">ADR 0001</a>, <a href="../../../adr/0002_no_silent_automatic_fallbacks/">ADR 0002</a></li>
+<li>ADR impact: May revise existing ADRs or add a small task-capability ADR before closure.</li>
+</ul>
+<p>The durable policy to preserve is that public tasks should describe media direction
+(<code>text-to-image</code>, <code>image-to-image</code>, <code>text-to-video</code>, <code>image-to-video</code>). Backend modes such as
+latent img2img, edit-conditioned I2I, multi-reference I2I, masked fill, inpainting, and
+outpainting should not be exposed as fake public tasks unless an ADR explicitly accepts that
+taxonomy.</p>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen now has public media-direction tasks, internal image-to-image modes, and a capability
+planner from <a href="../../completed/0020_generation_capability_contract/">completed item 0020</a>. That
+solves the task taxonomy problem for text/image/video routing. This item tracks the remaining
+canvas-expansion work around reframe and outpaint. Earlier planning assumed FLUX.1 Fill should be
+the first implementation target because native diffusion outpainting is usually a fill/inpaint
+mask contract. Current MLX-Gen validation is centered on FLUX.2 Klein and Qwen Image Edit, so the
+first shipped path is a canvas-guided outpaint workflow for those edit models: build an expanded
+canvas, run the edit backend, and apply adaptive source blending only when it does not create
+ghosting.</p>
+<p>This item therefore tracks two related but distinct workflows:</p>
+<ul>
+<li>Generative reframe: use an edit or latent I2I model to zoom out, extend background, or infer a
+  missing object boundary. This can start with the models MLX-Gen already validates most heavily,
+  but it must be described as generative and not pixel-locked.</li>
+<li>Canvas-guided outpaint: place the source image on a larger canvas, initialize the new area from
+  edge-extended source context, run a supported edit model on the expanded canvas, then compare the
+  generated source window with the original source. Apply a content-aware source blend only when
+  the two are close; skip the blend when the edit model has reconstructed or moved the scene.</li>
+<li>Native fill/inpaint outpaint: place the source image on a larger canvas, mask only the new area,
+  and let a dedicated fill/inpaint backend regenerate the masked pixels. This remains future work
+  for unified <code>mlxgen generate</code>.</li>
+</ul>
+<p>Standard terms:</p>
+<ul>
+<li>Inpainting: regenerate masked areas inside an existing canvas.</li>
+<li>Outpainting / image expansion: extend beyond the original image boundaries by placing the source
+  on a larger canvas and generating the new border area.</li>
+<li>Generative fill / Fill: umbrella model or product term for masked filling, including inpainting
+  and outpainting.</li>
+<li>Reframing: user-facing term for changing crop, viewpoint, or canvas. It can be a generative edit
+  without hard pixel preservation. It becomes reliable outpainting only when backed by an expanded
+  canvas plus mask.</li>
+</ul>
+<p>UX rule: do not use the same option name for these two guarantees. <code>--reframe-padding</code> means a
+fully generative zoom-out that may redraw the source. <code>--outpaint-padding</code> means canvas expansion
+with edge-extended context and adaptive source blending, available only for capabilities that
+advertise <code>supports_outpaint=true</code>. Exact source locking belongs to a native fill/inpaint route.</p>
+<h2 id="current-code-reality">Current code reality<a class="headerlink" href="#current-code-reality" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>src/mflux/task_inference.py</code> exposes <code>GenerationCapability</code>, <code>ModelCapabilities</code>, and
+  <code>GenerationPlan</code>. Resolver APIs return public media-direction tasks and separate internal modes
+  such as <code>latent-img2img</code>, <code>edit-reference</code>, <code>multi-reference</code>, <code>text-video</code>, and
+  <code>first-frame-i2v</code>.</li>
+<li><code>src/mflux/cli/mlx_gen.py</code> routes through <code>GenerationPlan.handler_id</code>, exposes
+  <code>mlxgen capabilities</code>, and keeps <code>--task edit</code> only as a compatibility alias for image-to-image
+  edit/reference mode.</li>
+<li><code>GenerationCapability</code> now exposes <code>supports_reframe</code>. <code>resolve_generation_plan(...)</code>,
+  <code>resolve_task(...)</code>, and <code>infer_task(...)</code> accept <code>has_reframe</code> and fail closed when the selected
+  model does not advertise generative reframe support.</li>
+<li>The unified <code>mlxgen generate</code> router accepts <code>--reframe-padding</code>, requires exactly one source
+  image, rejects explicit <code>--width</code>, <code>--height</code>, and <code>--canvas-policy</code>, validates the padding
+  value, and forwards the padding request to the selected edit backend.</li>
+<li><code>--reframe-padding</code> and <code>--outpaint-padding</code> are mutually exclusive. <code>--outpaint-padding</code>
+  requires exactly one source image, rejects explicit <code>--width</code>, <code>--height</code>, and
+  <code>--canvas-policy</code>, validates the padding value, and is rejected unless a capability advertises
+  <code>supports_outpaint</code>.</li>
+<li><code>src/mflux/utils/outpaint_util.py</code> implements the canvas outpaint helper used by the current
+  FLUX.2 and Qwen Image Edit routes. It parses CSS-style padding, builds a larger
+  edge-extended context canvas, records the source paste rectangle, creates a feathered
+  preservation mask, and performs adaptive source blending after generation.</li>
+<li><code>src/mflux/models/flux2/cli/flux2_edit_generate.py</code> and
+  <code>src/mflux/models/qwen/cli/qwen_image_edit_generate.py</code> accept <code>--reframe-padding</code> and
+  <code>--outpaint-padding</code>, build the expanded conditioning canvas in the backend, preserve side
+  placement from the padding request, set exact output dimensions from that canvas, and save
+  reframe/outpaint metadata.</li>
+<li>FLUX.2 edit plus Qwen Image Edit, Qwen Image Edit 2509, and Qwen Image Edit 2511 single-image
+  capabilities now advertise <code>supports_outpaint=true</code> and <code>supports_reframe=true</code>. Other model
+  families reject <code>--outpaint-padding</code> and <code>--reframe-padding</code> before loading weights.</li>
+<li><code>tests/cli/test_mlx_gen_router.py</code> now covers FLUX.2 default edit/reference I2I, explicit
+  latent I2I with <code>--image-strength</code>, multi-reference I2I, and mode/option rejection.</li>
+<li>Focused router tests cover FLUX.2 and Qwen Image Edit variant reframe routing, backend canvas
+  creation, side placement, metadata, latent model rejection, and conflicting canvas-option
+  rejection.</li>
+<li><code>src/mflux/models/common/latent_creator/latent_creator.py</code> implements latent img2img by resizing
+  the input image to the target size, encoding it, blending it with noise, and denoising.</li>
+<li><code>src/mflux/models/flux2/variants/edit/flux2_klein_edit.py</code>,
+  <code>src/mflux/models/qwen/variants/edit/qwen_image_edit.py</code>, and
+  <code>src/mflux/models/fibo/variants/edit/fibo_edit.py</code> implement distinct image-conditioned edit
+  paths. These are still image-to-image at the public API level.</li>
+<li><code>src/mflux/models/flux/variants/fill/flux_fill.py</code> and
+  <code>src/mflux/models/flux/variants/fill/mask_util.py</code> implement the true masked fill path for
+  FLUX.1 Fill.</li>
+<li><code>ModelConfig</code> still defines FLUX.1 <code>dev-fill</code>, <code>dev</code>, <code>schnell</code>, <code>kontext</code>, <code>redux</code>, <code>depth</code>,
+  and control variants, but unified <code>mlxgen generate</code> currently routes the main supported image
+  families through FLUX.2, Qwen, Z-Image, ERNIE, Bonsai, FIBO, Wan, and SeedVR2-specific commands.</li>
+<li><code>src/mflux/utils/image_util.py</code> also has legacy <code>expand_image(...)</code> and
+  <code>create_outpaint_mask_image(...)</code> helpers from the FLUX.1 Fill path.</li>
+<li><code>src/mflux/cli/parser/parsers.py</code> has an <code>add_image_outpaint_arguments(...)</code> helper for legacy
+  fill CLIs; unified outpaint routing uses the dedicated router option described above.</li>
+<li><code>src/mflux/models/flux/README.md</code> documents outpainting with a helper script that is not present
+  in the repository.</li>
+<li><code>docs/api.md</code>, <code>docs/faq.md</code>, <code>docs/getting-started.md</code>, <code>docs/edit-capabilities.md</code>,
+  <code>llms.txt</code>, and <code>llms-full.txt</code> document the current split: latent img2img is for whole-image
+  variation/restyle with <code>--image-strength</code>; edit/reference and multi-reference I2I do not use
+  <code>--image-strength</code>; generative reframe uses <code>--reframe-padding</code>; canvas outpaint uses
+  <code>--outpaint-padding</code>.</li>
+<li>Qwen Image Edit, Qwen Image Edit 2509/2511, and FLUX.2 Klein Edit have current source/q8/q4
+  reframe and canvas outpaint proof in <code>docs/assets/validation/reframe-outpaint-2026-06-08/</code>.
+  FIBO Edit, ERNIE I2I, Z-Image I2I, base Qwen Image, Qwen Image 2512, and FLUX.1 Kontext should
+  not be documented as reliable unified outpaint paths unless they get their own model-backed
+  validation.</li>
+</ul>
+<h2 id="model-capability-assessment-and-priority">Model capability assessment and priority<a class="headerlink" href="#model-capability-assessment-and-priority" title="Permanent link">&para;</a></h2>
+<p>The implementation order should follow the model families MLX-Gen currently supports and validates
+most actively. The table separates generative reframe from canvas outpaint because they have
+different guarantees.</p>
+<table>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Family/model</th>
+<th>Current MLX-Gen status</th>
+<th>Reframe stance</th>
+<th>Canvas outpaint stance</th>
+<th>Difficulty</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>FLUX.2 Klein Edit</td>
+<td>Edit-reference and multi-reference I2I work and have recent validation artifacts.</td>
+<td>Implemented and validated for 4B/9B source, q8, and q4 rows on cropped-starship zoom-out.</td>
+<td>Implemented for 4B/9B source, q8, and q4 single-image edit routes with edge-extended canvas plus adaptive source blend. Native fill/inpaint masking remains separate.</td>
+<td>Medium: routing/UX is straightforward, but validation must catch redraw/crop failures.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Qwen Image Edit / 2509 / 2511</td>
+<td>Edit and multi-reference work; 2511 parity was fixed and validated after the scheduler correction.</td>
+<td>Implemented and validated for Qwen Image Edit, 2509, and 2511 source, q8, and q4 rows on cropped-starship zoom-out.</td>
+<td>Implemented and validated for Qwen Image Edit, 2509, and 2511 source, q8, and q4 single-image edit routes with edge-extended canvas plus adaptive source blend. Native Qwen inpaint/outpaint parity remains future work.</td>
+<td>Medium to high: strong model capability, but variant-specific prompt contracts matter.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Z-Image / Z-Image Turbo</td>
+<td>Text-to-image and latent I2I routes exist; no edit-conditioned route.</td>
+<td>Exploratory latent recompose/reframe only, with clear warnings. Use after FLUX.2/Qwen because it may restyle or lose identity.</td>
+<td>Not supported.</td>
+<td>Medium: easy to route, hard to trust.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>ERNIE Image Turbo</td>
+<td>Text-to-image and latent I2I route exist; Prompt Enhancer support exists.</td>
+<td>Exploratory latent recompose/reframe only, useful if prompt adherence is strong enough.</td>
+<td>Not supported.</td>
+<td>Medium to high: promising instruction model, but no hard source-preservation contract.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>FLUX.1 Fill (<code>dev-fill</code>, <code>black-forest-labs/FLUX.1-Fill-dev</code>)</td>
+<td>Fill model and mask path exist from mflux-derived code; unified route is not current product focus.</td>
+<td>Not the first reframe target.</td>
+<td>Candidate native fill/inpaint backend once FLUX.1 support is deliberately revalidated.</td>
+<td>Low to medium technically, but lower priority because current effort has centered on FLUX.2/Qwen.</td>
+</tr>
+<tr>
+<td>Deferred</td>
+<td>FIBO base / FIBO Edit</td>
+<td>Base FIBO T2I exists; FIBO Edit is unavailable through unified generation and parity work is deprioritized.</td>
+<td>Only consider base FIBO for creating T2I source images. Do not use FIBO Edit for reframe/outpaint work.</td>
+<td>Not supported. Link any future FIBO Edit work to items 0024 and 0027.</td>
+<td>High / deferred.</td>
+</tr>
+<tr>
+<td>Not applicable</td>
+<td>SeedVR2</td>
+<td>Restoration/upscale, not canvas generation.</td>
+<td>Could clean a generated result after the fact, but does not invent prompt-conditioned borders.</td>
+<td>Not supported.</td>
+<td>Not applicable.</td>
+</tr>
+<tr>
+<td>Not applicable</td>
+<td>Wan T2V/I2V</td>
+<td>Video generation, not still-image editing.</td>
+<td>Out of scope for still-image reframe.</td>
+<td>Not supported.</td>
+<td>Not applicable.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="architecture-decision">Architecture decision<a class="headerlink" href="#architecture-decision" title="Permanent link">&para;</a></h2>
+<p>Decision question: how should MLX-Gen expose reframe/outpaint without overclaiming support across
+image models?</p>
+<p>Alternatives considered:</p>
+<table>
+<thead>
+<tr>
+<th>Alternative</th>
+<th>Steelman</th>
+<th>Failure mode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mask-first FLUX.1 Fill</td>
+<td>It is the strictest outpainting contract and preserves original pixels through a mask.</td>
+<td>It makes FLUX.1 the first-class path even though recent validation and package work are focused on FLUX.2/Qwen. It also leaves common "zoom out with this edit model" workflows unmodeled.</td>
+</tr>
+<tr>
+<td>Edit-first generative reframe</td>
+<td>It starts with FLUX.2 and Qwen, the families users are already validating for image editing, and supports the common "extend background" and "zoom out" requests.</td>
+<td>It may redraw the source or invent missing object parts. Poor naming would mislead users.</td>
+</tr>
+<tr>
+<td>Latent-only recompose</td>
+<td>It would reuse Z-Image and ERNIE without new edit adapters.</td>
+<td>It has the weakest preservation guarantees and can become ordinary restyling rather than reframing.</td>
+</tr>
+<tr>
+<td>Split contract</td>
+<td>Use <code>reframe</code> for generative edit/latent workflows, and reserve <code>outpaint</code> for mask/canvas workflows.</td>
+<td>More documentation and capability metadata are required, but the behavior is honest and reversible.</td>
+</tr>
+</tbody>
+</table>
+<p>Decision: use the split contract. Implement and validate generative reframe first for FLUX.2, then
+Qwen, with Z-Image and ERNIE as lower-confidence latent recompose candidates. Implement canvas
+outpaint only where a model-specific edit route can be validated with an expanded canvas and
+adaptive source blending. Keep native fill/inpaint outpaint separate until a dedicated fill/mask
+backend is deliberately validated for exact source locking.</p>
+<p>Evidence that would change this decision:</p>
+<ul>
+<li>a proven FLUX.2 or Qwen native fill/inpaint outpaint pipeline lands locally;</li>
+<li>FLUX.1 Fill becomes a first-class supported family again with current model-backed smoke;</li>
+<li>generative reframe validation fails consistently for FLUX.2 and Qwen on the two canonical source
+  cases below.</li>
+</ul>
+<h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h2>
+<p>Users still see multiple workflow words inside image-to-image:</p>
+<ul>
+<li><code>image-to-image</code></li>
+<li><code>edit</code></li>
+<li><code>img2img</code></li>
+<li><code>reframe</code></li>
+<li><code>outpaint</code></li>
+</ul>
+<p>The public-task split is now clean, but reframe/outpaint still needs a first-class mode and command
+surface. A request like "extend the image to the left" should not require users to manually create
+an expanded canvas and mask before calling a lower-level fill script.</p>
+<p>The larger UX problem is that users often say "outpaint" when they mean two different things:</p>
+<ul>
+<li>"make the canvas larger and continue the background" when the main object is already fully
+  visible;</li>
+<li>"zoom out and reveal the whole object" when the source is a close crop and the missing object
+  parts must be inferred.</li>
+</ul>
+<p>The first is the target for canvas outpaint. The second is often better handled as generative
+reframe because missing object geometry is not present in the source pixels and may need to be
+inferred rather than only blended at the border.</p>
+<h2 id="what-we-want-to-do">What we want to do<a class="headerlink" href="#what-we-want-to-do" title="Permanent link">&para;</a></h2>
+<p>Make reframe/outpaint a first-class image-to-image workflow with honest guarantees:</p>
+<ol>
+<li>Add a generative reframe route for edit-capable models, starting with FLUX.2 and Qwen.</li>
+<li>Add a canvas outpaint route for edit-capable models only when validation proves useful
+   canvas-guided expansion and acceptable border generation.</li>
+<li>Keep native fill/inpaint outpaint as a separate future route that only becomes available when a
+   dedicated backend is validated.</li>
+<li>Teach users which guarantee they selected before model loading starts.</li>
+</ol>
+<h2 id="why">Why<a class="headerlink" href="#why" title="Permanent link">&para;</a></h2>
+<p>This improves user ergonomics and reduces false mental models. It also keeps routing aligned with
+ADR 0002: MLX-Gen should infer only when the model/input contract is explicit and fail closed
+otherwise. It should not silently swap model families or pretend that a generative reframe has the
+same preservation guarantee as canvas outpaint.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Extend the capability/plan contract with separate internal modes or workflow flags for:</li>
+<li>generative reframe, where the model may redraw source content;</li>
+<li>canvas-guided outpaint, where MLX-Gen uses an expanded conditioning canvas and adaptive source
+    blending.</li>
+<li>Keep <code>--image-strength</code> latent-img2img-only; reject it for fill/outpaint modes unless a backend
+  explicitly implements equivalent semantics.</li>
+<li>Add first-class generative reframe UX for FLUX.2 and Qwen first:</li>
+<li>accept one source image;</li>
+<li>accept a target canvas or padding request;</li>
+<li>force an explicit reframe mode rather than silently treating mismatched dimensions as outpaint;</li>
+<li>route to edit-reference I2I for FLUX.2/Qwen edit models;</li>
+<li>save metadata for source path, requested target/padding, resolved dimensions, model family,
+    mode, and the fact that the operation was generative.</li>
+<li>Add exploratory latent reframe support only after FLUX.2/Qwen validation:</li>
+<li>Z-Image and ERNIE must be labeled lower-confidence because they do not have edit-conditioned
+    source preservation;</li>
+<li>if validation shows consistent identity loss, keep them unsupported for reframe.</li>
+<li>Add first-class canvas outpaint UX only for validated edit backends:</li>
+<li>accept one source image;</li>
+<li>accept CSS-style padding such as <code>0,25%,0,25%</code>;</li>
+<li>create an expanded canvas with the source pasted at <code>(left, top)</code> and the new area initialized
+    from edge-extended source context;</li>
+<li>run the selected edit backend on the expanded canvas;</li>
+<li>apply adaptive source blending only when the generated source window still matches the source;</li>
+<li>save useful metadata for source path, padding, expanded dimensions, paste rectangle, and mode.</li>
+<li>Fail closed for outpaint requests unless a model has proven canvas-outpaint or native-fill
+  support.</li>
+<li>FIBO can only be used to create source T2I images in this item. Any FIBO Edit route remains
+  deferred to items 0024 and 0027.</li>
+</ul>
+<h2 id="suggested-implementation">Suggested implementation<a class="headerlink" href="#suggested-implementation" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Extend <code>GenerationCapability</code>/<code>GenerationPlan</code> with an internal mode or workflow flag for
+   <code>generative-reframe</code>. Do not mark it as <code>supports_outpaint</code>.</li>
+<li>Add CLI/API shape for generative reframe:</li>
+<li>preferred options: <code>--reframe-padding</code> and/or <code>--reframe-width</code> / <code>--reframe-height</code>;</li>
+<li>reject <code>--reframe-*</code> unless the selected capability supports generative reframe;</li>
+<li>ensure <code>--outpaint-padding</code> still means mask/canvas outpaint only.</li>
+<li>Route FLUX.2 and Qwen Image Edit first:</li>
+<li>FLUX.2: use <code>flux2.edit</code> with edit-reference mode;</li>
+<li>Qwen Image Edit, Qwen Image Edit 2509, and Qwen Image Edit 2511: use <code>qwen.edit</code> for
+     single-reference edit-reference mode;</li>
+<li>require explicit prompts that say whether the source is fully visible or cropped.</li>
+<li>Add validation assets before claiming support:</li>
+<li>source A: fully isolated object, where reframe extends background;</li>
+<li>source B: close-cropped object, where reframe must infer the missing object shape.</li>
+<li>Add Z-Image and ERNIE only if validation shows the latent I2I path preserves enough identity to
+   be useful. Otherwise keep them unsupported for reframe despite having generic I2I.</li>
+<li>Add canvas outpaint for validated edit routes:</li>
+<li>build the expanded canvas and feathered preservation mask with <code>OutpaintUtil</code>;</li>
+<li>route only FLUX.2/Qwen Image Edit capabilities that advertise <code>supports_outpaint</code>;</li>
+<li>reject multiple images and explicit canvas sizing options.</li>
+<li>Add native fill/inpaint outpaint later:</li>
+<li>first validate whether FLUX.1 Fill should be included in the current product surface;</li>
+<li>if yes, add a dedicated fill-outpaint adapter using the existing fill utilities and
+     <code>BoxValues</code>;</li>
+<li>if a FLUX.2/Qwen fill or inpaint backend becomes available, prefer it over adding broad
+     FLUX.1 surface area.</li>
+<li>Update completions, model cards, docs, and troubleshooting around reframe versus outpaint.</li>
+</ol>
+<h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li>First-class generative reframe command/API for FLUX.2 Klein 4B/9B and Qwen Image Edit original,
+  2509, and 2511.</li>
+<li>First-class canvas outpaint command/API for FLUX.2 Klein 4B/9B and Qwen Image Edit original,
+  2509, and 2511 capabilities after validation.</li>
+<li>Explicit unsupported or exploratory status for Z-Image and ERNIE until validation proves useful
+  source preservation.</li>
+<li>Separate future native fill/inpaint outpaint only for a validated fill/mask backend.</li>
+<li>Tests and docs that distinguish reframe, latent I2I, edit-reference I2I, canvas outpaint, and
+  native fill/inpaint outpaint.</li>
+</ul>
+<h2 id="non-goals">Non-goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Do not claim generative reframe preserves original pixels exactly.</li>
+<li>Do not claim FLUX.2, Qwen, Z-Image, ERNIE, FIBO, or Kontext are reliable outpainting paths unless
+  they pass model-backed validation for that exact route and docs state the preservation guarantee
+  precisely.</li>
+<li>Do not implement native Qwen inpaint/outpaint parity in this item unless a new bounded Qwen
+  follow-up is created or a small, specific Qwen fill/inpaint backend becomes available.</li>
+<li>Do not remove legacy model-specific CLIs in the same change.</li>
+<li>Do not silently choose another model family to satisfy reframe or outpaint.</li>
+<li>Do not run large image models just to validate routing; use a minimal model-backed smoke only
+  where ADR 0001 requires it.</li>
+<li>Do not use FIBO Edit for this item. Link FIBO Edit questions to items 0024 and 0027.</li>
+</ul>
+<h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../../adr/0001_runtime_smoke_validation_for_model_routes/">ADR 0001</a> for model-backed smoke
+  validation before claiming a route works.</li>
+<li><a href="../../../adr/0002_no_silent_automatic_fallbacks/">ADR 0002</a> for fail-closed routing.</li>
+<li><a href="../../completed/0018_taskless_generation_routing/">Completed item 0018</a> for current taskless
+  routing context.</li>
+<li><a href="../../completed/0020_generation_capability_contract/">Completed item 0020</a> for the public
+  task/internal mode/capability planning baseline.</li>
+<li><a href="../../completed/0008_qwen_edit_parity_expansion/">Completed item 0008</a> for current Qwen
+  inpainting/outpainting parity.</li>
+<li><a href="../0024_fibo_edit_unified_i2i_validation/">Planned item 0024</a> and
+  <a href="../0027_fibo_edit_diffusers_parity_release_quality/">planned item 0027</a> for deferred FIBO Edit
+  parity and validation.</li>
+<li><code>src/mflux/task_inference.py</code></li>
+<li><code>src/mflux/cli/mlx_gen.py</code></li>
+<li><code>src/mflux/models/flux2/variants/edit/</code></li>
+<li><code>src/mflux/models/qwen/variants/edit/</code></li>
+<li><code>src/mflux/models/z_image/</code></li>
+<li><code>src/mflux/models/ernie_image/</code></li>
+<li><code>src/mflux/models/flux/cli/flux_generate_fill.py</code></li>
+<li><code>src/mflux/models/flux/variants/fill/</code></li>
+<li><code>src/mflux/utils/image_util.py</code></li>
+<li><code>src/mflux/utils/box_values.py</code></li>
+</ul>
+<h2 id="expected-outcomes">Expected outcomes<a class="headerlink" href="#expected-outcomes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Generative reframe has a working command/API for FLUX.2 Klein 4B/9B and Qwen Image Edit
+  original, 2509, and 2511 capabilities.</li>
+<li>Canvas outpaint has a working command/API for FLUX.2 Klein 4B/9B and Qwen Image Edit original,
+  2509, and 2511 routes with model-backed proof.</li>
+<li>Native fill/inpaint outpaint remains separate and unavailable unless a validated fill/mask
+  backend is wired.</li>
+<li>Docs accurately distinguish:</li>
+<li>latent img2img;</li>
+<li>edit-conditioned I2I;</li>
+<li>multi-reference I2I;</li>
+<li>generative reframe;</li>
+<li>canvas-guided outpaint with adaptive source blending;</li>
+<li>inpainting;</li>
+<li>native fill/inpaint outpainting / image expansion.</li>
+</ul>
+<p>UX expected outcome: a user can tell before running whether the operation may redraw the source
+(<code>reframe</code>), is canvas-guided with adaptive blending (<code>outpaint</code>), or requires a future native
+fill/inpaint route for exact source locking.</p>
+<h2 id="current-release-boundary">Current release boundary<a class="headerlink" href="#current-release-boundary" title="Permanent link">&para;</a></h2>
+<p>As of 2026-06-08, this item is partially implemented and remains planned for lower-confidence
+latent candidates and native fill/inpaint work. The generative reframe and canvas outpaint
+contracts are implemented for FLUX.2 Klein 4B/9B and Qwen Image Edit original, 2509, and 2511
+single-image edit capabilities. Source, q8, and q4 rows passed the cropped-starship
+<code>reframe_outpaint_2026_06_08</code> profile. The remaining work is:</p>
+<ol>
+<li>evaluate Z-Image and ERNIE as lower-confidence latent reframe candidates only if they can
+   preserve source identity on a dedicated profile;</li>
+<li>decide whether any non-FLUX.2/Qwen edit route should get canvas outpaint support;</li>
+<li>keep native fill/inpaint outpaint separate until FLUX.1 Fill or another fill/mask backend is
+   explicitly revalidated.</li>
+</ol>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Fast resolver tests:</li>
+<li>FLUX.2 edit-capable models expose generative reframe support;</li>
+<li>Qwen edit models expose generative reframe support only where the exact model route is validated;</li>
+<li>Z-Image and ERNIE expose reframe only after validation, otherwise reject <code>--reframe-*</code>;</li>
+<li>non-supported models reject <code>--outpaint-padding</code> unless they implement validated canvas
+    outpaint or native fill/inpaint outpaint;</li>
+<li><code>--image-strength</code> remains latent-img2img-only and is rejected for edit-reference reframe.</li>
+<li>Fast router tests:</li>
+<li>FLUX.2 plus <code>--reframe-padding</code> routes to the FLUX.2 edit backend, not the latent backend;</li>
+<li>Qwen Image Edit, 2509, and 2511 plus <code>--reframe-padding</code> route to the Qwen edit backend;</li>
+<li>base Qwen Image, Z-Image, and ERNIE reject or clearly label reframe until their validation
+    status is promoted;</li>
+<li><code>--outpaint-padding</code> routes for FLUX.2/Qwen Image Edit capabilities and fails closed for
+    Z-Image/ERNIE/base Qwen/Qwen Image 2512/FIBO unless a validated outpaint capability is added.</li>
+<li>Utility tests:</li>
+<li>percent and pixel reframe padding resolve expected target dimensions;</li>
+<li>no-op, negative, or malformed padding fails before model load;</li>
+<li><code>--reframe-padding</code> and <code>--outpaint-padding</code> cannot be used together.</li>
+<li>Model-backed smoke:</li>
+<li>create two T2I source images:<ul>
+<li>source A: fully visible isolated object with room to extend background;</li>
+<li>source B: close-cropped starship where part of the ship is cut by the frame and the desired
+  result shows the full starship.</li>
+</ul>
+</li>
+<li>FLUX.2 must pass both source A background extension and source B zoom-out/reveal before it is
+    documented as supported.</li>
+<li>Qwen must run the same two-source profile before being documented as supported.</li>
+<li>Z-Image and ERNIE must run the same profile and should remain unsupported if they mostly
+    restyle, crop, or lose object identity.</li>
+<li>any canvas outpaint route must include generated canvas/mask evidence plus output proof.</li>
+<li>any future native fill/inpaint outpaint route must include backend-specific mask evidence plus
+    output proof.</li>
+<li>Current FLUX.2 smoke evidence:</li>
+<li>source/output contact sheet:
+    <code>docs/assets/validation/reframe-2026-06-07/flux2-reframe-contact-sheet.png</code>;</li>
+<li>exact commands:
+    <code>docs/assets/validation/reframe-2026-06-07/reframe-command-log.md</code>;</li>
+<li>local validation outputs:
+    <code>validation_outputs/reframe_2026_06_07/flux2_reframe_a_background_extension.png</code>
+    (<code>736x320</code>) and
+    <code>validation_outputs/reframe_2026_06_07/flux2_reframe_b_reveal_full_starship.png</code>
+    (<code>864x368</code>).</li>
+<li>Current Qwen Image Edit 2511 q8 smoke evidence:</li>
+<li>source/output contact sheet:
+    <code>docs/assets/validation/reframe-2026-06-07/qwen2511-q8-reframe-contact-sheet.png</code>;</li>
+<li>exact commands:
+    <code>docs/assets/validation/reframe-2026-06-07/reframe-command-log.md</code>;</li>
+<li>local validation outputs:
+    <code>validation_outputs/reframe_2026_06_07/qwen2511_q8_reframe_a_background_extension.png</code>
+    (<code>736x320</code>) and
+    <code>validation_outputs/reframe_2026_06_07/qwen2511_q8_reframe_b_reveal_full_starship.png</code>
+    (<code>864x368</code>).</li>
+<li>Current canvas outpaint smoke evidence:</li>
+<li>source/output contact sheet:
+    <code>docs/assets/validation/outpaint-2026-06-07/outpaint-contact-sheet.png</code>;</li>
+<li>exact commands:
+    <code>docs/assets/validation/outpaint-2026-06-07/outpaint-command-log.md</code>;</li>
+<li>source canvas and mask assets:
+    <code>docs/assets/validation/outpaint-2026-06-07/source-a-outpaint-canvas.png</code>,
+    <code>docs/assets/validation/outpaint-2026-06-07/source-a-outpaint-mask.png</code>,
+    <code>docs/assets/validation/outpaint-2026-06-07/source-b-outpaint-canvas.png</code>, and
+    <code>docs/assets/validation/outpaint-2026-06-07/source-b-outpaint-mask.png</code>;</li>
+<li>source-interior preservation check:
+    <code>docs/assets/validation/outpaint-2026-06-07/outpaint-preservation-check.json</code>;</li>
+<li>local validation outputs:
+    <code>validation_outputs/outpaint_2026_06_07/flux2_outpaint_a_background.png</code>,
+    <code>validation_outputs/outpaint_2026_06_07/flux2_outpaint_b_cropped_starship.png</code>,
+    <code>validation_outputs/outpaint_2026_06_07/qwen2511_q8_outpaint_a_background.png</code>, and
+    <code>validation_outputs/outpaint_2026_06_07/qwen2511_q8_outpaint_b_cropped_starship.png</code>.</li>
+<li>Docs checks:</li>
+<li>README, <code>docs/api.md</code>, <code>docs/getting-started.md</code>, <code>docs/faq.md</code>, <code>docs/troubleshooting.md</code>,
+    completions, and generated model-card examples teach reframe as generative and outpaint as
+    canvas-guided with adaptive blending, not native fill/inpaint masking.</li>
+</ul>
+<h2 id="progress-checklist">Progress checklist<a class="headerlink" href="#progress-checklist" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[x] Add generative reframe capability metadata and Python/API semantics.</li>
+<li>[x] Add CLI routing and parser support for <code>--reframe-padding</code>.</li>
+<li>[x] Add shell completion support for reframe/outpaint options.</li>
+<li>[x] Add dedicated reframe metadata fields.</li>
+<li>[x] Validate FLUX.2 on the two canonical T2I source cases.</li>
+<li>[x] Validate Qwen Image Edit 2511 q8 on the same two canonical source cases.</li>
+<li>[x] Validate Qwen Image Edit, Qwen Image Edit 2509, and Qwen Image Edit 2511 source/q8/q4 on the
+      cropped-starship reframe profile.</li>
+<li>[ ] Decide whether Z-Image and ERNIE should be promoted or explicitly rejected for reframe.</li>
+<li>[x] Add canvas outpaint capability metadata and CLI routing for FLUX.2/Qwen Image Edit routes.</li>
+<li>[x] Add canvas/mask utility validation for <code>OutpaintUtil</code>.</li>
+<li>[x] Validate FLUX.2 canvas outpaint on the two canonical source cases.</li>
+<li>[x] Validate Qwen Image Edit 2511 q8 canvas outpaint on the same two canonical source cases.</li>
+<li>[x] Validate Qwen Image Edit, Qwen Image Edit 2509, and Qwen Image Edit 2511 source/q8/q4 on the
+      cropped-starship outpaint profile.</li>
+<li>[x] Keep <code>--outpaint-padding</code> rejected for unsupported families and conflicting options.</li>
+<li>[x] Run focused tests.</li>
+<li>[x] Run model-backed FLUX.2 reframe smoke and preserve source/output proof.</li>
+<li>[x] Update user docs for current reframe/outpaint behavior.</li>
+<li>[ ] Update generated model-card guidance if prepared-package cards should mention reframe.</li>
+<li>[ ] Decide whether ADR 0002 needs a task-taxonomy addendum before closure.</li>
+</ul>
+<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<p>Re-check the code first because routing has been changing quickly. Keep the public contract simple:
+media direction is the task, implementation is a backend mode. Prefer explicit errors over silent
+model swaps. Do not claim outpaint support for a model unless the implementation preserves an
+expanded source canvas with a mask and the output has model-backed validation evidence. Do not use
+FIBO Edit as a shortcut for this item; if FIBO becomes relevant again, resume items 0024 and 0027
+first.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

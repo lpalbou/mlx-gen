@@ -1,0 +1,282 @@
+{
+  "command": {
+    "model": "models/wan2.2-t2v-a14b-diffusers-8bit",
+    "task": "text-to-video",
+    "prompt": "A cinematic scene of a scientist working on agentic AI through the night, monitors glowing, papers shifting in a slow dolly shot.",
+    "image": null,
+    "output": "validation_outputs/wan14b_release_2026_06_04/t2v_q8bf16_384x224_33f_12steps_seed4242.mp4",
+    "metrics": "validation_outputs/wan14b_release_2026_06_04/t2v_q8bf16_384x224_33f_12steps_seed4242.metrics.json",
+    "width": 384,
+    "height": 224,
+    "frames": 33,
+    "steps": 12,
+    "guidance": 4.0,
+    "guidance_2": 3.0,
+    "fps": 8,
+    "seed": 4242,
+    "low_ram": true,
+    "sample_interval": 0.25,
+    "tensor_health_check_interval": 1
+  },
+  "model_config": {
+    "model_name": "models/wan2.2-t2v-a14b-diffusers-8bit",
+    "base_model": "Wan-AI/Wan2.2-T2V-A14B-Diffusers"
+  },
+  "model_bits": 8,
+  "logical_model_bytes": {
+    "transformer": 15405295744,
+    "transformer_2": 15405295744,
+    "vae": 253785062,
+    "total": 31064376550
+  },
+  "timing": {
+    "total_seconds": 154.84076809883118,
+    "generation_seconds": 154.469,
+    "save_and_health_seconds": 0.37176809883118267
+  },
+  "memory": {
+    "sampler": {
+      "sample_count": 572,
+      "rss_current_peak_bytes": 20934688768,
+      "phys_footprint_peak_bytes": 22238117920,
+      "resident_peak_bytes": 20934688768,
+      "wired_peak_bytes": 0
+    },
+    "rusage_maxrss_bytes": 20934688768,
+    "mlx_peak_bytes": 16629937784,
+    "after_model_init": {
+      "phase": "after_model_init",
+      "elapsed_seconds": 1.554,
+      "mlx_peak_bytes": 31636,
+      "mlx_active_bytes": 8,
+      "mlx_cache_bytes": 0,
+      "rss_current_bytes": 990806016,
+      "phys_footprint": 677381488,
+      "resident": 990806016,
+      "wired": 0
+    },
+    "after_generate": {
+      "phase": "after_generate",
+      "elapsed_seconds": 154.469,
+      "mlx_peak_bytes": 16629937784,
+      "mlx_active_bytes": 146726646,
+      "mlx_cache_bytes": 95502476,
+      "rss_current_bytes": 899645440,
+      "phys_footprint": 819382408,
+      "resident": 899645440,
+      "wired": 0
+    },
+    "after_save": {
+      "phase": "after_save",
+      "elapsed_seconds": 154.666,
+      "mlx_peak_bytes": 16629937784,
+      "mlx_active_bytes": 146726646,
+      "mlx_cache_bytes": 95502476,
+      "rss_current_bytes": 945504256,
+      "phys_footprint": 849348816,
+      "resident": 945504256,
+      "wired": 0
+    },
+    "after_video_health": {
+      "phase": "after_video_health",
+      "elapsed_seconds": 154.713,
+      "mlx_peak_bytes": 16629937784,
+      "mlx_active_bytes": 146726646,
+      "mlx_cache_bytes": 95502476,
+      "rss_current_bytes": 945553408,
+      "phys_footprint": 849397968,
+      "resident": 945553408,
+      "wired": 0
+    }
+  },
+  "video": {
+    "path": "validation_outputs/wan14b_release_2026_06_04/t2v_q8bf16_384x224_33f_12steps_seed4242.mp4",
+    "bytes": 79860,
+    "health": {
+      "source": "validation_outputs/wan14b_release_2026_06_04/t2v_q8bf16_384x224_33f_12steps_seed4242.mp4",
+      "frame_count": 33,
+      "width": 384,
+      "height": 224,
+      "fps": 8.0,
+      "luma_min": 0.0,
+      "luma_max": 254.36219787597656,
+      "luma_mean": 17.671105124733664,
+      "mean_temporal_delta": 1.4380032792687416
+    }
+  },
+  "progress": {
+    "event_count": 17,
+    "events": [
+      {
+        "phase": "start",
+        "frame": 0,
+        "total_frames": 33,
+        "step": 0,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.0,
+        "elapsed_seconds": 1.567
+      },
+      {
+        "phase": "denoise",
+        "frame": 2,
+        "total_frames": 33,
+        "step": 1,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.08333333333333333,
+        "elapsed_seconds": 73.494
+      },
+      {
+        "phase": "denoise",
+        "frame": 5,
+        "total_frames": 33,
+        "step": 2,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.16666666666666666,
+        "elapsed_seconds": 80.008
+      },
+      {
+        "phase": "denoise",
+        "frame": 8,
+        "total_frames": 33,
+        "step": 3,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.25,
+        "elapsed_seconds": 86.698
+      },
+      {
+        "phase": "denoise",
+        "frame": 10,
+        "total_frames": 33,
+        "step": 4,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.3333333333333333,
+        "elapsed_seconds": 93.42
+      },
+      {
+        "phase": "denoise",
+        "frame": 13,
+        "total_frames": 33,
+        "step": 5,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.4166666666666667,
+        "elapsed_seconds": 100.59
+      },
+      {
+        "phase": "denoise",
+        "frame": 16,
+        "total_frames": 33,
+        "step": 6,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.5,
+        "elapsed_seconds": 107.412
+      },
+      {
+        "phase": "denoise",
+        "frame": 18,
+        "total_frames": 33,
+        "step": 7,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.5833333333333334,
+        "elapsed_seconds": 114.243
+      },
+      {
+        "phase": "denoise",
+        "frame": 21,
+        "total_frames": 33,
+        "step": 8,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.6666666666666666,
+        "elapsed_seconds": 121.104
+      },
+      {
+        "phase": "denoise",
+        "frame": 24,
+        "total_frames": 33,
+        "step": 9,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.75,
+        "elapsed_seconds": 128.166
+      },
+      {
+        "phase": "denoise",
+        "frame": 26,
+        "total_frames": 33,
+        "step": 10,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.8333333333333334,
+        "elapsed_seconds": 135.381
+      },
+      {
+        "phase": "denoise",
+        "frame": 29,
+        "total_frames": 33,
+        "step": 11,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 0.9166666666666666,
+        "elapsed_seconds": 142.746
+      },
+      {
+        "phase": "denoise",
+        "frame": 32,
+        "total_frames": 33,
+        "step": 12,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 1.0,
+        "elapsed_seconds": 150.329
+      },
+      {
+        "phase": "decode",
+        "frame": 33,
+        "total_frames": 33,
+        "step": 12,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 1.0,
+        "elapsed_seconds": 150.543
+      },
+      {
+        "phase": "convert",
+        "frame": 33,
+        "total_frames": 33,
+        "step": 12,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 1.0,
+        "elapsed_seconds": 154.45
+      },
+      {
+        "phase": "generated",
+        "frame": 33,
+        "total_frames": 33,
+        "step": 12,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 1.0,
+        "elapsed_seconds": 154.469
+      },
+      {
+        "phase": "complete",
+        "frame": 33,
+        "total_frames": 33,
+        "step": 12,
+        "total_steps": 12,
+        "task": "text-to-video",
+        "progress": 1.0,
+        "elapsed_seconds": 154.666
+      }
+    ]
+  }
+}

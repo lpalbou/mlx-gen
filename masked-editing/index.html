@@ -1,0 +1,1564 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/masked-editing/">
+      
+      
+        <link rel="prev" href="../edit-capabilities/">
+      
+      
+        <link rel="next" href="../qwen-localized-editing/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Masked Editing - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#masked-editing" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Masked Editing
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-request-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Request Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-family-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-Family Behavior
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Per-Family Behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qwen-edit-checkpoints-qweninpaint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qwen edit checkpoints (qwen.inpaint)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-qwen-checkpoints-qwenbase-inpaint-and-qwencontrol-inpaint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base Qwen checkpoints (qwen.base-inpaint and qwen.control-inpaint)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#z-image-z-imageinpaint-turbo-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z-Image (z-image.inpaint, Turbo only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flux2-klein-flux2inpaint-distilled-and-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FLUX.2 Klein (flux2.inpaint, distilled and base)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Video
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-a-masked-route" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing A Masked Route
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proof-assets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proof Assets
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-request-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Request Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#model-matrix" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Model Matrix
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-family-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Per-Family Behavior
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Per-Family Behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#qwen-edit-checkpoints-qweninpaint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Qwen edit checkpoints (qwen.inpaint)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#base-qwen-checkpoints-qwenbase-inpaint-and-qwencontrol-inpaint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Base Qwen checkpoints (qwen.base-inpaint and qwen.control-inpaint)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#z-image-z-imageinpaint-turbo-only" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Z-Image (z-image.inpaint, Turbo only)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flux2-klein-flux2inpaint-distilled-and-base" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FLUX.2 Klein (flux2.inpaint, distilled and base)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Video
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-a-masked-route" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing A Masked Route
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proof-assets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proof Assets
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="masked-editing">Masked Editing<a class="headerlink" href="#masked-editing" title="Permanent link">&para;</a></h1>
+<p>This page is the canonical masked-edit reference for MLX-Gen: the request contract, the
+per-model route matrix, per-family behavior notes, and the current proof surface. Other pages
+(<a href="../image-edit-modes/">Image edit modes</a>, <a href="../api/">API and CLI</a>, <a href="../faq/">FAQ</a>,
+<a href="../qwen-route-matrix/">Qwen route matrix</a>) summarize and link here.</p>
+<p>Masked editing (also called inpainting) changes only one region of an existing image: repair a
+damaged area, replace one object, recolor one part, or add a new object into a selected region,
+while everything outside the region stays stable.</p>
+<h2 id="the-request-contract">The Request Contract<a class="headerlink" href="#the-request-contract" title="Permanent link">&para;</a></h2>
+<p>The request shape is the same on every masked route:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>&lt;mask-capable<span class="w"> </span>model&gt;<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>source.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mask-path<span class="w"> </span>mask.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;What the masked region should become.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>edited.png
+</code></pre></div>
+<ul>
+<li>White mask pixels are repainted; black mask pixels are preserved.</li>
+<li><code>--mask-path</code> requires exactly one <code>--image</code> on the unified command.</li>
+<li><code>--image-strength</code> cannot be combined with <code>--mask-path</code> anywhere; masked editing is a
+  separate route from latent image-to-image.</li>
+<li>Pre-feather masks yourself if you want soft transitions; MLX-Gen binarizes masks at 50%
+  luminance (see the per-family notes for each route's latent-grid resampling).</li>
+<li>Masks with an alpha channel produce a one-time warning; alpha is ignored and luminance is used.</li>
+<li><code>masked_image_path</code> is recorded in output metadata and replayed by <code>--config-from-metadata</code>.</li>
+<li>Mask design matters for removals: cover the whole object you want gone, plus a margin. If the
+  mask covers only part of an object that continues outside it, every route regenerates a
+  plausible continuation instead of removing it (measured in the
+  <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/masked-edit-matrix-2026-07-15/README.md">matrix bundle's</a> limitation
+  demonstration).</li>
+</ul>
+<p>Use <code>mlxgen capabilities --model &lt;model&gt;</code> to check whether a row supports masked edit
+(<code>supports_mask=true</code>) before a long run.</p>
+<h2 id="model-matrix">Model Matrix<a class="headerlink" href="#model-matrix" title="Permanent link">&para;</a></h2>
+<p>Proof grades come from the standardized <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/masked-edit-matrix-2026-07-15/README.md">masked-edit 5x5 matrix</a>
+(one source, five masks, same seed: object insertion, lens recolor, arm retexture, sticker
+removal, plus an unscored partial-object-removal limitation demonstration), inspectable per row
+with <code>mlxgen validation --model &lt;row&gt; --profile masked_edit_matrix_5x5_2026_07_15</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Model row</th>
+<th>Route</th>
+<th>Proof grade</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AbstractFramework/qwen-image-edit-2511-8bit</code></td>
+<td><code>qwen.inpaint</code> (edit checkpoint)</td>
+<td>Validated visual QA with Lightning LoRA (<a href="../edit-capabilities/">edit capabilities</a>)</td>
+</tr>
+<tr>
+<td>Other Qwen edit rows (original, 2509, 2511 variants)</td>
+<td><code>qwen.inpaint</code></td>
+<td>Shipped; exact visual QA on the 2511 q8 row above</td>
+</tr>
+<tr>
+<td><code>AbstractFramework/qwen-image-8bit</code></td>
+<td><code>qwen.control-inpaint</code> (InstantX sidecar, auto-injected)</td>
+<td>Validated visual QA (<a href="../edit-capabilities/">edit capabilities</a>)</td>
+</tr>
+<tr>
+<td><code>Qwen/Qwen-Image</code> source, <code>AbstractFramework/qwen-image-4bit</code>, <code>AbstractFramework/qwen-image-2512-8bit</code></td>
+<td><code>qwen.base-inpaint</code> (native, no sidecar)</td>
+<td>Validated matrix: PARTIAL - insertion, retexture, and removal pass on all three rows; opaque full-region recolors stay incomplete at defaults (warm-start anchoring, see below)</td>
+</tr>
+<tr>
+<td><code>AbstractFramework/z-image-turbo-8bit</code></td>
+<td><code>z-image.inpaint</code></td>
+<td>Validated visual QA (<a href="../edit-capabilities/">edit capabilities</a>)</td>
+</tr>
+<tr>
+<td>Non-turbo Z-Image rows</td>
+<td>not supported for the moment</td>
+<td>Withdrawn after the matrix measured reproducible geometry artifacts on masks crossing thin structures (seed- and CFG-independent); masked requests are rejected before model load. Use Z-Image Turbo instead.</td>
+</tr>
+<tr>
+<td><code>AbstractFramework/flux.2-klein-4b-8bit</code>, <code>AbstractFramework/flux.2-klein-base-4b-8bit</code></td>
+<td><code>flux2.inpaint</code></td>
+<td>Validated matrix: PASS on all four scored cases</td>
+</tr>
+<tr>
+<td>Other FLUX.2 Klein rows (9B variants, source checkpoints)</td>
+<td><code>flux2.inpaint</code></td>
+<td>Shipped; matrix proof exists on the 4B q8 rows above, plus the reference-conditioned smoke case</td>
+</tr>
+<tr>
+<td>Wan video rows</td>
+<td><code>--video-mask-path</code> (video-side masks)</td>
+<td>See <a href="../wan-video/">Wan video</a></td>
+</tr>
+</tbody>
+</table>
+<p>Masked routes are exposed on trusted model identities (catalog aliases, official prepared
+packages, exact proven rows, or local paths with an explicit <code>--base-model</code>). Arbitrary
+local folder names do not unlock masked routes.</p>
+<h2 id="per-family-behavior">Per-Family Behavior<a class="headerlink" href="#per-family-behavior" title="Permanent link">&para;</a></h2>
+<h3 id="qwen-edit-checkpoints-qweninpaint">Qwen edit checkpoints (<code>qwen.inpaint</code>)<a class="headerlink" href="#qwen-edit-checkpoints-qweninpaint" title="Permanent link">&para;</a></h3>
+<p>The edit checkpoints keep the full source image as conditioning while blending unmasked latents
+back each step. Best masked-edit quality in the Qwen family, and the fast public path stacks the
+<code>lightx2v/Qwen-Image-Edit-2511-Lightning</code> adapter (4 steps, guidance 1); see
+<a href="../faq/#how-do-i-do-masked-edit-or-inpaint">FAQ</a> for the exact command.</p>
+<h3 id="base-qwen-checkpoints-qwenbase-inpaint-and-qwencontrol-inpaint">Base Qwen checkpoints (<code>qwen.base-inpaint</code> and <code>qwen.control-inpaint</code>)<a class="headerlink" href="#base-qwen-checkpoints-qwenbase-inpaint-and-qwencontrol-inpaint" title="Permanent link">&para;</a></h3>
+<p>Every base Qwen row carries exactly one masked route, keyed on the exact model string:</p>
+<ul>
+<li>The exact validated <code>AbstractFramework/qwen-image-8bit</code> row keeps the ControlNet
+  control-inpaint route: MLX-Gen auto-injects the InstantX inpainting sidecar and runs the full
+  requested schedule. This is the stricter backend for hard local replacements.</li>
+<li>Every other trusted base row (source <code>Qwen/Qwen-Image</code>, <code>qwen-image-4bit</code>, the exact
+  <code>qwen-image-2512-8bit</code> row) runs native masked edit, ported from the diffusers
+  <code>QwenImageInpaintPipeline</code>: no sidecar download, and the masked region starts from the
+  re-noised source at the upstream-example strength <code>0.85</code> rather than pure noise. Base Qwen is
+  a text-to-image model without edit-instruction training; the warm start is what anchors
+  repainted content to the surrounding structure.</li>
+</ul>
+<p>Because of the warm start, the native route executes fewer denoise iterations than requested
+(<code>20</code> requested steps run <code>17</code>). Output metadata records the runtime truth as
+<code>effective_steps</code> and <code>mask_strength</code>. This differs from the other masked routes
+(Qwen edit, Z-Image, FLUX.2 Klein), which denoise the full schedule from noise.</p>
+<p>The warm start is tunable through <code>--mask-strength</code> (Python: <code>mask_strength</code>), the upstream
+<code>QwenImageInpaintPipeline</code> strength knob scoped to masked runs. The measured trade-off from
+the validation matrix:</p>
+<ul>
+<li>Default <code>0.85</code> anchors repainted content to the source: object insertion, retexturing, and
+  removal validate cleanly, but opaque full-region recolors (for example turning a clear lens
+  into a dark tinted one) stay incomplete.</li>
+<li><code>--mask-strength 0.95</code> repaints the full masked region on every proof row (source bf16,
+  q4, 2512-q8). Exact color fidelity at 0.95 varies by seed on all rows — a seed sweep showed
+  clean tinted lenses on most seeds with occasional color misplacement or blend artifacts on
+  others — so if the repainted color lands wrong, retry with a different seed. The higher
+  strength also weakens the anchor: masks crossing thin connected structures (the
+  arm-retexture case) can produce detached-geometry artifacts at that setting.</li>
+</ul>
+<p>Rule of thumb: keep the default for edits that should follow existing structure; raise toward
+<code>0.95</code> for content-replacing edits inside well-contained masks. Describing the current
+appearance in <code>--negative</code> also pushes CFG away from the anchor and can substitute at the
+default strength. For the strongest masked recolors overall, use a Qwen edit checkpoint or
+FLUX.2 Klein. The applied <code>mask_strength</code> and executed <code>effective_steps</code> are recorded in
+metadata and replayed by <code>--config-from-metadata</code>.</p>
+<p>Prompt like a text-to-image caption on the native route — describe the target scene ("a small
+red glasses case sitting behind them"), not the editing instruction ("add a case"). Mask
+resampling follows diffusers: NEAREST onto the latent grid with a 50% threshold.</p>
+<h3 id="z-image-z-imageinpaint-turbo-only">Z-Image (<code>z-image.inpaint</code>, Turbo only)<a class="headerlink" href="#z-image-z-imageinpaint-turbo-only" title="Permanent link">&para;</a></h3>
+<p>Native per-step latent compositing on Turbo rows, 9 steps without guidance. Mask resampling:
+NEAREST at the latent grid, 50% threshold.</p>
+<p>Non-turbo Z-Image masked editing is not supported for the moment: the validation matrix
+measured reproducible geometry artifacts when masks cross thin connected structures
+(reproduced across seeds and with CFG both on and off, while Turbo renders the same case
+cleanly — evidence in the <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/masked-edit-matrix-2026-07-15/README.md">matrix bundle</a>).
+Non-turbo masked requests are rejected before model load; use Z-Image Turbo instead.</p>
+<h3 id="flux2-klein-flux2inpaint-distilled-and-base">FLUX.2 Klein (<code>flux2.inpaint</code>, distilled and base)<a class="headerlink" href="#flux2-klein-flux2inpaint-distilled-and-base" title="Permanent link">&para;</a></h3>
+<p>Ported from the diffusers <code>Flux2KleinInpaintPipeline</code>: the clean source rides along as
+conditioning tokens while unmasked latents are re-composited each step. Distilled Klein runs
+masked edits in 4 steps at guidance 1; base Klein defaults to guidance 4 with true CFG. The
+backend <code>mflux-generate-flux2-edit</code> command and the Python <code>Flux2KleinInpaint</code> class also accept
+extra images after the source as references for the masked area ("replace the masked object
+with the one in the second image"). Masks are binarized at pixel resolution and then
+bilinear-downsampled onto the packed latent grid, so mask borders keep soft transition values.</p>
+<h3 id="video">Video<a class="headerlink" href="#video" title="Permanent link">&para;</a></h3>
+<p>Masked video-to-video uses <code>--video-mask-path</code> on the Wan A14B route (exact latent lock) and on
+Wan VACE models (learned mask conditioning with <code>--vace-masked-region</code>). See
+<a href="../wan-video/">Wan video</a>.</p>
+<h2 id="choosing-a-masked-route">Choosing A Masked Route<a class="headerlink" href="#choosing-a-masked-route" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Best current image quality with a fast path: Qwen Image Edit 2511 q8 + Lightning.</li>
+<li>Local edits without any sidecar or edit checkpoint: base Qwen native route or Z-Image Turbo.</li>
+<li>Strictest local replacement discipline: base-Qwen control-inpaint on the exact 8bit row.</li>
+<li>Fastest masked edits: FLUX.2 Klein distilled (4 steps) or Z-Image Turbo (9 steps).</li>
+<li>Masked edit guided by a reference object image: FLUX.2 Klein backend route.</li>
+</ul>
+<h2 id="proof-assets">Proof Assets<a class="headerlink" href="#proof-assets" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/masked-edit-matrix-2026-07-15/README.md">Masked edit 5x5 matrix (2026-07-15)</a>:
+  the standardized multi-case validation for the new routes — contact sheet, per-case zoom
+  sheets, preservation metrics, per-row statuses, and the partial-object-removal limitation
+  demonstration. Registry profile <code>masked_edit_matrix_5x5_2026_07_15</code>.</li>
+<li><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/masked-edit-2026-07-15/README.md">Masked edit expansion smoke bundle (2026-07-15)</a>:
+  the initial single-case wiring proofs with the runtime-truth metadata sidecar.</li>
+<li><a href="../edit-capabilities/">Image edit capabilities</a>: the validated visual-QA rows (Qwen edit 2511
+  masked edit, base-Qwen control-inpaint, Z-Image Turbo inpaint) with contact sheets and command
+  logs.</li>
+<li><a href="../qwen-localized-editing/">Qwen localized editing</a>: plain-language comparison of Qwen masked
+  edit, structured control, and control-inpaint.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

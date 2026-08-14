@@ -1,0 +1,1762 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/">
+      
+      
+      
+        <link rel="next" href="getting-started/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#mlx-gen" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Home
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="." class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-it-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What It Does
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#first-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproducible-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducible Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#published-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Published Models
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wan-a14b-measurements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wan A14B Measurements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ecosystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ecosystem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-it-does" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What It Does
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#install" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#first-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        First Commands
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproducible-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproducible Example
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#published-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Published Models
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#wan-a14b-measurements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Wan A14B Measurements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ecosystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ecosystem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#license" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        License
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="mlx-gen">MLX-Gen<a class="headerlink" href="#mlx-gen" title="Permanent link">&para;</a></h1>
+<p><a href="https://pypi.org/project/mlx-gen/"><img alt="mlx-gen" src="https://img.shields.io/pypi/v/mlx-gen?label=mlx-gen&amp;logo=pypi&amp;logoColor=white" /></a>
+<a href="https://pypi.org/project/mlx/"><img alt="MLX" src="https://img.shields.io/pypi/v/mlx?label=MLX&amp;logo=pypi&amp;logoColor=white" /></a>
+<a href="https://github.com/lpalbou/mlx-gen/actions/workflows/tests.yml"><img alt="CI" src="https://github.com/lpalbou/mlx-gen/actions/workflows/tests.yml/badge.svg" /></a></p>
+<p>MLX-Gen is a local image and video generation runtime for Apple Silicon and MLX. It exposes
+<code>mlxgen</code> for text-to-image, image-to-image, text-to-video, image-to-video, model download, model
+preparation, SeedVR2 image/video restoration and upscaling, optimized quantized model variants, and application progress
+callbacks.</p>
+<blockquote>
+<p>[!IMPORTANT]
+MLX-Gen started as a fork of <a href="https://github.com/filipstrand/mflux">mflux</a>. Most credit for the
+current codebase goes to Filip Strand and the original mflux contributors. MLX-Gen keeps that
+foundation and focuses on making local generation predictable for real applications: users
+download or prepare models before running a job, then use one <code>mlxgen</code> command to generate,
+inspect supported modes, and compare generated examples and measured results. MLX-Gen contributes
+by adding tested T2I/I2I routes, Qwen Image Edit 2509/2511 routing and parity fixes, Bonsai Image
+support, Wan2.2 text-to-video, image-to-video, and video-to-video support, Bernini-R reference-guided
+video generation/editing, model-specific mixed quantization
+policies, published quantized Hugging Face repos optimized for MLX-Gen, and progress callbacks
+for apps. The fork exists so AbstractVision and related AbstractFramework projects can move
+quickly without losing the option to merge useful changes back upstream if that becomes valuable
+for the wider mflux community.</p>
+</blockquote>
+<p><img alt="MLX-Gen workflow example" src="https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/assets/examples/spaceship-snow/mlx-gen-example.png" /></p>
+<p>This screenshot shows <a href="https://github.com/lpalbou/abstractflow">AbstractFlow</a>, a visual workflow
+authoring tool in the <a href="https://abstractframework.ai/">AbstractFramework</a> ecosystem. AbstractFlow can
+orchestrate generative image/video capabilities exposed through AbstractVision and AbstractCore; the
+same MLX-Gen steps can also be run directly with the command-line examples below.</p>
+<h2 id="what-it-does">What It Does<a class="headerlink" href="#what-it-does" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen runs supported Hugging Face source models after you download them locally. It also runs
+quantized model variants that are published on Hugging Face for MLX-Gen. Some of those variants keep
+precision-sensitive layers at 8-bit or BF16 instead of blindly quantizing every layer, which is why
+they are published as MLX-Gen-specific repos. You explicitly download or prepare models first, then
+generation uses only files already on disk, which suits desktop apps, workflow engines, and
+long-running local jobs.</p>
+<p>The main capabilities are:</p>
+<ul>
+<li>text-to-image generation with Qwen Image, FLUX.2 Klein, Z-Image, ERNIE Image Turbo, Bonsai Image,
+  FIBO, and their optimized quantized variants where available;</li>
+<li>image-to-image modes, including latent img2img, instruction/reference edits, multi-reference
+  edits, masked edit/inpaint where the selected model supports <code>--mask-path</code> (Qwen edit models,
+  base Qwen models natively with a tunable <code>--mask-strength</code> warm start or through the validated
+  control-inpaint sidecar row, Z-Image Turbo, and FLUX.2 Klein distilled and base models, with
+  optional masked-area reference images on the Klein backend route — see
+  <code>docs/masked-editing.md</code>), Qwen structured
+  control where the selected model supports <code>--controlnet-image-path</code>, and route-specific
+  reframe/outpaint workflows where the selected model supports them;</li>
+<li>Wan2.2 text-to-video, image-to-video, and prompt-guided video-to-video (plain or masked via
+  <code>--video-mask-path</code>, which locks everything outside the mask to the source video), including
+  TI2V-5B BF16/q8 packages plus A14B T2V/I2V BF16 and mixed q8/BF16 packages; video-to-video
+  resamples the source onto the requested fps timeline (output keeps real-time speed) and copies
+  source audio onto the output best-effort; the plain/masked video-to-video route is limited to
+  <code>Wan2.2-T2V-A14B</code>, uses one source video plus one prompt, and requires <code>--solver unipc</code>; Wan
+  I2V resolves output size from the source image aspect ratio so inputs are not stretched into
+  a mismatched canvas;</li>
+<li>Wan2.1-VACE-1.3B native reference-and-mask conditioning (<code>wan-vace</code>): inject a pictured
+  object into a new scene from one or more <code>--reference-image</code> inputs, or run learned masked
+  source-video edits, verified stage-by-stage against the diffusers reference with an included
+  proof bundle;</li>
+<li>ByteDance Bernini-R 1.3B renderer support (<code>bernini-r-1.3b</code>): generate video from one to eight
+  ordered ordinary reference images, edit one source video with those references, or run
+  source-only prompt-guided video editing through the unified CLI and Python runtime. Download
+  the recommended BF16 package (<code>bernini-r-1.3b-bf16</code>, ~15.6 GiB, bit-identical output) or the
+  FP32 source package (~27 GiB); the route runs BF16 and does not support <code>--quantize</code>.
+  <strong>Experimental:</strong> seven official public 1.3B example rows plus <code>ads2v</code> at mid profile are
+  qualitatively accepted with committed proof (full prompts and contact sheets in
+  <code>docs/assets/validation/bernini-r-1.3b-2026-08-11/</code>), and tuned recipes for the remaining
+  rows are documented in <code>docs/bernini.md</code>;</li>
+<li>SeedVR2 image and video restoration through <code>mlxgen upscale</code>, with official 3B/7B source
+  support including the dedicated <code>seedvr2-7b-sharp</code> route, published q8/q4 packages,
+  shortest-edge target sizing, explicit scale factors such as <code>2x</code> and <code>3x</code>, streamed restore for
+  longer clips, preserved source FPS, a conservative host-safe default video profile, and
+  published five-second <code>1x</code> and <code>2x</code> validation bundles for the 3B/7B video path;</li>
+<li>explicit <code>download</code> and <code>prepare</code> workflows for local MLX-Gen model packages;</li>
+<li>JSON model capability inspection before starting a heavy run;</li>
+<li>strict route-specific LoRA routing and adapter application checks, with model-card compatibility
+  preflight when cached adapter metadata is available and exact public proof rows for Qwen Image
+  Edit original/2509/2511, base Qwen Image text and latent, Qwen Image 2512 text, the base Qwen
+  Image q8 structured-control and control-inpaint rows, the exact
+  <code>AbstractFramework/z-image-turbo-8bit</code> text and latent img2img rows, FLUX.2 Klein 9B edit and
+  multi-reference, FLUX.2 Klein base 4B outpaint, ERNIE Image Turbo text and latent img2img, and
+  all supported Wan q8 video routes including Lightning fast video-to-video; the LoRA guide
+  documents the exact validated adapters per route, strict scale matching, copy-paste
+  <code>owner/repo:subdir/file</code> adapter forms, and the validation evidence behind each proof row
+  (same-seed A/B sheets for the image and T2V/I2V rows, a bounded multi-seed matrix for the
+  video-to-video row). Those Lightning examples are documented against MLX-Gen q8 packages, not
+  arbitrary external FP8 checkpoints. Bonsai LoRA stays fail-closed;</li>
+<li>shared progress events for applications embedding MLX-Gen.</li>
+</ul>
+<p>Use <code>mlxgen capabilities --model ...</code> before long image-edit runs. Capability output describes the
+available route; validation reports and contact sheets describe whether an exact source handle or
+MLX-Gen optimized package passed a visual release gate. Release evidence should use true handles such as
+<code>briaai/Fibo-Edit</code> or <code>AbstractFramework/flux.2-klein-9b-8bit</code>, not short aliases.</p>
+<h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
+<p>Install with <code>uv</code>:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>mlx-gen
+</code></pre></div>
+<p>Or install into an environment:</p>
+<div class="highlight"><pre><span></span><code>python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span>-U<span class="w"> </span>mlx-gen
+</code></pre></div>
+<p>Check the command surface:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>--help
+</code></pre></div>
+<p>For application integration and shell-outs, use the <code>mlxgen</code> commands shown in
+<code>mlxgen --help</code>. The package still installs some <code>mflux-generate-*</code> compatibility entry points
+from the upstream codebase, but those are not the recommended integration surface for new tools.</p>
+<h2 id="first-commands">First Commands<a class="headerlink" href="#first-commands" title="Permanent link">&para;</a></h2>
+<p>Download model files explicitly:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit
+</code></pre></div>
+<p>Generate an image:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic wide shot of a compact sci-fi spaceship resting in deep snow on a frozen alien planet&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">768</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">432</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">6107</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>spaceship.png
+</code></pre></div>
+<p>Generate several output images or videos in one run by passing more than one seed:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>qwen-image<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean studio product photo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="m">202</span><span class="w"> </span><span class="m">303</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>product.png
+</code></pre></div>
+<p>MLX-Gen saves one artifact per seed and appends the seed to the output stem automatically, for
+example <code>product_seed_101.png</code>, <code>product_seed_202.png</code>, and <code>product_seed_303.png</code>.
+<code>mlxgen generate</code> and <code>mlxgen upscale</code> also support <code>--auto-seeds N</code> when you want several random
+variations from one command. Duplicate explicit seeds are rejected, <code>--auto-seeds</code> must be greater
+than zero, <code>--output</code> supports <code>{seed}</code>, and SeedVR2 multi-source runs also support <code>{input_name}</code>
+with legacy <code>{image_name}</code> accepted as a compatibility alias.</p>
+<p>Upscale an image with SeedVR2:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/seedvr2-3b-8bit
+
+mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/seedvr2-3b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-path<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>2x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--softness<span class="w"> </span><span class="m">0</span>.25<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>input_2x.png
+</code></pre></div>
+<p>For SeedVR2, an integer <code>--resolution</code> is the target shorter edge while values such as <code>2x</code> and
+<code>3x</code> are scale factors. Both modes preserve the source aspect ratio. Use <code>--softness 0.25</code> to
+<code>0.5</code> when the source has visible grain in smooth areas. Small image outputs use the untiled VAE
+path; large image outputs automatically use tiled VAE decode, and <code>--vae-tiling</code> forces tiled VAE
+encode/decode for image runs only. See <a href="upscaling/">docs/upscaling.md</a> for a reproducible
+5x SeedVR2 image comparison plus the accepted five-second Eiffel <code>1x</code> and <code>2x</code> <code>3B</code> / <code>7B</code>
+restore proof bundles.</p>
+<p>Restore a real five-second validation clip with SeedVR2:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-3B<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>input.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--start-seconds<span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--max-frames<span class="w"> </span><span class="m">149</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resolution<span class="w"> </span>1x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--softness<span class="w"> </span><span class="m">0</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--color-correction<span class="w"> </span>wavelet<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-size<span class="w"> </span><span class="m">29</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-overlap<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--low-ram<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--mlx-cache-limit-gb<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>restored.mp4
+</code></pre></div>
+<p>For video inputs, SeedVR2 preserves the source FPS by default and preserves the matching source
+audio segment by default as well. If MLX-Gen cannot prove that copied audio is still aligned
+safely, the run fails instead of publishing a silent output unexpectedly. Use <code>--drop-audio</code> only
+when you intentionally want a silent restored MP4. (This is deliberately stricter than Wan
+video-to-video's best-effort audio copy: restoration is a fidelity contract, while a failed mux
+on a generative run must not discard the finished video.) The safe public video profile defaults to <code>1x</code>,
+enables <code>--low-ram</code> automatically, and rejects enlarged video output unless you explicitly pass
+<code>--force-unsafe-video-memory</code>. See
+<a href="upscaling/">docs/upscaling.md</a> for the accepted five-second Eiffel quality proof bundle and
+the published Air France audio-copy proof bundle.</p>
+<p><code>mlxgen upscale</code> accepts one or more explicit seeds and <code>--auto-seeds N</code> on both image and video
+restore runs. When you process several seeds, MLX-Gen appends <code>_seed_&lt;seed&gt;</code> automatically. When
+one SeedVR2 invocation processes several source files, MLX-Gen also appends the source-file stem so
+each saved artifact gets its own path. If two source files share the same basename, keep
+<code>--replace false</code> or rename the inputs; overwrite-prone SeedVR2 batches are rejected when
+<code>--replace true</code>.</p>
+<p>Inspect model capabilities before a run:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit
+</code></pre></div>
+<p>Capabilities are route contracts: they show which tasks, I2I modes, image counts, and options the
+selected model can dispatch. For release QA evidence on exact packages, use:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>validation<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2509-8bit
+mlxgen<span class="w"> </span>validation<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b
+</code></pre></div>
+<p>LoRA support is route-specific. For LoRA work, inspect <code>supports_lora</code>, <code>lora_status</code>, and
+<code>lora_validation_profile</code> in <code>mlxgen capabilities</code>, download the adapter explicitly with
+<code>mlxgen download</code>, and use an adapter trained for the selected model family and route. Current
+exact proof rows cover original Qwen Image Edit, Qwen Image Edit 2509/2511, base Qwen Image text
+and latent, Qwen Image 2512 text, the exact <code>AbstractFramework/z-image-turbo-8bit</code> text and latent rows, FLUX.2 Klein 9B edit and
+multi-reference, FLUX.2 Klein base 4B outpaint, ERNIE Image Turbo text and latent, plus the
+current Wan q8 public video routes. The LoRA guide also includes the current LightX2V <code>4</code>-step
+A14B timing comparison against the practical original Wan profiles, same-seed
+no-LoRA-versus-Lightning A/B sheets, recommended <code>4</code>-step Qwen 2512 and Qwen Edit 2511 Lightning
+examples, a <code>240p</code>-versus-<code>480p</code> T2V sweep, and copy-paste download and T2V/I2V commands for
+<code>lightx2v/Wan2.2-Lightning</code>, including the stable <code>repo:subdir/file.safetensors</code> form and
+equivalent absolute local-file usage after download.
+For example, a FLUX.2-dev LoRA is not accepted for FLUX.2 Klein. See <a href="lora/">docs/lora.md</a>
+for the A/B validation method.</p>
+<p>Create a local MLX-Gen model package, for example an 8-bit Qwen Image package:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>Qwen/Qwen-Image<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--path<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--quantize<span class="w"> </span><span class="m">8</span>
+</code></pre></div>
+<p><code>mlxgen generate</code> does not download missing files. If something is not cached, MLX-Gen raises a
+clear <code>DownloadRequiredError</code> with the command to run. A complete local MLX-Gen package at
+<code>./models/&lt;repo-name&gt;</code> can also satisfy a matching Hugging Face handle such as
+<code>AbstractFramework/qwen-image-edit-2511-8bit</code>.</p>
+<h2 id="reproducible-example">Reproducible Example<a class="headerlink" href="#reproducible-example" title="Permanent link">&para;</a></h2>
+<p>The docs include a complete model-backed spaceship workflow:</p>
+<ul>
+<li>T2I: generate a spaceship in the snow.</li>
+<li>I2I edit: turn it into a pencil sketch.</li>
+<li>I2I edit: crash the same spaceship in the snow.</li>
+<li>I2I multi-reference: combine the crash layout and pencil-sketch style.</li>
+<li>T2V A14B: generate a spaceship taking off from a snow planet.</li>
+<li>I2V A14B: animate the generated spaceship taking off from the source image.</li>
+</ul>
+<p>See <a href="examples/spaceship-snow/">docs/examples/spaceship-snow.md</a> for the exact commands and
+included assets.</p>
+<p><img alt="Spaceship mode contact sheet" src="https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/assets/examples/spaceship-snow/spaceship_modes_real_generation_contact_sheet.png" /></p>
+<p>For image-edit contact sheets, command logs, and model/package status across Qwen Image
+Edit, Qwen Image Edit 2509/2511, FLUX.2 Klein, and latent I2I models, see
+<a href="edit-capabilities/">docs/edit-capabilities.md</a>.
+That guide also includes the exact base Qwen q8 structured-control proof route, the exact
+base Qwen q8 control-inpaint proof route, and the exact Z-Image Turbo q8 native-inpaint proof
+route.
+For the full Qwen route map, including how <code>mlxgen</code> capability ids line up with upstream Diffusers
+Qwen pipelines and where the published proof surfaces live, see
+<a href="qwen-route-matrix/">docs/qwen-route-matrix.md</a>.
+For a plain-language guide to latent img2img, instruction edit, masked edit/inpaint, multi-reference composition,
+Qwen structured control, generative reframe, and outpaint, see
+<a href="image-edit-modes/">docs/image-edit-modes.md</a>.</p>
+<h2 id="published-models">Published Models<a class="headerlink" href="#published-models" title="Permanent link">&para;</a></h2>
+<p>Quantized and BF16 model variants optimized for MLX-Gen are published under the
+<a href="https://huggingface.co/AbstractFramework">AbstractFramework organization on Hugging Face</a>. Current
+published packages include:</p>
+<p>FLUX.2 Klein:</p>
+<ul>
+<li><code>AbstractFramework/flux.2-klein-4b-4bit</code></li>
+<li><code>AbstractFramework/flux.2-klein-4b-8bit</code></li>
+<li><code>AbstractFramework/flux.2-klein-9b-4bit</code></li>
+<li><code>AbstractFramework/flux.2-klein-9b-8bit</code></li>
+<li><code>AbstractFramework/flux.2-klein-base-4b-4bit</code></li>
+<li><code>AbstractFramework/flux.2-klein-base-4b-8bit</code></li>
+<li><code>AbstractFramework/flux.2-klein-base-9b-4bit</code></li>
+<li><code>AbstractFramework/flux.2-klein-base-9b-8bit</code></li>
+</ul>
+<p>Qwen Image and Qwen Image Edit:</p>
+<ul>
+<li><code>AbstractFramework/qwen-image-4bit</code></li>
+<li><code>AbstractFramework/qwen-image-8bit</code></li>
+<li><code>AbstractFramework/qwen-image-2512-4bit</code></li>
+<li><code>AbstractFramework/qwen-image-2512-8bit</code></li>
+<li><code>AbstractFramework/qwen-image-edit-4bit</code></li>
+<li><code>AbstractFramework/qwen-image-edit-8bit</code></li>
+<li><code>AbstractFramework/qwen-image-edit-2509-4bit</code></li>
+<li><code>AbstractFramework/qwen-image-edit-2509-8bit</code></li>
+<li><code>AbstractFramework/qwen-image-edit-2511-4bit</code></li>
+<li><code>AbstractFramework/qwen-image-edit-2511-8bit</code></li>
+</ul>
+<p>Z-Image, ERNIE, and FIBO:</p>
+<ul>
+<li><code>AbstractFramework/z-image-4bit</code></li>
+<li><code>AbstractFramework/z-image-8bit</code></li>
+<li><code>AbstractFramework/z-image-turbo-4bit</code></li>
+<li><code>AbstractFramework/z-image-turbo-8bit</code></li>
+<li><code>AbstractFramework/ernie-image-turbo-4bit</code></li>
+<li><code>AbstractFramework/ernie-image-turbo-8bit</code></li>
+<li><code>AbstractFramework/fibo-4bit</code></li>
+<li><code>AbstractFramework/fibo-8bit</code></li>
+</ul>
+<p>SeedVR2 upscaling:</p>
+<ul>
+<li><code>AbstractFramework/seedvr2-3b-4bit</code></li>
+<li><code>AbstractFramework/seedvr2-3b-8bit</code></li>
+<li><code>AbstractFramework/seedvr2-7b-4bit</code></li>
+<li><code>AbstractFramework/seedvr2-7b-8bit</code></li>
+</ul>
+<p>SeedVR2 7B can also run from the official <code>ByteDance-Seed/SeedVR2-7B</code> source model, including the
+<code>seedvr2-7b-sharp</code> checkpoint alias, or from the published q8/q4 package handles above. See
+<a href="upscaling/">docs/upscaling.md</a> and <a href="quantization/">docs/quantization.md</a> for the
+validated 7B source/q8/q4 profile.</p>
+<p>Wan2.2 video:</p>
+<ul>
+<li><code>AbstractFramework/wan2.2-ti2v-5b-diffusers-bf16</code></li>
+<li><code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code></li>
+<li><code>AbstractFramework/wan2.2-t2v-a14b-diffusers-bf16</code></li>
+<li><code>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit</code></li>
+<li><code>AbstractFramework/wan2.2-i2v-a14b-diffusers-bf16</code></li>
+<li><code>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit</code></li>
+</ul>
+<p>Bernini-R uses the official <code>ByteDance/Bernini-R-1.3B-Diffusers</code> renderer together with pinned
+Wan2.1 base components. It currently has no published MLX-Gen quantized package: use
+<code>mlxgen download --model bernini-r-1.3b</code>, omit <code>--quantize</code>, and see
+<a href="bernini/">Bernini-R 1.3B</a>.</p>
+<p>Use <code>mlxgen download --model &lt;repo-id&gt;</code> to cache a published model, then pass the repository id to
+the relevant command: <code>mlxgen generate</code> for image/video generation or <code>mlxgen upscale</code> for SeedVR2
+upscaling. See
+<a href="quantization/">docs/quantization.md</a> for the complete current package matrix with source
+sizes, optimized package sizes, task coverage, and quantization notes.</p>
+<p>For Wan2.2 TI2V-5B, the published BF16 MLX-Gen package is 21.2 GiB versus 31.9 GiB for the
+upstream source snapshot. It is mainly a smaller reusable source-equivalent package because
+MLX-Gen already loads Wan transformer/VAE weights at BF16 runtime precision. The published q8
+package is 16.9 GiB. Since the 2026-06-12 runtime-precision fix, Wan q8 packages dequantize all
+transformer-block linears to BF16 at load, so q8 is a storage/download saving only and runtime
+memory matches the BF16 package. Wan TI2V-5B q4 or mixed q4/q8 is not published as a supported
+package. See the exact benchmark profile and the dated correction in
+<a href="quantization/">docs/quantization.md</a>.</p>
+<h2 id="wan-a14b-measurements">Wan A14B Measurements<a class="headerlink" href="#wan-a14b-measurements" title="Permanent link">&para;</a></h2>
+<p>Wan A14B was measured on an Apple M5 Max with 128 GB unified memory. The published-card benchmark
+uses small, repeatable low-RAM runs and records full-process Darwin physical footprint, RSS, MLX
+allocator peak, and generation time. Use these values for the listed profiles; memory and runtime
+scale with resolution, frame count, step count, cache settings, and image-to-video conditioning.</p>
+<blockquote>
+<p>Correction (2026-07-05): the q8 rows below predate the 2026-06-12 runtime-precision fix. Since
+that fix, Wan q8 packages dequantize all transformer-block linears to BF16 at load, so runtime
+memory matches the BF16 rows (re-measured: 27.8 GiB MLX peak at the same T2V profile). Plan
+memory as if running the BF16 package; q8 saves disk and download only.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Model</th>
+<th>Package</th>
+<th style="text-align: right;">Disk</th>
+<th style="text-align: right;">Physical Peak</th>
+<th style="text-align: right;">Max RSS</th>
+<th style="text-align: right;">MLX Peak</th>
+<th style="text-align: right;">Time</th>
+<th>Profile</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Wan2.2 T2V-A14B</td>
+<td>BF16</td>
+<td style="text-align: right;">64.1 GiB</td>
+<td style="text-align: right;">33.0 GiB</td>
+<td style="text-align: right;">31.8 GiB</td>
+<td style="text-align: right;">27.7 GiB</td>
+<td style="text-align: right;">152.7 s</td>
+<td>384x224, 33 frames, 12 steps, 8 fps</td>
+</tr>
+<tr>
+<td>Wan2.2 T2V-A14B</td>
+<td>mixed q8/BF16</td>
+<td style="text-align: right;">39.5 GiB</td>
+<td style="text-align: right;">20.7 GiB</td>
+<td style="text-align: right;">19.5 GiB</td>
+<td style="text-align: right;">15.5 GiB</td>
+<td style="text-align: right;">154.8 s</td>
+<td>384x224, 33 frames, 12 steps, 8 fps</td>
+</tr>
+<tr>
+<td>Wan2.2 I2V-A14B</td>
+<td>BF16</td>
+<td style="text-align: right;">64.1 GiB</td>
+<td style="text-align: right;">33.7 GiB</td>
+<td style="text-align: right;">31.8 GiB</td>
+<td style="text-align: right;">28.2 GiB</td>
+<td style="text-align: right;">228.2 s</td>
+<td>384x384, 33 frames, 12 steps, 8 fps</td>
+</tr>
+<tr>
+<td>Wan2.2 I2V-A14B</td>
+<td>mixed q8/BF16</td>
+<td style="text-align: right;">39.5 GiB</td>
+<td style="text-align: right;">21.5 GiB</td>
+<td style="text-align: right;">19.6 GiB</td>
+<td style="text-align: right;">15.9 GiB</td>
+<td style="text-align: right;">242.2 s</td>
+<td>384x384, 33 frames, 12 steps, 8 fps</td>
+</tr>
+</tbody>
+</table>
+<p>In these runs, mixed q8/BF16 reduces disk usage by about 38% versus BF16 MLX-Gen packages; since
+2026-06-12 it is not a runtime-memory or speed improvement. See
+<a href="quantization/">docs/quantization.md</a> for model-family quantization details and metrics JSON.
+The 0.18.11 release also validates the published A14B q8 T2V/I2V handles on a 41-frame,
+15-step, 480x240-target profile with saved MP4/contact-sheet evidence in the quantization docs.</p>
+<h2 id="ecosystem">Ecosystem<a class="headerlink" href="#ecosystem" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen is used as the local Apple Silicon generation backend for:</p>
+<ul>
+<li><a href="https://github.com/lpalbou/abstractvision">AbstractVision</a>, the direct integration layer for
+  abstracting generative image and video capabilities across local and hosted providers;</li>
+<li><a href="https://abstractcore.ai/">AbstractCore</a>, which can expose OpenAI-compatible endpoints backed by
+  AbstractVision providers, including image and video capabilities;</li>
+<li><a href="https://github.com/lpalbou/abstractflow">AbstractFlow</a>, a visual workflow authoring layer that
+  can compose generative image/video nodes alongside other media, text, and agent workflows.</li>
+</ul>
+<p>MLX-Gen remains useful as a standalone CLI package, and it is also designed for applications: jobs
+run from model files already on disk, apps can inspect supported modes before loading weights, and
+progress callbacks make long runs observable.</p>
+<h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="getting-started/">Getting started</a>: installation, first runs, SeedVR2 upscaling, and Wan video.</li>
+<li><a href="api/">API and CLI</a>: command surface, router behavior, image-to-image modes, generative reframe, backend-specific outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.</li>
+<li><a href="image-edit-modes/">Image edit modes</a>: what latent img2img, edit-reference, multi-reference, generative reframe, and outpaint mean in practice, with examples.</li>
+<li><a href="wan-video/">Wan video</a>: practical Wan2.2 T2V/I2V sizing, plain and masked prompt-guided A14B video-to-video with included proof artifacts, the natively ported Wan2.1-VACE-1.3B route (reference-image object injection and learned mask conditioning), a measured motion-fidelity ladder (strength vs gesture preservation), broader A14B target size families, and 5-second M5 Max comparison clips.</li>
+<li><a href="bernini/">Bernini-R 1.3B</a>: ordered reference-to-video, reference-guided/source-only video editing, factored downloads, BF16-only memory guidance, and playable proof artifacts.</li>
+<li><a href="examples/spaceship-snow/">Example workflow</a>: reproducible image and video commands.</li>
+<li><a href="upscaling/">Image upscaling</a>: SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, published five-second Eiffel <code>1x</code> and <code>2x</code> 3B/7B validation bundles, readable tone-correction labels, and 5x source/output comparisons.</li>
+<li><a href="edit-capabilities/">Image edit capabilities</a>: image-edit contact sheets, exact model/package status, and command logs.</li>
+<li><a href="reframe-outpaint/">Reframe and outpaint</a>: <code>--reframe-padding</code> and <code>--outpaint-padding</code> routes with the mixed June 8 profile, FLUX.2 Klein base source-model validation, and links to the exact Qwen and FLUX route proofs.</li>
+<li><a href="model-management/">Model management</a>: download, prepare, and run from local model files.</li>
+<li><a href="quantization/">Quantization</a>: q8/q4/BF16 policies and measurements.</li>
+<li><a href="python-integration/">Python integration</a>: route-resolved runtime loading, serial multi-output reuse for unified <code>mlxgen generate</code> families, SeedVR2's direct-model boundary, progress callbacks, and AbstractVision/AbstractCore notes.</li>
+<li><a href="faq/">FAQ</a>: recurring questions, image-to-image mode selection, SeedVR2 sizing, Qwen edit variants, negative prompts, reframe/outpaint, Wan resolutions, and usage limits.</li>
+<li><a href="troubleshooting/">Troubleshooting</a>: common setup and runtime failures.</li>
+<li><a href="acknowledgements/">Acknowledgements</a>: upstream mflux and model-community credits.</li>
+</ul>
+<h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen is MIT licensed. Model weights remain governed by their original licenses and access terms.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>
