@@ -1324,7 +1324,7 @@
 <h2 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>flowchart TD
     U[User or application] --&gt;|mlxgen generate / upscale / capabilities / download / prepare| R[mlxgen CLI router]
-    U --&gt;|&quot;load_generation_model(...) / generate_outputs(...)&quot;| P[Python runtime helpers]
+    U --&gt;|"load_generation_model(...) / generate_outputs(...)"| P[Python runtime helpers]
     R --&gt; TI[Task inference and capability planner]
     P --&gt; TI
     TI --&gt;|generation plan: task, mode, capability, handler| B[Backend command and runtime selection]

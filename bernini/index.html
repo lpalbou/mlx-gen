@@ -1686,7 +1686,7 @@ on. Keep each reference focused on the subject or property it is meant to contri
 <span class="w">  </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--reference-image<span class="w"> </span>subject.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--reference-image<span class="w"> </span>garment.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Place the subject from image0 in a studio, wearing the garment from image1, slowly turning toward the camera&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Place the subject from image0 in a studio, wearing the garment from image1, slowly turning toward the camera"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">320</span><span class="w"> </span>--height<span class="w"> </span><span class="m">192</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span>--max-condition-size<span class="w"> </span><span class="m">256</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span><span class="se">\</span>
@@ -1701,7 +1701,7 @@ at five references plus the video; R2V starts at six references.</p>
 <span class="w">  </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--video<span class="w"> </span>source.mp4<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--reference-image<span class="w"> </span>garment.jpg<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Replace the outer shirt with the garment from image0 while preserving the person, framing, background, and motion&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Replace the outer shirt with the garment from image0 while preserving the person, framing, background, and motion"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">176</span><span class="w"> </span>--height<span class="w"> </span><span class="m">320</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span>--max-condition-size<span class="w"> </span><span class="m">320</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span><span class="se">\</span>
@@ -1721,7 +1721,7 @@ rejected.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--video<span class="w"> </span>source.mp4<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Add a realistic snowman beside the path while keeping the dog, camera, and winter scene unchanged&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Add a realistic snowman beside the path while keeping the dog, camera, and winter scene unchanged"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">320</span><span class="w"> </span>--height<span class="w"> </span><span class="m">176</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span>--max-condition-size<span class="w"> </span><span class="m">320</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>edited.mp4
@@ -1769,7 +1769,7 @@ revisions, prompt truncation, and video health.</p>
   seed-sensitive at this model size:</li>
 </ul>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--reference-image<span class="w"> </span>...<span class="w"> </span>--prompt<span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reference-image<span class="w"> </span>...<span class="w"> </span>--prompt<span class="w"> </span><span class="s2">"..."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--reference-guidance<span class="w"> </span><span class="m">6</span>.0<span class="w"> </span>--seed<span class="w"> </span><span class="m">43</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">848</span><span class="w"> </span>--height<span class="w"> </span><span class="m">480</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">81</span><span class="w"> </span>--steps<span class="w"> </span><span class="m">40</span><span class="w"> </span>--output<span class="w"> </span>out.mp4
 </code></pre></div>
@@ -1780,9 +1780,9 @@ revisions, prompt truncation, and video health.</p>
 </ul>
 <div class="highlight"><pre><span></span><code><span class="n">video</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">generate_video</span><span class="p">(</span>
     <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
-    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Replace the humanoid robot with a four-legged robotic dog ...&quot;</span><span class="p">,</span>
-    <span class="n">video_path</span><span class="o">=</span><span class="s2">&quot;source.mp4&quot;</span><span class="p">,</span>
-    <span class="n">task_type</span><span class="o">=</span><span class="s2">&quot;mv2v&quot;</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">"Replace the humanoid robot with a four-legged robotic dog ..."</span><span class="p">,</span>
+    <span class="n">video_path</span><span class="o">=</span><span class="s2">"source.mp4"</span><span class="p">,</span>
+    <span class="n">task_type</span><span class="o">=</span><span class="s2">"mv2v"</span><span class="p">,</span>
     <span class="n">guidance</span><span class="o">=</span><span class="mf">5.0</span><span class="p">,</span>
     <span class="n">width</span><span class="o">=</span><span class="mi">848</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">480</span><span class="p">,</span> <span class="n">num_frames</span><span class="o">=</span><span class="mi">81</span><span class="p">,</span> <span class="n">fps</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
     <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">max_condition_size</span><span class="o">=</span><span class="mi">848</span><span class="p">,</span>
@@ -1805,8 +1805,8 @@ rejected rather than silently degrading output.</p>
 <span class="n">renderer</span> <span class="o">=</span> <span class="n">BerniniRenderer</span><span class="p">()</span>
 <span class="n">video</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">generate_video</span><span class="p">(</span>
     <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
-    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Bring the subject from image0 to life in a fixed medium shot&quot;</span><span class="p">,</span>
-    <span class="n">reference_image_paths</span><span class="o">=</span><span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;subject.png&quot;</span><span class="p">)],</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">"Bring the subject from image0 to life in a fixed medium shot"</span><span class="p">,</span>
+    <span class="n">reference_image_paths</span><span class="o">=</span><span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="s2">"subject.png"</span><span class="p">)],</span>
     <span class="n">width</span><span class="o">=</span><span class="mi">320</span><span class="p">,</span>
     <span class="n">height</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span>
     <span class="n">num_frames</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
@@ -1816,7 +1816,7 @@ rejected rather than silently degrading output.</p>
     <span class="n">clear_cache_each_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">clear_cache_each_transformer_block</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;referenced.mp4&quot;</span><span class="p">,</span> <span class="n">export_json_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">"referenced.mp4"</span><span class="p">,</span> <span class="n">export_json_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 <p>The renderer stays reusable in this form. A one-shot bounded-memory host may pass
 <code>release_denoisers_before_decode=True</code>, but that releases the renderer before VAE decode; construct

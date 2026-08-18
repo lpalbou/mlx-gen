@@ -1998,6 +1998,18 @@ memory follow-up state.</p>
 <td>Promote when video preview value is wanted: mapping is already verified by VAE lineage, the work is porting the causal TAEHV graph and validating per family.</td>
 </tr>
 <tr>
+<td>0114</td>
+<td><a href="../proposed/0114_swiftvr_streaming_restoration/">SwiftVR one-step restoration as a second restore family</a></td>
+<td>Video restoration, Wan2.2-TI2V-5B reuse, CLI surface</td>
+<td>Promote only after a target-machine microbenchmark confirms the derived 0.2-0.9 FPS 1080p band is beatable and a quality read beats SeedVR2 on output, not throughput; the streaming positioning does not survive Apple Silicon and the three-mode taxonomy is rejected on ADR 0002/0003 grounds.</td>
+</tr>
+<tr>
+<td>0115</td>
+<td><a href="../proposed/0115_seedvr2_video_decode_artifact_at_larger_geometries/">SeedVR2 video decode artifact at larger latent geometries</a></td>
+<td>SeedVR2, causal VAE decode, ADR 0002</td>
+<td>Promote when the SeedVR2 video route must be correct above latent 48x36: one pixel frame per latent group of four is corrupted at 480x352 while 320x240 and 384x288 are clean, isolated to causal-sliced decode and reproducible with a committed command.</td>
+</tr>
+<tr>
 <td>## Completed ledger</td>
 <td></td>
 <td></td>

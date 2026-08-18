@@ -1365,8 +1365,8 @@
 <a href="https://github.com/lpalbou/mlx-gen/actions/workflows/tests.yml"><img alt="CI" src="https://github.com/lpalbou/mlx-gen/actions/workflows/tests.yml/badge.svg" /></a></p>
 <p>MLX-Gen is a local image and video generation runtime for Apple Silicon and MLX. It exposes
 <code>mlxgen</code> for text-to-image, image-to-image, text-to-video, image-to-video, model download, model
-preparation, SeedVR2 image/video restoration and upscaling, optimized quantized model variants, and application progress
-callbacks.</p>
+preparation, SeedVR2 and SwiftVR image/video restoration and upscaling, optimized quantized model
+variants, and application progress callbacks.</p>
 <blockquote>
 <p>[!IMPORTANT]
 MLX-Gen started as a fork of <a href="https://github.com/filipstrand/mflux">mflux</a>. Most credit for the
@@ -1427,11 +1427,16 @@ long-running local jobs.</p>
   qualitatively accepted with committed proof (full prompts and contact sheets in
   <code>docs/assets/validation/bernini-r-1.3b-2026-08-11/</code>), and tuned recipes for the remaining
   rows are documented in <code>docs/bernini.md</code>;</li>
-<li>SeedVR2 image and video restoration through <code>mlxgen upscale</code>, with official 3B/7B source
-  support including the dedicated <code>seedvr2-7b-sharp</code> route, published q8/q4 packages,
-  shortest-edge target sizing, explicit scale factors such as <code>2x</code> and <code>3x</code>, streamed restore for
-  longer clips, preserved source FPS, a conservative host-safe default video profile, and
-  published five-second <code>1x</code> and <code>2x</code> validation bundles for the 3B/7B video path;</li>
+<li>image and video restoration through <code>mlxgen upscale</code>, which hosts two families selected with
+  <code>--model</code> and describes both in the <code>restoration</code> array of <code>mlxgen capabilities</code>:</li>
+<li>SeedVR2 for images and video with scaling, covering official 3B/7B source support including the
+    dedicated <code>seedvr2-7b-sharp</code> route, published q8/q4 packages, shortest-edge target sizing,
+    explicit scale factors such as <code>2x</code> and <code>3x</code>, streamed restore for longer clips, preserved
+    source FPS, a conservative host-safe default video profile, and published five-second <code>1x</code> and
+    <code>2x</code> validation bundles for the 3B/7B video path;</li>
+<li>SwiftVR for one-step video restoration at the source resolution on a Wan2.2-TI2V-5B backbone,
+    measured at roughly 40x SeedVR2 throughput on the same clip at a fifth of the peak memory, with
+    a published five-second three-way comparison bundle;</li>
 <li>explicit <code>download</code> and <code>prepare</code> workflows for local MLX-Gen model packages;</li>
 <li>JSON model capability inspection before starting a heavy run;</li>
 <li>strict route-specific LoRA routing and adapter application checks, with model-card compatibility
@@ -1475,7 +1480,7 @@ from the upstream codebase, but those are not the recommended integration surfac
 <p>Generate an image:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic wide shot of a compact sci-fi spaceship resting in deep snow on a frozen alien planet&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A cinematic wide shot of a compact sci-fi spaceship resting in deep snow on a frozen alien planet"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">768</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">432</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
@@ -1486,7 +1491,7 @@ from the upstream codebase, but those are not the recommended integration surfac
 <p>Generate several output images or videos in one run by passing more than one seed:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>qwen-image<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean studio product photo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A clean studio product photo"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="m">202</span><span class="w"> </span><span class="m">303</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>product.png
 </code></pre></div>

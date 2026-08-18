@@ -1357,16 +1357,16 @@ mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class
 <span class="c1"># Previews rendered with the tiny decoder</span>
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/z-image-turbo-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;a red fox sitting in deep snow at golden hour, sharp detailed fur&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"a red fox sitting in deep snow at golden hour, sharp detailed fur"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--preview-decoder<span class="w"> </span>tiny<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--stepwise-image-output-dir<span class="w"> </span>./previews-tiny<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>fox-tiny-run.png
 
-<span class="c1"># Previews rendered with the model&#39;s own VAE</span>
+<span class="c1"># Previews rendered with the model's own VAE</span>
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/z-image-turbo-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;a red fox sitting in deep snow at golden hour, sharp detailed fur&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"a red fox sitting in deep snow at golden hour, sharp detailed fur"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--preview-decoder<span class="w"> </span>full<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--stepwise-image-output-dir<span class="w"> </span>./previews-full<span class="w"> </span><span class="se">\</span>
@@ -1536,11 +1536,11 @@ decoding each step with the preview decoder. Resolve the decoder once, before ge
 
 <span class="n">model</span> <span class="o">=</span> <span class="n">ZImage</span><span class="p">(</span>
     <span class="n">model_config</span><span class="o">=</span><span class="n">ModelConfig</span><span class="o">.</span><span class="n">z_image_turbo</span><span class="p">(),</span>
-    <span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;AbstractFramework/z-image-turbo-8bit&quot;</span><span class="p">,</span>
+    <span class="n">model_path</span><span class="o">=</span><span class="s2">"AbstractFramework/z-image-turbo-8bit"</span><span class="p">,</span>
 <span class="p">)</span>
 
 <span class="c1"># None when no tiny decoder is available for this family; fall back to model.vae.decode.</span>
-<span class="n">preview_decoder</span> <span class="o">=</span> <span class="n">PreviewDecoder</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
+<span class="n">preview_decoder</span> <span class="o">=</span> <span class="n">PreviewDecoder</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"auto"</span><span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">LivePreview</span><span class="p">:</span>
@@ -1560,8 +1560,8 @@ decoding each step with the preview decoder. Resolve the decoder once, before ge
 
 
 <span class="n">model</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">register</span><span class="p">(</span><span class="n">LivePreview</span><span class="p">())</span>
-<span class="n">image</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_image</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;a red fox in snow&quot;</span><span class="p">,</span> <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
-<span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;fox.png&quot;</span><span class="p">)</span>
+<span class="n">image</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_image</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span> <span class="n">prompt</span><span class="o">=</span><span class="s2">"a red fox in snow"</span><span class="p">,</span> <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">height</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span> <span class="n">width</span><span class="o">=</span><span class="mi">512</span><span class="p">)</span>
+<span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">"fox.png"</span><span class="p">)</span>
 </code></pre></div>
 <p><code>ImageUtil.to_pil_image</code> converts decoded latents to a <code>PIL.Image</code> without generation metadata,
 which is what a preview needs. Use each model family's own latent creator for <code>unpack_latents</code>,

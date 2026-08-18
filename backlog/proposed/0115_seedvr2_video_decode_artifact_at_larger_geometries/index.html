@@ -10,7 +10,7 @@
       
       
       
-        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/proposed/0004_bonsai_binary_1bit_runtime_support/">
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/proposed/0115_seedvr2_video_decode_artifact_at_larger_geometries/">
       
       
       
@@ -23,7 +23,7 @@
     
     
       
-        <title>Proposed: Bonsai binary 1-bit runtime support - MLX-Gen</title>
+        <title>Proposed: SeedVR2 video decode artifact at larger latent geometries - MLX-Gen</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#proposed-bonsai-binary-1-bit-runtime-support" class="md-skip">
+        <a href="#proposed-seedvr2-video-decode-artifact-at-larger-latent-geometries" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Proposed: Bonsai binary 1-bit runtime support
+              Proposed: SeedVR2 video decode artifact at larger latent geometries
             
           </span>
         </div>
@@ -1126,10 +1126,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#current-code-reality" class="md-nav__link">
+  <a href="#evidence" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current code reality
+        Evidence
       
     </span>
   </a>
@@ -1137,10 +1137,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#problem-or-opportunity" class="md-nav__link">
+  <a href="#the-pattern-points-at-causal-sliced-decode" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Problem or opportunity
+        The pattern points at causal-sliced decode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reproduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reproduction
       
     </span>
   </a>
@@ -1159,39 +1170,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#why-it-might-matter" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Why it might matter
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#promotion-criteria" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Promotion criteria
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validation-ideas" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Validation ideas
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#non-goals" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1203,10 +1181,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-future-agents" class="md-nav__link">
+  <a href="#related" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for future agents
+        Related
       
     </span>
   </a>
@@ -1233,98 +1211,175 @@
   
 
 
-<h1 id="proposed-bonsai-binary-1-bit-runtime-support">Proposed: Bonsai binary 1-bit runtime support<a class="headerlink" href="#proposed-bonsai-binary-1-bit-runtime-support" title="Permanent link">&para;</a></h1>
+<h1 id="proposed-seedvr2-video-decode-artifact-at-larger-latent-geometries">Proposed: SeedVR2 video decode artifact at larger latent geometries<a class="headerlink" href="#proposed-seedvr2-video-decode-artifact-at-larger-latent-geometries" title="Permanent link">&para;</a></h1>
 <h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Created: 2026-05-27</li>
+<li>Created: 2026-08-17</li>
 <li>Status: Proposed</li>
-<li>Completed: N/A</li>
 </ul>
 <h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Governing ADRs: None</li>
-<li>ADR impact: Needs new ADR if MLX-Gen decides to ship or depend on custom low-bit Metal kernels
-  outside standard MLX.</li>
+<li>Governing ADRs:</li>
+<li><a href="../../../adr/0002_no_silent_automatic_fallbacks/">ADR 0002</a></li>
+<li><a href="../../../adr/0004_seedvr2_video_host_safety_and_proof_boundaries/">ADR 0004</a></li>
+<li><a href="../../../adr/0005_seedvr2_video_quality_proof_requires_five_second_reader_first_clips/">ADR 0005</a></li>
+<li>ADR impact: ADR 0002 is directly engaged. A crash was replaced by silently corrupted output when
+  the output-size bug below was fixed, and corrupt-but-plausible video is a worse failure than a
+  refusal. Whether the route should refuse this regime is a product decision this item does not
+  take.</li>
 </ul>
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
-<p><code>prism-ml/bonsai-image-binary-4B-mlx-1bit</code> is the footprint-oriented Bonsai Image checkpoint. It
-uses a FLUX.2 Klein-shaped transformer in <code>transformer-packed-mflux/</code> with packed <code>uint32</code>
-weights, BF16 scales/biases, and <code>bits: 1</code>, <code>group_size: 128</code>.</p>
-<h2 id="current-code-reality">Current code reality<a class="headerlink" href="#current-code-reality" title="Permanent link">&para;</a></h2>
+<p>Fixing the video output-size divergence (see "Related" below) made <code>480x360</code> sources reachable for
+the first time: they previously died in <code>_streamed_video_restore</code> with</p>
+<div class="highlight"><pre><span></span><code>SeedVR2 streamed video noise slice shape mismatch. expected (1,16,31,44,60), got (1,16,31,44,58).
+</code></pre></div>
+<p>With the sizes reconciled the route runs to completion, but the restored video contains intermittent
+corrupted frames. A reader describes them as several frames decomposed into one: the frame is built
+from mismatched rectangular regions carrying content from different moments, and the defect repeats
+so the clip flickers.</p>
+<p>This was found while building a SwiftVR/SeedVR2 comparison, not by a synthetic probe.</p>
+<h2 id="evidence">Evidence<a class="headerlink" href="#evidence" title="Permanent link">&para;</a></h2>
+<p>Source: a 121-frame (5.04 s at 24 fps) excerpt of real archival footage, restored at <code>1x</code> with
+<code>--temporal-chunk-size 29 --temporal-chunk-overlap 8</code>. Fidelity is the per-frame Pearson correlation
+between the restored frame and its source frame; a corrupted frame decorrelates sharply.</p>
+<table>
+<thead>
+<tr>
+<th>Build</th>
+<th>Geometry</th>
+<th>Profile</th>
+<th style="text-align: right;">Frames below 0.90</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HEAD (2cb6bf9)</td>
+<td>320x240</td>
+<td>safe</td>
+<td style="text-align: right;">0 / 121</td>
+</tr>
+<tr>
+<td>with the size fix</td>
+<td>320x240</td>
+<td>safe</td>
+<td style="text-align: right;">0 / 121</td>
+</tr>
+<tr>
+<td>with the size fix</td>
+<td>320x240</td>
+<td><code>--force-unsafe-video-memory</code></td>
+<td style="text-align: right;">0 / 121</td>
+</tr>
+<tr>
+<td>with the size fix</td>
+<td>384x288</td>
+<td><code>--force-unsafe-video-memory</code></td>
+<td style="text-align: right;">0 / 121</td>
+</tr>
+<tr>
+<td>with the size fix</td>
+<td>480x352</td>
+<td><code>--force-unsafe-video-memory</code></td>
+<td style="text-align: right;"><strong>16 / 121</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The failing run has mean correlation 0.9396 against 0.9659 for SwiftVR on the same source, and a
+minimum of 0.6935 on frame 0.</p>
+<p>Three things are therefore ruled out:</p>
 <ul>
-<li>MLX-Gen has a Bonsai packed transformer loader for the ternary 2-bit checkpoint.</li>
-<li>Local MLX 0.31.0 and isolated stock MLX 0.31.2 <code>mx.quantized_matmul</code> probes succeed for
-  <code>bits=2, group_size=128</code>, but fail for <code>bits=1, group_size=128</code>.</li>
-<li><code>mlxgen generate --model prism-ml/bonsai-image-binary-4B-mlx-1bit ...</code> is detected as Bonsai
-  and fails early with an explicit unsupported-runtime message instead of loading through the
-  ordinary FLUX.2 path.</li>
-<li>The binary Bonsai model card points to Prism MLX / MLX Swift forks and says upstream kernel
-  support is pending.</li>
-<li>The ternary 2-bit Bonsai path is validated on standard MLX and tracked in
-  <a href="../../completed/0003_bonsai_ternary_flux2_support/">completed item 0003</a>.</li>
+<li><strong>Not the size fix.</strong> At 320x240 the estimators agree before and after the change, and HEAD and the
+  fixed build score identically (0.9602 vs 0.9606, both 0 bad frames).</li>
+<li><strong>Not the memory override.</strong> <code>--force-unsafe-video-memory</code> at 320x240 is clean.</li>
+<li><strong>Not the window partitioner.</strong> <code>WindowPartitioner</code> was probed directly for latent grids
+  <code>(8,30,40)</code>, <code>(8,44,60)</code>, <code>(31,30,40)</code> and <code>(31,44,60)</code>, shifted and unshifted: every partition
+  emits each index exactly once and <code>reverse(partition(x)) == x</code> holds exactly.</li>
 </ul>
-<h2 id="problem-or-opportunity">Problem or opportunity<a class="headerlink" href="#problem-or-opportunity" title="Permanent link">&para;</a></h2>
-<p>Binary Bonsai could be valuable for very low memory devices, but supporting it before the runtime
-can execute 1-bit packed affine matmuls would either require adopting Prism's MLX fork or adding a
-custom MLX/Metal kernel path to MLX-Gen.</p>
+<p>What is left is geometry. The bracket is clean at latent <code>40x30</code> and <code>48x36</code>, corrupt at <code>60x44</code>.</p>
+<h2 id="the-pattern-points-at-causal-sliced-decode">The pattern points at causal-sliced decode<a class="headerlink" href="#the-pattern-points-at-causal-sliced-decode" title="Permanent link">&para;</a></h2>
+<p>The corrupted frame indices are <code>0, 1, 5, 65, 69, 73, 77, 85, 89, 93, 97, 101, 105, 109, 113, 117</code>.
+From frame 65 the spacing is exactly <strong>4</strong>, which is the latent temporal downscale factor: one pixel
+frame in every latent group of four is wrong, and the rate worsens across the clip rather than being
+tied to chunk boundaries (chunk stride here is 21, and the bad frames do not align to it).</p>
+<p><code>SeedVR2Initializer</code> sets <code>model.vae.set_causal_slicing(split_size=4)</code>
+(<code>src/mflux/models/seedvr2/seedvr2_initializer.py:101</code>), which gives
+<code>slicing_latent_min_size = 1</code>, so <code>_decode_with_slicing</code>
+(<code>src/mflux/models/seedvr2/model/seedvr2_vae/vae.py:93-114</code>) walks the latent temporal axis one
+latent frame at a time, carrying <code>CausalConv3d.memory</code> between slices.</p>
+<p>Slice size was probed at 480x352:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;"><code>split_size</code></th>
+<th style="text-align: right;">latent frames per slice</th>
+<th style="text-align: right;">Frames below 0.90</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">4 (shipped)</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">16 / 121</td>
+</tr>
+<tr>
+<td style="text-align: right;">8</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;"><strong>107 / 121</strong></td>
+</tr>
+<tr>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">4</td>
+<td style="text-align: right;">OOM: single 79.4 GB buffer exceeds the 77.3 GB Metal limit</td>
+</tr>
+<tr>
+<td style="text-align: right;"><code>None</code></td>
+<td style="text-align: right;">all</td>
+<td style="text-align: right;">OOM: single 135.5 GB buffer</td>
+</tr>
+</tbody>
+</table>
+<p>Larger slices are dramatically worse, so <code>split_size=4</code> is the intended value and raising it is not a
+fix. The decoder's causal memory semantics evidently depend on slice length, which is consistent with
+the artifact living in <code>CausalConv3d.memory</code> handling rather than in the slicing arithmetic.</p>
+<h2 id="reproduction">Reproduction<a class="headerlink" href="#reproduction" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>ffmpeg<span class="w"> </span>-y<span class="w"> </span>-i<span class="w"> </span>&lt;source&gt;<span class="w"> </span>-vf<span class="w"> </span><span class="nv">scale</span><span class="o">=</span><span class="m">480</span>:360<span class="w"> </span>-frames:v<span class="w"> </span><span class="m">121</span><span class="w"> </span>-c:v<span class="w"> </span>libx264<span class="w"> </span>-crf<span class="w"> </span><span class="m">12</span><span class="w"> </span>-pix_fmt<span class="w"> </span>yuv420p<span class="w"> </span>src.mp4
+mlxgen<span class="w"> </span>upscale<span class="w"> </span>--model<span class="w"> </span>seedvr2-3b<span class="w"> </span>--video-path<span class="w"> </span>src.mp4<span class="w"> </span>--resolution<span class="w"> </span>1x<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--temporal-chunk-size<span class="w"> </span><span class="m">29</span><span class="w"> </span>--temporal-chunk-overlap<span class="w"> </span><span class="m">8</span><span class="w"> </span>--force-unsafe-video-memory<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>out.mp4
+</code></pre></div>
+<p>Frame 0 of <code>out.mp4</code> shows the defect plainly. Scoring the clip against the source reproduces the
+table above.</p>
+<p>The override is required only because 480x352 needs about 70 GB for its minimum permitted 29-frame
+chunk against a roughly 40 GB host-safe budget, and SeedVR2 refuses chunks below 29 frames. Measured
+physical footprint stayed at 7.7 GB throughout, so the budget is gating on the MLX allocator
+high-water mark rather than real memory pressure; that is worth revisiting separately.</p>
 <h2 id="proposed-direction">Proposed direction<a class="headerlink" href="#proposed-direction" title="Permanent link">&para;</a></h2>
-<p>Defer binary 1-bit execution until after ternary Bonsai support lands. Add detection and a clear
-unsupported-runtime error as part of the ternary work, then promote this item only if one of these
-conditions is true:</p>
-<ul>
-<li>upstream MLX releases supported <code>bits=1, group_size=128</code> quantized matmul on Apple Silicon;</li>
-<li>MLX-Gen deliberately adopts a small custom kernel path with tests and an ADR;</li>
-<li>Prism's fork becomes a dependency we are comfortable carrying.</li>
-</ul>
-<h2 id="why-it-might-matter">Why it might matter<a class="headerlink" href="#why-it-might-matter" title="Permanent link">&para;</a></h2>
-<p>The binary transformer is smaller than the ternary transformer and may matter for iPhone/iPad or
-very memory-limited Macs. It is not worth compromising the package architecture before the ternary
-path proves the integration.</p>
-<h2 id="promotion-criteria">Promotion criteria<a class="headerlink" href="#promotion-criteria" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Ternary Bonsai 2-bit support works through <code>mlxgen generate</code>.</li>
-<li>A runtime probe proves local 1-bit execution is available, or an ADR accepts custom kernel
-  maintenance cost.</li>
-<li>A validation panel compares binary, ternary, and FLUX.2 Klein behavior at 512x512 and 1024x1024
-  with the Bonsai-recommended 4-step settings.</li>
-</ul>
-<h2 id="validation-ideas">Validation ideas<a class="headerlink" href="#validation-ideas" title="Permanent link">&para;</a></h2>
-<ul>
-<li><code>mx.quantized_matmul</code> capability probe for <code>bits=1, group_size=128</code>.</li>
-<li>A 512x512, 4-step smoke generation from <code>prism-ml/bonsai-image-binary-4B-mlx-1bit</code>.</li>
-<li>Contact sheet comparing binary versus ternary on the same prompt/seed.</li>
-<li>Memory measurement after adding a proper MLX peak-memory capture path.</li>
-</ul>
-<p>Latest local validation on 2026-05-27:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--model<span class="w"> </span>prism-ml/bonsai-image-binary-4B-mlx-1bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A bonsai tree"</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--output<span class="w"> </span>validation_outputs/bonsai/binary_should_fail.png
-</code></pre></div>
-<p>The command exits with a parser error explaining that the active MLX runtime cannot execute the
-required <code>bits=1, group_size=128</code> packed affine matmul. This is the intended behavior until the
-runtime capability exists.</p>
-<p>Latest stock-MLX check on 2026-05-27:</p>
-<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>--with<span class="w"> </span><span class="s1">'mlx==0.31.2'</span><span class="w"> </span>python<span class="w"> </span>-<span class="w"> </span><span class="s">&lt;&lt;'PY'</span>
-<span class="s">import mlx.core as mx</span>
-<span class="s">w = mx.random.normal((128, 128)).astype(mx.bfloat16)</span>
-<span class="s">mx.quantize(w, group_size=128, bits=1)</span>
-<span class="s">PY</span>
-</code></pre></div>
-<p>The probe still fails with <code>ValueError: [quantize] The requested number of bits 1 is not
-supported. The supported bits are 2, 3, 4, 5, 6 and 8.</code></p>
+<ol>
+<li>Instrument <code>CausalConv3d.memory</code> across decode slices at a failing geometry and compare against a
+   passing one. The period-4 signature says the fault is in what one slice hands the next.</li>
+<li>Establish the real predicate. The bracket is only three points; find whether the boundary is a
+   latent dimension, a window-count transition (<code>nh</code> goes from 2 to 3 between 48x36 and 60x44), or a
+   memory-driven effect.</li>
+<li>Decide the ADR 0002 question explicitly: until the artifact is fixed, should the route refuse
+   geometries it cannot restore correctly? A refusal with a clear message is better than corrupt
+   output, but the predicate must be real rather than a guessed pixel threshold, or it will block
+   working configurations.</li>
+<li>Only then consider whether a validated maximum geometry belongs in <code>docs/upscaling.md</code>.</li>
+</ol>
 <h2 id="non-goals">Non-goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
 <ul>
-<li>This proposal does not authorize depending on Prism's MLX fork without a separate ADR.</li>
-<li>This proposal does not authorize uploading modified binary weights.</li>
+<li>Do not raise <code>split_size</code> to work around this; it makes the artifact far worse.</li>
+<li>Do not revert the output-size reconciliation. It is independently correct, it is what the VAE
+  actually receives, and reverting it restores a hard crash rather than fixing the artifact.</li>
+<li>Do not add a resolution guard before the predicate is known.</li>
 </ul>
-<h2 id="guidance-for-future-agents">Guidance for future agents<a class="headerlink" href="#guidance-for-future-agents" title="Permanent link">&para;</a></h2>
-<p>Treat 1-bit as a runtime capability question first, not a model-routing problem. If the kernel is
-not available, keep the user error short and actionable.</p>
+<h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The output-size divergence this exposed, and its regression tests:
+  <code>tests/seedvr2/test_video_output_size_consistency.py</code>.</li>
+<li><a href="../0114_swiftvr_streaming_restoration/">0114</a> - SwiftVR restored the same source at native
+  480x360 with 0 of 121 frames below 0.90, which is what made the SeedVR2 defect visible by contrast.</li>
+</ul>
 
 
 

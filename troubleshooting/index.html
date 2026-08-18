@@ -1491,7 +1491,7 @@ mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--family<span class="w"> </span>qwen<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean studio product photo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A clean studio product photo"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>image.png
 </code></pre></div>
 <p>Supported router families are <code>qwen</code>, <code>flux2</code>, <code>bonsai</code>, <code>fibo</code>, <code>z-image</code>, <code>ernie-image</code>, and <code>wan</code>.</p>
@@ -1510,13 +1510,13 @@ as a legacy integration path. New integrations should call <code>mlxgen generate
 mflux-generate-flux2-edit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image-paths<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Add sunglasses&quot;</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Add sunglasses"</span>
 </code></pre></div>
 <div class="highlight"><pre><span></span><code><span class="c1"># Supported public entry point</span>
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Add sunglasses&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Add sunglasses"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>edited.png
 </code></pre></div>
 <p>If the old integration also forwarded <code>--negative-prompt</code>, remove that option for FLUX.2. MLX-Gen
@@ -1526,7 +1526,7 @@ rejects negative prompts on FLUX.2 routes by design.</p>
 <p>Use 512x512 for small benchmark runs:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean centered product photo of a white ceramic mug&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A clean centered product photo of a white ceramic mug"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
@@ -1549,7 +1549,7 @@ does not support edit/reference or multi-reference image-to-image.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the scene into a pencil sketch&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Turn the scene into a pencil sketch"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
@@ -1577,7 +1577,7 @@ aspect ratio than the source, add <code>--resize-mode crop</code> (center-crop) 
 <p>Use the upstream TI2V-5B settings when validating that route at its intended native scale:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-TI2V-5B-Diffusers<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A short cinematic video of a glowing orange glass sphere floating above teal water&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A short cinematic video of a glowing orange glass sphere floating above teal water"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">704</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">121</span><span class="w"> </span><span class="se">\</span>
@@ -1657,7 +1657,7 @@ longer ignores a missing LoRA and continues without it. Download the LoRA reposi
 <p>If a repository contains several <code>.safetensors</code> files, specify the file:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>&lt;compatible-model&gt;<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;&lt;prompt&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"&lt;prompt&gt;"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--lora-paths<span class="w"> </span>owner/repo:adapter.safetensors<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>image.png

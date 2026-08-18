@@ -2068,7 +2068,7 @@ generate directly:</p>
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>prism-ml/bonsai-image-ternary-4B-mlx-2bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A bonsai tree in a quiet ceramic studio, soft morning light&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A bonsai tree in a quiet ceramic studio, soft morning light"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
@@ -2085,14 +2085,14 @@ still rejected <code>bits=1</code>.</p>
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A ceramic mug&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A ceramic mug"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--use-prompt-enhancer
 </code></pre></div>
 <p>ERNIE Image Turbo supports single-image latent image-to-image in MLX-Gen:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the scene into a pencil sketch&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Turn the scene into a pencil sketch"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
@@ -2162,7 +2162,7 @@ source while allowing the model to reinterpret details. Select it with <code>--i
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--i2i-mode<span class="w"> </span>latent<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.35<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Make the scene a moody graphite and charcoal illustration&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Make the scene a moody graphite and charcoal illustration"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>latent-restyle.png
 </code></pre></div>
 <p>Use edit/reference I2I when the prompt is an instruction: remove an object, change a subject's
@@ -2173,7 +2173,7 @@ force it with <code>--i2i-mode edit</code>:</p>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--i2i-mode<span class="w"> </span>edit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the scene into a clean pencil sketch while preserving the object layout&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Turn the scene into a clean pencil sketch while preserving the object layout"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>edit-sketch.png
 </code></pre></div>
 <p>Use multi-reference I2I when two or more input images provide different references, such as one
@@ -2182,7 +2182,7 @@ image for content and another for style:</p>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>content.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>style.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Use the first image composition and the second image drawing style&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Use the first image composition and the second image drawing style"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>multi-reference.png
 </code></pre></div>
 <p><code>--image-strength</code> is not used by edit/reference or multi-reference modes. Those modes use source
@@ -2209,7 +2209,7 @@ mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2511-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--mask-path<span class="w"> </span>mask.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Repair the damaged hull inside the mask and keep the rest of the scene unchanged.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Repair the damaged hull inside the mask and keep the rest of the scene unchanged."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>repaired.png<span class="w"> </span><span class="se">\</span>
@@ -2228,8 +2228,8 @@ recommended fast public path uses the dedicated <code>lightx2v/Qwen-Image-Lightn
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Aesthetics art, traditional asian pagoda, elaborate golden accents, sky blue and white color palette, swirling cloud pattern, digital illustration, east asian architecture, ornamental rooftop, intricate detailing on building, cultural representation.&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;blurry, low quality, distorted, deformed, text, watermark, ugly&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Aesthetics art, traditional asian pagoda, elaborate golden accents, sky blue and white color palette, swirling cloud pattern, digital illustration, east asian architecture, ornamental rooftop, intricate detailing on building, cultural representation."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">"blurry, low quality, distorted, deformed, text, watermark, ugly"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">576</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">864</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
@@ -2298,7 +2298,7 @@ main one.</p>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2509-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>crash-reference.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>sketch-reference.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Use the first image for the crashed spaceship layout and the second image for the graphite sketch style&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Use the first image for the crashed spaceship layout and the second image for the graphite sketch style"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>composition.png
 </code></pre></div>
 <p>The regular <code>qwen-image-edit</code> route intentionally rejects multi-reference input before loading
@@ -2309,8 +2309,8 @@ weights. Use <code>mlxgen capabilities --model &lt;model&gt;</code> to see the i
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Convert the scene into a clean graphite pencil sketch while preserving layout&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;color, blur, crop, text, watermark&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Convert the scene into a clean graphite pencil sketch while preserving layout"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">"color, blur, crop, text, watermark"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>sketch.png
@@ -2341,7 +2341,7 @@ codebase, but they are not the recommended integration contract for new tools.</
 <p>For example, a FLUX.2 integration should use:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic wide shot of a compact sci-fi spaceship resting in deep snow&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A cinematic wide shot of a compact sci-fi spaceship resting in deep snow"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">768</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">432</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
@@ -2393,7 +2393,7 @@ source, and final dimensions in image metadata.</p>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.4<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Restyle the source as a graphite sketch&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Restyle the source as a graphite sketch"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>exact-square.png
 </code></pre></div>
 <p>Exact resize can reshape or recompose the source. Use it for deliberate whole-image remixes, not
@@ -2569,8 +2569,8 @@ ask the edit model for a larger view:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-4b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--reframe-padding<span class="w"> </span><span class="s2">&quot;25%,50%,25%,50%&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Generatively reframe this close-up into a wider establishing shot. Reveal the full subject and extend the background naturally.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reframe-padding<span class="w"> </span><span class="s2">"25%,50%,25%,50%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Generatively reframe this close-up into a wider establishing shot. Reveal the full subject and extend the background naturally."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>reframed.png
@@ -2584,9 +2584,9 @@ supported edit model to fill the expanded view:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2511-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">&quot;5%,35%,5%,35%&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Outpaint this close crop into a wider realistic shot. Complete the missing subject and background outside the original frame.&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;text, border, frame, hard seam, duplicate subject&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"5%,35%,5%,35%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Outpaint this close crop into a wider realistic shot. Complete the missing subject and background outside the original frame."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">"text, border, frame, hard seam, duplicate subject"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
@@ -2699,7 +2699,7 @@ quality settings; for quality, use the A14B defaults (<code>832x480</code> or <c
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-T2V-A14B-Diffusers<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--video-path<span class="w"> </span>source.mp4<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Keep the same setting and camera framing, but redesign the main subject&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Keep the same setting and camera framing, but redesign the main subject"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">448</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">256</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span><span class="se">\</span>

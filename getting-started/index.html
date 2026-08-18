@@ -1422,7 +1422,7 @@ a reusable local MLX-Gen package. Generation uses those local files and does not
 <p>Run generation from a cached alias or repository:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>z-image-turbo<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A puffin standing on a cliff&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A puffin standing on a cliff"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">500</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
@@ -1433,7 +1433,7 @@ a reusable local MLX-Gen package. Generation uses those local files and does not
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--family<span class="w"> </span>qwen<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean studio product photo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A clean studio product photo"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>image.png
 </code></pre></div>
 <p><code>--family</code> is useful when a local path or custom repository name does not contain a recognizable model-family name.</p>
@@ -1442,7 +1442,7 @@ a reusable local MLX-Gen package. Generation uses those local files and does not
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>prism-ml/bonsai-image-ternary-4B-mlx-2bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A bonsai tree in a quiet ceramic studio, soft morning light&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A bonsai tree in a quiet ceramic studio, soft morning light"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
@@ -1458,7 +1458,7 @@ zero.</p>
 <p>Generate several image variations in one <code>mlxgen generate</code> run:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>z-image-turbo<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A puffin standing on a cliff&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A puffin standing on a cliff"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="m">202</span><span class="w"> </span><span class="m">303</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>puffin.png
 </code></pre></div>
@@ -1467,7 +1467,7 @@ zero.</p>
 variations without listing seeds yourself:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>qwen-image<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean studio product photo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A clean studio product photo"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--auto-seeds<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>product.png
 </code></pre></div>
@@ -1494,7 +1494,7 @@ stem automatically so each image or MP4 gets its own path:</p>
 <span class="w">  </span>--model<span class="w"> </span>seedvr2-3b<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--video-path<span class="w"> </span>clip_a.mp4<span class="w"> </span>clip_b.mp4<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">11</span><span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--output<span class="w"> </span><span class="s2">&quot;restored_{input_name}_{seed}.mp4&quot;</span>
+<span class="w">  </span>--output<span class="w"> </span><span class="s2">"restored_{input_name}_{seed}.mp4"</span>
 </code></pre></div>
 <p>Legacy <code>{image_name}</code> is still accepted as a compatibility alias. If two SeedVR2 source files share
 the same basename, keep <code>--replace false</code> or rename the inputs; overwrite-prone batches are
@@ -1505,7 +1505,7 @@ image-to-image mode from the model and image inputs:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2509-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the room into a pencil sketch&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Turn the room into a pencil sketch"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>edited.png
@@ -1538,8 +1538,8 @@ This is a generative edit:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-4b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--reframe-padding<span class="w"> </span><span class="s2">&quot;25%,50%,25%,50%&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Generatively reframe this close-up into a wider establishing shot. Reveal the full subject and extend the background naturally.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reframe-padding<span class="w"> </span><span class="s2">"25%,50%,25%,50%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Generatively reframe this close-up into a wider establishing shot. Reveal the full subject and extend the background naturally."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>reframed.png
@@ -1549,8 +1549,8 @@ model to fill the larger view:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>black-forest-labs/FLUX.2-klein-base-9B<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">&quot;5%,80%,5%,60%&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Outpaint this close crop into a wider realistic shot. Complete the missing subject and background outside the original frame.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"5%,80%,5%,60%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Outpaint this close crop into a wider realistic shot. Complete the missing subject and background outside the original frame."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
@@ -1654,7 +1654,7 @@ I2V-A14B requires one image.</p>
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-TI2V-5B-Diffusers<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A short cinematic video of a glowing orange glass sphere floating above teal water&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A short cinematic video of a glowing orange glass sphere floating above teal water"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">704</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">121</span><span class="w"> </span><span class="se">\</span>
@@ -1669,7 +1669,7 @@ mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-T2V-A14B-Diffusers<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic shot of mist rolling across a teal mountain lake&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A cinematic shot of mist rolling across a teal mountain lake"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">720</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">81</span><span class="w"> </span><span class="se">\</span>
@@ -1689,7 +1689,7 @@ route:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-TI2V-5B-Diffusers<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A slow cinematic camera move from the input frame&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A slow cinematic camera move from the input frame"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">704</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">121</span><span class="w"> </span><span class="se">\</span>
@@ -1705,7 +1705,7 @@ concatenated image-condition latent path:</p>
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-I2V-A14B-Diffusers<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic flyby around the subject in the input image&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A cinematic flyby around the subject in the input image"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">720</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">81</span><span class="w"> </span><span class="se">\</span>
@@ -1732,8 +1732,8 @@ for a quick route check, not quality settings; for quality use the A14B defaults
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-T2V-A14B-Diffusers<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--video-path<span class="w"> </span>docs/assets/examples/spaceship-snow/06_i2v_a14b_spaceship_takeoff_from_source.mp4<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Keep the same icy cliffs, snow haze, soft sunrise lighting, and lift-off camera motion. Transform the ship into a bulkier smuggler-style starship with a bright circular rear reactor and two side nacelles while preserving realistic vehicle detail.&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--negative-prompt<span class="w"> </span><span class="s2">&quot;Bright tones, overexposed, static, blurred details, subtitles, paintings, still picture, low quality, JPEG residue, duplicate ships, warped hull, melted nacelles, unreadable reactor, washed out frame, blown highlights&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Keep the same icy cliffs, snow haze, soft sunrise lighting, and lift-off camera motion. Transform the ship into a bulkier smuggler-style starship with a bright circular rear reactor and two side nacelles while preserving realistic vehicle detail."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative-prompt<span class="w"> </span><span class="s2">"Bright tones, overexposed, static, blurred details, subtitles, paintings, still picture, low quality, JPEG residue, duplicate ships, warped hull, melted nacelles, unreadable reactor, washed out frame, blown highlights"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">448</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">256</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span><span class="se">\</span>
@@ -1764,7 +1764,7 @@ mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\
 <span class="w">  </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--reference-image<span class="w"> </span>subject.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--reference-image<span class="w"> </span>garment.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Bring the subject from image0 to life wearing the garment from image1&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Bring the subject from image0 to life wearing the garment from image1"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">320</span><span class="w"> </span>--height<span class="w"> </span><span class="m">192</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--max-condition-size<span class="w"> </span><span class="m">256</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span><span class="se">\</span>

@@ -1587,7 +1587,7 @@ yet passed a visible accepted-adapter A/B proof.</p>
 <p>The file part can include a subdirectory:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>&lt;compatible-model&gt;<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;&lt;prompt from the adapter model card&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"&lt;prompt from the adapter model card&gt;"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--lora-paths<span class="w"> </span>owner/repo:adapter.safetensors<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>with_lora.png
@@ -1619,7 +1619,7 @@ latent, multi-reference, reframe, or outpaint route.</p>
 <span class="w">  </span>--image<span class="w"> </span>docs/assets/validation/lora-route-expansion-2026-06-22/qwen_q8_latent_source_portrait_illustration.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--i2i-mode<span class="w"> </span>latent<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.6<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Studio Realism, photorealistic portrait of the same young woman of African descent standing in the same sunlit park with arms crossed, the same loose shoulder-length curls, the same pendant necklace, and the same sleeveless taupe dress. Preserve the same pose, framing, and background layout. Natural skin texture, realistic hair strands, subtle outdoor depth of field, no text.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Studio Realism, photorealistic portrait of the same young woman of African descent standing in the same sunlit park with arms crossed, the same loose shoulder-length curls, the same pendant necklace, and the same sleeveless taupe dress. Preserve the same pose, framing, and background layout. Natural skin texture, realistic hair strands, subtle outdoor depth of field, no text."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
@@ -1650,8 +1650,8 @@ multi-angle adapter is what changes the viewpoint behavior on top of that exact 
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>docs/assets/validation/reframe-outpaint-2026-06-08/source-b-cropped-starship.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">&quot;5%,80%,5%,60%&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Fill the green spaces according to the image&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"5%,80%,5%,60%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Fill the green spaces according to the image"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1040</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">272</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
@@ -1708,8 +1708,8 @@ band (fast and motion-preserving are mutually exclusive; see
 <a href="../wan-video/#fast-video-to-video-with-lightning">Wan Video</a> and
 the included proof bundle <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/lightning-v2v-2026-07-04/README.md">docs/assets/validation/lightning-v2v-2026-07-04/</a>.
 The stable copy-paste adapter form works directly from the Hugging Face cache:</p>
-<div class="highlight"><pre><span></span><code>--lora-paths<span class="w"> </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">             </span><span class="s2">&quot;lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors&quot;</span><span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code>--lora-paths<span class="w"> </span><span class="s2">"lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/high_noise_model.safetensors"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">             </span><span class="s2">"lightx2v/Wan2.2-Lightning:Wan2.2-T2V-A14B-4steps-lora-rank64-Seko-V1.1/low_noise_model.safetensors"</span><span class="w"> </span><span class="se">\</span>
 --lora-target-roles<span class="w"> </span>high_noise_transformer<span class="w"> </span>low_noise_transformer
 </code></pre></div>
 <p>For the current A14B fast path:</p>

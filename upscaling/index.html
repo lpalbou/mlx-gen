@@ -786,6 +786,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#swiftvr-one-step-restoration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SwiftVR One-Step Restoration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SwiftVR One-Step Restoration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-swiftvr-restores-video-but-not-stills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why SwiftVR restores video but not stills
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaching-other-output-sizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaching other output sizes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#choosing-between-swiftvr-and-seedvr2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing between SwiftVR and SeedVR2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#known-limitation-on-seedvr2-at-larger-geometries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known limitation on SeedVR2 at larger geometries
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#model-sources" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1406,6 +1467,67 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#swiftvr-one-step-restoration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SwiftVR One-Step Restoration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="SwiftVR One-Step Restoration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#why-swiftvr-restores-video-but-not-stills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why SwiftVR restores video but not stills
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reaching-other-output-sizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reaching other output sizes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#choosing-between-swiftvr-and-seedvr2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing between SwiftVR and SeedVR2
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#known-limitation-on-seedvr2-at-larger-geometries" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Known limitation on SeedVR2 at larger geometries
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#model-sources" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1476,9 +1598,57 @@
 
 
 <h1 id="image-and-video-upscaling">Image And Video Upscaling<a class="headerlink" href="#image-and-video-upscaling" title="Permanent link">&para;</a></h1>
-<p>MLX-Gen routes SeedVR2 image and video restoration through <code>mlxgen upscale</code>. SeedVR2 is a diffusion
-restoration/upscaling model: it can increase pixel dimensions while reconstructing detail and
-smoothing low-resolution or compressed artifacts. It does not require a text prompt.</p>
+<p>MLX-Gen routes image and video restoration through <code>mlxgen upscale</code>, which hosts two model
+families. Select one with <code>--model</code>.</p>
+<ul>
+<li><strong>SeedVR2</strong> is a diffusion restoration/upscaling model: it can increase pixel dimensions while
+  reconstructing detail and smoothing low-resolution or compressed artifacts. Handles
+  <code>seedvr2-3b</code>, <code>seedvr2-7b</code>, <code>seedvr2-7b-sharp</code>, official ByteDance repos, and AbstractFramework
+  packages.</li>
+<li><strong>SwiftVR</strong> is a one-step restorer built on Wan2.2-TI2V-5B. It restores at the source resolution
+  only - it does not scale - and is roughly 40x faster than SeedVR2 on the same clip. Handles
+  <code>swiftvr</code> and <code>swiftvr-5b</code>. See <a href="#swiftvr-one-step-restoration">SwiftVR One-Step Restoration</a>.</li>
+</ul>
+<p>Neither family requires a text prompt.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>SeedVR2</th>
+<th>SwiftVR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Images</td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td>Video</td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr>
+<td>Scaling</td>
+<td>yes</td>
+<td>source resolution only (<code>1x</code>)</td>
+</tr>
+<tr>
+<td>Quantization</td>
+<td>q8 / q4 packages</td>
+<td>none (bf16)</td>
+</tr>
+</tbody>
+</table>
+<p>Both families declare what they accept, so you can check a route before starting a run:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>swiftvr
+mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--family<span class="w"> </span>seedvr2
+</code></pre></div>
+<p>The <code>restoration</code> array reports accepted media, input counts, scale factors, the clip-length
+contract, and quantization support for every route. See
+<a href="../api/#restoration-commands">Restoration Commands</a> for the field reference and the Python route
+names.</p>
 <p>The older <code>mflux-upscale-seedvr2</code> entry point remains available for compatibility. New examples use
 <code>mlxgen upscale</code>.</p>
 <h2 id="video-restoration">Video Restoration<a class="headerlink" href="#video-restoration" title="Permanent link">&para;</a></h2>
@@ -1537,12 +1707,12 @@ time dilation, or motion distortion. See
 <li>source duration under test: <code>149</code> frames at <code>29.97 fps</code> (<code>4.972s</code>)</li>
 </ul>
 <p>Set the source file path once:</p>
-<div class="highlight"><pre><span></span><code><span class="nv">SOURCE_VIDEO</span><span class="o">=</span><span class="s2">&quot;Panorama of the Eiffel Tower in 1900 Thomas Edison Vintage Video.mp4&quot;</span>
+<div class="highlight"><pre><span></span><code><span class="nv">SOURCE_VIDEO</span><span class="o">=</span><span class="s2">"Panorama of the Eiffel Tower in 1900 Thomas Edison Vintage Video.mp4"</span>
 </code></pre></div>
 <p>Run the accepted safe bounded <code>1x</code> proof with the official source checkpoints:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-3B<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--video-path<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SOURCE_VIDEO</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span><span class="s2">"</span><span class="nv">$SOURCE_VIDEO</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--start-seconds<span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--max-frames<span class="w"> </span><span class="m">149</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--resolution<span class="w"> </span>1x<span class="w"> </span><span class="se">\</span>
@@ -1557,7 +1727,7 @@ time dilation, or motion distortion. See
 </code></pre></div>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-7B<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--video-path<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SOURCE_VIDEO</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span><span class="s2">"</span><span class="nv">$SOURCE_VIDEO</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--start-seconds<span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--max-frames<span class="w"> </span><span class="m">149</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--resolution<span class="w"> </span>1x<span class="w"> </span><span class="se">\</span>
@@ -1573,7 +1743,7 @@ time dilation, or motion distortion. See
 <p>Run the accepted enlarged <code>2x</code> comparison only after the <code>1x</code> slice looks right on the same clip:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-3B<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--video-path<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SOURCE_VIDEO</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span><span class="s2">"</span><span class="nv">$SOURCE_VIDEO</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--start-seconds<span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--max-frames<span class="w"> </span><span class="m">149</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--resolution<span class="w"> </span>2x<span class="w"> </span><span class="se">\</span>
@@ -1589,7 +1759,7 @@ time dilation, or motion distortion. See
 </code></pre></div>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-7B<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--video-path<span class="w"> </span><span class="s2">&quot;</span><span class="nv">$SOURCE_VIDEO</span><span class="s2">&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span><span class="s2">"</span><span class="nv">$SOURCE_VIDEO</span><span class="s2">"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--start-seconds<span class="w"> </span><span class="m">70</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--max-frames<span class="w"> </span><span class="m">149</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--resolution<span class="w"> </span>2x<span class="w"> </span><span class="se">\</span>
@@ -1816,6 +1986,113 @@ mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class
 <p>The 7B source, q8 package, and q4 package passed the same checked-in <code>5x</code> profile used for 3B.
 The sheet below stacks the 3B and 7B results so you can compare detail reconstruction directly:</p>
 <p><img alt="SeedVR2 3B and 7B source, q8, and q4 5x comparison" src="../assets/upscaling/seedvr2-3b-7b-5x-contact-sheet.jpg" /></p>
+<h2 id="swiftvr-one-step-restoration">SwiftVR One-Step Restoration<a class="headerlink" href="#swiftvr-one-step-restoration" title="Permanent link">&para;</a></h2>
+<p><code>swiftvr</code> restores video in a single forward pass per chunk rather than a diffusion trajectory. It
+is the fast route: on the comparison below it runs about 40x faster than SeedVR2 at roughly a fifth
+of the peak memory.</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span>--model<span class="w"> </span>swiftvr<span class="w"> </span>--video-path<span class="w"> </span>clip.mp4<span class="w"> </span>--resolution<span class="w"> </span>1x<span class="w"> </span>--output<span class="w"> </span>restored.mp4
+</code></pre></div>
+<p>Route constraints, all fail-closed rather than approximated:</p>
+<ul>
+<li><strong>Source resolution only.</strong> SwiftVR reaches other sizes upstream by bilinear pre-upsampling of the
+  degraded input, which MLX-Gen has not matched or measured. Any <code>--resolution</code> other than <code>1x</code> is
+  refused with a message pointing at SeedVR2 rather than silently approximating it.</li>
+<li><strong>BF16 only.</strong> There is no q8/q4 prepared package for this route yet.</li>
+<li><strong>Clip length is trimmed to <code>4a + 1</code></strong> frames by the chunk protocol; the CLI reports the trim.</li>
+<li>Audio is preserved on the same terms as the SeedVR2 route.</li>
+</ul>
+<p>Do not read the upstream "real-time streaming" framing as an Apple Silicon claim. Measured here,
+SwiftVR restores 1080p at about 1.1 FPS - useful for offline batch work, and roughly 20x short of
+real time. It is fast relative to SeedVR2, not fast in absolute terms.</p>
+<h3 id="why-swiftvr-restores-video-but-not-stills">Why SwiftVR restores video but not stills<a class="headerlink" href="#why-swiftvr-restores-video-but-not-stills" title="Permanent link">&para;</a></h3>
+<p>SwiftVR's chunk protocol accepts a single frame: <code>t = 1</code> is a legal <code>4a + 1</code> clip, it plans as one
+chunk, and the decoder's three-frame head trim leaves exactly one frame. A one-frame clip therefore
+runs to completion through <code>--video-path</code>.</p>
+<p>Output quality is what withholds the route. Restoring a single frame seeds the causal autoencoder
+state from a replicated frame instead of real temporal context. At 1:1 the restored frame is
+acceptable but soft; under magnification facial features lose structure, with eyes flattening into
+smudges and fine texture smoothing over. SeedVR2's image route resolves the same detail cleanly on
+identical input, so stills route there.</p>
+<p>Measured across three subjects:
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/swiftvr-vs-seedvr2-2026-08-17/swiftvr_single_frame_contact_sheet.png">contact sheet</a>,
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/swiftvr-vs-seedvr2-2026-08-17/swiftvr_single_frame_detail_crop_face.png">face detail crop at 3.4x</a>,
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/swiftvr-vs-seedvr2-2026-08-17/swiftvr_single_frame_metrics.json">metrics</a>.
+Read the sheets rather than the correlation column: SwiftVR scores higher than SeedVR2 on two of the
+three samples while being visibly worse, so the number does not separate the two routes.</p>
+<p>Restore stills with <code>--model seedvr2-3b</code>.</p>
+<h3 id="reaching-other-output-sizes">Reaching other output sizes<a class="headerlink" href="#reaching-other-output-sizes" title="Permanent link">&para;</a></h3>
+<p>SwiftVR has no learned upscaler. Upstream reaches larger outputs by resizing the degraded input with
+bilinear interpolation and restoring at that size, so the model always restores at whatever
+resolution it is handed. MLX-Gen has not matched or measured that pre-upsampling step, so
+<code>--resolution</code> other than <code>1x</code> is refused rather than approximated.</p>
+<p>If you want a larger SwiftVR output today, do the resize yourself and restore at <code>1x</code>:</p>
+<div class="highlight"><pre><span></span><code>ffmpeg<span class="w"> </span>-i<span class="w"> </span>clip.mp4<span class="w"> </span>-vf<span class="w"> </span><span class="nv">scale</span><span class="o">=</span>iw*2:ih*2<span class="w"> </span>upscaled.mp4
+mlxgen<span class="w"> </span>upscale<span class="w"> </span>--model<span class="w"> </span>swiftvr<span class="w"> </span>--video-path<span class="w"> </span>upscaled.mp4<span class="w"> </span>--resolution<span class="w"> </span>1x<span class="w"> </span>--output<span class="w"> </span>restored.mp4
+</code></pre></div>
+<p>That is the same order of operations upstream performs. For a learned upscale, use SeedVR2, which
+reconstructs detail while increasing pixel dimensions.</p>
+<h3 id="choosing-between-swiftvr-and-seedvr2">Choosing between SwiftVR and SeedVR2<a class="headerlink" href="#choosing-between-swiftvr-and-seedvr2" title="Permanent link">&para;</a></h3>
+<p>Measured on an M4 Max over 121 contiguous frames (5.04 s at 24 fps) of grain-heavy archival footage
+at 384x288, <code>1x</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Candidate</th>
+<th style="text-align: right;">Wall</th>
+<th style="text-align: right;">FPS</th>
+<th style="text-align: right;">Fidelity to source</th>
+<th style="text-align: right;">Frames below 0.90</th>
+<th style="text-align: right;">Peak MLX</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SwiftVR</td>
+<td style="text-align: right;">11.5 s</td>
+<td style="text-align: right;">10.52</td>
+<td style="text-align: right;">0.9588</td>
+<td style="text-align: right;">0 / 121</td>
+<td style="text-align: right;">11.1 GB</td>
+</tr>
+<tr>
+<td>SeedVR2-3B</td>
+<td style="text-align: right;">471.0 s</td>
+<td style="text-align: right;">0.257</td>
+<td style="text-align: right;">0.9647</td>
+<td style="text-align: right;">0 / 121</td>
+<td style="text-align: right;">57.9 GB</td>
+</tr>
+<tr>
+<td>SeedVR2-7B</td>
+<td style="text-align: right;">458.8 s</td>
+<td style="text-align: right;">0.264</td>
+<td style="text-align: right;">0.9809</td>
+<td style="text-align: right;">0 / 121</td>
+<td style="text-align: right;">67.8 GB</td>
+</tr>
+</tbody>
+</table>
+<p>All three are temporally stable at this geometry. The quality difference is a trade-off rather than
+a ranking: <strong>SwiftVR reinterprets texture where SeedVR2 recovers it.</strong> On the archival source
+SwiftVR erases film grain and posterises fine ornament into smooth forms, producing a clean but
+visibly synthetic image, while SeedVR2-7B keeps the most natural texture and scores the highest
+fidelity. Judge this from the detail crops, not from a sharpness number - a plain gradient metric
+ranks SwiftVR highest precisely because posterised edges are steep.</p>
+<p>Full artifacts, including the contiguous motion strip and two magnified detail crops:
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/swiftvr-vs-seedvr2-2026-08-17/paris_121f_validation_report.md">swiftvr-vs-seedvr2-2026-08-17</a>.</p>
+<p>Rules of thumb:</p>
+<ul>
+<li>long material, previews, or throughput-bound batch work: <strong>SwiftVR</strong>;</li>
+<li>archival or grain-sensitive material where fidelity matters most: <strong>SeedVR2-7B</strong>;</li>
+<li>SeedVR2-3B sits between them and, on this clip, offered no speed advantage over 7B.</li>
+</ul>
+<h3 id="known-limitation-on-seedvr2-at-larger-geometries">Known limitation on SeedVR2 at larger geometries<a class="headerlink" href="#known-limitation-on-seedvr2-at-larger-geometries" title="Permanent link">&para;</a></h3>
+<p>SeedVR2 currently cannot restore sources at 480x360 correctly. The minimum permitted 29-frame chunk
+exceeds the host-safe memory budget at that geometry, and forcing it through with
+<code>--force-unsafe-video-memory</code> produces intermittent corrupted frames - one pixel frame in every
+latent group of four. 320x240 and 384x288 are clean. This is tracked in backlog item
+<a href="../backlog/proposed/0115_seedvr2_video_decode_artifact_at_larger_geometries/">0115</a>. SwiftVR is
+unaffected and restores the same source at native 480x360.</p>
 <h2 id="model-sources">Model Sources<a class="headerlink" href="#model-sources" title="Permanent link">&para;</a></h2>
 <p>The short aliases <code>seedvr2</code> and <code>seedvr2-3b</code> resolve to the official upstream 3B checkpoint:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-3B

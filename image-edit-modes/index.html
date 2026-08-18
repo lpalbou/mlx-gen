@@ -1463,7 +1463,7 @@ source.</p>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--i2i-mode<span class="w"> </span>latent<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.35<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Make the same scene feel like blue-hour science-fiction concept art with colder shadows and sharper metallic detail.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Make the same scene feel like blue-hour science-fiction concept art with colder shadows and sharper metallic detail."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>latent-restyle.png
 </code></pre></div>
 <p>Expected result: the same scene idea and camera angle remain recognizable, but the model may
@@ -1488,7 +1488,7 @@ reference throughout generation.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2509-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the same scene into a clean graphite sketch while preserving the object layout and camera angle.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Turn the same scene into a clean graphite sketch while preserving the object layout and camera angle."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>sketch.png
 </code></pre></div>
 <p>Expected result: the scene structure should hold more tightly than latent img2img, while the prompt
@@ -1530,7 +1530,7 @@ advice.</p>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2511-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--mask-path<span class="w"> </span>mask.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Repair the damaged hull inside the mask and keep the rest of the scene unchanged.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Repair the damaged hull inside the mask and keep the rest of the scene unchanged."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>repaired.png
 </code></pre></div>
 <h2 id="structured-control">Structured Control<a class="headerlink" href="#structured-control" title="Permanent link">&para;</a></h2>
@@ -1566,8 +1566,8 @@ base control-inpaint, see <a href="../qwen-localized-editing/">Qwen localized ed
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Aesthetics art, traditional asian pagoda, elaborate golden accents, sky blue and white color palette, swirling cloud pattern, digital illustration, east asian architecture, ornamental rooftop, intricate detailing on building, cultural representation.&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;blurry, low quality, distorted, deformed, text, watermark, ugly&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Aesthetics art, traditional asian pagoda, elaborate golden accents, sky blue and white color palette, swirling cloud pattern, digital illustration, east asian architecture, ornamental rooftop, intricate detailing on building, cultural representation."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">"blurry, low quality, distorted, deformed, text, watermark, ugly"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">576</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">864</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
@@ -1599,7 +1599,7 @@ different cue such as style, material, or lighting.</p>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2511-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>content.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>style.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Use the first image for the scene layout and the second image for the watercolor style and warm lighting.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Use the first image for the scene layout and the second image for the watercolor style and warm lighting."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>composition.png
 </code></pre></div>
 <p>Expected result: the first image usually defines the main composition, while the second image
@@ -1624,8 +1624,8 @@ the original crop.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-4b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--reframe-padding<span class="w"> </span><span class="s2">&quot;20%,40%,20%,40%&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Generatively reframe this close-up into a wider establishing shot and extend the background naturally.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reframe-padding<span class="w"> </span><span class="s2">"20%,40%,20%,40%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Generatively reframe this close-up into a wider establishing shot and extend the background naturally."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>reframed.png
 </code></pre></div>
 <p>Expected result: a larger, more complete view. The subject may be recomposed as part of the wider
@@ -1655,8 +1655,8 @@ uses backend-specific strategies:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>black-forest-labs/FLUX.2-klein-base-9B<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">&quot;5%,80%,5%,60%&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Outpaint this close crop into a wider realistic shot. Complete the missing subject and background outside the original frame.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"5%,80%,5%,60%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Outpaint this close crop into a wider realistic shot. Complete the missing subject and background outside the original frame."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>outpaint.png

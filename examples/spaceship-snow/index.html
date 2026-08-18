@@ -1241,7 +1241,7 @@ Wan2.2 A14B at <code>480x240</code> and TI2V-5B at <code>832x480</code> and <cod
 <p>Generate the source spaceship in snow:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic wide shot of a compact sci-fi spaceship with landing struts and glowing blue engines resting in deep snow on a frozen alien planet, angular hull panels, no wings like an airplane, blue-white ice cliffs in the distance, soft sunrise light, crisp realistic detail, clean frame without any text or logos&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A cinematic wide shot of a compact sci-fi spaceship with landing struts and glowing blue engines resting in deep snow on a frozen alien planet, angular hull panels, no wings like an airplane, blue-white ice cliffs in the distance, soft sunrise light, crisp realistic detail, clean frame without any text or logos"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">768</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">432</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
@@ -1257,7 +1257,7 @@ routes to the edit/reference image-to-image mode:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>outputs/spaceship-snow/01_t2i_spaceship_snow.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Transform the input image into a detailed graphite pencil sketch on white paper. Preserve the same spaceship shape, landing struts, snow field, and ice cliffs. Use monochrome pencil lines, soft shading, and hand-drawn texture. No color, no text, no watermark.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Transform the input image into a detailed graphite pencil sketch on white paper. Preserve the same spaceship shape, landing struts, snow field, and ice cliffs. Use monochrome pencil lines, soft shading, and hand-drawn texture. No color, no text, no watermark."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">768</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">432</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
@@ -1272,7 +1272,7 @@ routes to the edit/reference image-to-image mode:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>outputs/spaceship-snow/01_t2i_spaceship_snow.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Edit the input image so the same spaceship has crash-landed in the snow. Show the hull tilted and partly buried, broken landing struts, damaged panels, churned snow, a small plume of smoke, and scattered ice debris. Keep the frozen alien planet, ice cliffs, cinematic realistic style, no people, no text.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Edit the input image so the same spaceship has crash-landed in the snow. Show the hull tilted and partly buried, broken landing struts, damaged panels, churned snow, a small plume of smoke, and scattered ice debris. Keep the frozen alien planet, ice cliffs, cinematic realistic style, no people, no text."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">768</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">432</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
@@ -1289,7 +1289,7 @@ pencil style and the second image supplies the crash layout:</p>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>outputs/spaceship-snow/02_i2i_pencil_sketch.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>outputs/spaceship-snow/03_i2i_crash_snow.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Create one coherent composition using both reference images: use the crash-landed spaceship layout, damage, smoke, snow, and ice debris from the crash reference, but render the entire scene in the graphite pencil sketch style from the sketch reference. Monochrome pencil drawing, visible paper texture, same wide icy landscape, no color, no text.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Create one coherent composition using both reference images: use the crash-landed spaceship layout, damage, smoke, snow, and ice debris from the crash reference, but render the entire scene in the graphite pencil sketch style from the sketch reference. Monochrome pencil drawing, visible paper texture, same wide icy landscape, no color, no text."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">768</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">432</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">24</span><span class="w"> </span><span class="se">\</span>
@@ -1303,7 +1303,7 @@ pencil style and the second image supplies the crash layout:</p>
 <p>Generate a short takeoff video from text only:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-t2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic video of a compact sci-fi spaceship on a frozen snow planet. The ship powers up, blue engines glow, loose snow blows outward, then the spaceship slowly lifts off vertically from the icy ground. Stable wide camera, clear snow cliffs, no people, no text.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A cinematic video of a compact sci-fi spaceship on a frozen snow planet. The ship powers up, blue engines glow, loose snow blows outward, then the spaceship slowly lifts off vertically from the icy ground. Stable wide camera, clear snow cliffs, no people, no text."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">448</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">256</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">41</span><span class="w"> </span><span class="se">\</span>
@@ -1324,7 +1324,7 @@ pencil style and the second image supplies the crash layout:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>outputs/spaceship-snow/01_t2i_spaceship_snow.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Starting from the input image, animate the same compact sci-fi spaceship on the frozen snow planet. The blue engines brighten, snow blows outward under the hull, and the spaceship slowly lifts off vertically while keeping its shape and the icy cliffs stable. Cinematic wide camera, no people, no text.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Starting from the input image, animate the same compact sci-fi spaceship on the frozen snow planet. The blue engines brighten, snow blows outward under the hull, and the spaceship slowly lifts off vertically while keeping its shape and the icy cliffs stable. Cinematic wide camera, no people, no text."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">448</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">256</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">41</span><span class="w"> </span><span class="se">\</span>

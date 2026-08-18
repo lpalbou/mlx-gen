@@ -1,0 +1,1835 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/proposed/0114_swiftvr_streaming_restoration/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Proposed: SwiftVR one-step restoration as a second restore family - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#proposed-swiftvr-one-step-restoration-as-a-second-restore-family" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Proposed: SwiftVR one-step restoration as a second restore family
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../previews/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generation Previews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../wan-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../upscaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-status-2026-08-16" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation status (2026-08-16)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Context">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#scorecard-for-the-received-proposal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scorecard for the received proposal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#quality-versus-seedvr2-is-unestablished-and-the-published-shape-is-a-caution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quality versus SeedVR2 is unestablished, and the published shape is a caution
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-code-reality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current code reality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problem-or-opportunity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem or opportunity
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Problem or opportunity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-is-genuinely-new-and-what-the-briefs-premise-gets-wrong" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What is genuinely new, and what the brief's premise gets wrong
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#apple-silicon-feasibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Apple Silicon feasibility
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#proposed-direction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Proposed direction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#promotion-criteria" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Promotion criteria
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-ideas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation ideas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#guidance-for-future-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Guidance for future agents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sources-checked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sources checked
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="proposed-swiftvr-one-step-restoration-as-a-second-restore-family">Proposed: SwiftVR one-step restoration as a second restore family<a class="headerlink" href="#proposed-swiftvr-one-step-restoration-as-a-second-restore-family" title="Permanent link">&para;</a></h1>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Created: 2026-08-16</li>
+<li>Status: Proposed</li>
+<li>Completed: N/A</li>
+</ul>
+<h2 id="implementation-status-2026-08-16">Implementation status (2026-08-16)<a class="headerlink" href="#implementation-status-2026-08-16" title="Permanent link">&para;</a></h2>
+<p>The maintainer directed implementation on 2026-08-16, ahead of the microbenchmark this item
+recommends as step 1. The port landed and is parity-verified against the torch reference. This
+section supersedes the derived estimates below where they conflict; the derived reasoning is kept
+because it was accurate and is worth preserving as a method.</p>
+<p>What shipped:</p>
+<ul>
+<li><code>src/mflux/models/swiftvr/</code> (~4,340 LOC): MFSWA attention with window index cache, RoPE temporal
+  offset plus analytic table extension, ReAE autoencoder, chunk protocol, streaming DiT and ReAE,
+  the restore route, and the weight definition/mapping.</li>
+<li>Three surgical seams keep the plain Wan route byte-identical: an optional
+  <code>self_attention_strategy</code> hook on <code>WanAttention</code>, an optional <code>t_offset</code> on the Wan rotary
+  embedding, and an optional precomputed <code>rotary_emb</code> on <code>WanTransformer.__call__</code>. All default to
+  existing behaviour.</li>
+<li>A shared restoration family dispatcher at <code>src/mflux/models/common/cli/restore_dispatch.py</code>;
+  <code>mlxgen upscale</code> now hosts both families and every pre-existing SeedVR2 handle resolves exactly
+  as before (guarded by a regression test).</li>
+<li>Registry entry <code>swiftvr</code> (aliases <code>swiftvr</code>, <code>swiftvr-5b</code>) -&gt; <code>H-oliday/SwiftVR</code>.</li>
+</ul>
+<p>Numerical parity against the torch reference, same weights, fp32 unless stated:</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Full DiT block, real block-0 weights</td>
+<td>cosine 1.00000000, max_abs 5.72e-05 on ref_absmax 43.8</td>
+</tr>
+<tr>
+<td>Full DiT block, bf16</td>
+<td>cosine 0.99998684</td>
+</tr>
+<tr>
+<td>MFSWA, real block-0/1 weights, both parities</td>
+<td>cosine 1.00000000, rel_max 3.4e-06</td>
+</tr>
+<tr>
+<td>MFSWA with window &gt;= grid vs global attention</td>
+<td>max_abs 5.96e-08 (degenerates correctly)</td>
+</tr>
+<tr>
+<td>ReAE encoder / decoder</td>
+<td>cosine 1.00000000, rel ~1.5e-06</td>
+</tr>
+<tr>
+<td>ReAE streaming first / middle / last chunk</td>
+<td>cosine 1.00000000 (causal state threading correct)</td>
+</tr>
+<tr>
+<td>ReAE bf16 encoder / decoder</td>
+<td>cosine 0.99985450 / 0.99998939</td>
+</tr>
+</tbody>
+</table>
+<p>Measured throughput on this M4 Max, 128 GB, 1x restoration, end to end including model load:</p>
+<table>
+<thead>
+<tr>
+<th>Geometry</th>
+<th style="text-align: right;">Frames</th>
+<th style="text-align: right;">Chunks</th>
+<th style="text-align: right;">Wall</th>
+<th style="text-align: right;">FPS</th>
+<th style="text-align: right;">Peak MLX</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>320x240</td>
+<td style="text-align: right;">149</td>
+<td style="text-align: right;">7</td>
+<td style="text-align: right;">7.8 s</td>
+<td style="text-align: right;">19.20</td>
+<td style="text-align: right;">11.01 GB</td>
+</tr>
+<tr>
+<td>480x270</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">3.7 s</td>
+<td style="text-align: right;">3.49</td>
+<td style="text-align: right;">11.17 GB</td>
+</tr>
+<tr>
+<td>1920x1080</td>
+<td style="text-align: right;">13</td>
+<td style="text-align: right;">1</td>
+<td style="text-align: right;">18.5 s</td>
+<td style="text-align: right;">0.70</td>
+<td style="text-align: right;">14.27 GB</td>
+</tr>
+<tr>
+<td>1920x1080</td>
+<td style="text-align: right;">41</td>
+<td style="text-align: right;">2</td>
+<td style="text-align: right;">37.6 s</td>
+<td style="text-align: right;">1.09</td>
+<td style="text-align: right;">14.27 GB</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Correction to the derived band below:</strong> this item derived 0.2-0.9 FPS at 1080p on an M4 Max. The
+measured value is 1.09 FPS end to end and about 1.19 FPS excluding model load, so the derivation was
+roughly 1.2-1.3x pessimistic at the top of its band. The conclusion is unchanged and now measured
+rather than inferred: 1.09 FPS is about 22x short of 24 FPS, so streaming remains not viable on this
+platform and the honest positioning is still offline batch restoration.</p>
+<p><strong>The product thesis holds at low resolution.</strong> Against this repo's own published SeedVR2-3B proof
+geometry (149 frames at 320x240, 1x, <code>docs/upscaling.md:234-243</code>, 71.33 s / 2.09 FPS on an M5 Max),
+SwiftVR runs the same geometry in 7.8 s / 19.20 FPS on an M4 Max - about 9.2x faster on slower
+silicon. That is a real operating-point difference, not a marginal one.</p>
+<p>Chunk-boundary continuity was checked on the 41-frame two-chunk 1080p run: the FIRST/LAST boundary
+at frame 27-&gt;28 shows a per-frame delta of 0.85x the clip median, i.e. no seam. The largest delta in
+the clip is the looped source's own content discontinuity.</p>
+<p>Tests: 665 pass under <code>tests/swiftvr/</code> and the pre-existing suite is unchanged at 1842 passed /
+7 skipped, so the Wan and SeedVR2 edits did not regress.</p>
+<p>Scope deliberately left out of this first slice:</p>
+<ul>
+<li><strong>Scaling.</strong> SwiftVR reaches non-native sizes by bilinear pre-upsampling of the degraded input.
+  That is unmatched and unmeasured here, so <code>--resolution</code> other than <code>1x</code> fails closed with a
+  message pointing at SeedVR2 rather than approximating upstream behaviour.</li>
+<li><strong>Quantization.</strong> No q8/q4 prepare path; BF16 only.</li>
+<li><strong>Quality comparison.</strong> The five-axis comparison in "Validation ideas" has NOT been run. Nothing
+  in this implementation establishes that SwiftVR beats SeedVR2 on output, and the published record
+  in the section below still leans the other way. No release-quality claim is made and ADR 0001
+  smoke evidence has not been preserved as a proof bundle.</li>
+<li><strong>Docs.</strong> <code>docs/upscaling.md</code> has not been updated.</li>
+</ul>
+<p>This item therefore stays Proposed rather than moving to completed: the code exists and is correct,
+but promotion criteria 2 (quality) and the ADR 0001 proof bundle are still open.</p>
+<h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Governing ADRs:</li>
+<li><a href="../../../adr/0001_runtime_smoke_validation_for_model_routes/">ADR 0001</a></li>
+<li><a href="../../../adr/0002_no_silent_automatic_fallbacks/">ADR 0002</a></li>
+<li><a href="../../../adr/0003_runtime_truth_vs_consumer_convenience/">ADR 0003</a></li>
+<li><a href="../../../adr/0004_seedvr2_video_host_safety_and_proof_boundaries/">ADR 0004</a></li>
+<li>ADR impact: none proposed. This item routes the CLI question back to ADR 0002 and ADR 0003
+  rather than introducing a preset/mode axis that would need a new ADR to justify.</li>
+</ul>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>SwiftVR is verified, not a watchlist entry built on a search snippet. <code>SwiftVR: Real-Time One-Step
+Generative Video Restoration</code>, arXiv:2606.09516v1, submitted 2026-06-08, University of Macau +
+TeleAI + Nanjing University. No <code>journal_ref</code>, no DOI, no venue: treat it as a preprint.</p>
+<ul>
+<li>Code: <code>github.com/H-oliday/SwiftVR</code>, Apache-2.0, 105 stars, created 2026-05-27, last commit
+  2026-06-15. Inference code is real, not promissory: 2,326 Python LOC, an 829-line transformer,
+  no <code>TODO</code>/<code>NotImplementedError</code> in the inspected sources. Inference only - no training code,
+  no degradation pipeline, no evaluation harness.</li>
+<li>Weights: <code>huggingface.co/H-oliday/SwiftVR</code>, Apache-2.0, <strong>ungated</strong>, 488 downloads, 27 likes.
+  <code>transformer/diffusion_pytorch_model.safetensors</code> is 19,999,235,584 bytes, reconciling exactly
+  as <code>8 + 84,728 header + 4,999,787,712 params x 4</code> (F32).</li>
+<li>Ecosystem is thin: one mirror, one unlicensed bf16 recast, one 3-star ComfyUI fork. Not in
+  <code>diffusers</code>. <strong>No MLX port exists, and no Apple Silicon measurement exists, by anyone.</strong></li>
+</ul>
+<p>Nothing here was confused with SeedVR2, FlashVSR, RealViFormer, or STAR; those appear in the
+SwiftVR paper only as cited baselines.</p>
+<h3 id="scorecard-for-the-received-proposal">Scorecard for the received proposal<a class="headerlink" href="#scorecard-for-the-received-proposal" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Claim</th>
+<th>Verdict</th>
+<th>Note</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SwiftVR exists</td>
+<td>True</td>
+<td>Paper, Apache-2.0 code, ungated Apache-2.0 weights</td>
+</tr>
+<tr>
+<td>Backbone is Wan2.2-TI2V-5B</td>
+<td>True, and stronger</td>
+<td><code>transformer/config.json</code> byte-identical to the stock Diffusers config; 825/825 tensors match name, shape and dtype</td>
+</tr>
+<tr>
+<td>Dense SDPA, no vendor sparse kernel</td>
+<td>True</td>
+<td><code>attn_mask=None, is_causal=False</code>; no flash-attn, xformers, triton, TensorRT or fp8 in <code>requirements.txt</code></td>
+</tr>
+<tr>
+<td>~26 FPS at 1080p on RTX 5090</td>
+<td>True as a quotation</td>
+<td>Author-reported prose, explicitly "default PyTorch SDPA path, bfloat16". No table, no VRAM figure, no warm-up disclosure</td>
+</tr>
+<tr>
+<td>~31 FPS at QHD on H100</td>
+<td>True</td>
+<td>31.32 FPS, fully tabulated</td>
+</tr>
+<tr>
+<td>Meaningful component reuse</td>
+<td>Partially true</td>
+<td>Decomposes very unevenly; see below</td>
+</tr>
+</tbody>
+</table>
+<p>Two framing corrections, not fact corrections:</p>
+<ul>
+<li><strong>The 26-vs-31 pairing is not interpretable as stated.</strong> The paper's own H100 1080p number is
+  <strong>54.42 FPS</strong> and the proposal omits it. 54.42 -&gt; 31.32 is a 1.74x slowdown for a 1.78x pixel
+  increase (linear); 54.42 -&gt; 26 is a 2.09x hardware gap. The two nearly cancel, producing
+  illusory parity between the two quoted figures.</li>
+<li><strong>"One step" means one forward per 24-frame chunk, not per frame.</strong> Confirmed arithmetically
+  from the paper's table: latency x FPS = 23.88 frames. Output arrives in bursts with an inherent
+  ~1s buffer.</li>
+</ul>
+<h3 id="quality-versus-seedvr2-is-unestablished-and-the-published-shape-is-a-caution">Quality versus SeedVR2 is unestablished, and the published shape is a caution<a class="headerlink" href="#quality-versus-seedvr2-is-unestablished-and-the-published-shape-is-a-caution" title="Permanent link">&para;</a></h3>
+<p>Splitting the paper's own head-to-head cells by metric family: SeedVR2-3B wins <strong>10 of 12
+full-reference</strong> cells (on SPMCS it beats SwiftVR on LPIPS 0.2619 vs 0.2837 and DISTS 0.1410 vs
+0.1535), while SwiftVR wins <strong>14 of 16 no-reference</strong> cells. "Looks better in isolation, matches
+ground truth worse" is the signature of detail synthesis rather than recovery - precisely the
+hallucination axis. The author states the mechanism in issue #14: adversarial third-stage training
+exists "to produce sharper and clearer results" because flow-matching output is blurry.</p>
+<p>Three gaps bear directly on the comparison axes: <strong>no temporal metric of any kind</strong> is reported,
+<strong>no face/identity metric</strong>, and <strong>no text/OCR metric</strong>. The one confirmed independent quality
+report is issue #9, still open - texture flickering, which the author attributes to the lightweight
+autoencoder that is the paper's core speed contribution: "the autoencoder's reconstruction
+capability sets the upper bound of the model's output quality."</p>
+<p>SwiftVR's SeedVR2 baseline is also handicapped and must not be reused. The paper enables
+<code>use_tile=True</code> for SeedVR2 on memory grounds, and its VideoLQ MUSIQ for SeedVR2 (40.42) is
+10.7 points below SeedVR2's self-reported 51.09.</p>
+<h2 id="current-code-reality">Current code reality<a class="headerlink" href="#current-code-reality" title="Permanent link">&para;</a></h2>
+<p>SwiftVR is absent: <code>grep -rniIl "swiftvr" . --exclude-dir=.git</code> returns 0 files.</p>
+<p>What the existing Wan2.2-TI2V-5B stack genuinely provides:</p>
+<ul>
+<li>The transformer is already config-driven. <code>wan_transformer.py:37-57</code> takes every dimension as a
+  keyword argument, and the <code>wan2.2-ti2v-5b</code> overrides at <code>model_config.py:831</code> already carry
+  <code>in_channels 48</code>, <code>out_channels 48</code>, <code>num_layers 30</code>, <code>num_attention_heads 24</code>,
+  <code>attention_head_dim 128</code>, <code>ffn_dim 14336</code>, <code>patch_size [1,2,2]</code> - the exact values SwiftVR
+  ships. Its remaining config fields (<code>text_dim 4096</code>, <code>freq_dim 256</code>, <code>rope_max_seq_len 1024</code>)
+  match our constructor defaults at <code>wan_transformer.py:47-54</code>.</li>
+<li>The override path is a closed 15-key allow-list at <code>wan_initializer.py:746-767</code>. Unknown keys
+  are <strong>silently dropped</strong> - a trap for any new family.</li>
+<li><strong>Causal streaming VAE decode already exists</strong> and is the only Wan decode path:
+  <code>wan_2_2_vae.py:399-439</code> is a generator carrying a 64-slot conv feature cache across temporal
+  slices. This is genuine left-context, not chunk re-decoding.</li>
+<li>Quantize/save is family-agnostic via <code>ModelSaver</code> with per-family <code>quantization_predicate</code>
+  hooks.</li>
+</ul>
+<p>What the CLI looks like today:</p>
+<ul>
+<li><code>mlxgen upscale</code> is not routed. <code>mlx_gen.py:482-484</code> dispatches to <code>_upscale_image</code>, which at
+  <code>mlx_gen.py:494-501</code> is an argv shim calling <code>seedvr2_upscale.main()</code>. Model selection is a
+  hand-written string ladder in <code>_resolve_seedvr2_model</code> (<code>seedvr2_upscale.py:114-183</code>) that
+  raises <code>ValueError</code> for any unrecognized repo id. A second family needs a dispatch resolver.</li>
+<li>The subcommand help hardcodes the family (<code>mlx_gen.py:275</code>).</li>
+<li><strong>Restoration has no capability contract.</strong> <code>grep -ci seedvr src/mflux/task_inference.py</code>
+  returns 0, and <code>--family</code> choices at <code>mlx_gen.py:513-517</code> exclude restoration entirely.</li>
+<li><strong><code>restore_mode</code> already exists and already equals <code>"streaming"</code></strong> for every video restore
+  (<code>seedvr2_upscale.py:62,511,529,720</code>).</li>
+</ul>
+<h2 id="problem-or-opportunity">Problem or opportunity<a class="headerlink" href="#problem-or-opportunity" title="Permanent link">&para;</a></h2>
+<p>The genuine opportunity is narrow and real: <strong>offline batch restoration throughput.</strong> Measured on
+an M5 Max for the accepted <code>29/8</code> proofs, SeedVR2-3B restores the 149-frame 320x240 source in
+71.33s (2.09 FPS) at 1x and 539.03s (0.276 FPS) at 2x (<code>docs/upscaling.md:234-243</code>). Restoration is
+the slowest useful thing this package does.</p>
+<p>The three named product distinctions do not survive contact with this repository:</p>
+<ul>
+<li><strong>Fast preview.</strong> There is no preview surface on the upscale route at all;
+  <code>--stepwise-image-output-dir</code> is on the generation parser only (<code>parsers.py:336-350</code>, absent from
+  the SeedVR2 parser at <code>parsers.py:154</code>). Restoration is one-step, so there is no trajectory to
+  preview. Proposed <a href="../0113_video_family_tiny_previews/">0113</a> records "seedvr2 | 16 | none
+  published". A cheaper tier already ships as <code>seedvr2-3b-4bit</code>.</li>
+<li><strong>Live.</strong> No server, daemon, or socket surface. The only stream is JSONL scalar progress; no
+  pixels cross it. The contract forbids partial reads - on any exception the partial file is
+  deleted (<code>seedvr2.py:608-614</code>) - and an exclusive <code>flock</code> permits one video job per machine
+  (<code>seedvr2_upscale.py:75-100</code>).</li>
+<li><strong>Long video.</strong> Framed and closed as a <em>memory</em> problem. ADR 0004 accepts verbatim that
+  "rebuilding the model per seed makes multi-seed video work slower"; throughput was deliberately
+  traded for stability. <code>_safe_chunk_frame_limit</code> (<code>seedvr2_upscale.py:424-455</code>) solves purely for
+  memory and contains no time budget.</li>
+</ul>
+<p>"Complement, not replace" therefore holds only in its weakest and most useful form: a faster
+offline restoration route at the same or lower memory.</p>
+<h3 id="what-is-genuinely-new-and-what-the-briefs-premise-gets-wrong">What is genuinely new, and what the brief's premise gets wrong<a class="headerlink" href="#what-is-genuinely-new-and-what-the-briefs-premise-gets-wrong" title="Permanent link">&para;</a></h3>
+<p>The received framing implies three new subsystems. Two do not exist and the third is half-built
+here, which makes the port materially easier than assumed:</p>
+<ul>
+<li><strong>Causal KV-cache: not required.</strong> The README states "no rolling KV cache, no overlapped DiT
+  inference", and every attention call is non-causal. Causality is chunk-level only, via a RoPE
+  temporal offset, conv boundary buffers, and an optional crossfade defaulting to 0.</li>
+<li><strong>One-step distilled scheduler: not required.</strong> There is no scheduler object. It is a flow
+  reformulation, not a step distillation: constant timestep 1000.0 and one subtraction
+  (<code>z_HQ = z_LQ - v(z_LQ, 1)</code>).</li>
+<li><strong>Streaming decode: partly built.</strong> Our <code>iter_decode_slices</code> feature cache is the same shape of
+  solution as SwiftVR's boundary-state threading.</li>
+</ul>
+<p>The real new work:</p>
+<ul>
+<li><strong>The autoencoder is 100% new and is where the risk lives.</strong> SwiftVR replaces the 704.69M-param
+  Wan VAE with a 40.95M-param Restoration-aware Autoencoder (ReAE, <code>reae.safetensors</code>,
+  163,797,568 bytes). Zero reuse. Architecturally simple, but it is a second trained model and per
+  issue #9 it is the component that caps output quality.</li>
+<li><strong>Mask-free shifted-window attention (MFSWA).</strong> All 30 blocks swap global 3D attention for a
+  gather/scatter into fixed 16x16 windows, even layers unshifted and odd half-shifted. MLX has the
+  primitives, but Metal performance on the large gather tensors is unproven.</li>
+<li><strong>RoPE temporal offset and table extension</strong> beyond <code>rope_max_seq_len=1024</code>, plus a weight
+  mapping (SeedVR2's is 692 lines, Wan's 421 - tedious rather than hard).</li>
+</ul>
+<p>Reuse decomposes as: DiT module ~100% (825/825 tensors match stock Wan; sampled cosine similarity
+0.9955-0.99999 against the public checkpoint, so SwiftVR is a fine-tune, not a retrain); UMT5
+droppable entirely (a 4.2 MB constant embedding replaces it, though cross-attention still
+executes); scheduler droppable; VAE zero reuse.</p>
+<p>Memory is not the constraint. bf16 is 9.39 GiB and a q8 policy projects to ~5.1 GiB - <strong>smaller
+than our existing Wan TI2V-5B route at 10.6 GiB</strong> (<code>docs/quantization.md:293</code>), because ReAE
+replaces the 705M-param VAE and no text encoder loads.</p>
+<h2 id="apple-silicon-feasibility">Apple Silicon feasibility<a class="headerlink" href="#apple-silicon-feasibility" title="Permanent link">&para;</a></h2>
+<p><strong>All figures here are derived, not measured. No SwiftVR run on Apple Silicon exists. Uncertainty
+is at least +/-2x.</strong></p>
+<p>The memory-bandwidth ratio is the wrong bound and badly overstates feasibility. Reading all
+10.08 GB of bf16 weights once per forward costs ~18.5 ms at the M4 Max's 546 GB/s, implying a
+~1,300 FPS ceiling from bandwidth alone. Arithmetic intensity at 1080p is ~11,700 FLOP per byte
+against a crossover near 4: this workload is compute-bound by about three orders of magnitude.
+Quoting the 3.28x (RTX 5090) or 6.14x (H100) bandwidth ratio would overstate feasibility by more
+than 10x.</p>
+<p>Two independent derivations converge within 1.7x:</p>
+<ol>
+<li><strong>FLOP model</strong>, validated against the paper's H100 table (recovers 359.9/367.5/371.4 TFLOP/s
+   across a 4x resolution span, 3% spread), then back-solved against four measured mlx-gen Wan
+   runs (<code>docs/quantization.md:293-294</code>, <code>docs/wan-video.md:519-521</code>) for a 4.3-4.7 TFLOP/s
+   cluster: ~1.6 FPS at 1080p on M5 Max, DiT only.</li>
+<li><strong>Measured-ratio method</strong>, no FLOP model: applying the paper's own 22.5x SwiftVR/SeedVR2-3B
+   ratio to our measured 0.276 FPS at 640x480 and scaling by area: ~0.9 FPS on M5 Max.</li>
+</ol>
+<p>The benchmark machine is an M5 Max, which has per-core Neural Accelerators the M4 Max lacks.
+Discounting accordingly, the derived band at 1080p on an M4 Max is roughly <strong>0.2-0.9 FPS</strong> - 1 to
+5 seconds of compute per output frame, 27x to 120x short of 24 FPS.</p>
+<p>Streaming stops being meaningful well before 1080p: 24 FPS solves to roughly 160x90 output, 10 FPS
+is unreachable even at 360p, and 1 FPS arrives around 480p. Stacking a generous 2-4x MLX win with a
+2x quantization win still leaves 1-2 FPS at 1080p.</p>
+<p><strong>A <code>restore-stream</code> route is not justified on Apple Silicon.</strong> The honest positioning is offline
+batch restoration with progress reporting, and upstream's "real-time" and "streaming" language must
+not be inherited into our docs.</p>
+<h2 id="proposed-direction">Proposed direction<a class="headerlink" href="#proposed-direction" title="Permanent link">&para;</a></h2>
+<p>Keep this proposed. Do not start a port from this item.</p>
+<ol>
+<li><strong>Verify before porting</strong>, with a one-day microbenchmark rather than an implementation: MLX
+   bf16 GEMM at <code>[12240,3072] x [3072,14336]</code>, and MFSWA gather/scatter at 1080p window geometry.
+   Those two numbers confirm or refute the effective-throughput assumption everything rests on.</li>
+<li><strong>If it holds, scope as offline restoration only.</strong> First slice: video restore at a bounded
+   resolution, no streaming, live, or preview claim.</li>
+<li><strong>Reject the three-mode taxonomy.</strong> Route by exact model handle as every other route does:
+   <code>mlxgen upscale --model H-oliday/SwiftVR --video-path clip.mp4</code>. Reasons, in order of weight:</li>
+<li>ADR 0002. A mode name is a deferred default-model decision. <code>--model seedvr2-7b</code> is
+     reproducible; <code>--mode restore-quality</code> silently changes model identity across versions.</li>
+<li>ADR 0003 assigns recommended presets and user-facing defaults to AbstractVision and states
+     MLX-Gen must not become a recommendation engine. A quality/latency ladder is exactly that.</li>
+<li>Completed <a href="../../completed/0020_generation_capability_contract/">0020</a> removed <code>edit</code> from the
+     public task axis for leaking a backend detail; this would add a third unsanctioned axis.</li>
+<li>It cannot express what already ships: three SeedVR2 aliases against two tiers leaves
+     <code>seedvr2-7b-sharp</code> unaddressable.</li>
+<li><code>restore-balanced</code> names the existing no-flag default, carrying zero information.</li>
+<li>Direct collision: <code>restore_mode</code> already exists and already equals <code>"streaming"</code>, so a
+     <code>restore-quality</code> run would emit <code>restore_mode=streaming</code> in its own metadata.</li>
+<li>The implied ladder is contradicted by our own proof: 7B 2x is <em>faster</em> than 3B 2x (454.46s vs
+     539.03s) and 3B is crisper on the archival slice. ADR 0004 forbids ranking 3B against 7B
+     without direct visual proof.</li>
+<li><strong>Close the real CLI gap instead, independently of SwiftVR.</strong> Restoration has no capability
+   surface. Adding a restoration capability descriptor (accepted inputs, scale support,
+   <code>requires_low_ram</code>, safe chunk-frame limit, 4n+1 geometry, per-model rows) is the ADR 0003
+   division of labour: MLX-Gen emits truth, AbstractVision names presets on top. Worth doing
+   whether or not SwiftVR is ever ported.</li>
+<li><strong>Generalize <code>_resolve_seedvr2_model</code> into a family-dispatch resolver</strong> only when a second
+   restoration family actually lands, and update the hardcoded help at <code>mlx_gen.py:275</code>.</li>
+</ol>
+<h2 id="promotion-criteria">Promotion criteria<a class="headerlink" href="#promotion-criteria" title="Permanent link">&para;</a></h2>
+<ol>
+<li>A microbenchmark on the target machine confirms effective MLX throughput within the derived
+   band. If it lands at the low end, close this item rather than porting.</li>
+<li>A quality read establishes SwiftVR is worth porting on output, not throughput alone. The
+   published record currently shows SeedVR2-3B winning 10 of 12 full-reference cells.</li>
+<li>The ReAE port is scoped honestly as a second trained model, with its known texture-flicker
+   limitation accepted or mitigated up front.</li>
+<li>ADR 0001 is satisfied with a model-backed runtime smoke on the real checkpoint and preserved
+   artifacts. ADR 0005 applies to any video quality claim.</li>
+<li>The item still outranks current Wan, Qwen, FLUX.2, and Z-Image work. Proposed
+   <a href="../0009_video_second_family_selection/">0009</a> holds the standing posture, and
+   <code>docs/backlog/overview.md</code> adds that the next useful work is UX and contract cleanup, not
+   another speculative route split.</li>
+</ol>
+<h2 id="validation-ideas">Validation ideas<a class="headerlink" href="#validation-ideas" title="Permanent link">&para;</a></h2>
+<p>Any SeedVR2 comparison must be generated here under SeedVR2's own protocol, never lifted from the
+paper's tiled row.</p>
+<ul>
+<li><strong>Hallucination.</strong> The decisive test. Restore a clip with known ground truth and report
+  full-reference (LPIPS, DISTS) <em>and</em> no-reference (MUSIQ, MANIQA) side by side. Improving
+  no-reference while degrading full-reference is synthesis, not recovery. Include a
+  lightly-degraded control: SeedVR2's own paper admits it over-generates detail on light
+  degradation.</li>
+<li><strong>Temporal stability.</strong> A warping-error-style metric plus a flicker read on high-detail texture
+  (foliage, fabric, gravel, static camera) - the failure mode independently reported in issue #9.
+  Neither paper helps: SwiftVR reports no temporal metric at all.</li>
+<li><strong>Faces.</strong> A complete gap in both papers. Build a panel of real faces at several degradation
+  levels; report identity similarity plus reader-first crops.</li>
+<li><strong>Text and glyphs.</strong> Also a complete gap. Use signage or subtitles and report OCR agreement
+  against ground truth. Text is where detail synthesis fails most legibly.</li>
+<li><strong>Compression damage.</strong> Stratify by codec and QP rather than aggregating. All three of SwiftVR's
+  synthetic benchmarks are in-distribution for the RealBasicVSR degradation pipeline; real
+  H.264/HEVC damage at low bitrate is covered by no published number.</li>
+</ul>
+<p>Two checks worth running regardless: a DiT parity check exploiting the 825/825 tensor identity
+(loading SwiftVR weights into our <code>WanTransformer</code> should work with override-value changes alone,
+localizing the MFSWA delta), and a negative control confirming the 15-key allow-list at
+<code>wan_initializer.py:748-763</code> does not silently drop a SwiftVR-specific override.</p>
+<h2 id="non-goals">Non-goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Do not describe SwiftVR as real-time or streaming on Apple Silicon.</li>
+<li>Do not add <code>--mode</code>, <code>restore-quality</code>, <code>restore-balanced</code>, or <code>restore-stream</code>.</li>
+<li>Do not treat SwiftVR as a SeedVR2 replacement; SeedVR2 wins most full-reference cells in
+  SwiftVR's own paper.</li>
+<li>Do not cite SwiftVR's SeedVR2 row as a baseline; it runs tiled and does not reproduce SeedVR2's
+  published numbers.</li>
+<li>Do not start with 4K: the paper's own limitation is 13.84 FPS at 60.91 GB on an H100.</li>
+<li>Do not attempt to reproduce the training. No training code or evaluation harness is released.</li>
+</ul>
+<h2 id="guidance-for-future-agents">Guidance for future agents<a class="headerlink" href="#guidance-for-future-agents" title="Permanent link">&para;</a></h2>
+<p>The temptation is that the release quality is unusually good - Apache-2.0 code, Apache-2.0 ungated
+weights, a backbone we already implement, and a config byte-identical to stock Wan2.2-TI2V-5B. All
+true, and none of it is the deciding factor.</p>
+<p>The deciding factor is that the headline claim is a throughput claim measured on silicon roughly
+two orders of magnitude faster than ours on this workload, and streaming is the one product
+distinction that cannot survive the transfer. Check the arithmetic before the architecture.</p>
+<p>SwiftVR is easier to port than the received framing suggests - no KV cache and no distilled
+scheduler to build - but ReAE is a complete second model with an author-acknowledged quality
+ceiling. If ReAE caps output quality and must also be written from scratch, that is where the risk
+lives, not in the DiT.</p>
+<p>If revisited, re-check whether anyone has independently reproduced any SwiftVR throughput number.
+As of 2026-08-16 nobody has, the repo has been static for two months, and the only public attempt
+(issue #16, 2.31 FPS, hardware unstated) is unanswered.</p>
+<h2 id="sources-checked">Sources checked<a class="headerlink" href="#sources-checked" title="Permanent link">&para;</a></h2>
+<ul>
+<li>https://arxiv.org/abs/2606.09516 and https://arxiv.org/html/2606.09516v1</li>
+<li>https://export.arxiv.org/api/query?id_list=2606.09516 (no <code>journal_ref</code>, no DOI, no <code>comments</code>)</li>
+<li>https://h-oliday.github.io/SwiftVR/</li>
+<li>https://github.com/H-oliday/SwiftVR and https://api.github.com/repos/H-oliday/SwiftVR</li>
+<li><code>swiftvr/models/transformer.py</code>, <code>swiftvr/models/reae.py</code>, <code>swiftvr/pipeline.py</code>,
+  <code>swiftvr/streaming/{dit,tae,chunk}.py</code>, <code>README.md</code>, <code>requirements.txt</code> (raw.githubusercontent)</li>
+<li>https://huggingface.co/H-oliday/SwiftVR and
+  https://huggingface.co/api/models/H-oliday/SwiftVR?blobs=true</li>
+<li>https://huggingface.co/H-oliday/SwiftVR/raw/main/transformer/config.json</li>
+<li>https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B-Diffusers/raw/main/transformer/config.json
+  (byte-identical to the SwiftVR config)</li>
+<li>SwiftVR issues 9 (texture flickering), 14 (flow-matching blur), 16 (2.31 FPS, unanswered),
+  2 (<code>torch_compile</code> yields no speedup)</li>
+<li>https://github.com/Comfy-Org/ComfyUI/issues/14469 (official support request, open, no PRs)</li>
+<li>https://huggingface.co/api/models?search=SwiftVR (3 repos: official, one mirror, one unlicensed
+  bf16 recast)</li>
+<li>SeedVR2 baseline: https://arxiv.org/abs/2506.05301 and https://arxiv.org/html/2506.05301v2</li>
+<li>https://support.apple.com/en-us/121553 (M4 Max, 546 GB/s)</li>
+<li>https://machinelearning.apple.com/research/exploring-llms-mlx-m5 ("up to 4x" M5-over-M4 TTFT)</li>
+</ul>
+<p>Non-yielding: <code>arxiv.org/abs/2606.09516v2</code> (404, v1 is the only version);
+<code>iceclear.github.io/projects/seedvr2/</code> (no throughput figures published);
+<code>huggingface.co/api/models?search=swiftvr+mlx</code> (0 results);
+<code>api.github.com/repos/huggingface/diffusers/contents/src/diffusers/pipelines/swiftvr</code> (404, used as
+negative evidence); the NVIDIA RTX 5090 product page prints no GB/s figure, so the 1,792 GB/s value
+is secondary-sourced and unverified.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

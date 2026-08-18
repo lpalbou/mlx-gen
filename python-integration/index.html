@@ -1361,39 +1361,39 @@ multi-reference editing, and latent image-to-image are internal modes selected b
 image count, and options such as <code>image_strength</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_model_capabilities</span><span class="p">,</span> <span class="n">get_model_validation</span><span class="p">,</span> <span class="n">resolve_generation_plan</span><span class="p">,</span> <span class="n">resolve_task</span>
 
-<span class="n">capabilities</span> <span class="o">=</span> <span class="n">get_model_capabilities</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;flux2-klein-4b&quot;</span><span class="p">)</span>
+<span class="n">capabilities</span> <span class="o">=</span> <span class="n">get_model_capabilities</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"flux2-klein-4b"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">([</span><span class="n">capability</span><span class="o">.</span><span class="n">mode</span> <span class="k">for</span> <span class="n">capability</span> <span class="ow">in</span> <span class="n">capabilities</span><span class="o">.</span><span class="n">capabilities</span><span class="p">])</span>
-<span class="c1"># [&#39;text-only&#39;, &#39;latent-img2img&#39;, &#39;edit-reference&#39;, &#39;multi-reference&#39;]</span>
+<span class="c1"># ['text-only', 'latent-img2img', 'edit-reference', 'multi-reference']</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;flux2-klein-4b&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"flux2-klein-4b"</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
 <span class="c1"># text-to-image</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;flux2-klein-4b&quot;</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"flux2-klein-4b"</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
 <span class="c1"># image-to-image</span>
 
-<span class="n">plan</span> <span class="o">=</span> <span class="n">resolve_generation_plan</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;flux2-klein-4b&quot;</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">plan</span> <span class="o">=</span> <span class="n">resolve_generation_plan</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"flux2-klein-4b"</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">plan</span><span class="o">.</span><span class="n">task</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">handler_id</span><span class="p">,</span> <span class="n">plan</span><span class="o">.</span><span class="n">default_canvas_policy</span><span class="p">)</span>
 <span class="c1"># image-to-image edit-reference flux2.edit source-aspect</span>
 
 <span class="n">latent_plan</span> <span class="o">=</span> <span class="n">resolve_generation_plan</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;flux2-klein-4b&quot;</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">"flux2-klein-4b"</span><span class="p">,</span>
     <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">i2i_mode</span><span class="o">=</span><span class="s2">&quot;latent&quot;</span><span class="p">,</span>
+    <span class="n">i2i_mode</span><span class="o">=</span><span class="s2">"latent"</span><span class="p">,</span>
     <span class="n">has_image_strength</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">latent_plan</span><span class="o">.</span><span class="n">task</span><span class="p">,</span> <span class="n">latent_plan</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">latent_plan</span><span class="o">.</span><span class="n">handler_id</span><span class="p">,</span> <span class="n">latent_plan</span><span class="o">.</span><span class="n">canvas_policies</span><span class="p">)</span>
-<span class="c1"># image-to-image latent-img2img flux2.generate (&#39;source-aspect&#39;, &#39;exact-resize&#39;)</span>
+<span class="c1"># image-to-image latent-img2img flux2.generate ('source-aspect', 'exact-resize')</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">latent_plan</span><span class="o">.</span><span class="n">resize_modes</span><span class="p">)</span>
-<span class="c1"># (&#39;resize&#39;, &#39;crop&#39;, &#39;pad&#39;) — routes with reference-pinned geometry advertise ()</span>
+<span class="c1"># ('resize', 'crop', 'pad') — routes with reference-pinned geometry advertise ()</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;Wan-AI/Wan2.2-I2V-A14B-Diffusers&quot;</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"Wan-AI/Wan2.2-I2V-A14B-Diffusers"</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
 <span class="c1"># image-to-video</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;Wan-AI/Wan2.2-T2V-A14B-Diffusers&quot;</span><span class="p">,</span> <span class="n">video_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"Wan-AI/Wan2.2-T2V-A14B-Diffusers"</span><span class="p">,</span> <span class="n">video_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">task</span><span class="p">)</span>
 <span class="c1"># video-to-video</span>
 
-<span class="n">validation</span> <span class="o">=</span> <span class="n">get_model_validation</span><span class="p">(</span><span class="s2">&quot;AbstractFramework/qwen-image-edit-2509-8bit&quot;</span><span class="p">)</span>
+<span class="n">validation</span> <span class="o">=</span> <span class="n">get_model_validation</span><span class="p">(</span><span class="s2">"AbstractFramework/qwen-image-edit-2509-8bit"</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">validation</span><span class="o">.</span><span class="n">status</span><span class="p">)</span>
 <span class="c1"># PASS</span>
 </code></pre></div>
@@ -1426,11 +1426,11 @@ selected runtime class, and a stable worker-cache key base without forcing the a
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">resolve_generation_runtime</span>
 
 <span class="n">runtime</span> <span class="o">=</span> <span class="n">resolve_generation_runtime</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;Qwen/Qwen-Image&quot;</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">"Qwen/Qwen-Image"</span><span class="p">,</span>
     <span class="n">has_control_image</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">worker_key</span> <span class="o">=</span> <span class="n">runtime</span><span class="o">.</span><span class="n">cache_key</span><span class="p">(</span><span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;./models/qwen-image-8bit&quot;</span><span class="p">)</span>
-<span class="n">model</span> <span class="o">=</span> <span class="n">runtime</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;./models/qwen-image-8bit&quot;</span><span class="p">)</span>
+<span class="n">worker_key</span> <span class="o">=</span> <span class="n">runtime</span><span class="o">.</span><span class="n">cache_key</span><span class="p">(</span><span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">model_path</span><span class="o">=</span><span class="s2">"./models/qwen-image-8bit"</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">runtime</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span> <span class="n">model_path</span><span class="o">=</span><span class="s2">"./models/qwen-image-8bit"</span><span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="n">runtime</span><span class="o">.</span><span class="n">runtime_id</span><span class="p">)</span>
 <span class="c1"># qwen.controlnet</span>
@@ -1444,20 +1444,20 @@ The returned object now also owns serial multi-output execution through <code>ge
 <code>generate_outputs(...)</code>.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_generation_model</span>
 
-<span class="n">loaded</span> <span class="o">=</span> <span class="n">load_generation_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;qwen-image&quot;</span><span class="p">)</span>
+<span class="n">loaded</span> <span class="o">=</span> <span class="n">load_generation_model</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"qwen-image"</span><span class="p">)</span>
 <span class="n">results</span> <span class="o">=</span> <span class="n">loaded</span><span class="o">.</span><span class="n">generate_outputs</span><span class="p">(</span>
     <span class="n">seeds</span><span class="o">=</span><span class="p">[</span><span class="mi">101</span><span class="p">,</span> <span class="mi">202</span><span class="p">,</span> <span class="mi">303</span><span class="p">],</span>
-    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;A clean studio product photo of a ceramic teapot&quot;</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">"A clean studio product photo of a ceramic teapot"</span><span class="p">,</span>
     <span class="n">width</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
     <span class="n">height</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
     <span class="n">guidance</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
     <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-    <span class="n">output</span><span class="o">=</span><span class="s2">&quot;teapot.png&quot;</span><span class="p">,</span>
-    <span class="n">save_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;export_json_metadata&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">&quot;embed_metadata&quot;</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
+    <span class="n">output</span><span class="o">=</span><span class="s2">"teapot.png"</span><span class="p">,</span>
+    <span class="n">save_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">"export_json_metadata"</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span> <span class="s2">"embed_metadata"</span><span class="p">:</span> <span class="kc">False</span><span class="p">},</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">([</span><span class="n">result</span><span class="o">.</span><span class="n">saved_path</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">])</span>
-<span class="c1"># [&#39;teapot_seed_101.png&#39;, &#39;teapot_seed_202.png&#39;, &#39;teapot_seed_303.png&#39;]</span>
+<span class="c1"># ['teapot_seed_101.png', 'teapot_seed_202.png', 'teapot_seed_303.png']</span>
 </code></pre></div>
 <p>When <code>output=...</code> is provided, <code>generate_outputs(...)</code> maps the model's in-memory <code>complete</code> event
 to <code>generated</code>, then emits <code>save</code>, then emits final <code>complete</code> only after the file is written.
@@ -1475,9 +1475,9 @@ process, ~11 GB resident RAM for skipping the per-prompt reload — built for ho
 scene generations) and <code>prompt_embed_disk_cache=False</code> (opt out of the exact on-disk prompt-embed
 cache). Passing a kwarg the resolved model class does not accept raises <code>TypeError</code> at load time.</p>
 <div class="highlight"><pre><span></span><code><span class="n">loaded</span> <span class="o">=</span> <span class="n">load_generation_model</span><span class="p">(</span>
-    <span class="n">model</span><span class="o">=</span><span class="s2">&quot;wan2.2-i2v-a14b&quot;</span><span class="p">,</span>
+    <span class="n">model</span><span class="o">=</span><span class="s2">"wan2.2-i2v-a14b"</span><span class="p">,</span>
     <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-    <span class="n">model_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;keep_text_encoder_resident&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+    <span class="n">model_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">"keep_text_encoder_resident"</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
 <span class="p">)</span>
 </code></pre></div>
 <p>Runtime memory defaults for Python hosts: the first weight load in a process applies a
@@ -1505,26 +1505,26 @@ caller omits it, MLX-Gen applies the official blank negative-prompt behavior for
 <span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.qwen.variants.edit.qwen_image_edit</span><span class="w"> </span><span class="kn">import</span> <span class="n">QwenImageEdit</span>
 
 <span class="n">model</span> <span class="o">=</span> <span class="n">QwenImageEdit</span><span class="p">(</span>
-    <span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;AbstractFramework/qwen-image-edit-8bit&quot;</span><span class="p">,</span>
+    <span class="n">model_path</span><span class="o">=</span><span class="s2">"AbstractFramework/qwen-image-edit-8bit"</span><span class="p">,</span>
     <span class="n">model_config</span><span class="o">=</span><span class="n">ModelConfig</span><span class="o">.</span><span class="n">qwen_image_edit</span><span class="p">(),</span>
 <span class="p">)</span>
 <span class="n">image</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_image</span><span class="p">(</span>
     <span class="n">seed</span><span class="o">=</span><span class="mi">9501</span><span class="p">,</span>
-    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Convert the scene into a clean graphite pencil sketch while preserving layout&quot;</span><span class="p">,</span>
-    <span class="n">negative_prompt</span><span class="o">=</span><span class="s2">&quot;color, blur, crop, text, watermark&quot;</span><span class="p">,</span>
-    <span class="n">image_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;input.png&quot;</span><span class="p">],</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">"Convert the scene into a clean graphite pencil sketch while preserving layout"</span><span class="p">,</span>
+    <span class="n">negative_prompt</span><span class="o">=</span><span class="s2">"color, blur, crop, text, watermark"</span><span class="p">,</span>
+    <span class="n">image_paths</span><span class="o">=</span><span class="p">[</span><span class="s2">"input.png"</span><span class="p">],</span>
     <span class="n">width</span><span class="o">=</span><span class="mi">768</span><span class="p">,</span>
     <span class="n">height</span><span class="o">=</span><span class="mi">432</span><span class="p">,</span>
     <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
     <span class="n">guidance</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;sketch.png&quot;</span><span class="p">)</span>
+<span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">"sketch.png"</span><span class="p">)</span>
 </code></pre></div>
 <p>Contradictions fail early:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">TaskInferenceError</span><span class="p">,</span> <span class="n">resolve_task</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;Wan-AI/Wan2.2-T2V-A14B-Diffusers&quot;</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">resolve_task</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">"Wan-AI/Wan2.2-T2V-A14B-Diffusers"</span><span class="p">,</span> <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 <span class="k">except</span> <span class="n">TaskInferenceError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
 </code></pre></div>
@@ -1537,15 +1537,15 @@ caller omits it, MLX-Gen applies the official blank negative-prompt behavior for
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">on_progress</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">ProgressEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">task</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">phase</span><span class="si">}</span><span class="s2">: step </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">total_steps</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">progress</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">task</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">phase</span><span class="si">}</span><span class="s2">: step </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">total_steps</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">progress</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">)"</span><span class="p">)</span>
 
 
 <span class="n">model</span> <span class="o">=</span> <span class="n">ZImageTurbo</span><span class="p">(</span><span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
-<span class="n">unsubscribe</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">subscribe_progress</span><span class="p">(</span><span class="n">on_progress</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="s2">&quot;text-to-image&quot;</span><span class="p">)</span>
+<span class="n">unsubscribe</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">subscribe_progress</span><span class="p">(</span><span class="n">on_progress</span><span class="p">,</span> <span class="n">task</span><span class="o">=</span><span class="s2">"text-to-image"</span><span class="p">)</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="n">image</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_image</span><span class="p">(</span>
         <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
-        <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;A clean studio product photo of a ceramic teapot&quot;</span><span class="p">,</span>
+        <span class="n">prompt</span><span class="o">=</span><span class="s2">"A clean studio product photo of a ceramic teapot"</span><span class="p">,</span>
         <span class="n">width</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
         <span class="n">height</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
         <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
@@ -1564,15 +1564,15 @@ paths do not use <code>image_strength</code>.</p>
 
 <span class="k">def</span><span class="w"> </span><span class="nf">on_progress</span><span class="p">(</span><span class="n">event</span><span class="p">:</span> <span class="n">ProgressEvent</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span>
-        <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">phase</span><span class="si">}</span><span class="s2">: frame </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">frame</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">total_frames</span><span class="si">}</span><span class="s2">, &quot;</span>
-        <span class="sa">f</span><span class="s2">&quot;step </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">total_steps</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">progress</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">phase</span><span class="si">}</span><span class="s2">: frame </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">frame</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">total_frames</span><span class="si">}</span><span class="s2">, "</span>
+        <span class="sa">f</span><span class="s2">"step </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">step</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">total_steps</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">event</span><span class="o">.</span><span class="n">progress</span><span class="si">:</span><span class="s2">.0%</span><span class="si">}</span><span class="s2">"</span>
     <span class="p">)</span>
 
 
-<span class="n">model</span> <span class="o">=</span> <span class="n">Wan2_2_TI2V</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">&quot;Wan-AI/Wan2.2-TI2V-5B-Diffusers&quot;</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">Wan2_2_TI2V</span><span class="p">(</span><span class="n">model_path</span><span class="o">=</span><span class="s2">"Wan-AI/Wan2.2-TI2V-5B-Diffusers"</span><span class="p">)</span>
 <span class="n">video</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_video</span><span class="p">(</span>
     <span class="n">seed</span><span class="o">=</span><span class="mi">321</span><span class="p">,</span>
-    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;A slow cinematic shot of a glass sphere floating above teal water&quot;</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">"A slow cinematic shot of a glass sphere floating above teal water"</span><span class="p">,</span>
     <span class="n">width</span><span class="o">=</span><span class="mi">1280</span><span class="p">,</span>
     <span class="n">height</span><span class="o">=</span><span class="mi">704</span><span class="p">,</span>
     <span class="n">num_frames</span><span class="o">=</span><span class="mi">121</span><span class="p">,</span>
@@ -1580,7 +1580,7 @@ paths do not use <code>image_strength</code>.</p>
     <span class="n">fps</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
     <span class="n">progress_callback</span><span class="o">=</span><span class="n">on_progress</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;video.mp4&quot;</span><span class="p">)</span>
+<span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">"video.mp4"</span><span class="p">)</span>
 </code></pre></div>
 <p>For Wan2.2 T2V-A14B, construct the same class with <code>model_config=ModelConfig.wan2_2_t2v_a14b()</code> or the A14B model name routed through the CLI. That same route now owns public <code>video-to-video</code>: pass <code>video_path</code>, keep <code>solver="unipc"</code>, use <code>video_strength</code> for the source-change amount, and add <code>video_mask_path</code> when you want preserved regions locked to the source. For Wan2.2 I2V-A14B, use <code>model_config=ModelConfig.wan2_2_i2v_a14b()</code> or the <code>Wan-AI/Wan2.2-I2V-A14B-Diffusers</code> model name and pass <code>image_path</code> to <code>generate_video()</code>. On that i2v route, <code>last_image_path=...</code> adds an optional second anchor the clip should end near (first+last bracket conditioning, experimental on Wan 2.2 A14B; the last image maps through the same canvas and <code>resize_mode</code> as the first frame, and every other Wan route rejects it). Also on that route, <code>context_image_paths=[...]</code> extends the conditioned head with the ordered frames that FOLLOW <code>image_path</code> in the motion being continued (4, 8, or 12 frames — heads of 5, 9, or 13 fill whole 4x latent groups), so a continuation inherits real momentum instead of restarting from one frozen frame; <code>context_noise=...</code> (0-1000, ~20) optionally perturbs that head SkyReels-style. Both are experimental zero-shot behaviors measured in backlog 0102, rejected on every non-A14B-i2v route, and hosts should gate on the <code>supports_context_frames</code> capability field (introduced in schema 6; current schema 8). For chained scenes, the same i2v route also ships SVI 2.0 Pro conditioning (backlog 0103, EXPERIMENTAL): construct the model with the SVI error-recycling LoRA pair (<code>svi_lora_high_path=...</code>, <code>svi_lora_low_path=...</code>; strict key-match, fixed scale 1.0) and call <code>generate_video(svi_anchor_image_path=...)</code> for the first clip, then add <code>svi_motion_latent_path=...</code> (the previous clip's exported latent; export with <code>svi_motion_latent_export_path=...</code>) and a NEW seed per clip for continuations — one persistent anchor carries identity, the latent handover carries momentum, and assembly must drop <code>svi_assembly_trim_frames</code> frames (metadata; 5 for the default one motion latent) from each continuation clip. SVI mode replaces <code>image_path</code> and conflicts with <code>last_image_path</code>/<code>context_image_paths</code>/<code>video_path</code>; hosts gate on <code>supports_svi</code> (introduced in schema 7; current schema 8). <code>denoising_step_list=[1000, 750, 500, 250]</code> runs an exact distill timestep grid instead of a step count on text/image-to-video routes; it is mutually exclusive with <code>num_inference_steps</code> and an explicit <code>flow_shift</code>. A14B boundary routing is handled internally. If both <code>guidance</code> and <code>guidance_2</code> are omitted, MLX-Gen uses the model's two-stage defaults. If <code>guidance</code> is provided and <code>guidance_2</code> is omitted, the low-noise <code>transformer_2</code> stage follows <code>guidance</code>. For Wan image-to-video, <code>width</code> and <code>height</code> are size targets; the model API resolves the final output canvas from the source image aspect ratio and model spatial multiples. For Wan video-to-video, <code>width</code> and <code>height</code> are the requested output canvas after Wan patch-multiple normalization.</p>
 <p>Bernini uses a dedicated renderer class and keeps references separate from first-frame images:</p>
@@ -1591,8 +1591,8 @@ paths do not use <code>image_strength</code>.</p>
 <span class="n">renderer</span> <span class="o">=</span> <span class="n">BerniniRenderer</span><span class="p">()</span>
 <span class="n">video</span> <span class="o">=</span> <span class="n">renderer</span><span class="o">.</span><span class="n">generate_video</span><span class="p">(</span>
     <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
-    <span class="n">prompt</span><span class="o">=</span><span class="s2">&quot;Animate the subject from image0 in a fixed medium shot&quot;</span><span class="p">,</span>
-    <span class="n">reference_image_paths</span><span class="o">=</span><span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;subject.png&quot;</span><span class="p">)],</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">"Animate the subject from image0 in a fixed medium shot"</span><span class="p">,</span>
+    <span class="n">reference_image_paths</span><span class="o">=</span><span class="p">[</span><span class="n">Path</span><span class="p">(</span><span class="s2">"subject.png"</span><span class="p">)],</span>
     <span class="n">width</span><span class="o">=</span><span class="mi">320</span><span class="p">,</span>
     <span class="n">height</span><span class="o">=</span><span class="mi">192</span><span class="p">,</span>
     <span class="n">num_frames</span><span class="o">=</span><span class="mi">17</span><span class="p">,</span>
@@ -1602,7 +1602,7 @@ paths do not use <code>image_strength</code>.</p>
     <span class="n">clear_cache_each_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="n">clear_cache_each_transformer_block</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
 <span class="p">)</span>
-<span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;referenced.mp4&quot;</span><span class="p">,</span> <span class="n">export_json_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">"referenced.mp4"</span><span class="p">,</span> <span class="n">export_json_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 </code></pre></div>
 <p>Pass <code>video_path=...</code> as well for RV2V, or pass a video without references for V2V. Construct
 without <code>quantize</code>; Bernini is BF16-only. It rejects LoRA and the ordinary Wan image/strength/mask/
@@ -1634,7 +1634,7 @@ an in-loop callback, decode the step's latents with <code>PreviewDecoder</code>,
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.common.preview.preview_decoder</span><span class="w"> </span><span class="kn">import</span> <span class="n">PreviewDecoder</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">mflux.utils.image_util</span><span class="w"> </span><span class="kn">import</span> <span class="n">ImageUtil</span>
 
-<span class="n">preview_decoder</span> <span class="o">=</span> <span class="n">PreviewDecoder</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
+<span class="n">preview_decoder</span> <span class="o">=</span> <span class="n">PreviewDecoder</span><span class="o">.</span><span class="n">resolve</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">"auto"</span><span class="p">)</span>
 
 
 <span class="k">class</span><span class="w"> </span><span class="nc">LivePreview</span><span class="p">:</span>

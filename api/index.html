@@ -1102,13 +1102,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#seedvr2-upscale-command" class="md-nav__link">
+  <a href="#restoration-commands" class="md-nav__link">
     <span class="md-ellipsis">
       
-        SeedVR2 Upscale Command
+        Restoration Commands
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Restoration Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-restoration-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python restoration routes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1466,13 +1483,30 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#seedvr2-upscale-command" class="md-nav__link">
+  <a href="#restoration-commands" class="md-nav__link">
     <span class="md-ellipsis">
       
-        SeedVR2 Upscale Command
+        Restoration Commands
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Restoration Commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#python-restoration-routes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python restoration routes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1629,7 +1663,7 @@ inputs. Public tasks are media directions: <code>text-to-image</code>, <code>ima
 not a separate public task.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>z-image-turbo<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A product photo of a ceramic teapot&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A product photo of a ceramic teapot"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>image.png
 </code></pre></div>
 <p>Inspect a model before generation:</p>
@@ -1662,7 +1696,7 @@ inside the adapter repository:</p>
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>&lt;compatible-model&gt;<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;&lt;prompt from the LoRA model card&gt;&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"&lt;prompt from the LoRA model card&gt;"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--lora-paths<span class="w"> </span>owner/repo:adapter.safetensors<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>with_lora.png
@@ -1770,14 +1804,14 @@ automatically unless your <code>--output</code> pattern already contains <code>{
 <p>Examples:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>qwen-image<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean studio product photo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A clean studio product photo"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="m">202</span><span class="w"> </span><span class="m">303</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>product.png
 </code></pre></div>
 <p>This writes <code>product_seed_101.png</code>, <code>product_seed_202.png</code>, and <code>product_seed_303.png</code>.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-T2V-A14B-Diffusers<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic shot of mist rolling across a teal mountain lake&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A cinematic shot of mist rolling across a teal mountain lake"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="m">202</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>lake.mp4
 </code></pre></div>
@@ -1797,7 +1831,7 @@ appends the source-file stem automatically so each saved artifact gets its own p
 <span class="w">  </span>--model<span class="w"> </span>seedvr2-3b<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--video-path<span class="w"> </span>clip_a.mp4<span class="w"> </span>clip_b.mp4<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">11</span><span class="w"> </span><span class="m">22</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--output<span class="w"> </span><span class="s2">&quot;restored_{input_name}_{seed}.mp4&quot;</span>
+<span class="w">  </span>--output<span class="w"> </span><span class="s2">"restored_{input_name}_{seed}.mp4"</span>
 </code></pre></div>
 <p>Legacy <code>{image_name}</code> is still accepted as a compatibility alias. If two SeedVR2 source files
 share the same basename, keep <code>--replace false</code> or rename the inputs; overwrite-prone batches are
@@ -1906,8 +1940,8 @@ matches the exact inpainting sidecar that the route already validates and inject
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Aesthetics art, traditional asian pagoda, elaborate golden accents, sky blue and white color palette, swirling cloud pattern, digital illustration, east asian architecture, ornamental rooftop, intricate detailing on building, cultural representation.&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;blurry, low quality, distorted, deformed, text, watermark, ugly&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Aesthetics art, traditional asian pagoda, elaborate golden accents, sky blue and white color palette, swirling cloud pattern, digital illustration, east asian architecture, ornamental rooftop, intricate detailing on building, cultural representation."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">"blurry, low quality, distorted, deformed, text, watermark, ugly"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">576</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">864</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
@@ -1983,8 +2017,8 @@ always map through the same geometry as the source pixels; letterbox borders bin
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-2509-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the room into a pencil sketch&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;color, blur, crop, text, watermark&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Turn the room into a pencil sketch"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">"color, blur, crop, text, watermark"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>edited.png
 </code></pre></div>
 <p>For latent image-to-image variation, use a model that supports <code>latent-img2img</code> and pass
@@ -1997,7 +2031,7 @@ latent:</p>
 <span class="w">  </span>--i2i-mode<span class="w"> </span>latent<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--canvas-policy<span class="w"> </span>source-aspect<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image-strength<span class="w"> </span><span class="m">0</span>.4<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Make the scene more cinematic&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Make the scene more cinematic"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>variation.png
 </code></pre></div>
 <p><code>--task edit</code> remains accepted as a compatibility alias for
@@ -2011,8 +2045,8 @@ to generate the larger view:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-4b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--reframe-padding<span class="w"> </span><span class="s2">&quot;15%,35%,15%,35%&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Generatively reframe this image into a wider view. Keep the subject fully visible and extend the background naturally.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reframe-padding<span class="w"> </span><span class="s2">"15%,35%,15%,35%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Generatively reframe this image into a wider view. Keep the subject fully visible and extend the background naturally."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>reframed.png
@@ -2026,8 +2060,8 @@ fill the larger view:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>black-forest-labs/FLUX.2-klein-base-9B<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">&quot;5%,80%,5%,60%&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Outpaint this close crop into a wider realistic shot. Complete the missing background and subject outside the original frame.&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"5%,80%,5%,60%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Outpaint this close crop into a wider realistic shot. Complete the missing background and subject outside the original frame."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
@@ -2052,8 +2086,8 @@ published starship proof set; prepared base q8/q4 package proof is still pending
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Convert the scene into a clean graphite pencil sketch while preserving layout&quot;</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--negative<span class="w"> </span><span class="s2">&quot;color, blur, crop, text, watermark&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Convert the scene into a clean graphite pencil sketch while preserving layout"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative<span class="w"> </span><span class="s2">"color, blur, crop, text, watermark"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">30</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>sketch.png
@@ -2071,14 +2105,14 @@ unwanted color.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--family<span class="w"> </span>qwen<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean studio product photo&quot;</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A clean studio product photo"</span>
 </code></pre></div>
 <p>Use <code>--config-from-metadata</code> / <code>-C</code> when you want the router to read fields such as <code>model</code>, <code>image_path</code>, or <code>image_paths</code> from an existing metadata file.</p>
 <p>Bonsai Image routes through the same text-to-image command surface. The supported ternary
 checkpoint is already low-bit packed, so omit <code>--quantize</code>:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>prism-ml/bonsai-image-ternary-4B-mlx-2bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A bonsai tree in a quiet ceramic studio, soft morning light&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A bonsai tree in a quiet ceramic studio, soft morning light"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
@@ -2093,7 +2127,7 @@ requires.</p>
 <p>ERNIE Image Turbo routes through the same command surface:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A clean product photo of a ceramic mug&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A clean product photo of a ceramic mug"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
@@ -2104,7 +2138,7 @@ requires.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>baidu/ERNIE-Image-Turbo<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Turn the scene into a pencil sketch&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Turn the scene into a pencil sketch"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">512</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
@@ -2130,7 +2164,7 @@ first-frame image-to-video. Wan uses explicit target roles: <code>transformer</c
 <p>Wan2.2 routes through the same command surface for video generation. TI2V-5B is the smaller text-to-video and first-frame image-to-video path:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-TI2V-5B-Diffusers<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A short cinematic video of a glowing orange glass sphere floating above teal water&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A short cinematic video of a glowing orange glass sphere floating above teal water"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">704</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">121</span><span class="w"> </span><span class="se">\</span>
@@ -2145,7 +2179,7 @@ two-stage defaults (<code>4</code> high-noise and <code>3</code> low-noise for T
 omit <code>--guidance-2</code>, the low-noise stage follows <code>--guidance</code>:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-T2V-A14B-Diffusers<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic shot of mist rolling across a teal mountain lake&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A cinematic shot of mist rolling across a teal mountain lake"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">720</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">81</span><span class="w"> </span><span class="se">\</span>
@@ -2159,7 +2193,7 @@ omit <code>--guidance-2</code>, the low-noise stage follows <code>--guidance</co
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-TI2V-5B-Diffusers<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A slow cinematic camera move from the input frame&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A slow cinematic camera move from the input frame"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">704</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">121</span><span class="w"> </span><span class="se">\</span>
@@ -2173,7 +2207,7 @@ concatenated image-condition latent path:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>Wan-AI/Wan2.2-I2V-A14B-Diffusers<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A cinematic flyby around the subject in the input image&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A cinematic flyby around the subject in the input image"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1280</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">720</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--frames<span class="w"> </span><span class="m">81</span><span class="w"> </span><span class="se">\</span>
@@ -2204,18 +2238,18 @@ production output.</p>
 <div class="highlight"><pre><span></span><code><span class="c1"># R2V: one to eight ordered references, no source video.</span>
 mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--reference-image<span class="w"> </span>subject.png<span class="w"> </span>--reference-image<span class="w"> </span>garment.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Animate image0 wearing the garment from image1&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Animate image0 wearing the garment from image1"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span>--output<span class="w"> </span>referenced.mp4
 
 <span class="c1"># RV2V: one source video plus one to eight ordered references.</span>
 mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--video<span class="w"> </span>source.mp4<span class="w"> </span>--reference-image<span class="w"> </span>garment.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;Replace the outer garment with image0 and preserve the source person and scene&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Replace the outer garment with image0 and preserve the source person and scene"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span>--output<span class="w"> </span>reference_edit.mp4
 
 <span class="c1"># V2V: one source video and no references.</span>
 mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--video<span class="w"> </span>source.mp4<span class="w"> </span>--prompt<span class="w"> </span><span class="s2">&quot;Add a snowman beside the path&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video<span class="w"> </span>source.mp4<span class="w"> </span>--prompt<span class="w"> </span><span class="s2">"Add a snowman beside the path"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span>--output<span class="w"> </span>video_edit.mp4
 </code></pre></div>
 <p>Defaults are 848x480, 81 frames, 16 fps, 40 steps, flow shift 5, UniPC, text guidance 4,
@@ -2293,7 +2327,7 @@ and the source duration plus requested fps may resolve fewer <code>4n+1</code> f
 </tr>
 <tr>
 <td><code>--context-frames</code></td>
-<td>Wan A14B image-to-video only (EXPERIMENTAL zero-shot): the ordered frames that FOLLOW <code>--image-path</code> in the motion being continued. The conditioned head becomes <code>[--image-path, *--context-frames]</code>, so a continuation clip inherits the predecessor's real momentum instead of restarting from one frozen frame (the multi-frame handover used by SkyReels-V2/SVI-class pipelines). Pass 4, 8, or 12 frames — the head must fill whole 4x VAE latent groups (5, 9, or 13 conditioned frames); passing the start frame here too is the common misuse and fails on that count check. Requires <code>--image-path</code>; needs <code>--frames &gt;= head + 4</code>; composes with <code>--last-image</code>; rejected on TI2V-5B (<code>expand_timesteps</code>), Wan VACE, and text/video-to-video — CLI rejects before weight load. All frames map through the same canvas and <code>--resize-mode</code> as the first frame. Recorded in metadata (<code>context_image_paths</code>), replayed by <code>--config-from-metadata</code>, advertised as <code>supports_context_frames</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 6; the current capabilities payload is schema 8. Measured zero-shot on a Lightning 4-step continuation pair (backlog 0102): the K=5 head carried the source clip's motion speed (seam magnitude ratio 0.90 vs the single-frame baseline's 1.90 = double-speed restart) with a mild ~2-frame flare/exposure step at the conditioned-to-free boundary (luma delta ~3.2/255 vs the source clip's own max 1.15; visually mild, structurally clean). Treat as a storyboard continue-seam tool, not a validated general feature.</td>
+<td>Wan A14B image-to-video only (EXPERIMENTAL zero-shot): the ordered frames that FOLLOW <code>--image-path</code> in the motion being continued. The conditioned head becomes <code>[--image-path, *--context-frames]</code>, so a continuation clip inherits the predecessor's real momentum instead of restarting from one frozen frame (the multi-frame handover used by SkyReels-V2/SVI-class pipelines). Pass 4, 8, or 12 frames — the head must fill whole 4x VAE latent groups (5, 9, or 13 conditioned frames); passing the start frame here too is the common misuse and fails on that count check. Requires <code>--image-path</code>; needs <code>--frames &gt;= head + 4</code>; composes with <code>--last-image</code>; rejected on TI2V-5B (<code>expand_timesteps</code>), Wan VACE, and text/video-to-video — CLI rejects before weight load. All frames map through the same canvas and <code>--resize-mode</code> as the first frame. Recorded in metadata (<code>context_image_paths</code>), replayed by <code>--config-from-metadata</code>, advertised as <code>supports_context_frames</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 6; the current capabilities payload is schema 9. Measured zero-shot on a Lightning 4-step continuation pair (backlog 0102): the K=5 head carried the source clip's motion speed (seam magnitude ratio 0.90 vs the single-frame baseline's 1.90 = double-speed restart) with a mild ~2-frame flare/exposure step at the conditioned-to-free boundary (luma delta ~3.2/255 vs the source clip's own max 1.15; visually mild, structurally clean). Treat as a storyboard continue-seam tool, not a validated general feature.</td>
 </tr>
 <tr>
 <td><code>--context-noise</code></td>
@@ -2301,7 +2335,7 @@ and the source duration plus requested fps may resolve fewer <code>4n+1</code> f
 </tr>
 <tr>
 <td><code>--svi-anchor-image</code></td>
-<td>Wan A14B image-to-video only (EXPERIMENTAL): SVI 2.0 Pro chain conditioning (Stable Video Infinity, ICLR'26, trained for Wan 2.2 A14B i2v). One persistent anchor image is re-injected into EVERY clip of a chain as <code>[anchor_latent, motion_latent?, zero-latents]</code> — identity from the anchor, momentum from the previous clip's exported latent, TRUE zero-latent padding (not the stock zero-frame VAE encode; the conventions are mutually unintelligible, which is why the mode and the LoRA pair gate each other loudly in both directions). Replaces <code>--image-path</code>; conflicts with <code>--image-path</code>, <code>--last-image</code>, <code>--context-frames</code>, <code>--video-path</code>; rejected on TI2V-5B and VACE before weight load. Requires <code>--svi-lora-high</code>/<code>--svi-lora-low</code>. Every SVI run exports <code>&lt;output&gt;.svi_latent.safetensors</code> for the next clip and records <code>svi_*</code> metadata including <code>svi_assembly_trim_frames</code> (drop that many frames of every CONTINUATION clip at assembly: <code>1 + 4 x count</code>). Use a unique seed per clip. Advertised as <code>supports_svi</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 7; the current capabilities payload is schema 8.</td>
+<td>Wan A14B image-to-video only (EXPERIMENTAL): SVI 2.0 Pro chain conditioning (Stable Video Infinity, ICLR'26, trained for Wan 2.2 A14B i2v). One persistent anchor image is re-injected into EVERY clip of a chain as <code>[anchor_latent, motion_latent?, zero-latents]</code> — identity from the anchor, momentum from the previous clip's exported latent, TRUE zero-latent padding (not the stock zero-frame VAE encode; the conventions are mutually unintelligible, which is why the mode and the LoRA pair gate each other loudly in both directions). Replaces <code>--image-path</code>; conflicts with <code>--image-path</code>, <code>--last-image</code>, <code>--context-frames</code>, <code>--video-path</code>; rejected on TI2V-5B and VACE before weight load. Requires <code>--svi-lora-high</code>/<code>--svi-lora-low</code>. Every SVI run exports <code>&lt;output&gt;.svi_latent.safetensors</code> for the next clip and records <code>svi_*</code> metadata including <code>svi_assembly_trim_frames</code> (drop that many frames of every CONTINUATION clip at assembly: <code>1 + 4 x count</code>). Use a unique seed per clip. Advertised as <code>supports_svi</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 7; the current capabilities payload is schema 9.</td>
 </tr>
 <tr>
 <td><code>--svi-motion-latent</code></td>
@@ -2474,13 +2508,132 @@ are not representative of Wan video quality or prompt adherence.</p>
 <p><img alt="Wan2.2 TI2V first-frame image-to-video contact sheet" src="../assets/generation/wan2.2-ti2v-5b-i2v-bateau-1280x704-17f-20steps-contact-sheet.png" /></p>
 <p>These panels are examples at the model's spatial scale. Evaluate final visual quality with the
 recommended full-resolution, frame-count, and step-count settings for your target model.</p>
-<h2 id="seedvr2-upscale-command">SeedVR2 Upscale Command<a class="headerlink" href="#seedvr2-upscale-command" title="Permanent link">&para;</a></h2>
-<p>SeedVR2 image and video restoration use <code>mlxgen upscale</code>. The public video CLI path uses
-sequential temporal chunking, defaults video restore to <code>1x</code> when <code>--resolution</code> is omitted,
-enables <code>--low-ram</code> automatically, and fails closed on enlarged video output unless you explicitly
-pass <code>--force-unsafe-video-memory</code>. See <a href="../upscaling/">Image Upscaling</a> for a reproducible 5x
-image comparison plus the accepted June 21 five-second Eiffel <code>1x</code> and <code>2x</code> 3B/7B validation
-bundles.</p>
+<h2 id="restoration-commands">Restoration Commands<a class="headerlink" href="#restoration-commands" title="Permanent link">&para;</a></h2>
+<p><code>mlxgen upscale</code> hosts two promptless restoration families. Select one with <code>--model</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Family</th>
+<th>Handles</th>
+<th>Images</th>
+<th>Video</th>
+<th>Scaling</th>
+<th>Quantization</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SeedVR2</td>
+<td><code>seedvr2</code>, <code>seedvr2-3b</code>, <code>seedvr2-7b</code>, <code>seedvr2-7b-sharp</code>, official repos, AbstractFramework packages</td>
+<td>yes</td>
+<td>yes</td>
+<td>yes</td>
+<td>q8 / q4 packages</td>
+</tr>
+<tr>
+<td>SwiftVR</td>
+<td><code>swiftvr</code>, <code>swiftvr-5b</code></td>
+<td>no</td>
+<td>yes</td>
+<td>source resolution only (<code>1x</code>)</td>
+<td>none (bf16)</td>
+</tr>
+</tbody>
+</table>
+<p>Restoration routes are described by the <code>restoration</code> array of <code>mlxgen capabilities</code>, alongside the
+<code>capabilities</code> array that describes <code>mlxgen generate</code> routes. An empty array means the model is not
+routable through that command, not that the model is unsupported.</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>swiftvr
+mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--family<span class="w"> </span>seedvr2
+</code></pre></div>
+<p>Each restoration row carries the route contract in machine-readable form, so a caller does not need
+to match handle strings to learn what a model accepts:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code>, <code>handler_id</code></td>
+<td>Canonical route identity, for example <code>swiftvr.restore-video</code>.</td>
+</tr>
+<tr>
+<td><code>command</code></td>
+<td>The command that serves the route (<code>mlxgen upscale</code>).</td>
+</tr>
+<tr>
+<td><code>accepted_media</code></td>
+<td><code>["image"]</code> or <code>["video"]</code>. One row per accepted input kind.</td>
+</tr>
+<tr>
+<td><code>max_images</code>, <code>max_videos</code></td>
+<td>Input counts the route accepts. <code>max_images: 0</code> states that a family cannot restore stills.</td>
+</tr>
+<tr>
+<td><code>supports_scaling</code>, <code>scale_factors</code></td>
+<td>Whether the route can enlarge, and which factors it accepts.</td>
+</tr>
+<tr>
+<td><code>supports_quantization</code>, <code>quantization_bits</code>, <code>weight_precision</code></td>
+<td>Quantized package support and the precision the route runs at.</td>
+</tr>
+<tr>
+<td><code>frame_multiple</code>, <code>frame_remainder</code>, <code>min_frames</code>, <code>max_frames</code></td>
+<td>Clip-length contract. SwiftVR reports <code>4</code> and <code>1</code>, so a clip must satisfy <code>frames % 4 == 1</code>.</td>
+</tr>
+<tr>
+<td><code>chunk_strategy</code>, <code>chunk_size_*</code>, <code>chunk_overlap_*</code></td>
+<td>Temporal chunking contract and whether the user may set it.</td>
+</tr>
+<tr>
+<td><code>supports_audio_passthrough</code>, <code>color_correction_modes</code>, <code>supports_steps</code>, <code>supports_softness</code></td>
+<td>Per-route option support.</td>
+</tr>
+</tbody>
+</table>
+<p>The public video CLI path uses sequential temporal chunking, defaults video restore to <code>1x</code> when
+<code>--resolution</code> is omitted, enables <code>--low-ram</code> automatically, and fails closed on enlarged video
+output unless you explicitly pass <code>--force-unsafe-video-memory</code>. See
+<a href="../upscaling/">Image And Video Upscaling</a> for the reproducible 5x image comparison, the accepted
+five-second Eiffel <code>1x</code> and <code>2x</code> 3B/7B bundles, and the SwiftVR/SeedVR2 comparison.</p>
+<h3 id="python-restoration-routes">Python restoration routes<a class="headerlink" href="#python-restoration-routes" title="Permanent link">&para;</a></h3>
+<p>Both families expose the same write-to-disk route names, so a caller selects a route by input kind
+rather than by model family:</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>SeedVR2</th>
+<th>SwiftVR</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>restore_image_to_path(...)</code></td>
+<td>yes</td>
+<td>not offered</td>
+</tr>
+<tr>
+<td><code>restore_video_to_path(...)</code></td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>generate_image(...)</code></td>
+<td>yes (in-memory)</td>
+<td>not offered</td>
+</tr>
+</tbody>
+</table>
+<p><code>restore_video_to_path</code> shares an identical keyword-only core across both families
+(<code>video_path</code>, <code>resolution</code>, <code>output_path</code>, <code>start_seconds</code>, <code>max_frames</code>, <code>color_correction_mode</code>,
+<code>drop_audio</code>, <code>export_json_metadata</code>, <code>overwrite</code>, <code>validate_health</code>, <code>restore_metadata</code>,
+<code>enforce_memory_budget</code>) and returns the <code>Path</code> written. Family-specific axes are additional
+keywords: <code>seed</code>, <code>softness</code> and the <code>temporal_chunk_*</code> controls on SeedVR2; <code>clip_len</code> and
+<code>dit_overlap</code> on SwiftVR.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/seedvr2-3b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image-path<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>

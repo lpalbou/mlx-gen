@@ -2,614 +2,622 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/acknowledgements/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/api/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/architecture/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/bernini/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/changelog/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/documentation-index/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/edit-capabilities/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/faq/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/getting-started/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/huggingface-publishing/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/image-edit-modes/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/lora/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/masked-editing/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/model-management/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/previews/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/python-integration/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/quantization/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/qwen-localized-editing/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/qwen-route-matrix/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/recommendations/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/reframe-outpaint/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/release/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/troubleshooting/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/upscaling/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/wan-video/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/adr/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/adr/0001_runtime_smoke_validation_for_model_routes/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/adr/0002_no_silent_automatic_fallbacks/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/adr/0003_runtime_truth_vs_consumer_convenience/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/adr/0004_seedvr2_video_host_safety_and_proof_boundaries/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/adr/0005_seedvr2_video_quality_proof_requires_five_second_reader_first_clips/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/adr/0006_generative_video_editing_task_boundary/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/adr/0007_role_aware_reference_conditioning_and_factored_model_sources/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/assets/examples/spaceship-v2v/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/overview/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0003_bonsai_ternary_flux2_support/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0007_lora_capability_matrix_and_strict_application/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0008_qwen_edit_parity_expansion/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0012_wan_a14b_t2v_i2v_support/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0014_shared_progress_callbacks/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0016_wan_video_integrity_release_gate/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0018_taskless_generation_routing/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0020_generation_capability_contract/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0021_wan_i2v_source_aspect_ratio/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0022_i2i_source_aspect_ratio_policy/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0023_i2i_capability_validation_matrix/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0025_standardized_i2i_sequence_validation/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0026_edit_model_prepared_capability_contact_sheets/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0028_release_validation_registry/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0029_qwen_image_edit_2511_base_parity/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0030_seedvr2_upscale_smoke_and_metadata/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0031_seedvr2_official_bytedance_checkpoint_support/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0032_seedvr2_video_restoration_upscaling/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0033_video_lora_for_t2v_i2v/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0037_ernie_image_turbo_lora_runtime_support/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0040_lightx2v_wan_4step_acceleration_profiles/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0042_github_actions_node24_migration/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0043_zimage_native_inpaint/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0046_seedvr2_video_audio_copythrough/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0051_safe_checkpoint_loading/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0052_release_publish_fail_closed/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0053_prepare_model_class_registry_resolution/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0054_inference_defaults_and_step_validation/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0055_low_ram_repeat_generation_safety/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0056_wan_vlm_bf16_performance_hardening/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0057_package_dependency_and_dist_hygiene/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0059_wan_vae_streaming_memory_measurement/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0060_runtime_memory_telemetry_and_manifests/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0061_prompt_materialization_for_low_ram_release/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0066_image_finalization_memory_peak_and_metadata_rewrite/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0067_progress_event_contract_hardening/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0068_qwen_control_route_hardening/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0069_zimage_cfg_and_inpaint_repair/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0070_canonical_capability_identity_for_variant_routes/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0071_python_runtime_serial_multi_output_reuse/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0072_reader_first_video_workflow_boundary_and_generative_video_edit_contract/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0073_wan_vace_reference_validation_harness_and_bounded_source_cases/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0074_wan_plain_generative_video_to_video_route/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0076_wan_masked_video_to_video_latent_compositing/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0077_wan_v2v_fps_resampling_and_audio_copy_through/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0078_router_descriptors_wan_decomposition_mask_util_schema_version/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0079_wan_v2v_motion_fidelity_ladder/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0080_wan_vace_1_3b_native_port/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0081_flux2_klein_masked_edit/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0082_masked_edit_expansion_qwen_zimage/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0083_bug_declared_cli_option_coverage_failure_diagnostics/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0084_bug_image_finalization_memory_contract/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0085_bug_machine_readable_cli_runtime_contract/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0086_wan_umt5_prompt_embed_cache/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0087_video_health_check_opt_out/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0091_release_0_24_0/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0093_weight_prefetch_at_load/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0094_default_mlx_cache_limit/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0095_flux2_prompt_cache_and_compile_reuse/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0097_wan_last_image_bracket_conditioning/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0098_wan_prompt_truncation_warning/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0099_wan_step_distill_scheduler_mode/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0101_release_0_25_0/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/completed/0105_bernini_r_1_3b_renderer_integration/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/deprecated/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/deprecated/0047_seedvr2_7b_quality_and_safe_video_scale_revalidation/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0001_model_integration_roadmap/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0002_wan_quantization_motion_parity/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0005_wan_q8_performance_investigation/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0013_wan_a14b_boundary_memory_recovery/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0015_wan_prompt_adherence_parity_validation/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0019_first_class_i2i_modes_and_outpaint_reframe/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0024_fibo_edit_unified_i2i_validation/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0027_fibo_edit_diffusers_parity_release_quality/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0034_flux2_dev_multi_angle_lora_support/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0035_wan_ti2v5b_math_and_behavior_parity/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0036_flux2_klein_base_source_validation_and_contact_sheets/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/0106_bernini_full_trajectory_parity_and_release_quality/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/memory/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/memory/0062_seedvr2_chunk_bounded_noise/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/memory/0063_componentwise_model_loading_memory_policy/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/memory/0064_generation_retention_cleanup/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/planned/runtime_contracts/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0004_bonsai_binary_1bit_runtime_support/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0006_wan_i2v_prompt_motion_validation/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0009_video_second_family_selection/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0010_ltx2_conditioning_lora_spike/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0011_next_generation_image_edit_watchlist/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0038_bonsai_packed_lora_runtime_support/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0039_wan_vace_video_editing_and_control/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0041_lightx2v_wan_distilled_model_loader_support/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0044_hunyuanvideo15_second_family_spike/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0045_zimage_controlnet_followup/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0048_seedvr2_enlarged_video_safe_profile_certification/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0049_boogu_image_family_support/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0050_krea2_turbo_integration/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0058_model_profile_registry_authority/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0065_componentwise_weight_streaming_migration/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0075_wan_vace_conditioning_expansion_after_plain_video_to_video/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0088_import_graph_diet/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0089_wan_memory_defaults/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0090_step_loop_performance_experiments/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0092_mflux_to_mlxgen_module_rename/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0096_outpaint_capability_expansion/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0100_wan_vace_identity_anchor_recipe/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0102_wan_context_frame_head_conditioning/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0103_wan_svi_pro_conditioning/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0104_minimax_h3_joint_audio_video_watch/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0107_larger_bernini_models_capacity_and_scope_gate/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0108_bernini_selective_8bit_package/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0109_bernini_task_type_cli_exposure/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0110_bernini_promotion_policy_decision/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0111_qwen_image_edit_instruction_scope_leakage/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0112_x0_estimate_previews/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0113_video_family_tiny_previews/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
+    </url>
+    <url>
+         <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0114_swiftvr_streaming_restoration/</loc>
+         <lastmod>2026-08-18</lastmod>
+    </url>
+    <url>
+         <loc>https://www.lpalbou.info/mlx-gen/backlog/proposed/0115_seedvr2_video_decode_artifact_at_larger_geometries/</loc>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/backlog/recurrent/0017_backlog_release_hygiene/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
     <url>
          <loc>https://www.lpalbou.info/mlx-gen/examples/spaceship-snow/</loc>
-         <lastmod>2026-08-14</lastmod>
+         <lastmod>2026-08-18</lastmod>
     </url>
 </urlset>

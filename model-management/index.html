@@ -1415,7 +1415,7 @@ card into that package. The card records the <code>mlx-gen</code> version that g
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--family<span class="w"> </span>qwen<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A product photo of a ceramic teapot&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A product photo of a ceramic teapot"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>image.png
 </code></pre></div>
 <p>If the local package path does not clearly identify the model family, add <code>--family</code> during generation. The supported router families are <code>qwen</code>, <code>flux2</code>, <code>bonsai</code>, <code>fibo</code>, <code>z-image</code>, <code>ernie-image</code>, and <code>wan</code>.</p>
@@ -1441,7 +1441,7 @@ then this command can run from local files without a Hugging Face cache snapshot
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>source.png<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;The spacecraft slowly lifts off&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"The spacecraft slowly lifts off"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>video.mp4
 </code></pre></div>
 <p>The generated card records the source model, MLX-Gen compatibility, mflux attribution, generator version, quantization policy, and default contributor attribution. See <a href="../huggingface-publishing/">Hugging Face Publishing</a> for upload and collection guidance.</p>
@@ -1467,7 +1467,7 @@ already packed MLX artifacts, so cache them with <code>download</code> and gener
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>prism-ml/bonsai-image-ternary-4B-mlx-2bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">&quot;A bonsai tree in a quiet ceramic studio, soft morning light&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A bonsai tree in a quiet ceramic studio, soft morning light"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--width<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--height<span class="w"> </span><span class="m">1024</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
