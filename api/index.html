@@ -2544,7 +2544,7 @@ recommended full-resolution, frame-count, and step-count settings for your targe
 <code>capabilities</code> array that describes <code>mlxgen generate</code> routes. An empty array means the model is not
 routable through that command, not that the model is unsupported.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>swiftvr
-mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--family<span class="w"> </span>seedvr2
+mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>seedvr2-3b
 </code></pre></div>
 <p>Each restoration row carries the route contract in machine-readable form, so a caller does not need
 to match handle strings to learn what a model accepts:</p>
@@ -2583,6 +2583,14 @@ to match handle strings to learn what a model accepts:</p>
 <tr>
 <td><code>frame_multiple</code>, <code>frame_remainder</code>, <code>min_frames</code>, <code>max_frames</code></td>
 <td>Clip-length contract. SwiftVR reports <code>4</code> and <code>1</code>, so a clip must satisfy <code>frames % 4 == 1</code>.</td>
+</tr>
+<tr>
+<td><code>dimension_multiple</code></td>
+<td>Output-geometry constraint. <code>16</code> on the SeedVR2 video row: restored frames are center-cropped to multiples of 16, matching the official pipeline. <code>1</code> on the image rows: any requested size is legal and the output preserves it exactly.</td>
+</tr>
+<tr>
+<td><code>color_correction_modes</code>, <code>default_color_correction</code></td>
+<td>Exactly the <code>--color-correction</code> values the route accepts. SwiftVR reports <code>["off"]</code>: the reference pipeline writes the decoder output unchanged, and the CLI refuses other modes at parse time.</td>
 </tr>
 <tr>
 <td><code>chunk_strategy</code>, <code>chunk_size_*</code>, <code>chunk_overlap_*</code></td>

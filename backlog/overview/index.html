@@ -2010,6 +2010,12 @@ memory follow-up state.</p>
 <td>Promote when the SeedVR2 video route must be correct above latent 48x36: one pixel frame per latent group of four is corrupted at 480x352 while 320x240 and 384x288 are clean, isolated to causal-sliced decode and reproducible with a committed command.</td>
 </tr>
 <tr>
+<td>0116</td>
+<td><a href="../proposed/0116_version_label_prefers_repo_files_over_dist_info/">Version label must prefer installed metadata over ancestor repo files</a></td>
+<td>Version identity, CLI banner</td>
+<td>Promote when developer-layout venvs matter: a stale in-repo venv reports the checkout's version instead of the installed one, observed masquerading as a broken 0.30.0 during the release audit.</td>
+</tr>
+<tr>
 <td>## Completed ledger</td>
 <td></td>
 <td></td>
