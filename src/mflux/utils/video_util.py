@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import shutil
 import subprocess
 import time
@@ -64,6 +65,26 @@ class SourceAudioCopySpec:
     source_video_path: str | Path
     clip_start_seconds: float
     clip_duration_seconds: float
+
+
+def _ffmpeg_vsync_args(ffmpeg_path: str) -> list[str]:
+    """Return the correct video-sync flag for the installed FFmpeg version.
+
+    FFmpeg < 5.1  uses ``-vsync`` with numeric values.
+    FFmpeg >= 8.0  removed ``-vsync`` entirely; ``-fps_mode`` with string
+    values must be used instead.
+    """
+    try:
+        out = subprocess.check_output(
+            [ffmpeg_path, "-version"], stderr=subprocess.DEVNULL
+        ).decode("utf-8", errors="replace")
+        major = int(re.search(r"ffmpeg version (\d+)", out).group(1))  # type: ignore[union-attr]
+    except Exception:
+        major = 7  # assume modern-but-compatible default
+
+    if major >= 8:
+        return ["-fps_mode", "passthrough"]
+    return ["-vsync", "0"]
 
 
 class VideoStreamWriter:
@@ -1337,8 +1358,7 @@ class VideoUtil:
             str(path),
             "-vf",
             filter_expression,
-            "-vsync",
-            "0",
+            *_ffmpeg_vsync_args(ffmpeg_path),
             "-an",
             "-sn",
             "-dn",
