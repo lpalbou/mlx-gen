@@ -570,6 +570,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Outpaint">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-conditioning-canvas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Conditioning Canvas
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1330,6 +1347,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Outpaint">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-conditioning-canvas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Conditioning Canvas
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1416,7 +1450,7 @@ edit should I expect from each mode?" For the current Qwen-specific route map, u
 <tr>
 <td>Extend the canvas beyond the crop while trying to keep the source region stable</td>
 <td><code>outpaint</code></td>
-<td>The model fills new space around the source image. This is the closest MLX-Gen route to source-preserving extension, but it is still generative.</td>
+<td>The model fills new space around the source image, starting from a conditioning canvas you can select on FLUX.2 Klein base routes. This is the closest MLX-Gen route to source-preserving extension, but it is still generative.</td>
 </tr>
 </tbody>
 </table>
@@ -1633,8 +1667,8 @@ scene.</p>
 <h2 id="outpaint">Outpaint<a class="headerlink" href="#outpaint" title="Permanent link">&para;</a></h2>
 <p>Use outpaint when the main goal is extending beyond the crop while keeping the existing source
 region as stable as the backend allows.</p>
-<p>Outpaint is still generative, but it is more source-preserving than reframe. MLX-Gen currently
-uses backend-specific strategies:</p>
+<p>Outpaint is still generative, but it is more source-preserving than reframe. MLX-Gen uses
+backend-specific strategies:</p>
 <ul>
 <li>Qwen Image Edit variants use a larger conditioning canvas and adaptive source restoration.</li>
 <li>FLUX.2 Klein base variants use source-locked denoising with a narrow latent transition band.</li>
@@ -1651,6 +1685,9 @@ uses backend-specific strategies:</p>
 <li>native masked fill/inpaint semantics;</li>
 <li>zero reinterpretation at the source boundary.</li>
 </ul>
+<p>The source region travels through a VAE encode/decode round trip rather than being pasted back, so
+it is reproduced, not preserved bit-for-bit. When a region must stay untouched, use masked editing
+(<code>--mask-path</code>, see <a href="../masked-editing/">Masked editing</a>).</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>black-forest-labs/FLUX.2-klein-base-9B<span class="w"> </span><span class="se">\</span>
@@ -1662,8 +1699,75 @@ uses backend-specific strategies:</p>
 <span class="w">  </span>--output<span class="w"> </span>outpaint.png
 </code></pre></div>
 <p>Expected result: the newly added space is generated around the source crop. The center should stay
-more stable than in reframe, especially on the current FLUX.2 base route, but the result is still
-not a literal source-paste guarantee.</p>
+more stable than in reframe, especially on the FLUX.2 base route, but the result is still not a
+literal source-paste guarantee.</p>
+<h3 id="the-conditioning-canvas">The Conditioning Canvas<a class="headerlink" href="#the-conditioning-canvas" title="Permanent link">&para;</a></h3>
+<p>Outpaint pastes your source onto a larger canvas and asks the model to complete the added area, so
+what fills that area before denoising decides much of what you get back. On FLUX.2 Klein base routes
+you choose it with <code>--outpaint-fill</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>What it paints</th>
+<th>What to expect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto</code> (default)</td>
+<td>Picks one of the modes below from the padding depth and the loaded adapter, and prints which and why.</td>
+<td>A sensible canvas without thinking about it.</td>
+</tr>
+<tr>
+<td><code>edge</code></td>
+<td>Stretches the source border strip outward.</td>
+<td>A continuation of the texture already at the border. Deeper than that strip covers, it reads as directional streaks.</td>
+</tr>
+<tr>
+<td><code>neutral</code></td>
+<td>A flat per-side border color sampled from the source.</td>
+<td>Nothing for the model to continue, so it generates new subject matter, without a hard color step at the seam.</td>
+</tr>
+<tr>
+<td><code>solid</code></td>
+<td>One flat color, from <code>--outpaint-fill-color</code> (<code>R,G,B</code> or <code>#rrggbb</code>).</td>
+<td>An exact canvas color, for example the one an adapter was trained on.</td>
+</tr>
+<tr>
+<td><code>blur</code></td>
+<td>A blurred, scaled copy of the source.</td>
+<td>A soft background suggestion rather than a blank one.</td>
+</tr>
+</tbody>
+</table>
+<p>Two practical rules follow from that:</p>
+<ul>
+<li><strong>Match the fill to the padding depth.</strong> Edge fill continues a texture; it does not invent one.
+  For a small border it is the better canvas. For a lot of new space — revealing a full body from a
+  head-and-shoulders portrait, say — a blank canvas plus a descriptive prompt is what generates new
+  subject matter, and <code>auto</code> switches to it on its own.</li>
+<li><strong>Extend in steps rather than in one jump.</strong> Outpaint cost scales with the expanded canvas and
+  attention cost grows faster than canvas area, so two moderate passes are cheaper and generally
+  better than one large pass. This is also the route on Qwen Image Edit, which always builds an
+  edge-extended canvas and takes no fill option.</li>
+</ul>
+<p>Naming the mode explicitly:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>portrait.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"0%,10%,100%,10%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-fill<span class="w"> </span>neutral<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Extend this portrait downward to reveal the lower part of the body: the same subject in the same clothing, same lighting, same background."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">1234</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>extended.png
+</code></pre></div>
+<p><code>--outpaint-padding</code> computes the output size from the source and the padding, so do not pass
+<code>--width</code>, <code>--height</code>, or <code>--canvas-policy</code> with it. For the reasoning behind <code>auto</code>, the printed
+run line, and the published capability contract, see
+<a href="../reframe-outpaint/#the-conditioning-canvas">Reframe and Outpaint</a>.</p>
 <h2 id="practical-advice">Practical Advice<a class="headerlink" href="#practical-advice" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Use <code>latent-img2img</code> for whole-image mood and style variation.</li>
@@ -1672,6 +1776,8 @@ not a literal source-paste guarantee.</p>
 <li>Use <code>multi-reference</code> when one image is not enough to describe the target.</li>
 <li>Use <code>reframe</code> when you want a wider composition and accept generative recomposition.</li>
 <li>Use <code>outpaint</code> when you want extension around the crop and source stability matters.</li>
+<li>Use <code>--outpaint-fill</code> to match the conditioning canvas to how much space you are adding: edge fill
+  for a small border, a blank canvas for a lot of new subject matter.</li>
 </ul>
 <p>For exact route support, use <code>mlxgen capabilities --model &lt;model&gt;</code>.
 For visual release evidence on exact models and packages, use

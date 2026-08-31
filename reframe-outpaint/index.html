@@ -625,6 +625,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#the-conditioning-canvas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Conditioning Canvas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-padding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing Padding
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#supported-models" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1190,6 +1212,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#the-conditioning-canvas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Conditioning Canvas
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#choosing-padding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Choosing Padding
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#supported-models" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1265,10 +1309,81 @@
 the source image size. For example, <code>5%,80%,5%,60%</code> adds a small top/bottom border, more space to
 the right, and a large extension to the left.</p>
 <p><code>--reframe-padding</code> is always a generative edit workflow. <code>--outpaint-padding</code> is backend-specific:
-Qwen Image Edit still uses generative canvas expansion with adaptive source restoration, while
-FLUX.2 Klein now routes strict outpaint only through base Klein models with source-locked denoising
-and a narrow transition band inside the source crop. Neither route is a native masked fill/inpaint
-pipeline, so review the output visually.</p>
+Qwen Image Edit uses generative canvas expansion with adaptive source restoration, while FLUX.2
+Klein routes strict outpaint through base Klein models with source-locked denoising and a narrow
+transition band inside the source crop. Neither route is a native masked fill/inpaint pipeline, so
+review the output visually.</p>
+<h2 id="the-conditioning-canvas">The Conditioning Canvas<a class="headerlink" href="#the-conditioning-canvas" title="Permanent link">&para;</a></h2>
+<p>Outpaint pastes your source onto a larger canvas and asks the model to complete the added area, so
+what fills that area <em>before</em> denoising decides what you get back. On FLUX.2 Klein base you choose
+that with <code>--outpaint-fill</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>What it paints</th>
+<th>Use it when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>auto</code> (default)</td>
+<td>Picks one of the modes below from the padding depth and the loaded adapter, and prints which and why.</td>
+<td>You want a sensible canvas without thinking about it.</td>
+</tr>
+<tr>
+<td><code>edge</code></td>
+<td>Stretches the source border strip outward.</td>
+<td>You are continuing an existing texture across a border within the edge-fill reach.</td>
+</tr>
+<tr>
+<td><code>neutral</code></td>
+<td>A flat per-side border color sampled from the source.</td>
+<td>You are adding a lot of space and want the model to invent new subject matter.</td>
+</tr>
+<tr>
+<td><code>solid</code></td>
+<td>One flat color, from <code>--outpaint-fill-color</code>.</td>
+<td>You need an exact canvas color, for example an adapter trained on one.</td>
+</tr>
+<tr>
+<td><code>blur</code></td>
+<td>A blurred, scaled copy of the source.</td>
+<td>You want a soft background suggestion rather than a blank one.</td>
+</tr>
+</tbody>
+</table>
+<p>Edge fill continues a texture; it does not invent one. It works by stretching a source border strip
+across the padded area, so it holds up while the padding stays within what that strip covers — the
+<strong>edge-fill reach</strong>, printed for every run. Past the reach the strip is stretched far enough that it
+reads as directional streaks rather than continued texture, so <code>auto</code> switches to <code>neutral</code> there:
+a blank canvas gives the model nothing to continue and it generates instead.</p>
+<p><code>auto</code> also switches to <code>solid</code> green when a green-border outpaint adapter is loaded, because those
+adapters are trained to paint into a pure-green canvas.</p>
+<p>Every outpaint run prints its resolved canvas:</p>
+<div class="highlight"><pre><span></span><code>Outpaint: fill=neutral, canvas 928x1536 from source 768x766, padding top=0 right=76 bottom=766 left=76.
+Outpaint: --outpaint-fill auto selected neutral because the deepest padding is bottom 766px (100% of
+the source height), 2.0x the 384px edge-fill reach; a blank canvas makes the model generate new
+subject matter instead of smearing the source border.
+</code></pre></div>
+<p>Applications can read the same contract as JSON without running a job — <code>outpaint_fill_modes</code>,
+<code>outpaint_default_fill_mode</code>, <code>outpaint_auto_edge_fill_max_stretch</code>, <code>outpaint_recommended_lora</code>,
+and the validated envelope are published on the capability record. See
+<a href="../edit-capabilities/">Edit Capabilities</a>.</p>
+<h2 id="choosing-padding">Choosing Padding<a class="headerlink" href="#choosing-padding" title="Permanent link">&para;</a></h2>
+<p>Padding is the single biggest factor in outpaint quality. Two guidelines:</p>
+<ul>
+<li><strong>Extend in steps rather than in one jump.</strong> Two passes of 50-70% give the model a nearby edge to
+  continue from each time, and each pass runs on a smaller canvas.</li>
+<li><strong>Watch the canvas size.</strong> Outpaint conditioning tokens scale with the canvas, and attention cost
+  grows faster than area. A 1.4 MP canvas costs substantially more per step than a 0.3 MP one.</li>
+</ul>
+<p>For revealing a subject the source crop never showed — a full body from a head-and-shoulders
+portrait, for example — <code>neutral</code> fill with a descriptive prompt is the route that generates new
+subject matter. A blank canvas gives the model room to invent but little guidance on where the
+subject continues, so at very deep padding the new content can sit away from the source edge. The
+outpaint adapter in <a href="../lora/">LoRA</a> is the recommended configuration for this case and holds the
+continuation to the source; extending in two moderate passes helps for the same reason.</p>
 <h2 id="supported-models">Supported Models<a class="headerlink" href="#supported-models" title="Permanent link">&para;</a></h2>
 <p>The historical mixed validation profile is <code>reframe_outpaint_2026_06_08</code>. It uses one cropped
 starship source image. Treat the distilled FLUX.2 outpaint rows in that profile as historical
@@ -1346,6 +1461,21 @@ stable as the backend allows:</p>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>outpaint.png
 </code></pre></div>
+<p>To add a lot of space on one side — extending a portrait downward to reveal more of the subject —
+pass the padding on that side and let <code>auto</code> pick the blank canvas, or name it explicitly:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>portrait.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"0%,10%,100%,10%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-fill<span class="w"> </span>neutral<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Extend this portrait downward to reveal the lower part of the body: the same subject in the same clothing, same lighting, same background."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">1234</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>extended.png
+</code></pre></div>
+<p><code>--outpaint-padding</code> computes the output size from the source and the padding, so do not pass
+<code>--width</code>, <code>--height</code>, or <code>--canvas-policy</code> with it.</p>
 <p>For Qwen Image Edit variants, MLX-Gen may still apply adaptive source restoration after generation.
 For current FLUX.2 Klein base outpaint, MLX-Gen relies on source-locked denoising with an interior
 transition band instead of pasting the original crop back over the final image.</p>

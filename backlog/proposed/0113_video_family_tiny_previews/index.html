@@ -23,7 +23,7 @@
     
     
       
-        <title>Proposed: tiny previews for the Wan, Qwen, and FIBO latent spaces (TAEHV family) - MLX-Gen</title>
+        <title>Proposed: realtime video previews with tiny decoders (TAEHV family) - MLX-Gen</title>
       
     
     
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#proposed-tiny-previews-for-the-wan-qwen-and-fibo-latent-spaces-taehv-family" class="md-skip">
+        <a href="#proposed-realtime-video-previews-with-tiny-decoders-taehv-family" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Proposed: tiny previews for the Wan, Qwen, and FIBO latent spaces (TAEHV family)
+              Proposed: realtime video previews with tiny decoders (TAEHV family)
             
           </span>
         </div>
@@ -1115,10 +1115,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#context" class="md-nav__link">
+  <a href="#goal" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Context
+        Goal
       
     </span>
   </a>
@@ -1126,10 +1126,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#why-it-matters" class="md-nav__link">
+  <a href="#why-video-is-the-strongest-case" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Why it matters
+        Why video is the strongest case
       
     </span>
   </a>
@@ -1137,10 +1137,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#proposed-work" class="md-nav__link">
+  <a href="#what-needs-building" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Proposed work
+        What needs building
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upstream-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upstream mapping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relationship-to-0112" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Relationship to 0112
       
     </span>
   </a>
@@ -1178,7 +1200,7 @@
   
 
 
-<h1 id="proposed-tiny-previews-for-the-wan-qwen-and-fibo-latent-spaces-taehv-family">Proposed: tiny previews for the Wan, Qwen, and FIBO latent spaces (TAEHV family)<a class="headerlink" href="#proposed-tiny-previews-for-the-wan-qwen-and-fibo-latent-spaces-taehv-family" title="Permanent link">&para;</a></h1>
+<h1 id="proposed-realtime-video-previews-with-tiny-decoders-taehv-family">Proposed: realtime video previews with tiny decoders (TAEHV family)<a class="headerlink" href="#proposed-realtime-video-previews-with-tiny-decoders-taehv-family" title="Permanent link">&para;</a></h1>
 <h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Created: 2026-08-14</li>
@@ -1190,14 +1212,69 @@
 <li>Governing ADRs: none directly.</li>
 <li>ADR impact: none; preview-only surface, never on the save path.</li>
 </ul>
-<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
-<p>Tiny-decoder previews shipped for the FLUX.1 latent space (<code>taef1</code>, covering flux and Z-Image)
-and the FLUX.2 latent space (<code>taef2</code>, covering FLUX.2 Klein, ERNIE-Image, and Bonsai). The
-remaining families need the <strong>TAEHV</strong> architecture, which is a different codebase from TAESD:
-NTCHW layout, causal-in-time <code>MemBlock</code>s that consume the previous timestep's activation, and
-<code>TGrow</code>/<code>TPool</code> temporal resampling convolutions.</p>
-<p>Upstream VAE lineage was established by direct safetensors comparison (2026-08-14), so the
-mapping is known and does not need re-deriving:</p>
+<h2 id="goal">Goal<a class="headerlink" href="#goal" title="Permanent link">&para;</a></h2>
+<p>Let an application show a Wan, Qwen, or FIBO generation forming while it runs — a live clip or
+frame updating each denoising step — at a cost that makes leaving it on reasonable. Tiny-decoder
+previews shipped in 0.29.0 for the FLUX.1 and FLUX.2 image latent spaces; the video families are
+the remaining half, and the one where the economics are strongest.</p>
+<h2 id="why-video-is-the-strongest-case">Why video is the strongest case<a class="headerlink" href="#why-video-is-the-strongest-case" title="Permanent link">&para;</a></h2>
+<p>Measured on this host (M5 Max, Wan 2.2 TI2V-5B q8, 256x256, 17 frames):</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Image (FLUX.2 Klein, 512x512)</th>
+<th>Video (Wan TI2V-5B, 17 frames)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>One denoising step</td>
+<td>~230 ms</td>
+<td>~340 ms</td>
+</tr>
+<tr>
+<td>One full-VAE decode</td>
+<td>203 ms</td>
+<td>1.49 s</td>
+</tr>
+<tr>
+<td>Decode / step</td>
+<td>0.9</td>
+<td><strong>4.4</strong></td>
+</tr>
+</tbody>
+</table>
+<p>An image decode costs about one denoising step; a video clip decode costs about four and a half.
+Previewing every step through the full VAE would add roughly 440% to that run, so continuous
+preview is impractical today on exactly the routes where runs last minutes and a user most wants
+to see progress. Upstream reports the same ratio in memory terms: a full video VAE decode of 61
+frames at 512x320 needs 6-9 GB against under 0.5 GB for TAEHV, so the tiny path is also what
+makes previewing feasible on memory-constrained hosts.</p>
+<h2 id="what-needs-building">What needs building<a class="headerlink" href="#what-needs-building" title="Permanent link">&para;</a></h2>
+<p>The video checkpoints use <strong>TAEHV</strong>, a different architecture from the TAESD graph already
+ported: NTCHW layout, causal-in-time <code>MemBlock</code>s that consume the previous timestep's activation,
+and <code>TGrow</code>/<code>TPool</code> temporal resampling convolutions.</p>
+<ul>
+<li>Port <code>MemBlock</code>, <code>TGrow</code>, <code>TPool</code>, and the TAEHV decoder graph to MLX alongside the existing
+  <code>TinyAutoencoder</code>, including <code>pixel_shuffle</code> postprocessing for the patch-2 checkpoints and the
+  <code>frames_to_trim</code> leading-frame drop.</li>
+<li>Load the raw (non-diffusers) key layout these checkpoints publish, and their float16 storage.</li>
+<li>Extend the preview registry with the <code>wan.2.1</code>, <code>wan.2.2-ti2v</code>, and <code>qwen-image</code> latent spaces,
+  each enabled only after an empirical check against that family's own VAE.</li>
+<li>Decide and document the preview unit for video: a single representative frame per step is the
+  cheapest useful signal, while decoding the whole clip each step is closer to what a scrubbing
+  UI wants. The current image decoders deliberately reject multi-frame latents rather than
+  silently previewing frame 0, so this choice must be explicit.</li>
+<li>Note for implementers: Wan video decoding is lazy today — <code>generate_video</code> denoises and frames
+  materialize at save time — so a preview path must decode independently of that generator rather
+  than assuming decoded frames exist mid-run.</li>
+<li>Validate per family with the harness used for the image families: decode real in-flight latents
+  with both decoders, report agreement, and include a negative control.</li>
+</ul>
+<h2 id="upstream-mapping">Upstream mapping<a class="headerlink" href="#upstream-mapping" title="Permanent link">&para;</a></h2>
+<p>VAE lineage was established by direct safetensors comparison, so the mapping does not need
+re-deriving:</p>
 <table>
 <thead>
 <tr>
@@ -1236,29 +1313,22 @@ mapping is known and does not need re-deriving:</p>
 </table>
 <p>Qwen-Image ships Wan 2.1's encoder verbatim with a retrained decoder, so <code>taew2_1</code> previews
 approximate Wan's rendering of a Qwen latent. Expect a small systematic offset beyond ordinary
-tiny-decoder error, and validate it empirically before enabling the mapping.</p>
-<h2 id="why-it-matters">Why it matters<a class="headerlink" href="#why-it-matters" title="Permanent link">&para;</a></h2>
-<p>These are the slowest routes we have. A Wan video run is minutes long, which makes it the single
-highest-value place to see progress early — the argument that motivated previews in the first
-place. Video previews also need the temporal handling that the image tiny autoencoders correctly
-refuse to fake (they raise on multi-frame latents today).</p>
-<h2 id="proposed-work">Proposed work<a class="headerlink" href="#proposed-work" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Port <code>MemBlock</code>, <code>TGrow</code>, <code>TPool</code>, and the TAEHV decoder graph to MLX alongside the existing
-  <code>TinyAutoencoder</code>, including <code>pixel_shuffle</code> postprocessing for the patch-2 checkpoints and the
-  <code>frames_to_trim</code> leading-frame drop.</li>
-<li>Load the raw (non-diffusers) key layout these checkpoints publish, and their float16 storage.</li>
-<li>Extend the preview registry with the <code>wan.2.1</code>, <code>wan.2.2-ti2v</code>, and <code>qwen-image</code> latent spaces,
-  each enabled only after an empirical check against that family's own VAE.</li>
-<li>Validate per family with the existing harness (<code>untracked/taesd_consistency/</code>): decode real
-  in-flight latents with both decoders and report agreement, plus a negative control.</li>
-</ul>
+tiny-decoder error, and measure it before enabling that mapping.</p>
+<h2 id="relationship-to-0112">Relationship to 0112<a class="headerlink" href="#relationship-to-0112" title="Permanent link">&para;</a></h2>
+<p>Live progress display works without <a href="../0112_x0_estimate_previews/">0112</a>: a user watching a clip
+form still gets useful feedback from mid-run frames. Early abort — stopping a rejected run before
+paying for the remaining minutes — needs 0112, because previews currently decode the noisy latent
+and are not judgeable in the first steps. Do 0112 first if the goal is saving time; do this item
+first if the goal is a live preview surface for applications.</p>
 <h2 id="risks">Risks<a class="headerlink" href="#risks" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Single-frame image use of a video decoder is supported upstream but produces <code>t_upscale</code>
   frames that must be trimmed; getting the trim wrong silently shows the wrong frame.</li>
 <li>The Qwen decoder mismatch above means a preview can be self-consistent yet systematically off
   the final image; document it rather than tuning it away.</li>
+<li>Preview decoding allocates alongside generation. Wan runs are already the heaviest memory
+  profile in the project, so the preview unit chosen above must be bounded rather than
+  proportional to clip length.</li>
 </ul>
 
 

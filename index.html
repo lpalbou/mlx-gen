@@ -1405,7 +1405,8 @@ long-running local jobs.</p>
   optional masked-area reference images on the Klein backend route — see
   <code>docs/masked-editing.md</code>), Qwen structured
   control where the selected model supports <code>--controlnet-image-path</code>, and route-specific
-  reframe/outpaint workflows where the selected model supports them;</li>
+  reframe/outpaint workflows where the selected model supports them, with a selectable outpaint
+  conditioning canvas (<code>--outpaint-fill</code>) on FLUX.2 Klein base routes;</li>
 <li>Wan2.2 text-to-video, image-to-video, and prompt-guided video-to-video (plain or masked via
   <code>--video-mask-path</code>, which locks everything outside the mask to the source video), including
   TI2V-5B BF16/q8 packages plus A14B T2V/I2V BF16 and mixed q8/BF16 packages; video-to-video
@@ -1779,7 +1780,7 @@ progress callbacks make long runs observable.</p>
 <li><a href="examples/spaceship-snow/">Example workflow</a>: reproducible image and video commands.</li>
 <li><a href="upscaling/">Image upscaling</a>: SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, published five-second Eiffel <code>1x</code> and <code>2x</code> 3B/7B validation bundles, readable tone-correction labels, and 5x source/output comparisons.</li>
 <li><a href="edit-capabilities/">Image edit capabilities</a>: image-edit contact sheets, exact model/package status, and command logs.</li>
-<li><a href="reframe-outpaint/">Reframe and outpaint</a>: <code>--reframe-padding</code> and <code>--outpaint-padding</code> routes with the mixed June 8 profile, FLUX.2 Klein base source-model validation, and links to the exact Qwen and FLUX route proofs.</li>
+<li><a href="reframe-outpaint/">Reframe and outpaint</a>: <code>--reframe-padding</code> and <code>--outpaint-padding</code> routes, the <code>--outpaint-fill</code> conditioning-canvas modes and padding guidance, the mixed June 8 profile, FLUX.2 Klein base source-model validation, and links to the exact Qwen and FLUX route proofs.</li>
 <li><a href="model-management/">Model management</a>: download, prepare, and run from local model files.</li>
 <li><a href="quantization/">Quantization</a>: q8/q4/BF16 policies and measurements.</li>
 <li><a href="python-integration/">Python integration</a>: route-resolved runtime loading, serial multi-output reuse for unified <code>mlxgen generate</code> families, SeedVR2's direct-model boundary, progress callbacks, and AbstractVision/AbstractCore notes.</li>

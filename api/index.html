@@ -1064,6 +1064,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#outpaint-conditioning-canvas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outpaint Conditioning Canvas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#negative-prompts" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1445,6 +1456,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#outpaint-conditioning-canvas" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outpaint Conditioning Canvas
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#negative-prompts" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1670,8 +1692,10 @@ not a separate public task.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>flux2-klein-4b
 </code></pre></div>
 <p>The JSON includes each route-supported public task, internal mode, image count, route handler, and
-option support. Capabilities schema 8 adds <code>min_reference_images</code> and <code>max_reference_images</code> so
-applications can keep semantic references separate from primary <code>--image</code> inputs. Route support
+option support. The payload carries <code>schema_version</code> 10. It reports <code>min_reference_images</code> and
+<code>max_reference_images</code> so applications can keep semantic references separate from primary <code>--image</code>
+inputs, and the outpaint conditioning-canvas contract described in
+<a href="#outpaint-conditioning-canvas">Outpaint Conditioning Canvas</a>. Route support
 means MLX-Gen knows how to dispatch and validate options; it is not a claim that a model/package
 passed visual release QA. Applications can use the same contract from Python through
 <code>get_model_capabilities(...)</code> and <code>resolve_generation_plan(...)</code>. For custom
@@ -1909,7 +1933,7 @@ specific path.</p>
 <td>Backend-specific outpaint</td>
 <td><code>edit-reference</code> with outpaint support</td>
 <td>one image</td>
-<td>pass <code>--outpaint-padding</code> on a model whose capability has <code>supports_outpaint=true</code></td>
+<td>pass <code>--outpaint-padding</code> on a model whose capability has <code>supports_outpaint=true</code>; add <code>--outpaint-fill</code> where the capability has <code>supports_outpaint_fill=true</code></td>
 <td>No</td>
 </tr>
 </tbody>
@@ -2076,11 +2100,110 @@ proof for FLUX.2 Klein base <code>4B/9B</code> is documented in
 <a href="../edit-capabilities/#flux2-klein-base-4b-and-9b-source-proof">Image Edit Capabilities</a> and
 <a href="../reframe-outpaint/">Reframe and Outpaint</a>.</p>
 <p>This is not the same as a native fill/inpaint pipeline that receives an explicit diffusion mask.
-It is not an exact pixel-lock guarantee. MLX-Gen still keeps lower-level FLUX.1 Fill support
-separate from the current unified edit-reference canvas route. Z-Image, ERNIE, FIBO, base Qwen
-Image, Qwen Image 2512, distilled FLUX.2 Klein, latent I2I routes, video routes, and SeedVR2
-reject <code>--outpaint-padding</code> before loading weights. Base FLUX.2 Klein source models now pass a
-published starship proof set; prepared base q8/q4 package proof is still pending.</p>
+It is not an exact pixel-lock guarantee: the source region travels through a VAE encode/decode round
+trip, so it is reproduced rather than preserved bit-for-bit. Use masked editing (<code>--mask-path</code>, see
+<a href="../masked-editing/">Masked editing</a>) when a region must stay untouched. MLX-Gen keeps lower-level
+FLUX.1 Fill support separate from the unified edit-reference canvas route. Z-Image, ERNIE, FIBO,
+base Qwen Image, Qwen Image 2512, distilled FLUX.2 Klein, latent I2I routes, video routes, and
+SeedVR2 reject <code>--outpaint-padding</code> before loading weights. Base FLUX.2 Klein source models carry a
+published starship proof set; prepared base q8/q4 package proof is pending.</p>
+<p><code>--outpaint-padding</code> computes <code>--width</code> and <code>--height</code> from the source image and the padding and
+runs the canvas at <code>exact-resize</code>, so it rejects <code>--width</code>, <code>--height</code>, and <code>--canvas-policy</code>. It
+also cannot be combined with <code>--reframe-padding</code> or <code>--mask-path</code>.</p>
+<h3 id="outpaint-conditioning-canvas">Outpaint Conditioning Canvas<a class="headerlink" href="#outpaint-conditioning-canvas" title="Permanent link">&para;</a></h3>
+<p>Outpaint pastes the source onto a larger canvas and asks the model to complete the added area. What
+fills that area before denoising is selectable on routes that advertise
+<code>supports_outpaint_fill=true</code>, which is the FLUX.2 Klein base outpaint route. The Qwen edit backend
+takes no fill option and always builds an edge-extended canvas.</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--outpaint-fill</code></td>
+<td>How <code>--outpaint-padding</code> fills the expanded conditioning canvas: <code>auto</code> (default), <code>edge</code>, <code>neutral</code>, <code>solid</code>, or <code>blur</code>. <code>edge</code> stretches the source border strip outward, which continues an existing texture across the padding. <code>neutral</code> paints a flat per-side border color sampled from the source, which leaves nothing to continue so the model generates new subject matter, with no hard color step at the seam. <code>solid</code> paints one flat color. <code>blur</code> paints a blurred, scaled copy of the source. <code>auto</code> keeps <code>edge</code> while every padded side stays within the depth the border strip covers (the edge-fill reach), switches to <code>neutral</code> past that, and switches to <code>solid</code> green when a green-border outpaint adapter is loaded, because those adapters are trained to paint into a pure-green canvas. Requires <code>--outpaint-padding</code>. Recorded in metadata and replayed by <code>--config-from-metadata</code>.</td>
+</tr>
+<tr>
+<td><code>--outpaint-fill-color</code></td>
+<td>The color for <code>--outpaint-fill solid</code>, as <code>R,G,B</code> (0-255 per channel) or <code>#rrggbb</code>. <code>edge</code>, <code>neutral</code>, and <code>blur</code> derive their canvas from the source and ignore it. Without it, <code>solid</code> uses <code>0,255,0</code> when a green-border outpaint adapter is loaded and the source's mean border color otherwise. Requires <code>--outpaint-padding</code>. Recorded in metadata and replayed by <code>--config-from-metadata</code>.</td>
+</tr>
+</tbody>
+</table>
+<p>Every outpaint run prints the resolved canvas to stderr before denoising, and names the reason when
+<code>auto</code> chose the mode:</p>
+<div class="highlight"><pre><span></span><code>Outpaint: fill=neutral, canvas 928x1536 from source 768x766, padding top=0 right=76 bottom=766 left=76.
+Outpaint: --outpaint-fill auto selected neutral because the deepest padding is bottom 766px (100% of
+the source height), 2.0x the 384px edge-fill reach; a blank canvas makes the model generate new
+subject matter instead of smearing the source border.
+</code></pre></div>
+<p>Applications can read the same contract as JSON without running a job. Capability rows carry:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>supports_outpaint_fill</code></td>
+<td>Whether the route accepts <code>--outpaint-fill</code> and <code>--outpaint-fill-color</code>. <code>false</code> with a single-entry <code>outpaint_fill_modes</code> means the fill algorithm is fixed.</td>
+</tr>
+<tr>
+<td><code>outpaint_fill_modes</code></td>
+<td>The fill modes the route accepts. Empty when <code>supports_outpaint</code> is <code>false</code>.</td>
+</tr>
+<tr>
+<td><code>outpaint_default_fill_mode</code></td>
+<td>The mode that runs when <code>--outpaint-fill</code> is omitted.</td>
+</tr>
+<tr>
+<td><code>outpaint_auto_edge_fill_max_stretch</code></td>
+<td>With <code>outpaint_default_fill_mode</code> <code>auto</code>: the largest stretch edge fill is allowed to apply to the sampled border strip. Padding past that switches <code>auto</code> to a blank canvas.</td>
+</tr>
+<tr>
+<td><code>outpaint_recommended_lora</code></td>
+<td>The adapter measured to give the best outpaint results on the route, or <code>null</code>. Optional, not required: the route runs without it.</td>
+</tr>
+<tr>
+<td><code>outpaint_validated_padding</code>, <code>outpaint_validated_fill_mode</code>, <code>outpaint_validated_max_canvas_pixels</code></td>
+<td>The release-validation envelope: the padding, fill mode, and canvas size the published proof runs used. Outside it, outpaint is supported but unvalidated.</td>
+</tr>
+</tbody>
+</table>
+<p>For example, <code>AbstractFramework/flux.2-klein-base-4b-8bit</code> reports <code>flux2.outpaint</code> with
+<code>supports_outpaint_fill: true</code>, <code>outpaint_fill_modes: ["auto", "edge", "neutral", "solid", "blur"]</code>,
+<code>outpaint_default_fill_mode: "auto"</code>, <code>outpaint_auto_edge_fill_max_stretch: 12.0</code>, and
+<code>outpaint_recommended_lora: "fal/flux-2-klein-4B-outpaint-lora"</code>.
+<code>AbstractFramework/qwen-image-edit-2511-8bit</code> reports <code>qwen.outpaint</code> with
+<code>supports_outpaint_fill: false</code>, <code>outpaint_fill_modes: ["edge"]</code>, and
+<code>outpaint_default_fill_mode: "edge"</code>. Both publish the same validated envelope:
+<code>outpaint_validated_padding: "5%,80%,5%,60%"</code>, <code>outpaint_validated_fill_mode: "edge"</code>, and
+<code>outpaint_validated_max_canvas_pixels: 282880</code>.</p>
+<p>Generated metadata records the resolved canvas next to <code>outpaint_padding</code>, so
+<code>--config-from-metadata</code> replays the resolved fill instead of re-running <code>auto</code>: <code>outpaint_fill</code>,
+<code>outpaint_fill_color</code>, <code>outpaint_fill_requested</code>, <code>outpaint_fill_reason</code>,
+<code>outpaint_edge_fill_reach_px</code>, and <code>outpaint_edge_fill_overreach</code>.</p>
+<p>Example, naming the fill explicitly:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>portrait.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"0%,10%,100%,10%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-fill<span class="w"> </span>neutral<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Extend this portrait downward to reveal the lower part of the body: the same subject in the same clothing, same lighting, same background."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">1234</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>extended.png
+</code></pre></div>
+<p>See <a href="../reframe-outpaint/">Reframe and Outpaint</a> for padding guidance, the published proof, and the
+recommended adapter, and
+<a href="../troubleshooting/#outpainted-area-comes-back-as-streaks-instead-of-new-content">Outpainted Area Comes Back As Streaks Instead Of New Content</a>
+when the added area returns as stretched border texture.</p>
 <h3 id="negative-prompts">Negative Prompts<a class="headerlink" href="#negative-prompts" title="Permanent link">&para;</a></h3>
 <p>Use <code>--negative-prompt</code> or the shorter <code>--negative</code> alias to describe what the model should avoid:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
@@ -2327,7 +2450,7 @@ and the source duration plus requested fps may resolve fewer <code>4n+1</code> f
 </tr>
 <tr>
 <td><code>--context-frames</code></td>
-<td>Wan A14B image-to-video only (EXPERIMENTAL zero-shot): the ordered frames that FOLLOW <code>--image-path</code> in the motion being continued. The conditioned head becomes <code>[--image-path, *--context-frames]</code>, so a continuation clip inherits the predecessor's real momentum instead of restarting from one frozen frame (the multi-frame handover used by SkyReels-V2/SVI-class pipelines). Pass 4, 8, or 12 frames — the head must fill whole 4x VAE latent groups (5, 9, or 13 conditioned frames); passing the start frame here too is the common misuse and fails on that count check. Requires <code>--image-path</code>; needs <code>--frames &gt;= head + 4</code>; composes with <code>--last-image</code>; rejected on TI2V-5B (<code>expand_timesteps</code>), Wan VACE, and text/video-to-video — CLI rejects before weight load. All frames map through the same canvas and <code>--resize-mode</code> as the first frame. Recorded in metadata (<code>context_image_paths</code>), replayed by <code>--config-from-metadata</code>, advertised as <code>supports_context_frames</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 6; the current capabilities payload is schema 9. Measured zero-shot on a Lightning 4-step continuation pair (backlog 0102): the K=5 head carried the source clip's motion speed (seam magnitude ratio 0.90 vs the single-frame baseline's 1.90 = double-speed restart) with a mild ~2-frame flare/exposure step at the conditioned-to-free boundary (luma delta ~3.2/255 vs the source clip's own max 1.15; visually mild, structurally clean). Treat as a storyboard continue-seam tool, not a validated general feature.</td>
+<td>Wan A14B image-to-video only (EXPERIMENTAL zero-shot): the ordered frames that FOLLOW <code>--image-path</code> in the motion being continued. The conditioned head becomes <code>[--image-path, *--context-frames]</code>, so a continuation clip inherits the predecessor's real momentum instead of restarting from one frozen frame (the multi-frame handover used by SkyReels-V2/SVI-class pipelines). Pass 4, 8, or 12 frames — the head must fill whole 4x VAE latent groups (5, 9, or 13 conditioned frames); passing the start frame here too is the common misuse and fails on that count check. Requires <code>--image-path</code>; needs <code>--frames &gt;= head + 4</code>; composes with <code>--last-image</code>; rejected on TI2V-5B (<code>expand_timesteps</code>), Wan VACE, and text/video-to-video — CLI rejects before weight load. All frames map through the same canvas and <code>--resize-mode</code> as the first frame. Recorded in metadata (<code>context_image_paths</code>), replayed by <code>--config-from-metadata</code>, advertised as <code>supports_context_frames</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 6; the current capabilities payload is schema 10. Measured zero-shot on a Lightning 4-step continuation pair (backlog 0102): the K=5 head carried the source clip's motion speed (seam magnitude ratio 0.90 vs the single-frame baseline's 1.90 = double-speed restart) with a mild ~2-frame flare/exposure step at the conditioned-to-free boundary (luma delta ~3.2/255 vs the source clip's own max 1.15; visually mild, structurally clean). Treat as a storyboard continue-seam tool, not a validated general feature.</td>
 </tr>
 <tr>
 <td><code>--context-noise</code></td>
@@ -2335,7 +2458,7 @@ and the source duration plus requested fps may resolve fewer <code>4n+1</code> f
 </tr>
 <tr>
 <td><code>--svi-anchor-image</code></td>
-<td>Wan A14B image-to-video only (EXPERIMENTAL): SVI 2.0 Pro chain conditioning (Stable Video Infinity, ICLR'26, trained for Wan 2.2 A14B i2v). One persistent anchor image is re-injected into EVERY clip of a chain as <code>[anchor_latent, motion_latent?, zero-latents]</code> — identity from the anchor, momentum from the previous clip's exported latent, TRUE zero-latent padding (not the stock zero-frame VAE encode; the conventions are mutually unintelligible, which is why the mode and the LoRA pair gate each other loudly in both directions). Replaces <code>--image-path</code>; conflicts with <code>--image-path</code>, <code>--last-image</code>, <code>--context-frames</code>, <code>--video-path</code>; rejected on TI2V-5B and VACE before weight load. Requires <code>--svi-lora-high</code>/<code>--svi-lora-low</code>. Every SVI run exports <code>&lt;output&gt;.svi_latent.safetensors</code> for the next clip and records <code>svi_*</code> metadata including <code>svi_assembly_trim_frames</code> (drop that many frames of every CONTINUATION clip at assembly: <code>1 + 4 x count</code>). Use a unique seed per clip. Advertised as <code>supports_svi</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 7; the current capabilities payload is schema 9.</td>
+<td>Wan A14B image-to-video only (EXPERIMENTAL): SVI 2.0 Pro chain conditioning (Stable Video Infinity, ICLR'26, trained for Wan 2.2 A14B i2v). One persistent anchor image is re-injected into EVERY clip of a chain as <code>[anchor_latent, motion_latent?, zero-latents]</code> — identity from the anchor, momentum from the previous clip's exported latent, TRUE zero-latent padding (not the stock zero-frame VAE encode; the conventions are mutually unintelligible, which is why the mode and the LoRA pair gate each other loudly in both directions). Replaces <code>--image-path</code>; conflicts with <code>--image-path</code>, <code>--last-image</code>, <code>--context-frames</code>, <code>--video-path</code>; rejected on TI2V-5B and VACE before weight load. Requires <code>--svi-lora-high</code>/<code>--svi-lora-low</code>. Every SVI run exports <code>&lt;output&gt;.svi_latent.safetensors</code> for the next clip and records <code>svi_*</code> metadata including <code>svi_assembly_trim_frames</code> (drop that many frames of every CONTINUATION clip at assembly: <code>1 + 4 x count</code>). Use a unique seed per clip. Advertised as <code>supports_svi</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 7; the current capabilities payload is schema 10.</td>
 </tr>
 <tr>
 <td><code>--svi-motion-latent</code></td>

@@ -1136,6 +1136,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#outpainted-area-comes-back-as-streaks-instead-of-new-content" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outpainted Area Comes Back As Streaks Instead Of New Content
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#wan-video-quality-looks-weak-at-tiny-sizes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1388,6 +1399,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#outpainted-area-comes-back-as-streaks-instead-of-new-content" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Outpainted Area Comes Back As Streaks Instead Of New Content
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#wan-video-quality-looks-weak-at-tiny-sizes" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1572,6 +1594,69 @@ the generated metadata for <code>canvas_policy</code>, <code>requested_width</co
 accept that the model may reshape or recompose the source. When the exact canvas has a different
 aspect ratio than the source, add <code>--resize-mode crop</code> (center-crop) or <code>--resize-mode pad</code>
 (letterbox) to map the source onto it without distortion; the default <code>resize</code> stretches to fill.</p>
+<h2 id="outpainted-area-comes-back-as-streaks-instead-of-new-content">Outpainted Area Comes Back As Streaks Instead Of New Content<a class="headerlink" href="#outpainted-area-comes-back-as-streaks-instead-of-new-content" title="Permanent link">&para;</a></h2>
+<p>The space <code>--outpaint-padding</code> added returns as directional streaks, or as a smeared continuation of
+the source border, rather than as new subject matter.</p>
+<p>The likely cause is edge fill running deeper than it covers. Edge fill builds the conditioning
+canvas by stretching a strip of the source border outward across the padded area, so it continues an
+existing texture rather than inventing one. The depth that strip covers is the <em>edge-fill reach</em>;
+past it, the same strip is stretched far enough to read as one-dimensional streaks.</p>
+<p>Check which canvas the run used. Every outpaint run prints its resolved canvas on stderr before
+denoising:</p>
+<div class="highlight"><pre><span></span><code>Outpaint: fill=edge, canvas 928x1536 from source 768x766, padding top=0 right=76 bottom=766 left=76.
+</code></pre></div>
+<p>A second line names the reason whenever <code>--outpaint-fill auto</code> chose the mode, including the padding
+depth and the edge-fill reach it was measured against. Add <code>--metadata</code> to keep the same values in
+the JSON sidecar as <code>outpaint_fill</code>, <code>outpaint_fill_reason</code>, <code>outpaint_edge_fill_reach_px</code>, and
+<code>outpaint_edge_fill_overreach</code>. To read the route contract without running a job:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit
+</code></pre></div>
+<p>The <code>flux2.outpaint</code> row reports <code>supports_outpaint_fill</code>, <code>outpaint_fill_modes</code>,
+<code>outpaint_default_fill_mode</code>, and <code>outpaint_recommended_lora</code>.</p>
+<p>On FLUX.2 Klein base routes, ask for a blank conditioning canvas so the model generates instead of
+continuing a texture:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>portrait.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"0%,10%,100%,10%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-fill<span class="w"> </span>neutral<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Extend this portrait downward to reveal the lower part of the body: the same subject in the same clothing, same lighting, same background."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">1234</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>extended.png
+</code></pre></div>
+<p>Two further routes to better deep-padding results:</p>
+<ul>
+<li>Load the recommended outpaint adapter. Download it first, because generation does not download
+  LoRA files. <code>--outpaint-fill auto</code> then paints the pure-green canvas the adapter is trained on:</li>
+</ul>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>fal/flux-2-klein-4B-outpaint-lora<span class="w"> </span>--all-files
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"5%,80%,5%,60%"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Fill the green spaces according to the image"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">8612</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>fal/flux-2-klein-4B-outpaint-lora:flux-outpaint-lora.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>outpaint.png
+</code></pre></div>
+<ul>
+<li>Extend in two moderate passes instead of one large one. Each pass gives the model a nearby edge to
+  work from and runs on a smaller canvas, and outpaint attention cost grows faster than canvas area.
+  This is also the route on Qwen Image Edit, which always builds an edge-extended canvas and takes
+  no fill option.</li>
+</ul>
+<p><code>--outpaint-padding</code> computes the output size from the source and the padding, so do not add
+<code>--width</code>, <code>--height</code>, or <code>--canvas-policy</code> to any of these commands.</p>
+<p>To confirm the fix, rerun with the same seed and read the first stderr line: it should report the
+fill you asked for, and the added area should contain new content rather than stretched border
+texture. See <a href="../reframe-outpaint/#the-conditioning-canvas">Reframe and Outpaint</a> for the full mode
+table and padding guidance.</p>
 <h2 id="wan-video-quality-looks-weak-at-tiny-sizes">Wan Video Quality Looks Weak At Tiny Sizes<a class="headerlink" href="#wan-video-quality-looks-weak-at-tiny-sizes" title="Permanent link">&para;</a></h2>
 <p>Wan2.2 supports TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, T2V-A14B prompt-guided video-to-video (plain or masked with <code>--video-mask-path</code>), and I2V-A14B image-to-video. Very small or very short runs are useful for quick command checks, but they are not quality settings.</p>
 <p>Use the upstream TI2V-5B settings when validating that route at its intended native scale:</p>

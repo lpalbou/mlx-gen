@@ -1993,9 +1993,9 @@ memory follow-up state.</p>
 </tr>
 <tr>
 <td>0113</td>
-<td><a href="../proposed/0113_video_family_tiny_previews/">Tiny previews for the Wan, Qwen, and FIBO latent spaces</a></td>
-<td>Previews, Wan/Qwen/FIBO, TAEHV port</td>
-<td>Promote when video preview value is wanted: mapping is already verified by VAE lineage, the work is porting the causal TAEHV graph and validating per family.</td>
+<td><a href="../proposed/0113_video_family_tiny_previews/">Realtime video previews with tiny decoders</a></td>
+<td>Previews, Wan/Qwen/FIBO, TAEHV port, application UX</td>
+<td>Promote when applications need live video progress: a video clip decode costs ~4.4 denoising steps against ~0.9 for an image, so tiny decoders are what make continuous video preview feasible; mapping is verified by VAE lineage and the work is porting the causal TAEHV graph plus per-family validation.</td>
 </tr>
 <tr>
 <td>0114</td>
