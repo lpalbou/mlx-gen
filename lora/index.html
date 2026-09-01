@@ -1660,11 +1660,19 @@ multi-angle adapter is what changes the viewpoint behavior on top of that exact 
 <span class="w">  </span>--output<span class="w"> </span>flux2_base4b_q8_outpaint_with_lora.png
 </code></pre></div>
 <p><code>flux2.outpaint</code> runs without a LoRA. This row exists to prove the dedicated outpaint adapter on
-the same green-canvas route and seed. The adapter is the recommended configuration for the route
-and is published as <code>outpaint_recommended_lora</code> on the capability record: it improves results
-generally, and most when the padding adds a large amount of new space. When it is loaded,
-<code>--outpaint-fill auto</code> paints the pure-green canvas the adapter is trained on. See
-<a href="../reframe-outpaint/">Reframe and Outpaint</a> for the conditioning-canvas options.</p>
+the same green-canvas route and seed. It improves results generally, and most when the padding adds
+a large amount of new space. When it is loaded, <code>--outpaint-fill auto</code> paints the pure-green canvas
+the adapter is trained on.</p>
+<p><code>outpaint_recommended_lora</code> is published per route. It names this adapter on the FLUX.2 Klein base
+4B and base 9B <code>flux2.outpaint</code> rows, which share the base weights it was trained against;
+distilled Klein rows publish <code>outpaint_recommended_lora: null</code> and run the same route without an
+adapter. The recommendation and the LoRA validation status are separate fields: only the base 4B
+row carries <code>lora_status: "validated"</code> with
+<code>lora_validation_profile: "lora_flux2_klein_base4b_q8_outpaint_2026_06_22"</code>, which is why the table
+above lists that one row. Read both off the row you are about to use:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit
+</code></pre></div>
+<p>See <a href="../reframe-outpaint/">Reframe and Outpaint</a> for the conditioning-canvas options.</p>
 <h2 id="lightning-caveat-for-qwen">Lightning Caveat For Qwen<a class="headerlink" href="#lightning-caveat-for-qwen" title="Permanent link">&para;</a></h2>
 <p>For the LightX2V Qwen Lightning adapters, keep one distinction clear:</p>
 <ul>

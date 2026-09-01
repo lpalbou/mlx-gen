@@ -1605,16 +1605,18 @@ past it, the same strip is stretched far enough to read as one-dimensional strea
 denoising:</p>
 <div class="highlight"><pre><span></span><code>Outpaint: fill=edge, canvas 928x1536 from source 768x766, padding top=0 right=76 bottom=766 left=76.
 </code></pre></div>
-<p>A second line names the reason whenever <code>--outpaint-fill auto</code> chose the mode, including the padding
-depth and the edge-fill reach it was measured against. Add <code>--metadata</code> to keep the same values in
-the JSON sidecar as <code>outpaint_fill</code>, <code>outpaint_fill_reason</code>, <code>outpaint_edge_fill_reach_px</code>, and
-<code>outpaint_edge_fill_overreach</code>. To read the route contract without running a job:</p>
+<p>A second line follows only when <code>--outpaint-fill auto</code> resolved the mode, and it names the reason,
+the padding depth, and the edge-fill reach the depth was measured against. A run that named its fill
+explicitly prints the first line alone. Add <code>--metadata</code> to keep the same values in the JSON sidecar
+as <code>outpaint_fill</code>, <code>outpaint_fill_requested</code>, <code>outpaint_fill_reason</code>,
+<code>outpaint_edge_fill_reach_px</code>, and <code>outpaint_edge_fill_overreach</code>. To read the route contract
+without running a job:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit
 </code></pre></div>
 <p>The <code>flux2.outpaint</code> row reports <code>supports_outpaint_fill</code>, <code>outpaint_fill_modes</code>,
-<code>outpaint_default_fill_mode</code>, and <code>outpaint_recommended_lora</code>.</p>
-<p>On FLUX.2 Klein base routes, ask for a blank conditioning canvas so the model generates instead of
-continuing a texture:</p>
+<code>outpaint_default_fill_mode</code>, <code>outpaint_preservation</code>, and <code>outpaint_recommended_lora</code>.</p>
+<p>On FLUX.2 Klein routes — distilled 4B/9B and base 4B/9B alike — ask for a blank conditioning canvas
+so the model generates instead of continuing a texture:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>portrait.png<span class="w"> </span><span class="se">\</span>

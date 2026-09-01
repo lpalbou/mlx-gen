@@ -1547,23 +1547,30 @@ This is a generative edit:</p>
 <p>Use <code>--outpaint-padding</code> when you want MLX-Gen to expand the canvas and guide a supported edit
 model to fill the larger view:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--model<span class="w"> </span>black-forest-labs/FLUX.2-klein-base-9B<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-4b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"5%,80%,5%,60%"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Outpaint this close crop into a wider realistic shot. Complete the missing subject and background outside the original frame."</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">16</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>outpaint.png
 </code></pre></div>
-<p>Outpaint is backend-specific. Qwen Image Edit variants still use an edge-extended conditioning
-canvas plus adaptive source restoration. Current FLUX.2 Klein strict outpaint is base-only and
-uses source-locked denoising with a narrow latent transition band instead of pasting the original
-crop back over the result. This is not a native fill/inpaint pipeline with an explicit diffusion
-mask, and it is not an exact pixel-lock guarantee.</p>
+<p>Outpaint is backend-specific. Qwen Image Edit variants use an edge-extended conditioning canvas
+plus adaptive source restoration. FLUX.2 Klein strict outpaint uses source-locked denoising with a
+narrow latent transition band instead of pasting the original crop back over the result, and runs
+on every Klein model: distilled 4B/9B at guidance 1.0 and base 4B/9B at guidance 4.0. This is not a
+native fill/inpaint pipeline with an explicit diffusion mask, and it is not an exact pixel-lock
+guarantee.</p>
+<p>Distilled Klein 4B, as used above, is the quickest route to a first result: on the published
+432x240 starship crop at <code>5%,80%,5%,60%</code>, its q8 package finishes the whole command in 54.6 s on an
+Apple M5 Max, against 341.1 s for Qwen Image Edit 2511 q8. Every supported route on that one
+source, with timings and source drift, is in
+<a href="../reframe-outpaint/#what-each-model-produces">Reframe and Outpaint</a>.</p>
 <p>Validation assets for reframe and outpaint are published in
 <a href="../edit-capabilities/">Image Edit Capabilities</a> and <a href="../reframe-outpaint/">Reframe and Outpaint</a>,
-including the 2026-06-10 FLUX.2 Klein base source-model starship proof.</p>
+including the 2026-06-10 FLUX.2 Klein base source-model starship proof and the 2026-09-01
+latent-locked outpaint rows.</p>
 <p>For a complete image workflow with included outputs, see the
 <a href="../examples/spaceship-snow/">spaceship snow example</a>. It covers text-to-image, two single-image
 edits, and multi-reference image-to-image with copy/pasteable commands.</p>

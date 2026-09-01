@@ -1705,7 +1705,7 @@ package size is the published AbstractFramework repository total.</p>
 <td style="text-align: right;">22.1 GiB</td>
 <td><code>flux.2-klein-4b-4bit</code><br><code>flux.2-klein-4b-8bit</code></td>
 <td style="text-align: right;">4.3 GiB<br>8.0 GiB</td>
-<td>Standard MLX q4/q8 optimized packages. Distilled source/q8/q4 passed the June 5 edit-capability profile and the June 8 reframe profile; their June 8 outpaint rows are now stale historical evidence only.</td>
+<td>Standard MLX q4/q8 optimized packages. Distilled source/q8/q4 passed the June 5 edit-capability profile and the June 8 reframe profile; the q8 package passed strict outpaint on <code>flux2_klein_outpaint_latent_lock_2026_09_01</code>.</td>
 </tr>
 <tr>
 <td>FLUX.2 Klein 9B</td>
@@ -1713,7 +1713,7 @@ package size is the published AbstractFramework repository total.</p>
 <td style="text-align: right;">49.3 GiB</td>
 <td><code>flux.2-klein-9b-4bit</code><br><code>flux.2-klein-9b-8bit</code></td>
 <td style="text-align: right;">8.9 GiB<br>16.6 GiB</td>
-<td>Standard MLX q4/q8 optimized packages; inherits the source model's gated/non-commercial terms. Distilled source/q8/q4 passed the June 5 edit-capability profile and the June 8 reframe profile; their June 8 outpaint rows are stale historical evidence only.</td>
+<td>Standard MLX q4/q8 optimized packages; inherits the source model's gated/non-commercial terms. Distilled source/q8/q4 passed the June 5 edit-capability profile and the June 8 reframe profile; the q8 package passed strict outpaint on <code>flux2_klein_outpaint_latent_lock_2026_09_01</code>.</td>
 </tr>
 <tr>
 <td>FLUX.2 Klein Base 4B</td>
@@ -1904,9 +1904,15 @@ packages are documented here by package size and quantization policy, with repre
 panels where local benchmark runs have produced them.</p>
 <h2 id="reframe-and-outpaint-package-validation">Reframe And Outpaint Package Validation<a class="headerlink" href="#reframe-and-outpaint-package-validation" title="Permanent link">&para;</a></h2>
 <p>The 2026-06-08 reframe/outpaint profile validates source, q8, and q4 rows for Qwen Image Edit,
-Qwen Image Edit 2509/2511, and distilled FLUX.2 Klein 4B/9B. For FLUX, treat the outpaint rows in
-that profile as stale historical evidence only; current strict FLUX outpaint is base-only.</p>
+Qwen Image Edit 2509/2511, and distilled FLUX.2 Klein 4B/9B. Its distilled FLUX outpaint artifacts
+are retained as historical evidence for the edit path with adaptive source blending; strict FLUX.2
+Klein outpaint q8 evidence is published as <code>flux2_klein_outpaint_latent_lock_2026_09_01</code>.</p>
 <p><img alt="Reframe and outpaint source/q8/q4 summary" src="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/reframe-outpaint-2026-06-08/reframe-outpaint-base-q8-q4-summary.jpg" /></p>
+<p>The q8 packages are also the rows measured in the cross-route outpaint matrix. On one 432x240 source
+at <code>5%,80%,5%,60%</code>, on an Apple M5 Max: distilled Klein 4B q8 54.6 s, distilled Klein 9B q8 80.6 s,
+base Klein 4B q8 72.2 s, base Klein 9B q8 100.0 s, Qwen Image Edit 2511 q8 341.1 s. Full table,
+source-drift figures and command log in
+<a href="../reframe-outpaint/#what-each-model-produces">Reframe and Outpaint</a>.</p>
 <p>Inspect the machine-readable records for a package:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>validation<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>reframe_outpaint_2026_06_08<span class="w"> </span><span class="se">\</span>

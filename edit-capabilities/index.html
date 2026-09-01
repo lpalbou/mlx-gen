@@ -1850,12 +1850,14 @@ contract, but the backend is the base Qwen model plus the dedicated inpainting C
 </tbody>
 </table>
 <p>Base FLUX.2 Klein source models have a separate starship proof set because their canvas-expansion
-contract is different: strict outpaint is base-only, and base models do not expose reframe.</p>
+contract is different: base models do not expose reframe.</p>
 <h2 id="reframe-and-outpaint">Reframe And Outpaint<a class="headerlink" href="#reframe-and-outpaint" title="Permanent link">&para;</a></h2>
 <p><code>--reframe-padding</code> and <code>--outpaint-padding</code> are single-image edit-reference routes. Reframe is a
 generative zoom-out workflow. Outpaint splits by backend: Qwen Image Edit uses generative canvas
-expansion plus adaptive source restoration, while FLUX.2 strict outpaint is limited to base Klein
-models and uses source-locked denoising with an interior transition band.</p>
+expansion plus adaptive source restoration, while every FLUX.2 Klein model runs strict outpaint
+with source-locked denoising and an interior transition band. Distilled Klein publishes both
+routes as separate capability rows, <code>flux2.reframe</code> and <code>flux2.outpaint</code>; base Klein publishes
+<code>flux2.outpaint</code> only.</p>
 <p>Exact LoRA-backed public proof exists for:</p>
 <ul>
 <li><code>AbstractFramework/qwen-image-edit-2511-8bit</code> on <code>qwen.reframe</code></li>
@@ -1900,15 +1902,15 @@ models and uses source-locked denoising with an interior transition band.</p>
 <td>FLUX.2 Klein 4B</td>
 <td><code>black-forest-labs/FLUX.2-klein-4B</code>, <code>AbstractFramework/flux.2-klein-4b-8bit</code>, <code>AbstractFramework/flux.2-klein-4b-4bit</code></td>
 <td>source/q8/q4 <code>PASS</code></td>
-<td>historical rows <code>STALE</code></td>
-<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/reframe-outpaint-2026-06-08/flux2-klein-4b-reframe-outpaint-matrix.jpg">matrix</a></td>
+<td>q8 <code>PASS</code> on the latent-lock profile; June 8 edit-path rows <code>STALE</code></td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/reframe-outpaint-2026-06-08/flux2-klein-4b-reframe-outpaint-matrix.jpg">matrix</a>, <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/flux2-klein-outpaint-latent-lock-2026-09-01/flux2_klein_4b_q8_outpaint_b.png">latent-lock outpaint</a></td>
 </tr>
 <tr>
 <td>FLUX.2 Klein 9B</td>
 <td><code>black-forest-labs/FLUX.2-klein-9B</code>, <code>AbstractFramework/flux.2-klein-9b-8bit</code>, <code>AbstractFramework/flux.2-klein-9b-4bit</code></td>
 <td>source/q8/q4 <code>PASS</code></td>
-<td>historical rows <code>STALE</code></td>
-<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/reframe-outpaint-2026-06-08/flux2-klein-9b-reframe-outpaint-matrix.jpg">matrix</a></td>
+<td>q8 <code>PASS</code> on the latent-lock profile; June 8 edit-path rows <code>STALE</code></td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/reframe-outpaint-2026-06-08/flux2-klein-9b-reframe-outpaint-matrix.jpg">matrix</a>, <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/flux2-klein-outpaint-latent-lock-2026-09-01/flux2_klein_9b_q8_outpaint_b.png">latent-lock outpaint</a></td>
 </tr>
 <tr>
 <td>FLUX.2 Klein Base 9B</td>
@@ -1926,28 +1928,38 @@ models and uses source-locked denoising with an interior transition band.</p>
 </tr>
 </tbody>
 </table>
-<p>Current strict FLUX.2 outpaint requires <code>black-forest-labs/FLUX.2-klein-base-*</code>. Prepared base
-Klein q8/q4 packages expose the same route surface through <code>mlxgen capabilities</code>, but their
-starship contact-sheet proof is still pending. Base Klein reframe is intentionally rejected.</p>
+<p>Strict FLUX.2 outpaint runs on every Klein model. Guidance is the setting that does not carry
+across the two weight families: base Klein runs true CFG at 4.0, and step-distilled Klein runs at
+1.0. Omit <code>--guidance</code> and each model takes its own default. Prepared base Klein q8/q4 packages
+expose the same route surface through <code>mlxgen capabilities</code>, and their starship contact-sheet
+proof is still pending. Base Klein reframe is intentionally rejected.</p>
 <p>Use the dedicated <a href="../reframe-outpaint/">Reframe and Outpaint</a> guide for copy/pasteable examples,
 canvas/mask assets, the validation manifests, and exact commands. The mixed June 8 profile id is
-<code>reframe_outpaint_2026_06_08</code>; the current FLUX.2 Klein base source-model profile id is
-<code>flux2_klein_base_starship_2026_06_10</code>.</p>
+<code>reframe_outpaint_2026_06_08</code>, the FLUX.2 Klein base source-model profile id is
+<code>flux2_klein_base_starship_2026_06_10</code>, and the distilled strict-outpaint profile id is
+<code>flux2_klein_outpaint_latent_lock_2026_09_01</code>.</p>
+<p>Every supported route run on one source at one padding value, with per-route timings and source
+drift, is published in
+<a href="../reframe-outpaint/#what-each-model-produces">Reframe and Outpaint</a>; the artifacts, command log
+and measurements live in
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/outpaint-model-matrix-2026-09-01/outpaint-model-matrix.jpg"><code>outpaint-model-matrix-2026-09-01</code></a>.</p>
 <p>These workflows are not native masked fill/inpaint pipelines. Reframe remains openly generative.
-Strict FLUX.2 base outpaint aims to keep the source crop stable, but still relies on latent-space
-editing rather than direct pixel masking: the source region travels through a VAE encode/decode
-round trip, so it is reproduced rather than preserved bit-for-bit. Use
+Strict FLUX.2 outpaint aims to keep the source crop stable, but relies on latent-space editing
+rather than direct pixel masking: the source region is decoded from latents, so it is reproduced
+rather than preserved bit-for-bit. Every run records how far the source region moved as
+<code>outpaint_source_restore_difference</code> in its metadata sidecar. Use
 <a href="../masked-editing/">masked editing</a> when a region must stay untouched.</p>
 <h3 id="outpaint-capability-fields">Outpaint Capability Fields<a class="headerlink" href="#outpaint-capability-fields" title="Permanent link">&para;</a></h3>
 <p>Outpaint-capable capability rows publish the conditioning-canvas contract and the validated
 envelope, so an application can read both from <code>mlxgen capabilities</code> JSON before starting a job. The
-payload carries <code>schema_version</code> 10.</p>
+payload carries <code>schema_version</code> 11.</p>
 <table>
 <thead>
 <tr>
 <th>Field</th>
-<th><code>flux2.outpaint</code> on <code>AbstractFramework/flux.2-klein-base-4b-8bit</code></th>
-<th><code>qwen.outpaint</code> on <code>AbstractFramework/qwen-image-edit-2511-8bit</code></th>
+<th><code>flux2.outpaint</code> on <code>flux.2-klein-base-4b-8bit</code></th>
+<th><code>flux2.outpaint</code> on <code>flux.2-klein-4b-8bit</code></th>
+<th><code>qwen.outpaint</code> on <code>qwen-image-edit-2511-8bit</code></th>
 </tr>
 </thead>
 <tbody>
@@ -1955,24 +1967,29 @@ payload carries <code>schema_version</code> 10.</p>
 <td><code>supports_outpaint</code></td>
 <td><code>true</code></td>
 <td><code>true</code></td>
+<td><code>true</code></td>
 </tr>
 <tr>
 <td><code>supports_outpaint_fill</code></td>
+<td><code>true</code></td>
 <td><code>true</code></td>
 <td><code>false</code></td>
 </tr>
 <tr>
 <td><code>outpaint_fill_modes</code></td>
 <td><code>["auto", "edge", "neutral", "solid", "blur"]</code></td>
+<td><code>["auto", "edge", "neutral", "solid", "blur"]</code></td>
 <td><code>["edge"]</code></td>
 </tr>
 <tr>
 <td><code>outpaint_default_fill_mode</code></td>
 <td><code>"auto"</code></td>
+<td><code>"auto"</code></td>
 <td><code>"edge"</code></td>
 </tr>
 <tr>
 <td><code>outpaint_auto_edge_fill_max_stretch</code></td>
+<td><code>12.0</code></td>
 <td><code>12.0</code></td>
 <td><code>null</code></td>
 </tr>
@@ -1980,9 +1997,17 @@ payload carries <code>schema_version</code> 10.</p>
 <td><code>outpaint_recommended_lora</code></td>
 <td><code>"fal/flux-2-klein-4B-outpaint-lora"</code></td>
 <td><code>null</code></td>
+<td><code>null</code></td>
+</tr>
+<tr>
+<td><code>outpaint_preservation</code></td>
+<td><code>"latent-locked-transition-band-no-postblend"</code></td>
+<td><code>"latent-locked-transition-band-no-postblend"</code></td>
+<td><code>"adaptive-content-aware-source-blend"</code></td>
 </tr>
 <tr>
 <td><code>outpaint_validated_padding</code></td>
+<td><code>"5%,80%,5%,60%"</code></td>
 <td><code>"5%,80%,5%,60%"</code></td>
 <td><code>"5%,80%,5%,60%"</code></td>
 </tr>
@@ -1990,18 +2015,37 @@ payload carries <code>schema_version</code> 10.</p>
 <td><code>outpaint_validated_fill_mode</code></td>
 <td><code>"edge"</code></td>
 <td><code>"edge"</code></td>
+<td><code>"edge"</code></td>
 </tr>
 <tr>
 <td><code>outpaint_validated_max_canvas_pixels</code></td>
 <td><code>282880</code></td>
 <td><code>282880</code></td>
+<td><code>282880</code></td>
+</tr>
+<tr>
+<td><code>lora_status</code></td>
+<td><code>"validated"</code></td>
+<td><code>"mapped-unvalidated"</code></td>
+<td><code>"validated"</code></td>
 </tr>
 </tbody>
 </table>
+<p>Base and distilled Klein publish the same conditioning-canvas contract because they run the same
+route. <code>outpaint_recommended_lora</code> and the <code>outpaint_validated_*</code> envelope are published per route,
+so each row states only its own evidence: the green-canvas adapter is trained on FLUX.2 Klein base
+4B and its A/B proof is a base row, so distilled rows carry <code>outpaint_recommended_lora: null</code>.</p>
 <p><code>supports_outpaint_fill: false</code> alongside a single-entry <code>outpaint_fill_modes</code> means the fill
 algorithm is fixed for that route: the Qwen edit backend always builds an edge-extended canvas and
-takes no <code>--outpaint-fill</code> option. Rows that do not support outpaint report <code>supports_outpaint</code>
-and <code>supports_outpaint_fill</code> as <code>false</code>, empty <code>outpaint_fill_modes</code>, and <code>null</code> for the rest.</p>
+takes no <code>--outpaint-fill</code> option. Asking such a route for a different mode is refused by route,
+naming the capability and the fixed canvas. Rows that do not support outpaint report
+<code>supports_outpaint</code> and <code>supports_outpaint_fill</code> as <code>false</code>, empty <code>outpaint_fill_modes</code>, and
+<code>null</code> for the rest.</p>
+<p><code>outpaint_preservation</code> names how the route keeps the source pixels, and is the same string the
+generated artifact records in its metadata. <code>latent-locked-transition-band-no-postblend</code> locks the
+source region during denoising and never repaints it afterwards;
+<code>adaptive-content-aware-source-blend</code> generates the whole canvas and pastes the source back while
+the generated source window still matches it.</p>
 <p>The validated envelope is the padding, fill mode, and canvas size the published proof runs used.
 Outside it, outpaint is supported but unvalidated. <code>outpaint_recommended_lora</code> is optional: the
 route runs without it, and <a href="../lora/#flux2-klein-base-4b-outpaint">LoRA</a> carries the A/B sheet for

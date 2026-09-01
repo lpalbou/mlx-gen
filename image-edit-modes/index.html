@@ -1450,7 +1450,7 @@ edit should I expect from each mode?" For the current Qwen-specific route map, u
 <tr>
 <td>Extend the canvas beyond the crop while trying to keep the source region stable</td>
 <td><code>outpaint</code></td>
-<td>The model fills new space around the source image, starting from a conditioning canvas you can select on FLUX.2 Klein base routes. This is the closest MLX-Gen route to source-preserving extension, but it is still generative.</td>
+<td>The model fills new space around the source image, starting from a conditioning canvas you can select on FLUX.2 Klein routes. This is the closest MLX-Gen route to source-preserving extension, but it is still generative.</td>
 </tr>
 </tbody>
 </table>
@@ -1668,10 +1668,11 @@ scene.</p>
 <p>Use outpaint when the main goal is extending beyond the crop while keeping the existing source
 region as stable as the backend allows.</p>
 <p>Outpaint is still generative, but it is more source-preserving than reframe. MLX-Gen uses
-backend-specific strategies:</p>
+backend-specific strategies, and each route publishes which one it uses as <code>outpaint_preservation</code>:</p>
 <ul>
 <li>Qwen Image Edit variants use a larger conditioning canvas and adaptive source restoration.</li>
-<li>FLUX.2 Klein base variants use source-locked denoising with a narrow latent transition band.</li>
+<li>Every FLUX.2 Klein model — distilled 4B/9B and base 4B/9B — uses source-locked denoising with a
+  narrow latent transition band. Distilled Klein runs at guidance 1.0, base Klein at 4.0.</li>
 </ul>
 <p>This mode is best for:</p>
 <ul>
@@ -1685,9 +1686,10 @@ backend-specific strategies:</p>
 <li>native masked fill/inpaint semantics;</li>
 <li>zero reinterpretation at the source boundary.</li>
 </ul>
-<p>The source region travels through a VAE encode/decode round trip rather than being pasted back, so
-it is reproduced, not preserved bit-for-bit. When a region must stay untouched, use masked editing
-(<code>--mask-path</code>, see <a href="../masked-editing/">Masked editing</a>).</p>
+<p>On the FLUX.2 Klein route the source region is decoded from latents rather than pasted back, so it
+is reproduced, not preserved bit-for-bit. On the Qwen route the paste back is conditional: it
+applies only while the generated source window still matches the source. When a region must stay
+untouched, use masked editing (<code>--mask-path</code>, see <a href="../masked-editing/">Masked editing</a>).</p>
 <p>Example:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>black-forest-labs/FLUX.2-klein-base-9B<span class="w"> </span><span class="se">\</span>
@@ -1699,12 +1701,15 @@ it is reproduced, not preserved bit-for-bit. When a region must stay untouched, 
 <span class="w">  </span>--output<span class="w"> </span>outpaint.png
 </code></pre></div>
 <p>Expected result: the newly added space is generated around the source crop. The center should stay
-more stable than in reframe, especially on the FLUX.2 base route, but the result is still not a
-literal source-paste guarantee.</p>
+more stable than in reframe, especially on the FLUX.2 Klein routes, but the result is still not a
+literal source-paste guarantee.
+<a href="../reframe-outpaint/#what-each-model-produces">Reframe and Outpaint</a> runs every supported route on
+one source and one padding value so you can compare speed and how far the source moved before
+choosing.</p>
 <h3 id="the-conditioning-canvas">The Conditioning Canvas<a class="headerlink" href="#the-conditioning-canvas" title="Permanent link">&para;</a></h3>
 <p>Outpaint pastes your source onto a larger canvas and asks the model to complete the added area, so
-what fills that area before denoising decides much of what you get back. On FLUX.2 Klein base routes
-you choose it with <code>--outpaint-fill</code>:</p>
+what fills that area before denoising decides much of what you get back. On FLUX.2 Klein routes —
+distilled and base alike — you choose it with <code>--outpaint-fill</code>:</p>
 <table>
 <thead>
 <tr>

@@ -1692,7 +1692,7 @@ not a separate public task.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>flux2-klein-4b
 </code></pre></div>
 <p>The JSON includes each route-supported public task, internal mode, image count, route handler, and
-option support. The payload carries <code>schema_version</code> 10. It reports <code>min_reference_images</code> and
+option support. The payload carries <code>schema_version</code> 11. It reports <code>min_reference_images</code> and
 <code>max_reference_images</code> so applications can keep semantic references separate from primary <code>--image</code>
 inputs, and the outpaint conditioning-canvas contract described in
 <a href="#outpaint-conditioning-canvas">Outpaint Conditioning Canvas</a>. Route support
@@ -2091,29 +2091,32 @@ fill the larger view:</p>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>outpaint.png
 </code></pre></div>
-<p>Outpaint is backend-specific. Qwen Image Edit variants create a larger temporary canvas, initialize
-the new area with edge-extended source context, and apply adaptive source restoration only when the
-generated source window remains close enough to the original source. Current FLUX.2 Klein strict
-outpaint is different: it is base-only, uses source-locked denoising with a narrow latent
-transition band, and does not paste the original crop back over the result. Published source-model
-proof for FLUX.2 Klein base <code>4B/9B</code> is documented in
-<a href="../edit-capabilities/#flux2-klein-base-4b-and-9b-source-proof">Image Edit Capabilities</a> and
-<a href="../reframe-outpaint/">Reframe and Outpaint</a>.</p>
-<p>This is not the same as a native fill/inpaint pipeline that receives an explicit diffusion mask.
-It is not an exact pixel-lock guarantee: the source region travels through a VAE encode/decode round
-trip, so it is reproduced rather than preserved bit-for-bit. Use masked editing (<code>--mask-path</code>, see
-<a href="../masked-editing/">Masked editing</a>) when a region must stay untouched. MLX-Gen keeps lower-level
-FLUX.1 Fill support separate from the unified edit-reference canvas route. Z-Image, ERNIE, FIBO,
-base Qwen Image, Qwen Image 2512, distilled FLUX.2 Klein, latent I2I routes, video routes, and
-SeedVR2 reject <code>--outpaint-padding</code> before loading weights. Base FLUX.2 Klein source models carry a
-published starship proof set; prepared base q8/q4 package proof is pending.</p>
+<p>Outpaint is backend-specific, and each route publishes which strategy it uses as
+<code>outpaint_preservation</code>. Qwen Image Edit variants create a larger temporary canvas, initialize the
+new area with edge-extended source context, and paste the original crop back only when the
+generated source window remains close enough to it
+(<code>adaptive-content-aware-source-blend</code>). FLUX.2 Klein strict outpaint is different: it uses
+source-locked denoising with a narrow latent transition band and never repaints the source region
+afterwards (<code>latent-locked-transition-band-no-postblend</code>). Every Klein model runs it, distilled
+4B/9B at guidance 1.0 and base 4B/9B at guidance 4.0; omit <code>--guidance</code> and each takes its own
+default. <a href="../reframe-outpaint/#what-each-model-produces">Reframe and Outpaint</a> runs every supported
+route on one source and publishes the per-route timings and source drift; further proof is in
+<a href="../edit-capabilities/#flux2-klein-base-4b-and-9b-source-proof">Image Edit Capabilities</a>.</p>
+<p>Neither strategy is a native fill/inpaint pipeline that receives an explicit diffusion mask, and
+neither is an exact pixel-lock guarantee. On the latent-locked FLUX.2 Klein route the source region
+is decoded from latents, so it is reproduced rather than preserved bit-for-bit; on the adaptive
+Qwen route the paste is conditional, so it applies only while the generated source window still
+matches. Use masked editing (<code>--mask-path</code>, see <a href="../masked-editing/">Masked editing</a>) when a region
+must stay untouched. MLX-Gen keeps lower-level FLUX.1 Fill support separate from the unified
+edit-reference canvas route. Z-Image, ERNIE, FIBO, base Qwen Image, Qwen Image 2512, latent I2I
+routes, video routes, and SeedVR2 reject <code>--outpaint-padding</code> before loading weights.</p>
 <p><code>--outpaint-padding</code> computes <code>--width</code> and <code>--height</code> from the source image and the padding and
 runs the canvas at <code>exact-resize</code>, so it rejects <code>--width</code>, <code>--height</code>, and <code>--canvas-policy</code>. It
 also cannot be combined with <code>--reframe-padding</code> or <code>--mask-path</code>.</p>
 <h3 id="outpaint-conditioning-canvas">Outpaint Conditioning Canvas<a class="headerlink" href="#outpaint-conditioning-canvas" title="Permanent link">&para;</a></h3>
 <p>Outpaint pastes the source onto a larger canvas and asks the model to complete the added area. What
 fills that area before denoising is selectable on routes that advertise
-<code>supports_outpaint_fill=true</code>, which is the FLUX.2 Klein base outpaint route. The Qwen edit backend
+<code>supports_outpaint_fill=true</code>, which is the FLUX.2 Klein outpaint route. The Qwen edit backend
 takes no fill option and always builds an edge-extended canvas.</p>
 <table>
 <thead>
@@ -2167,23 +2170,38 @@ subject matter instead of smearing the source border.
 </tr>
 <tr>
 <td><code>outpaint_recommended_lora</code></td>
-<td>The adapter measured to give the best outpaint results on the route, or <code>null</code>. Optional, not required: the route runs without it.</td>
+<td>The adapter measured to give the best outpaint results on that exact route, or <code>null</code>. Published per route: a row carries a recommendation only where an A/B proof for that row exists. Optional, not required: the route runs without it.</td>
+</tr>
+<tr>
+<td><code>outpaint_preservation</code></td>
+<td>How the route keeps the source pixels: <code>latent-locked-transition-band-no-postblend</code> locks the source region during denoising and never repaints it afterwards; <code>adaptive-content-aware-source-blend</code> generates the whole canvas and pastes the source back while the generated source window still matches it. The same string is recorded in the generated artifact's metadata.</td>
 </tr>
 <tr>
 <td><code>outpaint_validated_padding</code>, <code>outpaint_validated_fill_mode</code>, <code>outpaint_validated_max_canvas_pixels</code></td>
-<td>The release-validation envelope: the padding, fill mode, and canvas size the published proof runs used. Outside it, outpaint is supported but unvalidated.</td>
+<td>The release-validation envelope: the padding, fill mode, and canvas size the published proof runs used. Also published per route, so a row states its own evidence. Outside the envelope, outpaint is supported but unvalidated.</td>
 </tr>
 </tbody>
 </table>
 <p>For example, <code>AbstractFramework/flux.2-klein-base-4b-8bit</code> reports <code>flux2.outpaint</code> with
 <code>supports_outpaint_fill: true</code>, <code>outpaint_fill_modes: ["auto", "edge", "neutral", "solid", "blur"]</code>,
-<code>outpaint_default_fill_mode: "auto"</code>, <code>outpaint_auto_edge_fill_max_stretch: 12.0</code>, and
-<code>outpaint_recommended_lora: "fal/flux-2-klein-4B-outpaint-lora"</code>.
+<code>outpaint_default_fill_mode: "auto"</code>, <code>outpaint_auto_edge_fill_max_stretch: 12.0</code>,
+<code>outpaint_recommended_lora: "fal/flux-2-klein-4B-outpaint-lora"</code>, and
+<code>outpaint_preservation: "latent-locked-transition-band-no-postblend"</code>.
+<code>AbstractFramework/flux.2-klein-4b-8bit</code> and <code>AbstractFramework/flux.2-klein-9b-8bit</code> report the
+same <code>flux2.outpaint</code> contract with <code>outpaint_recommended_lora: null</code>, because the green-canvas
+adapter's A/B proof is a base row.
 <code>AbstractFramework/qwen-image-edit-2511-8bit</code> reports <code>qwen.outpaint</code> with
-<code>supports_outpaint_fill: false</code>, <code>outpaint_fill_modes: ["edge"]</code>, and
-<code>outpaint_default_fill_mode: "edge"</code>. Both publish the same validated envelope:
-<code>outpaint_validated_padding: "5%,80%,5%,60%"</code>, <code>outpaint_validated_fill_mode: "edge"</code>, and
+<code>supports_outpaint_fill: false</code>, <code>outpaint_fill_modes: ["edge"]</code>,
+<code>outpaint_default_fill_mode: "edge"</code>, and
+<code>outpaint_preservation: "adaptive-content-aware-source-blend"</code>. All three publish the same validated
+envelope: <code>outpaint_validated_padding: "5%,80%,5%,60%"</code>, <code>outpaint_validated_fill_mode: "edge"</code>, and
 <code>outpaint_validated_max_canvas_pixels: 282880</code>.</p>
+<p>A route with <code>supports_outpaint_fill: false</code> has one legal canvas, the mode named by
+<code>outpaint_default_fill_mode</code>. Ask it for a different one and <code>mlxgen generate</code> refuses before
+dispatch, naming the capability and the fixed canvas:</p>
+<div class="highlight"><pre><span></span><code>mlxgen generate: error: qwen.outpaint has a fixed 'edge' conditioning canvas and does not accept
+an outpaint fill mode ('neutral' was requested).
+</code></pre></div>
 <p>Generated metadata records the resolved canvas next to <code>outpaint_padding</code>, so
 <code>--config-from-metadata</code> replays the resolved fill instead of re-running <code>auto</code>: <code>outpaint_fill</code>,
 <code>outpaint_fill_color</code>, <code>outpaint_fill_requested</code>, <code>outpaint_fill_reason</code>,
@@ -2450,7 +2468,7 @@ and the source duration plus requested fps may resolve fewer <code>4n+1</code> f
 </tr>
 <tr>
 <td><code>--context-frames</code></td>
-<td>Wan A14B image-to-video only (EXPERIMENTAL zero-shot): the ordered frames that FOLLOW <code>--image-path</code> in the motion being continued. The conditioned head becomes <code>[--image-path, *--context-frames]</code>, so a continuation clip inherits the predecessor's real momentum instead of restarting from one frozen frame (the multi-frame handover used by SkyReels-V2/SVI-class pipelines). Pass 4, 8, or 12 frames — the head must fill whole 4x VAE latent groups (5, 9, or 13 conditioned frames); passing the start frame here too is the common misuse and fails on that count check. Requires <code>--image-path</code>; needs <code>--frames &gt;= head + 4</code>; composes with <code>--last-image</code>; rejected on TI2V-5B (<code>expand_timesteps</code>), Wan VACE, and text/video-to-video — CLI rejects before weight load. All frames map through the same canvas and <code>--resize-mode</code> as the first frame. Recorded in metadata (<code>context_image_paths</code>), replayed by <code>--config-from-metadata</code>, advertised as <code>supports_context_frames</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 6; the current capabilities payload is schema 10. Measured zero-shot on a Lightning 4-step continuation pair (backlog 0102): the K=5 head carried the source clip's motion speed (seam magnitude ratio 0.90 vs the single-frame baseline's 1.90 = double-speed restart) with a mild ~2-frame flare/exposure step at the conditioned-to-free boundary (luma delta ~3.2/255 vs the source clip's own max 1.15; visually mild, structurally clean). Treat as a storyboard continue-seam tool, not a validated general feature.</td>
+<td>Wan A14B image-to-video only (EXPERIMENTAL zero-shot): the ordered frames that FOLLOW <code>--image-path</code> in the motion being continued. The conditioned head becomes <code>[--image-path, *--context-frames]</code>, so a continuation clip inherits the predecessor's real momentum instead of restarting from one frozen frame (the multi-frame handover used by SkyReels-V2/SVI-class pipelines). Pass 4, 8, or 12 frames — the head must fill whole 4x VAE latent groups (5, 9, or 13 conditioned frames); passing the start frame here too is the common misuse and fails on that count check. Requires <code>--image-path</code>; needs <code>--frames &gt;= head + 4</code>; composes with <code>--last-image</code>; rejected on TI2V-5B (<code>expand_timesteps</code>), Wan VACE, and text/video-to-video — CLI rejects before weight load. All frames map through the same canvas and <code>--resize-mode</code> as the first frame. Recorded in metadata (<code>context_image_paths</code>), replayed by <code>--config-from-metadata</code>, advertised as <code>supports_context_frames</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 6; the current capabilities payload is schema 11. Measured zero-shot on a Lightning 4-step continuation pair (backlog 0102): the K=5 head carried the source clip's motion speed (seam magnitude ratio 0.90 vs the single-frame baseline's 1.90 = double-speed restart) with a mild ~2-frame flare/exposure step at the conditioned-to-free boundary (luma delta ~3.2/255 vs the source clip's own max 1.15; visually mild, structurally clean). Treat as a storyboard continue-seam tool, not a validated general feature.</td>
 </tr>
 <tr>
 <td><code>--context-noise</code></td>
@@ -2458,7 +2476,7 @@ and the source duration plus requested fps may resolve fewer <code>4n+1</code> f
 </tr>
 <tr>
 <td><code>--svi-anchor-image</code></td>
-<td>Wan A14B image-to-video only (EXPERIMENTAL): SVI 2.0 Pro chain conditioning (Stable Video Infinity, ICLR'26, trained for Wan 2.2 A14B i2v). One persistent anchor image is re-injected into EVERY clip of a chain as <code>[anchor_latent, motion_latent?, zero-latents]</code> — identity from the anchor, momentum from the previous clip's exported latent, TRUE zero-latent padding (not the stock zero-frame VAE encode; the conventions are mutually unintelligible, which is why the mode and the LoRA pair gate each other loudly in both directions). Replaces <code>--image-path</code>; conflicts with <code>--image-path</code>, <code>--last-image</code>, <code>--context-frames</code>, <code>--video-path</code>; rejected on TI2V-5B and VACE before weight load. Requires <code>--svi-lora-high</code>/<code>--svi-lora-low</code>. Every SVI run exports <code>&lt;output&gt;.svi_latent.safetensors</code> for the next clip and records <code>svi_*</code> metadata including <code>svi_assembly_trim_frames</code> (drop that many frames of every CONTINUATION clip at assembly: <code>1 + 4 x count</code>). Use a unique seed per clip. Advertised as <code>supports_svi</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 7; the current capabilities payload is schema 10.</td>
+<td>Wan A14B image-to-video only (EXPERIMENTAL): SVI 2.0 Pro chain conditioning (Stable Video Infinity, ICLR'26, trained for Wan 2.2 A14B i2v). One persistent anchor image is re-injected into EVERY clip of a chain as <code>[anchor_latent, motion_latent?, zero-latents]</code> — identity from the anchor, momentum from the previous clip's exported latent, TRUE zero-latent padding (not the stock zero-frame VAE encode; the conventions are mutually unintelligible, which is why the mode and the LoRA pair gate each other loudly in both directions). Replaces <code>--image-path</code>; conflicts with <code>--image-path</code>, <code>--last-image</code>, <code>--context-frames</code>, <code>--video-path</code>; rejected on TI2V-5B and VACE before weight load. Requires <code>--svi-lora-high</code>/<code>--svi-lora-low</code>. Every SVI run exports <code>&lt;output&gt;.svi_latent.safetensors</code> for the next clip and records <code>svi_*</code> metadata including <code>svi_assembly_trim_frames</code> (drop that many frames of every CONTINUATION clip at assembly: <code>1 + 4 x count</code>). Use a unique seed per clip. Advertised as <code>supports_svi</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 7; the current capabilities payload is schema 11.</td>
 </tr>
 <tr>
 <td><code>--svi-motion-latent</code></td>
@@ -2924,7 +2942,8 @@ resolve to it before requiring a cache snapshot. This lets applications use stab
 seed, prompt, dimensions, frames, steps, guidance, fps, output path, and memory-related runtime
 flags.</p>
 <h2 id="python-integration">Python Integration<a class="headerlink" href="#python-integration" title="Permanent link">&para;</a></h2>
-<p>New applications should start from the public <code>mlxgen</code> routing helpers documented in <a href="../python-integration/">Python Integration</a>, especially <code>resolve_generation_runtime(...)</code> and <code>load_generation_model(...)</code> for warm workers and embedded runtimes. The loaded runtime owns serial multi-output execution through <code>generate_output(...)</code> and <code>generate_outputs(...)</code>: one loaded model instance, one seed at a time, one artifact per seed. Those helpers cover the unified <code>mlxgen generate</code> families only; SeedVR2 continues through <code>mlxgen upscale</code> and direct <code>SeedVR2</code> methods. Direct model classes inherited from the mflux codebase remain available when a caller explicitly needs backend-specific control.</p>
+<p>New applications should start from the public <code>mlxgen</code> routing helpers documented in <a href="../python-integration/">Python Integration</a>, especially <code>resolve_generation_runtime(...)</code> and <code>load_generation_model(...)</code> for warm workers and embedded runtimes. The loaded runtime owns serial multi-output execution through <code>generate_output(...)</code> and <code>generate_outputs(...)</code>: one loaded model instance, one seed at a time, one artifact per seed. Both accept <code>post_process=&lt;callable&gt;</code>, which runs on each artifact after generation and before it is saved, so a workflow with its own post-decode step (compositing a region back, attaching extra metadata) keeps the wrapper's seed loop, progress events and save semantics. Those helpers cover the unified <code>mlxgen generate</code> families only; SeedVR2 continues through <code>mlxgen upscale</code> and direct <code>SeedVR2</code> methods. Direct model classes inherited from the mflux codebase remain available when a caller explicitly needs backend-specific control.</p>
+<p><code>mlxgen</code> also exposes the outpaint pipeline directly: <code>run_outpaint(...)</code> runs it end to end on a loaded runtime, and <code>prepare_outpaint(...)</code> / <code>prepare_reframe(...)</code> build the conditioning canvas and return the generation geometry without loading weights. <code>outpaint_contract_for_model(...)</code> returns the route's resolved fill and preservation contract on its own. See <a href="../python-integration/#outpaint-and-reframe">Outpaint and reframe</a>.</p>
 <p>Python callers should prepare or download required model files before constructing model objects. Runtime constructors and generation calls do not start network downloads.</p>
 <p>For progress monitoring, use <code>mflux.callbacks.ProgressEvent</code> and subscribe with
 <code>model.callbacks.subscribe_progress(...)</code>. Image generation emits <code>start</code> and <code>denoise</code>, followed
