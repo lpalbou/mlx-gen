@@ -1553,9 +1553,11 @@ caller omits it, MLX-Gen applies the official blank negative-prompt behavior for
 <h2 id="outpaint-and-reframe">Outpaint And Reframe<a class="headerlink" href="#outpaint-and-reframe" title="Permanent link">&para;</a></h2>
 <p>Outpaint is a pipeline, not a single call: a conditioning canvas is built from the source and the
 requested padding, the model denoises that canvas, and the route's preservation strategy decides
-what happens to the source region afterwards. <code>run_outpaint(...)</code> runs the whole pipeline on a
-loaded runtime, so a host gets the same canvas, the same fill decision, and the same metadata a CLI
-run produces.</p>
+what happens to the source region afterwards. A request that pads both axes deeply runs as two
+single-axis passes, the second on the first's output (<code>passes="auto"</code>, the default; <code>"1"</code> and
+<code>"2"</code> name the count, and <code>session.pass_plan</code> / <code>session.passes</code> report the decision before any
+weight loads). <code>run_outpaint(...)</code> runs the whole pipeline on a loaded runtime, so a host gets the
+same canvas, the same fill and pass decisions, and the same metadata a CLI run produces.</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mlxgen</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_generation_model</span><span class="p">,</span> <span class="n">run_outpaint</span>
 
 <span class="n">loaded</span> <span class="o">=</span> <span class="n">load_generation_model</span><span class="p">(</span>
@@ -1634,12 +1636,14 @@ canvas.</p>
 <p>Generative reframe uses the same expanded canvas without a fill contract or source preservation:
 <code>prepare_reframe(source_image=..., padding=...)</code> returns a session with the same <code>width</code>, <code>height</code>,
 <code>canvas_policy</code>, <code>generate(...)</code>, and <code>finalize(...)</code> surface.</p>
-<p><code>generate_outputs(...)</code> and <code>generate_output(...)</code> also take the hook this pipeline rides on
-directly: <code>post_process=&lt;callable&gt;</code> runs on each artifact after generation and before it is saved,
+<p><code>generate_outputs(...)</code> and <code>generate_output(...)</code> also take two hooks this pipeline rides on
+directly. <code>post_process=&lt;callable&gt;</code> runs on each artifact after generation and before it is saved,
 which is where a host can composite, annotate, or record its own metadata and still have it land in
-the written file. <code>run_outpaint(...)</code> passes <code>session.finalize</code> through that hook, so any workflow
-with its own post-decode step keeps the wrapper's multi-seed loop, progress events and save
-semantics.</p>
+the written file. <code>generate_method=&lt;callable&gt;</code> replaces the model's own generate call for the run
+and is called once per seed as <code>generate_method(seed=..., **kwargs)</code>; <code>run_outpaint(...)</code> passes
+<code>session.generate</code> through it, so a split request denoises twice per seed and still keeps the
+wrapper's multi-seed loop, progress events and save semantics. Between passes the model emits a
+full progress cycle per pass under the same seed and item index.</p>
 <p>See <a href="../reframe-outpaint/">Reframe and Outpaint</a> for padding guidance and the published proof runs,
 and <a href="../api/#outpaint-conditioning-canvas">API and CLI</a> for the published capability fields.</p>
 <h2 id="progress-and-monitoring">Progress And Monitoring<a class="headerlink" href="#progress-and-monitoring" title="Permanent link">&para;</a></h2>

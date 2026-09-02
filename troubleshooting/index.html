@@ -1541,8 +1541,9 @@ mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\
 <span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Add sunglasses"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>edited.png
 </code></pre></div>
-<p>If the old integration also forwarded <code>--negative-prompt</code>, remove that option for FLUX.2. MLX-Gen
-rejects negative prompts on FLUX.2 routes by design.</p>
+<p>If the old integration also forwarded <code>--negative-prompt</code> to distilled FLUX.2 Klein weights, remove
+it there: those weights have no guidance branch and the option is rejected before loading. Base
+FLUX.2 Klein models accept it with <code>--guidance</code> above 1.0.</p>
 <h2 id="ernie-images-look-cropped-at-tiny-sizes">ERNIE Images Look Cropped At Tiny Sizes<a class="headerlink" href="#ernie-images-look-cropped-at-tiny-sizes" title="Permanent link">&para;</a></h2>
 <p>ERNIE Image Turbo is validated for practical generation at 384px and above. Very small outputs, such as 256x256, can crop or truncate subjects even when the pipeline is working.</p>
 <p>Use 512x512 for small benchmark runs:</p>

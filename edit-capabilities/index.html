@@ -1960,7 +1960,7 @@ rather than preserved bit-for-bit. Every run records how far the source region m
 <h3 id="outpaint-capability-fields">Outpaint Capability Fields<a class="headerlink" href="#outpaint-capability-fields" title="Permanent link">&para;</a></h3>
 <p>Outpaint-capable capability rows publish the conditioning-canvas contract and the validated
 envelope, so an application can read both from <code>mlxgen capabilities</code> JSON before starting a job. The
-payload carries <code>schema_version</code> 11.</p>
+payload carries <code>schema_version</code> 12.</p>
 <table>
 <thead>
 <tr>
@@ -2009,8 +2009,8 @@ payload carries <code>schema_version</code> 11.</p>
 </tr>
 <tr>
 <td><code>outpaint_preservation</code></td>
-<td><code>"latent-locked-transition-band-no-postblend"</code></td>
-<td><code>"latent-locked-transition-band-no-postblend"</code></td>
+<td><code>"adaptive-content-aware-source-blend"</code></td>
+<td><code>"adaptive-content-aware-source-blend"</code></td>
 <td><code>"adaptive-content-aware-source-blend"</code></td>
 </tr>
 <tr>
@@ -2032,6 +2032,24 @@ payload carries <code>schema_version</code> 11.</p>
 <td><code>282880</code></td>
 </tr>
 <tr>
+<td><code>outpaint_pass_modes</code></td>
+<td><code>["auto", "1", "2"]</code></td>
+<td><code>["auto", "1", "2"]</code></td>
+<td><code>["auto", "1", "2"]</code></td>
+</tr>
+<tr>
+<td><code>outpaint_default_passes</code></td>
+<td><code>"auto"</code></td>
+<td><code>"auto"</code></td>
+<td><code>"auto"</code></td>
+</tr>
+<tr>
+<td><code>outpaint_auto_split_corner_ratio</code></td>
+<td><code>0.3</code></td>
+<td><code>0.3</code></td>
+<td><code>0.3</code></td>
+</tr>
+<tr>
 <td><code>lora_status</code></td>
 <td><code>"validated"</code></td>
 <td><code>"mapped-unvalidated"</code></td>
@@ -2049,11 +2067,17 @@ takes no <code>--outpaint-fill</code> option. Asking such a route for a differen
 naming the capability and the fixed canvas. Rows that do not support outpaint report
 <code>supports_outpaint</code> and <code>supports_outpaint_fill</code> as <code>false</code>, empty <code>outpaint_fill_modes</code>, and
 <code>null</code> for the rest.</p>
+<p><code>outpaint_pass_modes</code> and <code>outpaint_default_passes</code> publish the <code>--outpaint-passes</code> contract, and
+<code>outpaint_auto_split_corner_ratio</code> the depth past which <code>auto</code> runs a request that pads both axes
+as two single-axis passes (the shallower of the deepest vertical padding over the source height and
+the deepest horizontal padding over the source width; <code>null</code> on a route that never splits). See
+<a href="../reframe-outpaint/#deep-padding-on-two-axes">Deep Padding On Two Axes</a>.</p>
 <p><code>outpaint_preservation</code> names how the route keeps the source pixels, and is the same string the
-generated artifact records in its metadata. <code>latent-locked-transition-band-no-postblend</code> locks the
-source region during denoising and never repaints it afterwards;
-<code>adaptive-content-aware-source-blend</code> generates the whole canvas and pastes the source back while
-the generated source window still matches it.</p>
+generated artifact records in its metadata. Every outpaint route publishes
+<code>adaptive-content-aware-source-blend</code>: the source region is held in latent space behind a narrow
+transition band while the canvas is denoised (FLUX.2 Klein through its own lock, Qwen Image Edit
+through its masked-edit input), then the original crop is pasted back while the generated source
+window still matches it.</p>
 <p>The validated envelope is the padding, fill mode, and canvas size the published proof runs used.
 Outside it, outpaint is supported but unvalidated. <code>outpaint_recommended_lora</code> is optional: the
 route runs without it, and <a href="../lora/#flux2-klein-base-4b-outpaint">LoRA</a> carries the A/B sheet for

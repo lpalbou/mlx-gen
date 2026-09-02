@@ -1704,9 +1704,10 @@ untouched, use masked editing (<code>--mask-path</code>, see <a href="../masked-
 <span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>outpaint.png
 </code></pre></div>
-<p>Expected result: the newly added space is generated around the source crop. The center should stay
-more stable than in reframe, especially on the FLUX.2 Klein routes, but the result is still not a
-literal source-paste guarantee.
+<p>Expected result: the newly added space is generated around the source crop. The crop is held in
+latent space while the new area is generated and then pasted back over the result, so its interior
+is your original pixels; a narrow transition band along the seam is regenerated so the new area
+blends in.
 <a href="../reframe-outpaint/#what-each-model-produces">Reframe and Outpaint</a> runs every supported route on
 one source and one padding value so you can compare speed and how far the source moved before
 choosing.</p>
