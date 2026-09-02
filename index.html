@@ -1405,7 +1405,8 @@ long-running local jobs.</p>
   optional masked-area reference images on the Klein backend route — see
   <code>docs/masked-editing.md</code>), Qwen structured
   control where the selected model supports <code>--controlnet-image-path</code>, and route-specific
-  reframe/outpaint workflows where the selected model supports them, with a selectable outpaint
+  reframe/outpaint workflows where the selected model supports them, with per-side padding that
+  extends a single side, both sides of an axis, or all four in one call, a selectable outpaint
   conditioning canvas (<code>--outpaint-fill</code>) and strict source-locked outpaint on every FLUX.2 Klein
   model, distilled 4B/9B and base 4B/9B alike (distilled 4B q8 is the fastest measured route, at
   54.6 s on an Apple M5 Max — see <code>docs/reframe-outpaint.md</code>);</li>
@@ -1782,7 +1783,7 @@ progress callbacks make long runs observable.</p>
 <li><a href="examples/spaceship-snow/">Example workflow</a>: reproducible image and video commands.</li>
 <li><a href="upscaling/">Image upscaling</a>: SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, published five-second Eiffel <code>1x</code> and <code>2x</code> 3B/7B validation bundles, readable tone-correction labels, and 5x source/output comparisons.</li>
 <li><a href="edit-capabilities/">Image edit capabilities</a>: image-edit contact sheets, exact model/package status, and command logs.</li>
-<li><a href="reframe-outpaint/">Reframe and outpaint</a>: <code>--reframe-padding</code> and <code>--outpaint-padding</code> routes, the <code>--outpaint-fill</code> conditioning-canvas modes and padding guidance, strict FLUX.2 Klein outpaint on distilled and base weights, and links to the exact Qwen and FLUX route proofs.</li>
+<li><a href="reframe-outpaint/">Reframe and outpaint</a>: <code>--reframe-padding</code> and <code>--outpaint-padding</code> routes, per-side padding across any single side or combination of sides, the <code>--outpaint-fill</code> conditioning-canvas modes and padding guidance, strict FLUX.2 Klein outpaint on distilled and base weights, and links to the exact Qwen and FLUX route proofs.</li>
 <li><a href="model-management/">Model management</a>: download, prepare, and run from local model files.</li>
 <li><a href="quantization/">Quantization</a>: q8/q4/BF16 policies and measurements.</li>
 <li><a href="python-integration/">Python integration</a>: route-resolved runtime loading, serial multi-output reuse for unified <code>mlxgen generate</code> families, SeedVR2's direct-model boundary, progress callbacks, and AbstractVision/AbstractCore notes.</li>

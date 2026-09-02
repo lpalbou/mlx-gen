@@ -1136,10 +1136,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#outpainted-area-comes-back-as-streaks-instead-of-new-content" class="md-nav__link">
+  <a href="#outpainted-area-continues-the-border-texture-instead-of-adding-new-content" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Outpainted Area Comes Back As Streaks Instead Of New Content
+        Outpainted Area Continues The Border Texture Instead Of Adding New Content
       
     </span>
   </a>
@@ -1399,10 +1399,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#outpainted-area-comes-back-as-streaks-instead-of-new-content" class="md-nav__link">
+  <a href="#outpainted-area-continues-the-border-texture-instead-of-adding-new-content" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Outpainted Area Comes Back As Streaks Instead Of New Content
+        Outpainted Area Continues The Border Texture Instead Of Adding New Content
       
     </span>
   </a>
@@ -1594,13 +1594,14 @@ the generated metadata for <code>canvas_policy</code>, <code>requested_width</co
 accept that the model may reshape or recompose the source. When the exact canvas has a different
 aspect ratio than the source, add <code>--resize-mode crop</code> (center-crop) or <code>--resize-mode pad</code>
 (letterbox) to map the source onto it without distortion; the default <code>resize</code> stretches to fill.</p>
-<h2 id="outpainted-area-comes-back-as-streaks-instead-of-new-content">Outpainted Area Comes Back As Streaks Instead Of New Content<a class="headerlink" href="#outpainted-area-comes-back-as-streaks-instead-of-new-content" title="Permanent link">&para;</a></h2>
-<p>The space <code>--outpaint-padding</code> added returns as directional streaks, or as a smeared continuation of
-the source border, rather than as new subject matter.</p>
-<p>The likely cause is edge fill running deeper than it covers. Edge fill builds the conditioning
-canvas by stretching a strip of the source border outward across the padded area, so it continues an
-existing texture rather than inventing one. The depth that strip covers is the <em>edge-fill reach</em>;
-past it, the same strip is stretched far enough to read as one-dimensional streaks.</p>
+<h2 id="outpainted-area-continues-the-border-texture-instead-of-adding-new-content">Outpainted Area Continues The Border Texture Instead Of Adding New Content<a class="headerlink" href="#outpainted-area-continues-the-border-texture-instead-of-adding-new-content" title="Permanent link">&para;</a></h2>
+<p>The space <code>--outpaint-padding</code> added returns as a stretched continuation of the source border, or as
+directional streaks, rather than as new subject matter.</p>
+<p>What you are seeing is the conditioning canvas. <code>edge</code> fill builds it by stretching a strip of the
+source border outward across the padded area, so it continues an existing texture rather than
+inventing one. The depth that strip covers is the <em>edge-fill reach</em>; past it, the same strip is
+stretched far enough to read as one-dimensional streaks. The remedy is to pick a canvas that suits
+the padding depth, and <code>auto</code> makes that choice for you.</p>
 <p>Check which canvas the run used. Every outpaint run prints its resolved canvas on stderr before
 denoising:</p>
 <div class="highlight"><pre><span></span><code>Outpaint: fill=edge, canvas 928x1536 from source 768x766, padding top=0 right=76 bottom=766 left=76.
@@ -1655,10 +1656,12 @@ mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\
 </ul>
 <p><code>--outpaint-padding</code> computes the output size from the source and the padding, so do not add
 <code>--width</code>, <code>--height</code>, or <code>--canvas-policy</code> to any of these commands.</p>
-<p>To confirm the fix, rerun with the same seed and read the first stderr line: it should report the
+<p>To confirm the result, rerun with the same seed and read the first stderr line: it should report the
 fill you asked for, and the added area should contain new content rather than stretched border
 texture. See <a href="../reframe-outpaint/#the-conditioning-canvas">Reframe and Outpaint</a> for the full mode
-table and padding guidance.</p>
+table and padding guidance, and
+<a href="../reframe-outpaint/#expanding-on-any-side">Expanding On Any Side</a> for <code>auto</code> results across
+single-side, single-axis, and four-side padding on three source aspect ratios.</p>
 <h2 id="wan-video-quality-looks-weak-at-tiny-sizes">Wan Video Quality Looks Weak At Tiny Sizes<a class="headerlink" href="#wan-video-quality-looks-weak-at-tiny-sizes" title="Permanent link">&para;</a></h2>
 <p>Wan2.2 supports TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, T2V-A14B text-to-video, T2V-A14B prompt-guided video-to-video (plain or masked with <code>--video-mask-path</code>), and I2V-A14B image-to-video. Very small or very short runs are useful for quick command checks, but they are not quality settings.</p>
 <p>Use the upstream TI2V-5B settings when validating that route at its intended native scale:</p>
@@ -1736,9 +1739,8 @@ rejects crop, pad, exact-resize, <code>--video-strength</code>, masks, LoRA, and
 </code></pre></div>
 <p>To choose the generated image or video path, use <code>--output</code> with <code>mlxgen generate</code>.</p>
 <h2 id="lora-is-missing">LoRA Is Missing<a class="headerlink" href="#lora-is-missing" title="Permanent link">&para;</a></h2>
-<p>LoRA support is route-specific. User-requested LoRAs are required: MLX-Gen no
-longer ignores a missing LoRA and continues without it. Download the LoRA repository or use a local
-<code>.safetensors</code> file path.</p>
+<p>LoRA support is route-specific. A requested LoRA is required: MLX-Gen fails the run rather than
+continuing without it. Download the LoRA repository or use a local <code>.safetensors</code> file path.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>RiverZ/normal-lora<span class="w"> </span>--all-files
 </code></pre></div>
 <p>If a repository contains several <code>.safetensors</code> files, specify the file:</p>

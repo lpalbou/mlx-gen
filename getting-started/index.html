@@ -1545,7 +1545,8 @@ This is a generative edit:</p>
 <span class="w">  </span>--output<span class="w"> </span>reframed.png
 </code></pre></div>
 <p>Use <code>--outpaint-padding</code> when you want MLX-Gen to expand the canvas and guide a supported edit
-model to fill the larger view:</p>
+model to fill the larger view. Padding is CSS-style, in <code>top,right,bottom,left</code> order, and each side
+is independent, so one call can extend a single side, both sides of an axis, or all four:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-4b-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>

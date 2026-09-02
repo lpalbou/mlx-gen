@@ -2592,6 +2592,10 @@ supported edit model to fill the expanded view:</p>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>outpaint.png
 </code></pre></div>
+<p>Padding takes CSS-style values in <code>top,right,bottom,left</code> order and each side is independent, so one
+call can extend a single side, both sides of an axis, or all four at different depths; <code>0</code> leaves
+that edge where it is. <a href="../reframe-outpaint/#expanding-on-any-side">Expanding On Any Side</a> runs three
+source aspect ratios through eight padding configurations covering each of those shapes.</p>
 <p>Outpaint pastes the source onto a larger canvas and asks the model to complete the added area, so
 what fills that area before denoising decides much of the result. On FLUX.2 Klein routes you
 choose it with <code>--outpaint-fill {auto,edge,neutral,solid,blur}</code>, plus <code>--outpaint-fill-color</code> for

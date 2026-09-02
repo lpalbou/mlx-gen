@@ -2080,7 +2080,9 @@ where the model places or reconstructs the subject. Use it for zoom-out, backgro
 revealing plausible missing object boundaries.</p>
 <p>Backend-specific outpaint is available for routes that advertise <code>supports_outpaint=true</code>. Use
 <code>--outpaint-padding</code> when you want MLX-Gen to build an expanded canvas and guide an edit model to
-fill the larger view:</p>
+fill the larger view. Padding takes CSS-style values in <code>top,right,bottom,left</code> order and each side
+is independent, so one call can extend a single side, both sides of an axis, or all four at
+different depths; <code>0</code> leaves that edge where it is:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>black-forest-labs/FLUX.2-klein-base-9B<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
@@ -2100,7 +2102,10 @@ source-locked denoising with a narrow latent transition band and never repaints 
 afterwards (<code>latent-locked-transition-band-no-postblend</code>). Every Klein model runs it, distilled
 4B/9B at guidance 1.0 and base 4B/9B at guidance 4.0; omit <code>--guidance</code> and each takes its own
 default. <a href="../reframe-outpaint/#what-each-model-produces">Reframe and Outpaint</a> runs every supported
-route on one source and publishes the per-route timings and source drift; further proof is in
+route on one source and publishes the per-route timings and source drift, and
+<a href="../reframe-outpaint/#expanding-on-any-side">Expanding On Any Side</a> runs three source aspect ratios
+through eight padding configurations covering every single side and every axis combination; further
+proof is in
 <a href="../edit-capabilities/#flux2-klein-base-4b-and-9b-source-proof">Image Edit Capabilities</a>.</p>
 <p>Neither strategy is a native fill/inpaint pipeline that receives an explicit diffusion mask, and
 neither is an exact pixel-lock guarantee. On the latent-locked FLUX.2 Klein route the source region
@@ -2220,7 +2225,7 @@ an outpaint fill mode ('neutral' was requested).
 </code></pre></div>
 <p>See <a href="../reframe-outpaint/">Reframe and Outpaint</a> for padding guidance, the published proof, and the
 recommended adapter, and
-<a href="../troubleshooting/#outpainted-area-comes-back-as-streaks-instead-of-new-content">Outpainted Area Comes Back As Streaks Instead Of New Content</a>
+<a href="../troubleshooting/#outpainted-area-continues-the-border-texture-instead-of-adding-new-content">Outpainted Area Continues The Border Texture Instead Of Adding New Content</a>
 when the added area returns as stretched border texture.</p>
 <h3 id="negative-prompts">Negative Prompts<a class="headerlink" href="#negative-prompts" title="Permanent link">&para;</a></h3>
 <p>Use <code>--negative-prompt</code> or the shorter <code>--negative</code> alias to describe what the model should avoid:</p>

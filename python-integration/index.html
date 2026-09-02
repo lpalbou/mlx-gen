@@ -1579,6 +1579,10 @@ run produces.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">artifact</span><span class="o">.</span><span class="n">extra_metadata</span><span class="p">[</span><span class="s2">"outpaint_fill"</span><span class="p">])</span>
 <span class="c1"># neutral</span>
 </code></pre></div>
+<p><code>padding</code> takes the same CSS-style <code>top,right,bottom,left</code> string the CLI takes, and each side is
+independent: <code>"0%,10%,100%,10%"</code> above leaves the top edge in place, and <code>"0,0,25%,0"</code> extends only
+the bottom. One call can extend a single side, both sides of an axis, or all four at different
+depths.</p>
 <p>Swap the model name to move routes. Distilled FLUX.2 Klein 4B/9B run the same latent-locked
 outpaint route as the base models and take <code>guidance=1.0</code>; Qwen Image Edit variants run
 expanded-canvas generation with adaptive source restoration. Omit <code>guidance</code> and each model applies

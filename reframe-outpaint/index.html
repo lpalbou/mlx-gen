@@ -669,6 +669,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#expanding-on-any-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expanding On Any Side
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#reframe-example" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1278,6 +1289,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#expanding-on-any-side" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expanding On Any Side
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#reframe-example" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1352,6 +1374,9 @@
 <p>Both options use CSS-style padding in <code>top,right,bottom,left</code> order. Percentages are relative to
 the source image size. For example, <code>5%,80%,5%,60%</code> adds a small top/bottom border, more space to
 the right, and a large extension to the left.</p>
+<p>Each side is independent, and <code>0</code> leaves that edge where it is. One call can therefore extend a
+single side, both sides of an axis, or all four at different depths — see
+<a href="#expanding-on-any-side">Expanding On Any Side</a> for coverage across three source aspect ratios.</p>
 <p><code>--reframe-padding</code> is always a generative edit workflow. <code>--outpaint-padding</code> is backend-specific:
 Qwen Image Edit uses generative canvas expansion with adaptive source restoration, while every
 FLUX.2 Klein model — distilled 4B/9B and base 4B/9B alike — runs strict outpaint with source-locked
@@ -1525,45 +1550,45 @@ reach for this source.</p>
 <td>FLUX.2 Klein 4B distilled q8</td>
 <td>16</td>
 <td>1</td>
-<td><strong>54.6 s</strong></td>
-<td>6.01</td>
+<td><strong>8.4 s</strong></td>
+<td>10.62</td>
 <td>redrawn (latent-locked)</td>
 </tr>
 <tr>
 <td>FLUX.2 Klein 9B distilled q8</td>
 <td>16</td>
 <td>1</td>
-<td>80.6 s</td>
-<td><strong>3.72</strong></td>
+<td>17.2 s</td>
+<td><strong>4.68</strong></td>
 <td>redrawn (latent-locked)</td>
 </tr>
 <tr>
 <td>FLUX.2 Klein Base 4B q8</td>
 <td>20</td>
 <td>4</td>
-<td>72.2 s</td>
-<td>5.61</td>
+<td>22.6 s</td>
+<td>5.90</td>
 <td>redrawn (latent-locked)</td>
 </tr>
 <tr>
 <td>FLUX.2 Klein Base 9B q8</td>
 <td>20</td>
 <td>4</td>
-<td>100.0 s</td>
-<td>4.03</td>
+<td>54.1 s</td>
+<td>4.88</td>
 <td>redrawn (latent-locked)</td>
 </tr>
 <tr>
 <td>Qwen Image Edit 2511 q8</td>
 <td>20</td>
 <td>4</td>
-<td>341.1 s</td>
+<td>198.5 s</td>
 <td>9.35</td>
 <td>original pixels restored</td>
 </tr>
 </tbody>
 </table>
-<p>Time is the whole command including weight load.</p>
+<p>Time is the whole command with a warm weight cache; a first run after boot adds weight-load time.</p>
 <p><strong>Generated drift</strong> is the mean absolute difference (0-255) between your original crop and the same
 region as the model generated it, recorded in every run's metadata as
 <code>outpaint_source_restore_difference</code>. It is measured <strong>before</strong> any restoration step, so read it
@@ -1578,7 +1603,7 @@ together with the last column:</p>
 </ul>
 <p>How to read this if you are choosing a route:</p>
 <ul>
-<li><strong>Distilled Klein 4B is the fastest</strong> and runs at guidance 1, because those weights are
+<li><strong>Distilled Klein 4B is by far the fastest</strong> and runs at guidance 1, because those weights are
   step-distilled. It is the route to reach for first.</li>
 <li><strong>Use Qwen when the original crop must survive untouched.</strong> Its adaptive restoration returns your
   exact pixels whenever the generated region stayed close enough, which the latent lock cannot
@@ -1586,7 +1611,8 @@ together with the last column:</p>
   the row above needs one to stop the model growing aircraft wings. The cost is speed: roughly
   4-6x the FLUX.2 routes here.</li>
 <li><strong>Among the latent-locked routes, the 9B models hold the source closest</strong>, distilled 9B most of
-  all. Choose them when you want a faithful crop without leaving FLUX.2.</li>
+  all. Choose them when you want a faithful crop without leaving FLUX.2; distilled 4B trades the
+  most source fidelity for its speed.</li>
 <li>Every route completed the ship and the valley without a visible seam at the original crop
   boundary.</li>
 </ul>
@@ -1594,6 +1620,37 @@ together with the last column:</p>
 <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/outpaint-model-matrix-2026-09-01/outpaint-model-matrix-command-log.md">command log</a>;
 the measurements are in
 <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/outpaint-model-matrix-2026-09-01/outpaint-model-matrix-stats-m5max.json">stats</a>.</p>
+<h2 id="expanding-on-any-side">Expanding On Any Side<a class="headerlink" href="#expanding-on-any-side" title="Permanent link">&para;</a></h2>
+<p>Padding is independent per side, so a single request can extend one edge, both edges of an axis,
+or all four at once. Coverage across three source aspect ratios and eight padding configurations:</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/outpaint-axis-coverage-2026-09-02/axis-coverage-landscape.jpg">Landscape 640x448</a></td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/outpaint-axis-coverage-2026-09-02/axis-coverage-square.jpg">Square 512x512</a></td>
+</tr>
+<tr>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/outpaint-axis-coverage-2026-09-02/axis-coverage-portrait.jpg">Portrait 448x640</a></td>
+<td><a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/outpaint-axis-coverage-2026-09-02/axis-coverage-measurements.txt">Measurements</a></td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Outpaint axis coverage, portrait source" src="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/outpaint-axis-coverage-2026-09-02/axis-coverage-portrait.jpg" /></p>
+<p>Each sheet runs one source through: every single side, both vertical sides together, both
+horizontal sides together, all four sides, and an asymmetric four-side request. The red outline
+marks the original source, so everything outside it is generated. These runs use an <strong>empty
+prompt</strong> deliberately — with no instruction the model has the least to work from, so it is the
+hardest case; a descriptive prompt gives better results, not worse.</p>
+<p>The measurement beside each result is the mean absolute difference between the generated band and
+the conditioning canvas the model was given for it. It answers one question: did the model invent
+this region, or hand back the canvas? Reproduce any row from the
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/outpaint-axis-coverage-2026-09-02/axis-coverage-command-log.md">command log</a>.</p>
 <h2 id="reframe-example">Reframe Example<a class="headerlink" href="#reframe-example" title="Permanent link">&para;</a></h2>
 <p>Use reframe when you want a model to create a wider view and you accept that the source may be
 redrawn:</p>

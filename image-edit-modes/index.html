@@ -1674,9 +1674,13 @@ backend-specific strategies, and each route publishes which one it uses as <code
 <li>Every FLUX.2 Klein model — distilled 4B/9B and base 4B/9B — uses source-locked denoising with a
   narrow latent transition band. Distilled Klein runs at guidance 1.0, base Klein at 4.0.</li>
 </ul>
+<p>Padding is independent per side, so one call can extend a single edge, both edges of an axis, or
+all four at different depths. See
+<a href="../reframe-outpaint/#expanding-on-any-side">Expanding On Any Side</a> for the coverage sheets across
+three source aspect ratios.</p>
 <p>This mode is best for:</p>
 <ul>
-<li>extending the image left, right, top, or bottom;</li>
+<li>extending the image left, right, top, or bottom, in any combination;</li>
 <li>revealing missing subject boundaries outside the original crop;</li>
 <li>turning a close crop into a wider shot without intentionally recomposing the center.</li>
 </ul>
