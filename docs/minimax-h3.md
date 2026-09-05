@@ -358,10 +358,9 @@ the bay windows, the round table and the trees outside, all in the painting's st
 stays quiet until birdsong takes over in the second half (1 to 8 kHz carrying up to 75% of the energy)
 with a lid click on top; the motion/audio-energy correlation peaks at 0.42. Frame 0 matches the
 downscaled keyframe at PSNR 24.8 dB; 10.2 min for 8 steps and both decodes, 88 GB footprint. Fast
-object manipulation is where the 8-step adapter is weakest: in an earlier take on another painted room
-the opening laptop changed orientation over four frames instead of rotating about its hinge, a
-property of the sampled clip rather than of the port (frame order, temporal blend, positions and
-timesteps match the reference exactly).
+object manipulation is where the 8-step adapter is weakest: a handled object can settle into a new
+orientation over a few frames instead of rotating continuously through them, so name the pivot and
+anchor the object as the prompt above does.
 
 ![Room walkthrough image-to-video](assets/minimax-h3/sheet_room_i2v_turbo544_q8_seed42.jpg)
 

@@ -19,13 +19,13 @@ natively on MLX, with the lightx2v Turbo adapters and a prepared-package workflo
   track. The Turbo entries attach the lightx2v 8-step adapters automatically (768p adapter with
   shifts 6/3; 544p mixed-aspect adapter with shifts 12/3) and `mlxgen download` fetches them with
   the snapshot. `--prompt`, `--soundscape`, and `--music` fill the model's three structured prompt
-  sections; complete structured prompts pass through verbatim, and dialogue written with the model's
-  `(S1)` speaker ids and `<d>[Language] ...</d>` tags tokenizes as its dedicated special tokens (the
-  Qwen2 tokenizer path now adds the special tokens a `tokenizer_config.json` declares on its own). Routed through `mlxgen generate`,
-  `mlxgen capabilities`, `mlxgen prepare`, and the Python runtime (`MiniMaxH3.generate_video`).
-  Every component (packed layout, rectified-flow schedulers, transformer, Qwen3-VL conditioner,
-  video and audio VAEs) is a direct port of the diffusers 0.40 reference and matches it at fp32
-  rounding noise on real weights. See `docs/minimax-h3.md`.
+  sections, and complete structured prompts pass through verbatim. The soundtrack covers ambient
+  sound, a score, and spoken dialogue: write a line with the model's `(S1)` speaker ids and
+  `<d>[Language] ...</d>` tags and the model generates the voice and animates the speaker's mouth.
+  Routed through `mlxgen generate`, `mlxgen capabilities`, `mlxgen prepare`, and the Python runtime
+  (`MiniMaxH3.generate_video`). Every component (packed layout, rectified-flow schedulers,
+  transformer, Qwen3-VL conditioner, video and audio VAEs) is a direct port of the diffusers 0.40
+  reference and matches it at fp32 rounding noise on real weights. See `docs/minimax-h3.md`.
 - **MiniMax-H3 image-to-video.** `--image-path` starts the clip from a keyframe: the canvas follows
   the keyframe's aspect ratio at the entry's short edge, the image is stretched onto it and
   conditions both the packed latent rows and the text sequence through a native port of the

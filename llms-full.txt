@@ -638,8 +638,9 @@ The model generates the voice and animates the speaker's mouth; 11 dialogue lang
 stably supported, and `<d>`, `</d>`, `<|cutoff|>` and the lyric/caption markers are dedicated
 vocabulary tokens that MLX-Gen tokenizes exactly as the reference does.
 Frames round up to `17n + 5` (124 to 362, 5 to 15 s); width and height are multiples of 32 within
-1:4 to 4:1. `--no-audio` writes a silent clip. Metadata records `video_shift`, `audio_shift`,
-`num_inference_steps`, `text_tokens`, `duration_seconds`, and `audio_present`, `audio_source`,
+1:4 to 4:1. `--no-audio` writes a silent clip. Metadata records `steps` (transformer evaluations),
+`video_shift`, `audio_shift`, `num_inference_steps` (the scheduler grid, one more than `steps`),
+`text_tokens`, `duration_seconds`, and `audio_present`, `audio_source`,
 `audio_channels`, `audio_sample_rate`, `audio_duration_seconds`, `audio_muxed`, `audio_codec`,
 `audio_mux_mode` (a sidecar `<output>.wav` and `audio_sidecar_path` when muxing fails).
 

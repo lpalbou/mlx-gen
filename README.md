@@ -71,8 +71,10 @@ The main capabilities are:
 - MiniMax-H3 text-to-video and image-to-video **with synchronized stereo audio** (`minimax-h3`,
   `minimax-h3-turbo`, `minimax-h3-turbo-544p`): one prompt, optionally with a `--image-path`
   keyframe, produces a 24 fps clip and its soundtrack in a single MP4 (AAC track), 5 to 15 seconds
-  long, with the lightx2v 8-step Turbo adapters attached automatically; run it with `--quantize 8`
-  or from a prepared 75 GB q8 package (`mlxgen prepare`) on a 128 GB Mac (see `docs/minimax-h3.md`);
+  long, with the lightx2v 8-step Turbo adapters attached automatically. The soundtrack covers ambient
+  sound, a score, and spoken dialogue with the speaker's mouth animated to match. Run it with
+  `--quantize 8` or from a prepared 75 GB q8 package (`mlxgen prepare`) on a 128 GB Mac (see
+  `docs/minimax-h3.md`);
 - ByteDance Bernini-R 1.3B renderer support (`bernini-r-1.3b`): generate video from one to eight
   ordered ordinary reference images, edit one source video with those references, or run
   source-only prompt-guided video editing through the unified CLI and Python runtime. Download
