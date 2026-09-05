@@ -142,3 +142,42 @@ def _parser_accepts_base_model() -> bool:
 
     args = _parser().parse_args(["--model", "models/x", "--base-model", "minimax-h3-turbo", "--prompt", "x"])
     return args.base_model == "minimax-h3-turbo"
+
+
+@pytest.mark.fast
+def test_qwen2_tokenizer_workaround_keeps_config_only_special_tokens(tmp_path):
+    """MiniMax-H3 declares `<d>`/`</d>` only in tokenizer_config.json; they must get the ids transformers assigns."""
+    import json
+
+    from transformers import Qwen2Tokenizer
+
+    from mflux.models.common.tokenizer.tokenizer_loader import TokenizerLoader
+
+    # Byte-level BPE alphabet (GPT-2 / Qwen2 `bytes_to_unicode`): printable bytes map to themselves, the rest shift up.
+    printable = (
+        list(range(ord("!"), ord("~") + 1)) + list(range(ord("¡"), ord("¬") + 1)) + list(range(ord("®"), ord("ÿ") + 1))
+    )
+    alphabet = [chr(b) for b in printable]
+    shift = 0
+    for b in range(256):
+        if b not in printable:
+            alphabet.append(chr(256 + shift))
+            shift += 1
+    vocab = {ch: i for i, ch in enumerate(alphabet)}
+    vocab["<|endoftext|>"] = len(vocab)
+    (tmp_path / "vocab.json").write_text(json.dumps(vocab))
+    (tmp_path / "merges.txt").write_text("#version: 0.2\n")
+    (tmp_path / "tokenizer_config.json").write_text(
+        json.dumps(
+            {
+                "tokenizer_class": "Qwen2Tokenizer",
+                "added_tokens_decoder": {str(vocab["<|endoftext|>"]): {"content": "<|endoftext|>", "special": True}},
+                "additional_special_tokens": ["<|endoftext|>", "<d>", "</d>"],
+            }
+        )
+    )
+    ours = TokenizerLoader._load_qwen2_tokenizer_workaround(tmp_path, Qwen2Tokenizer)
+    reference = Qwen2Tokenizer.from_pretrained(str(tmp_path))
+    text = "a <d>hi</d>"
+    assert ours.convert_tokens_to_ids("<d>") == reference.convert_tokens_to_ids("<d>") == len(vocab)
+    assert ours(text, add_special_tokens=False)["input_ids"] == reference(text, add_special_tokens=False)["input_ids"]

@@ -15,6 +15,8 @@ limits; use [API and CLI](api.md#minimax-h3-video-with-audio) for the option tab
   your keyframe. The canvas follows the keyframe's aspect ratio at the entry's short edge unless you pass
   `--width`/`--height`, the keyframe is stretched onto that canvas, and it conditions both the latent
   rows and the text sequence (through the Qwen3-VL vision tower), exactly as the reference pipeline does.
+- **One soundtrack covering three kinds of sound**: ambient and diegetic sound, a score, and spoken
+  dialogue with the speaker's mouth animated to match. See [Prompting](#prompting).
 - **Three catalog entries** that share the same weights and differ only in speed defaults:
 
 | Alias | What it runs | Default canvas | Default steps | Flow shifts (video / audio) |
@@ -128,6 +130,21 @@ Describe motion with timing ("halfway through the clip"), name the sounds you ex
 events, and state when a shot has no score. The model is guidance-distilled: there is no negative
 prompt and no guidance scale.
 
+The three kinds of sound each have a place in the prompt:
+
+- **Ambient and diegetic sound** goes in `overall_soundscape` (`--soundscape`): room tone, weather,
+  footsteps, engines, birds, impacts.
+- **Music** goes in `non_diegetic_music` (`--music`), or write "No non-diegetic music; natural sound
+  only." for silence; music that plays inside the scene (a busker, a radio) belongs in the soundscape.
+- **Speech** is written into the description with a speaker id and a dialogue tag:
+  `The woman with a warm mid-pitched voice (S1) says: <d>[English] Good morning!</d>`. Give each
+  speaker a stable `(S1)`, `(S2)` id and enough identity for a voice (age, gender, pitch, pace); keep
+  only the language tag and the exact words inside `<d>`. For narration use the phrase
+  `says in an off-screen voiceover` and add that the on-screen lips stay closed. MiniMax lists 11
+  stably supported dialogue languages (Arabic, Chinese, English, French, German, Italian, Japanese,
+  Korean, Portuguese, Russian, Spanish). `<d>`, `</d>`, `<|cutoff|>` and the lyric and caption markers
+  are dedicated tokens of the model's vocabulary; MLX-Gen tokenizes them exactly as the reference does.
+
 ## Image-To-Video
 
 `--image-path` selects MiniMax-H3's first-frame mode. The keyframe defines the canvas: its aspect
@@ -152,9 +169,13 @@ that must stay as they are ("the same fixed landing legs, no wheels"), give the 
 continuous character ("a deep, steady engine roar that builds and then fades") and exclude what you
 do not want ("no crackling, no buzzing"). The 544p adapter was trained on `960x544`-class canvases: a
 16:9 keyframe lands on its native canvas, while a square keyframe gives `544x544` and still works,
-as the takeoff sheet below shows. First-person prompts work too: the room walkthrough below walks,
-sits, opens a laptop lid and turns to a window from one painted keyframe. See the starship, takeoff
-and room entries under [Contact Sheets](#contact-sheets) for the complete prompts.
+as the takeoff sheet below shows; a portrait keyframe gives a portrait canvas. First-person prompts
+work too: the room walkthrough below walks, sits, opens a laptop and turns to a window from one
+painted keyframe. Describe object manipulation as one motion about a fixed pivot ("lifts its lid in
+one slow, continuous rotation about the hinge at the back") and keep the object anchored ("which stays
+in place on the table"); fast hand-object interaction is where the 8-step adapter is least reliable.
+See the starship, takeoff and room entries under [Contact Sheets](#contact-sheets) for the complete
+prompts.
 
 ## Sizing And Duration
 
@@ -330,14 +351,17 @@ decodes, 88 GB process footprint.
 
 **Room walkthrough image-to-video, seed 42** ([clip](assets/minimax-h3/room_i2v_turbo544_q8_seed42.mp4),
 [keyframe](assets/minimax-h3/keyframe_room.png), [prompt](assets/minimax-h3/prompt_room_i2v.txt)): a
-first-person prompt on a watercolor living room. The keyframe is a `960x544` Z-Image Turbo image
-(`mlxgen generate --model z-image-turbo --quantize 8 --steps 9 --seed 7 --width 960 --height 544`
-with the prompt in [prompt_room_keyframe.txt](assets/minimax-h3/prompt_room_keyframe.txt)), so the whole example is reproducible without a photo.
-The camera walks across the rug toward the couch, lowers as it sits, a hand reaches out and lifts a
-laptop lid whose screen lights up, and the view turns to the bay windows and the trees outside, all
-in the painting's style. The park track stays quiet until the lid opens (a click peaking at
--0.1 dBFS), with birdsong energy between 1 and 8 kHz around it; the motion/audio-energy correlation
-peaks at 0.70. Frame 0 matches the keyframe at PSNR 27.7 dB; 14.7 min for 8 steps and both decodes.
+first-person prompt on a `880x1168` watercolor painting of a living room, which the 544p entry maps to
+a portrait `544x736` canvas. The camera walks across the rug toward the leather couch, lowers as it
+sits, a hand reaches out and opens the nearest laptop until its screen faces us, and the view turns to
+the bay windows, the round table and the trees outside, all in the painting's style. The park track
+stays quiet until birdsong takes over in the second half (1 to 8 kHz carrying up to 75% of the energy)
+with a lid click on top; the motion/audio-energy correlation peaks at 0.42. Frame 0 matches the
+downscaled keyframe at PSNR 24.8 dB; 10.2 min for 8 steps and both decodes, 88 GB footprint. Fast
+object manipulation is where the 8-step adapter is weakest: in an earlier take on another painted room
+the opening laptop changed orientation over four frames instead of rotating about its hinge, a
+property of the sampled clip rather than of the port (frame order, temporal blend, positions and
+timesteps match the reference exactly).
 
 ![Room walkthrough image-to-video](assets/minimax-h3/sheet_room_i2v_turbo544_q8_seed42.jpg)
 
@@ -347,6 +371,17 @@ mid-clip while sea birds cross the sky; the broadband ocean track (-29.5 dBFS RM
 break.
 
 ![Ocean seed 42](assets/minimax-h3/sheet_ocean_turbo544_q8_seed42.jpg)
+
+**Spoken dialogue, seed 42** ([clip](assets/minimax-h3/speech_turbo544_q8_seed42.mp4),
+[prompt](assets/minimax-h3/prompt_speech.txt)): one speaker written as
+`The woman with a clear, warm mid-pitched voice (S1) says: <d>[English] ...</d>` in the description,
+with the kitchen ambience in the soundscape and no score. The model animates her mouth through the
+line and generates the voice: the track is dominated by the 300 Hz to 3 kHz speech band in syllabic
+bursts, its voiced pitch sits at a 219 Hz median, and the mouth region's motion follows the audio
+envelope at a 0.54 correlation. Dialogue is generated speech, not a voice you supply; voice-timbre
+references belong to the unported reference-to-video route.
+
+![Spoken dialogue](assets/minimax-h3/sheet_speech_turbo544_q8_seed42.jpg)
 
 **Fox at 768p, seed 42** ([clip](assets/minimax-h3/fox_turbo768_q8_seed42.mp4)): the same prompt
 through `minimax-h3-turbo` on its native `1344x768` canvas (8 steps, 34 min). Denser fur and snow

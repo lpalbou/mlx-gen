@@ -19,7 +19,9 @@ natively on MLX, with the lightx2v Turbo adapters and a prepared-package workflo
   track. The Turbo entries attach the lightx2v 8-step adapters automatically (768p adapter with
   shifts 6/3; 544p mixed-aspect adapter with shifts 12/3) and `mlxgen download` fetches them with
   the snapshot. `--prompt`, `--soundscape`, and `--music` fill the model's three structured prompt
-  sections; complete structured prompts pass through verbatim. Routed through `mlxgen generate`,
+  sections; complete structured prompts pass through verbatim, and dialogue written with the model's
+  `(S1)` speaker ids and `<d>[Language] ...</d>` tags tokenizes as its dedicated special tokens (the
+  Qwen2 tokenizer path now adds the special tokens a `tokenizer_config.json` declares on its own). Routed through `mlxgen generate`,
   `mlxgen capabilities`, `mlxgen prepare`, and the Python runtime (`MiniMaxH3.generate_video`).
   Every component (packed layout, rectified-flow schedulers, transformer, Qwen3-VL conditioner,
   video and audio VAEs) is a direct port of the diffusers 0.40 reference and matches it at fp32

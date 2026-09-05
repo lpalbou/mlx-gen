@@ -52,6 +52,18 @@
   silently ran as the base entry (50 steps at `1344x768`, hours instead of minutes). Router and CLI
   tests pin the forwarding and the resolution (`_resolve_model`), and the CLI announces which entry a
   package or repo id runs as.
+- Second adversarial pass (2026-09-05, `untracked/h3_verify/agent3/`) on a laptop lid that changed
+  orientation over four frames in a first-person image-to-video clip: verdict model behavior. Frame
+  order and timestamps monotone; the video VAE's temporal chunk assembly (5-token chunks, overlap 2,
+  five-frame cross-fade) reproduced against the reference with a mock decoder to 0.0; packed layout,
+  rope positions and per-row timesteps at the clip's real geometry bit-exact; no systematic spike at
+  chunk boundaries across 13 clips; the change is carried in latent tokens 26 to 27.
+- Tokenizer: the Qwen2 workaround in `TokenizerLoader` dropped the seven H3-only special tokens that
+  `tokenizer_config.json` declares (`<d>`, `</d>`, `<|cutoff|>`, lyric and caption markers), so
+  dialogue tags tokenized as three ordinary tokens instead of ids 151669+. The workaround now adds
+  `additional_special_tokens` the way `from_pretrained` does; encodings of the H3 and Qwen-image
+  tokenizers are identical to transformers on dialogue, vision and plain text (unit test in
+  `tests/minimax_h3/test_h3_config_and_weights.py`).
 - Residual deviations recorded, not fixed: the keyframe is encoded by the bf16 video VAE while the
   reference pins the VAE to fp32 (condition mean rel-rms 2e-2 vs 2e-6; a 10 GB fp32 VAE copy would
   remove it); `MIN_PIXELS`/`MAX_PIXELS` are hardcoded to the released processor values rather than
