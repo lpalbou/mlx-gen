@@ -52,6 +52,7 @@ nav:
       - Qwen Route Matrix: qwen-route-matrix.md
       - Reframe & Outpaint: reframe-outpaint.md
       - Wan Video: wan-video.md
+      - MiniMax-H3 Video With Audio: minimax-h3.md
       - Image & Video Upscaling: upscaling.md
       - Bernini-R 1.3B: bernini.md
       - LoRA: lora.md

@@ -9,6 +9,7 @@ import mlx.core as mx
 import PIL.Image
 
 from mflux.models.common.config import ModelConfig
+from mflux.utils.generated_audio import GeneratedAudio
 from mflux.utils.metadata_schema import MetadataSchema
 from mflux.utils.runtime_memory import RuntimeMemory
 from mflux.utils.version_util import VersionUtil
@@ -50,6 +51,7 @@ class GeneratedVideo:
         frame_batches_factory: Callable[[], Iterable[list[PIL.Image.Image]]] | None = None,
         frame_count: int | None = None,
         trim_leading_frames: int = 0,
+        audio: GeneratedAudio | None = None,
     ):
         if not frames and frame_batches_factory is None:
             raise ValueError("GeneratedVideo requires frames or a frame batch factory.")
@@ -94,6 +96,7 @@ class GeneratedVideo:
         self.lora_paths = lora_paths
         self.lora_scales = lora_scales
         self.extra_metadata = extra_metadata
+        self.audio = audio
 
     @property
     def num_frames(self) -> int:
@@ -131,6 +134,8 @@ class GeneratedVideo:
             # post-save re-decode; the skip is recorded so downstream tooling
             # can tell an unvalidated save from a validated one.
             metadata["health_check"] = "skipped"
+        # Only routes that generate a soundtrack pass it on; silent routes keep the frame-only call.
+        audio_kwargs = {"generated_audio": self.audio} if self.audio is not None else {}
         if self._frames is None and self._frame_batches_factory is not None:
             return VideoUtil.save_video_batches(
                 frame_batches=self._iter_frame_batches(),
@@ -141,6 +146,7 @@ class GeneratedVideo:
                 overwrite=overwrite,
                 validate_health=validate_health,
                 source_audio_copy=source_audio_copy,
+                **audio_kwargs,
             )
         return VideoUtil.save_video(
             frames=self.frames,
@@ -151,6 +157,7 @@ class GeneratedVideo:
             overwrite=overwrite,
             validate_health=validate_health,
             source_audio_copy=source_audio_copy,
+            **audio_kwargs,
         )
 
     def first_frame(self) -> PIL.Image.Image:

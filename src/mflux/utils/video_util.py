@@ -17,6 +17,7 @@ import numpy as np
 import PIL.Image
 
 from mflux.models.common.config import ModelConfig
+from mflux.utils.generated_audio import GeneratedAudio
 from mflux.utils.image_util import ImageUtil
 from mflux.utils.runtime_memory import RuntimeMemory
 from mflux.utils.tensor_health import TensorHealth
@@ -548,6 +549,7 @@ class VideoUtil:
         overwrite: bool = True,
         validate_health: bool = True,
         source_audio_copy: "SourceAudioCopySpec | None" = None,
+        generated_audio: "GeneratedAudio | None" = None,
     ) -> Path:
         save_started = time.perf_counter()
         if not frames:
@@ -587,6 +589,7 @@ class VideoUtil:
                     "file": file_health.to_metadata(),
                 }
         audio_fields = VideoUtil._apply_source_audio_copy(spec=source_audio_copy, file_path=file_path)
+        audio_fields.update(VideoUtil._apply_generated_audio(audio=generated_audio, file_path=file_path))
         if metadata is not None and audio_fields:
             metadata.update(audio_fields)
         VideoUtil._finalize_save_metadata(
@@ -614,6 +617,7 @@ class VideoUtil:
         overwrite: bool = True,
         validate_health: bool = True,
         source_audio_copy: "SourceAudioCopySpec | None" = None,
+        generated_audio: "GeneratedAudio | None" = None,
     ) -> Path:
         save_started = time.perf_counter()
         batch_iterator = iter(frame_batches)
@@ -652,6 +656,7 @@ class VideoUtil:
                     "file": file_health.to_metadata(),
                 }
         audio_fields = VideoUtil._apply_source_audio_copy(spec=source_audio_copy, file_path=file_path)
+        audio_fields.update(VideoUtil._apply_generated_audio(audio=generated_audio, file_path=file_path))
         if metadata is not None and audio_fields:
             metadata.update(audio_fields)
         VideoUtil._finalize_save_metadata(
@@ -668,6 +673,99 @@ class VideoUtil:
 
         log.info(f"Video saved successfully at: {file_path}")
         return file_path
+
+    @staticmethod
+    def _apply_generated_audio(*, audio: "GeneratedAudio | None", file_path: Path) -> dict:
+        """Mux a generated track into the saved clip. Best-effort like the source-audio copy: a failed
+        mux leaves the video untouched, writes the track as a sidecar WAV and records the reason."""
+        if audio is None:
+            return {}
+        try:
+            return VideoUtil.mux_generated_audio(video_path=file_path, audio=audio)
+        except Exception as exc:  # noqa: BLE001
+            reason = f"{exc.__class__.__name__}: {exc}"
+        sidecar = file_path.with_suffix(".wav")
+        audio.save_wav(sidecar)
+        print(f"⚠️  Generated audio could not be muxed into {file_path.name} ({reason}); wrote {sidecar.name} instead.")
+        return {**audio.metadata(), "audio_muxed": False, "audio_mux_reason": reason, "audio_sidecar_path": str(sidecar)}
+
+    @staticmethod
+    def mux_generated_audio(*, video_path: str | Path, audio: "GeneratedAudio") -> dict:
+        """Replace `video_path` with the same video stream plus `audio` encoded as AAC (ffmpeg, else PyAV)."""
+        video_path = Path(video_path)
+        with NamedTemporaryFile(suffix=".wav", prefix=f".{video_path.stem}-audio-", dir=video_path.parent, delete=False) as f:
+            wav_path = Path(f.name)
+        with NamedTemporaryFile(
+            suffix=video_path.suffix or ".mp4", prefix=f".{video_path.stem}-mux-", dir=video_path.parent, delete=False
+        ) as f:
+            temp_path = Path(f.name)
+        try:
+            audio.save_wav(wav_path)
+            ffmpeg_path = shutil.which("ffmpeg")
+            if ffmpeg_path is not None:
+                command = [
+                    ffmpeg_path,
+                    "-y",
+                    "-nostdin",
+                    "-loglevel",
+                    "error",
+                    "-i",
+                    str(video_path),
+                    "-i",
+                    str(wav_path),
+                    "-map",
+                    "0:v:0",
+                    "-map",
+                    "1:a:0",
+                    "-c:v",
+                    "copy",
+                    "-c:a",
+                    "aac",
+                    "-b:a",
+                    "192k",
+                    "-movflags",
+                    "+faststart",
+                    str(temp_path),
+                ]
+                subprocess.run(command, check=True, capture_output=True, text=True)
+                mode = "ffmpeg_copy_video_aac_audio"
+            else:
+                VideoUtil._mux_audio_pyav(video_path=video_path, wav_path=wav_path, output_path=temp_path)
+                mode = "pyav_copy_video_aac_audio"
+            temp_path.replace(video_path)
+        finally:
+            with suppress(FileNotFoundError):
+                wav_path.unlink()
+            with suppress(FileNotFoundError):
+                temp_path.unlink()
+        return {**audio.metadata(), "audio_muxed": True, "audio_codec": "aac", "audio_mux_mode": mode}
+
+    @staticmethod
+    def _mux_audio_pyav(*, video_path: Path, wav_path: Path, output_path: Path) -> None:
+        import av
+
+        with (
+            av.open(str(video_path)) as video_in,
+            av.open(str(wav_path)) as audio_in,
+            av.open(str(output_path), mode="w", options={"movflags": "+faststart"}) as out,
+        ):
+            in_video = video_in.streams.video[0]
+            in_audio = audio_in.streams.audio[0]
+            out_video = out.add_stream_from_template(in_video)
+            out_audio = out.add_stream("aac", rate=in_audio.rate)
+            out_audio.layout = "stereo" if in_audio.channels >= 2 else "mono"
+            resampler = av.AudioResampler(format="fltp", layout=out_audio.layout, rate=in_audio.rate)
+            for packet in video_in.demux(in_video):
+                if packet.dts is None:
+                    continue
+                packet.stream = out_video
+                out.mux(packet)
+            for frame in audio_in.decode(in_audio):
+                for resampled in resampler.resample(frame):
+                    out.mux(out_audio.encode(resampled))
+            for resampled in resampler.resample(None):
+                out.mux(out_audio.encode(resampled))
+            out.mux(out_audio.encode(None))
 
     @staticmethod
     def _apply_source_audio_copy(

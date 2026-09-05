@@ -429,6 +429,7 @@ class TokenizerLoader:
         # Load tokenizer config for special tokens and chat template
         config_kwargs = {}
         chat_template = None
+        additional_special_tokens: list[str] = []
         if config_file.exists():
             with open(config_file, encoding="utf-8") as f:
                 config = json.load(f)
@@ -451,8 +452,19 @@ class TokenizerLoader:
 
             # Extract chat_template if present
             chat_template = config.get("chat_template")
+            additional_special_tokens = [
+                token for token in config.get("additional_special_tokens", []) if isinstance(token, str)
+            ]
 
         tokenizer = cls(vocab=vocab, merges=merges, **config_kwargs)
+
+        # Special tokens declared only in tokenizer_config.json (MiniMax-H3's `<d>`, `</d>`, `<|cutoff|>`, ...)
+        # get the ids `from_pretrained` assigns: appended in declaration order after the stored vocabulary.
+        if additional_special_tokens:
+            tokenizer.add_tokens(
+                [AddedToken(content=token, special=True, normalized=False) for token in additional_special_tokens],
+                special_tokens=True,
+            )
 
         # Set chat_template after initialization (not a constructor param)
         if chat_template:

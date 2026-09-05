@@ -1,0 +1,5 @@
+integrated_multimodal_description: [Shot 1] Wide cinematic shot, static camera, slightly grainy film look. Starting from the pictured weathered cargo spaceship resting on a snowfield under a pale blue sky. The ship keeps its exact shape throughout: the same hull, the same fixed landing legs and pads, no wheels. Its main engines ignite beneath the hull with a blue-white glow and the ship lifts straight up in one smooth, continuous motion, never touching the ground again, rising steadily and accelerating upward until it leaves through the top of the frame. Loose snow is blasted outward in a widening ring beneath it and slowly settles as the empty snowfield remains.
+
+overall_soundscape: A deep, steady, continuous rocket engine roar that builds smoothly as the ship lifts off and then gradually fades into the distance as it climbs away; a soft rush of blown snow beneath the thrust; a thin cold wind over the empty field at the end. No crackling, no buzzing, no explosion.
+
+non_diegetic_music: No non-diegetic music; natural sound only.

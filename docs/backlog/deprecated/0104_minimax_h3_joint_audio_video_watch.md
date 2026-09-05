@@ -1,10 +1,21 @@
-# Proposed: MiniMax H3 joint audio-video license-blocked watch
+# Deprecated: MiniMax H3 joint audio-video license-blocked watch
 
 ## Metadata
 
 - Created: 2026-08-03
-- Status: Proposed
-- Completed: N/A
+- Status: Deprecated
+- Deprecated: 2026-09-04
+
+## Deprecation note - 2026-09-04
+
+Superseded by the owner's decision to port MiniMax-H3 despite the license territory exclusion
+recorded below; the runtime shipped as completed item
+[0117](../completed/0117_minimax_h3_text_to_video_audio_runtime.md), first-frame conditioning is
+planned item [0118](../planned/0118_minimax_h3_first_frame_conditioning_vision_tower.md), and
+performance follow-ups are proposed item
+[0119](../proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance.md). The license
+analysis in this item remains the reference for the policy decision that is still owed (an ADR or
+an explicit organizational license). The original text is preserved unchanged below.
 
 ## ADR status
 

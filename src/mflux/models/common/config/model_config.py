@@ -305,6 +305,21 @@ class ModelConfig:
 
     @staticmethod
     @lru_cache
+    def minimax_h3() -> "ModelConfig":
+        return AVAILABLE_MODELS["minimax-h3"]
+
+    @staticmethod
+    @lru_cache
+    def minimax_h3_turbo() -> "ModelConfig":
+        return AVAILABLE_MODELS["minimax-h3-turbo"]
+
+    @staticmethod
+    @lru_cache
+    def minimax_h3_turbo_544p() -> "ModelConfig":
+        return AVAILABLE_MODELS["minimax-h3-turbo-544p"]
+
+    @staticmethod
+    @lru_cache
     def wan2_2_i2v_a14b() -> "ModelConfig":
         return AVAILABLE_MODELS["wan2.2-i2v-a14b"]
 
@@ -846,6 +861,90 @@ AVAILABLE_MODELS = {
             "use_output_ada": False,
             "last_layer_vid_only": False,
         },
+    ),
+    "minimax-h3": ModelConfig(
+        priority=30,
+        aliases=["minimax-h3", "minimaxai/minimax-h3", "h3"],
+        model_name="MiniMaxAI/MiniMax-H3",
+        base_model=None,
+        controlnet_model=None,
+        custom_transformer_model=None,
+        num_train_steps=1000,
+        max_sequence_length=8192,
+        supports_guidance=False,
+        requires_sigma_shift=False,
+        inference_aliases=["minimax-h3"],
+        transformer_overrides={
+            "task": "text-to-video",
+            "generates_audio": True,
+            "supports_image_to_video": True,
+            "default_frames": 124,
+            "default_steps": 50,
+            "default_fps": 24,
+            "default_width": 1344,
+            "default_height": 768,
+            "default_video_shift": 12.0,
+            "default_audio_shift": 3.0,
+        },
+        text_encoder_overrides={"model_type": "qwen3_vl", "hidden_size": 5120, "num_layers": 50},
+    ),
+    "minimax-h3-turbo": ModelConfig(
+        priority=31,
+        aliases=["minimax-h3-turbo", "h3-turbo"],
+        model_name="MiniMaxAI/MiniMax-H3",
+        base_model=None,
+        controlnet_model=None,
+        custom_transformer_model=None,
+        num_train_steps=1000,
+        max_sequence_length=8192,
+        supports_guidance=False,
+        requires_sigma_shift=False,
+        inference_aliases=["minimax-h3-turbo"],
+        transformer_overrides={
+            "task": "text-to-video",
+            "generates_audio": True,
+            "supports_image_to_video": True,
+            "default_frames": 124,
+            # lightx2v FL2VA Turbo 8-step v1.0, trained at 768p (1344x768) with shifts 6 / 3.
+            "default_steps": 8,
+            "default_fps": 24,
+            "default_width": 1344,
+            "default_height": 768,
+            "default_video_shift": 6.0,
+            "default_audio_shift": 3.0,
+            "turbo_lora": "hf:lightx2v/Minimax-h3-Turbo/minimax_h3_fl2v_turbo_8step_v1.0_768p_bf16.safetensors",
+        },
+        text_encoder_overrides={"model_type": "qwen3_vl", "hidden_size": 5120, "num_layers": 50},
+    ),
+    "minimax-h3-turbo-544p": ModelConfig(
+        priority=32,
+        aliases=["minimax-h3-turbo-544p", "h3-turbo-544p"],
+        model_name="MiniMaxAI/MiniMax-H3",
+        base_model=None,
+        controlnet_model=None,
+        custom_transformer_model=None,
+        num_train_steps=1000,
+        max_sequence_length=8192,
+        supports_guidance=False,
+        requires_sigma_shift=False,
+        inference_aliases=["minimax-h3-turbo-544p"],
+        transformer_overrides={
+            "task": "text-to-video",
+            "generates_audio": True,
+            "supports_image_to_video": True,
+            "default_frames": 124,
+            # lightx2v FL2VA Turbo 8-step v1.0, trained at 544p on mixed aspect ratios with the base shifts 12 / 3.
+            "default_steps": 8,
+            "default_fps": 24,
+            "default_width": 960,
+            "default_height": 544,
+            "canvas_short_edge": 544,
+            "canvas_max_pixels": 544 * 960,
+            "default_video_shift": 12.0,
+            "default_audio_shift": 3.0,
+            "turbo_lora": "hf:lightx2v/Minimax-h3-Turbo/minimax_h3_fl2v_turbo_8step_v1.0_bf16.safetensors",
+        },
+        text_encoder_overrides={"model_type": "qwen3_vl", "hidden_size": 5120, "num_layers": 50},
     ),
     "wan2.2-ti2v-5b": ModelConfig(
         priority=26,

@@ -46,6 +46,10 @@ def _model_class_for_config(model_config: ModelConfig):
         return ErnieImageTurbo
     if has("seedvr2"):
         return SeedVR2
+    if has("minimax-h3"):
+        from mflux.models.minimax_h3.variants.minimax_h3 import MiniMaxH3
+
+        return MiniMaxH3
     if has("wan"):
         return Wan2_2_TI2V
     if has("flux2") or has("flux.2"):

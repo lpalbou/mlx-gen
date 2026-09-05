@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-09-05
+
+MiniMax-H3: text-to-video and first-frame image-to-video with a synchronized stereo soundtrack,
+natively on MLX, with the lightx2v Turbo adapters and a prepared-package workflow.
+
+### Added
+
+- **MiniMax-H3 (`minimax-h3`, `minimax-h3-turbo`, `minimax-h3-turbo-544p`).** One prompt produces a
+  24 fps clip of 5 to 15 seconds and its stereo soundtrack, saved together in one MP4 with an AAC
+  track. The Turbo entries attach the lightx2v 8-step adapters automatically (768p adapter with
+  shifts 6/3; 544p mixed-aspect adapter with shifts 12/3) and `mlxgen download` fetches them with
+  the snapshot. `--prompt`, `--soundscape`, and `--music` fill the model's three structured prompt
+  sections, and complete structured prompts pass through verbatim. The soundtrack covers ambient
+  sound, a score, and spoken dialogue: write a line with the model's `(S1)` speaker ids and
+  `<d>[Language] ...</d>` tags and the model generates the voice and animates the speaker's mouth.
+  Routed through `mlxgen generate`, `mlxgen capabilities`, `mlxgen prepare`, and the Python runtime
+  (`MiniMaxH3.generate_video`). Every component (packed layout, rectified-flow schedulers,
+  transformer, Qwen3-VL conditioner, video and audio VAEs) is a direct port of the diffusers 0.40
+  reference and matches it at fp32 rounding noise on real weights. See `docs/minimax-h3.md`.
+- **MiniMax-H3 image-to-video.** `--image-path` starts the clip from a keyframe: the canvas follows
+  the keyframe's aspect ratio at the entry's short edge, the image is stretched onto it and
+  conditions both the packed latent rows and the text sequence through a native port of the
+  Qwen3-VL vision tower (image processor, DeepStack injection, 3-axis rope index), verified against
+  transformers on real weights. Advertised as the `minimax-h3.first-frame` capability row.
+- **Prepared MiniMax-H3 packages.** `mlxgen prepare --model minimax-h3 --quantize 8 --path ...`
+  writes the 75 GB mixed q8/BF16 package once; load it with `--model <path>` and pick a Turbo
+  schedule with `--base-model minimax-h3-turbo-544p` or `minimax-h3-turbo`. A same-seed clip from
+  the package is byte-identical to the load-time `--quantize 8` clip.
+- **Generated audio on `GeneratedVideo`.** `video.audio` carries a `GeneratedAudio`
+  (`waveform`, `sample_rate`); `save()` muxes it as AAC (ffmpeg, PyAV fallback, sidecar WAV when
+  muxing fails) and records the `audio_*` metadata fields.
+- **Shard-streaming quantized loading.** `--quantize 8` on MiniMax-H3 quantizes each shard as it
+  loads, so the two 30B-class components never hold a full BF16 copy next to the q8 copy; the
+  measured `960x544` run peaks at 80 GB of MLX memory on a 128 GB Mac. Prepared MiniMax-H3 packages
+  stream the same way, so loading one costs the stored 75 GB rather than a second in-memory copy.
+  The streaming loader applies the same once-per-process MLX cache-limit default as the other model
+  loaders, and `mlxgen generate` on MiniMax-H3 accepts `--mlx-cache-limit-gb`.
+
+### Notes
+
+- MiniMax-H3 reference-to-video and the closing keyframe are not available yet. The 768p canvas
+  costs about 4.5 minutes per step on an Apple M5 Max; the 544p adapter is the iteration setting.
+- MiniMax-H3 is released under the MiniMax H3 Community License, which restricts use in some
+  territories; read it on the model card before downloading or distributing weights or outputs.
+
 ## [0.33.1] - 2026-09-02
 
 Video restore routes work again on FFmpeg 9.

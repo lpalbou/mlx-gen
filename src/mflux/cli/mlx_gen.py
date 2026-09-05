@@ -163,6 +163,7 @@ def _route_accepts_base_model(route: _Route) -> bool:
         "mflux-generate-qwen-edit",
         "mflux-generate-z-image",
         "mflux-generate-z-image-turbo",
+        "mlxgen-generate-minimax-h3",
     }
 
 
@@ -526,7 +527,18 @@ def _show_capabilities(argv: list[str]) -> None:
     parser.add_argument("--base-model", default=None, help="Base model hint for custom repositories or local paths.")
     parser.add_argument(
         "--family",
-        choices=["qwen", "flux2", "fibo", "z-image", "ernie-image", "wan", "bonsai", "seedvr2", "swiftvr"],
+        choices=[
+            "qwen",
+            "flux2",
+            "fibo",
+            "z-image",
+            "ernie-image",
+            "wan",
+            "minimax-h3",
+            "bonsai",
+            "seedvr2",
+            "swiftvr",
+        ],
         default=None,
         help="Override model-family detection for local paths or custom repo names.",
     )
@@ -660,6 +672,12 @@ def _download_model(argv: list[str]) -> None:
                 )
     for path in downloaded_paths:
         print(f"Downloaded snapshot: {path}")
+    turbo_lora = model_config.transformer_overrides.get("turbo_lora") if model_config is not None else None
+    if turbo_lora:
+        from mflux.models.common.resolution.lora_resolution import LoraResolution
+
+        with allow_downloads():
+            print(f"Downloaded Turbo LoRA: {LoraResolution.resolve(turbo_lora)}")
     print("You can now run generation without a runtime download, for example:")
     if model_config is not None and model_config.transformer_overrides.get("supports_bernini_renderer"):
         print(
@@ -671,6 +689,14 @@ def _download_model(argv: list[str]) -> None:
         set(model_config.aliases), _model_key(repo_id, model_config.base_model)
     ):
         print(f"  mlxgen upscale --model {shlex.quote(repo_id)} --video-path input.mp4 --output restored.mp4")
+    elif model_config is not None and _is_minimax_h3(
+        set(model_config.aliases), _model_key(repo_id, model_config.base_model)
+    ):
+        print(
+            f"  mlxgen generate --model {shlex.quote(model_config.aliases[0])} "
+            "--prompt 'A red fox trots through fresh snow at dawn' --soundscape 'Snow crunching, distant crows' "
+            "--output video.mp4"
+        )
     elif model_config is not None and _is_seedvr2(
         set(model_config.aliases), _model_key(repo_id, model_config.base_model)
     ):
@@ -867,6 +893,10 @@ def _weight_definition_for(aliases: set[str], model_key: str, model_config: Mode
         from mflux.models.swiftvr.weights.swiftvr_weight_definition import SwiftVRWeightDefinition
 
         return SwiftVRWeightDefinition
+    if _is_minimax_h3(aliases, model_key):
+        from mflux.models.minimax_h3.weights import MiniMaxH3WeightDefinition
+
+        return MiniMaxH3WeightDefinition
     if _is_wan(aliases, model_key):
         from mflux.models.wan.weights import WanWeightDefinition
 
@@ -1256,6 +1286,8 @@ def _route_for_plan(
         return _ernie_route()
     if handler_id == "wan.generate":
         return _wan_route(has_image=has_image, has_video=has_video)
+    if handler_id == "minimax-h3.generate":
+        return _minimax_h3_route(has_image=has_image)
     if handler_id == "bonsai.generate":
         return _bonsai_route()
     _parser().error(f"Unsupported generation handler {handler_id!r}.")
@@ -1334,6 +1366,10 @@ def _is_ernie(aliases: set[str], model_key: str) -> bool:
 
 def _is_wan(aliases: set[str], model_key: str) -> bool:
     return any(alias.startswith("wan") for alias in aliases) or "wan" in model_key
+
+
+def _is_minimax_h3(aliases: set[str], model_key: str) -> bool:
+    return any(alias.startswith("minimax-h3") for alias in aliases) or "minimax-h3" in model_key
 
 
 def _is_seedvr2(aliases: set[str], model_key: str) -> bool:
@@ -1433,6 +1469,18 @@ def _wan_route(has_image: bool, has_video: bool) -> _Route:
         target_main,
         image_argument="--image-path" if has_image else None,
         video_argument="--video-path" if has_video else None,
+        requires_image=False,
+    )
+
+
+def _minimax_h3_route(has_image: bool) -> _Route:
+    from mflux.models.minimax_h3.cli.minimax_h3_generate import main as target_main
+
+    return _Route(
+        "mlxgen-generate-minimax-h3",
+        target_main,
+        image_argument="--image-path" if has_image else None,
+        video_argument=None,
         requires_image=False,
     )
 

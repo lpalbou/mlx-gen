@@ -1,0 +1,5 @@
+integrated_multimodal_description: [Shot 1] Cinematic medium shot, static camera, shallow depth of field. Starting from the pictured red fox standing in fresh snow among birch trees, the fox turns its head toward the camera, then trots forward and to the right through the powder, kicking up small sprays of snow that catch the low golden light. Its breath steams in the cold air.
+
+overall_soundscape: Soft rhythmic crunch of paws in dry snow, a faint steady wind through bare branches, one distant crow caw near the end.
+
+non_diegetic_music: Sparse, gentle piano notes with long reverb, slow tempo, contemplative and cold.

@@ -22,6 +22,7 @@
 - `docs/reframe-outpaint.md`: reframe/outpaint workflows, per-side padding and how to extend one side, one axis, or all four in a single call, the `--outpaint-fill` conditioning-canvas modes and how `auto` resolves them, padding guidance including the automatic two-pass split of deep two-axis requests (`--outpaint-passes`), the measured corner-depth sweep and its remedies, exact commands, strict FLUX.2 Klein outpaint on distilled 4B/9B (guidance 1.0) and base 4B/9B (guidance 4.0), the cross-route outpaint matrix running every supported route on one source with per-route timings and source drift, the 2026-09-02 axis-coverage sheets across three source aspect ratios and eight padding configurations, and the three related validation profile ids.
 - `docs/lora.md`: route-specific LoRA capability fields, explicit adapter download, strict scale matching, exact adapter/base-model compatibility, source/no-LoRA/with-LoRA validation, exact public proof rows for current Qwen, Z-Image, FLUX.2, ERNIE, and Wan routes, including base Qwen latent, the exact `AbstractFramework/z-image-turbo-8bit` latent children's-drawing row, Qwen 2511 multi-reference/reframe/outpaint, FLUX.2 Klein 9B multi-reference, FLUX.2 Klein base 4B outpaint, direct `lightx2v/Wan2.2-Lightning` download, and explicit guidance that the validated Lightning target is the MLX-Gen q8 package rather than an arbitrary external FP8 checkpoint.
 - `docs/wan-video.md`: practical Wan2.2 T2V/I2V guidance, plain and masked prompt-guided A14B video-to-video with the exact reproducible proof commands and included artifacts, output canvas and source mapping (`--canvas-policy`, `--resize-mode`), repeat-run and application performance options (prompt-embed disk cache, resident text encoder, health-check opt-out, opt-in compiled transformer, A14B inactive-expert release), broader A14B target size families, and `101`-frame, 20 fps M5 Max comparison clips for A14B and TI2V-5B.
+- `docs/minimax-h3.md`: MiniMax-H3 text-to-video and first-frame image-to-video (`--image-path`) with a synchronized stereo AAC soundtrack in one MP4: `minimax-h3`, `minimax-h3-turbo`, `minimax-h3-turbo-544p`, lightx2v Turbo adapters, the structured prompt sections, frame and canvas rules, `--quantize 8` load-time quantization, measured M5 Max runtime and memory, the `audio_*` metadata contract, Python usage, verification summary, and current limits.
 - `docs/bernini.md`: experimental Bernini-R 1.3B reference-to-video and video-edit routes, pinned BF16 runtime setup and download sizes, the committed official public parity bundle with full prompts and contact sheets per upstream example row, and task-specific recipes for many-reference binding and structure-changing edits.
 - `docs/recommendations.md`: conservative model recommendations for `18 GB`, `24 GB`, `32 GB`, `64 GB`, and `128+ GB` Macs based on published MLX-Gen memory measurements.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
@@ -616,6 +617,59 @@ and I2V-A14B reject `--video-path`. The exact reproducible proof command and inc
 live in `docs/wan-video.md` and `docs/assets/examples/spaceship-v2v/`.
 
 ---
+
+## MiniMax-H3 Video With Audio
+
+MiniMax-H3 (`MiniMaxAI/MiniMax-H3`) generates a 24 fps clip and a synchronized stereo soundtrack
+from one structured prompt; MLX-Gen saves both in a single MP4 with an AAC track (32 kHz). Three
+catalog entries share the weights: `minimax-h3` (base, 50 steps, shifts 12/3, `1344x768`),
+`minimax-h3-turbo` (lightx2v 8-step Turbo adapter trained at 768p, shifts 6/3, `1344x768`), and
+`minimax-h3-turbo-544p` (8-step adapter trained at 544p on mixed aspect ratios, shifts 12/3,
+`960x544`). `--steps` counts transformer evaluations. The Turbo entries attach their adapter
+automatically and `mlxgen download --model minimax-h3-turbo-544p` fetches it with the snapshot.
+
+Prompt format: `--prompt` fills `integrated_multimodal_description`, `--soundscape` fills
+`overall_soundscape`, `--music` fills `non_diegetic_music`; a prompt that already carries the
+section labels is passed through verbatim. There is no negative prompt and no guidance scale. The
+three kinds of sound have three places: ambient and diegetic sound in the soundscape, score in the
+music section, and speech written into the description with a stable speaker id and dialogue tags
+(`The woman ... (S1) says: <d>[English] ...</d>`; `says in an off-screen voiceover` for narration).
+The model generates the voice and animates the speaker's mouth; 11 dialogue languages are listed as
+stably supported, and `<d>`, `</d>`, `<|cutoff|>` and the lyric/caption markers are dedicated
+vocabulary tokens that MLX-Gen tokenizes exactly as the reference does.
+Frames round up to `17n + 5` (124 to 362, 5 to 15 s); width and height are multiples of 32 within
+1:4 to 4:1. `--no-audio` writes a silent clip. Metadata records `steps` (transformer evaluations),
+`video_shift`, `audio_shift`, `num_inference_steps` (the scheduler grid, one more than `steps`),
+`text_tokens`, `duration_seconds`, and `audio_present`, `audio_source`,
+`audio_channels`, `audio_sample_rate`, `audio_duration_seconds`, `audio_muxed`, `audio_codec`,
+`audio_mux_mode` (a sidecar `<output>.wav` and `audio_sidecar_path` when muxing fails).
+
+Requirements and cost: about 140 GB of disk for the snapshot plus 1.4 GB per adapter; run with
+`--quantize 8` (shard-by-shard load-time quantization) on a 128 GB Mac, or prepare a local 75 GB
+mixed q8/BF16 package once with `mlxgen prepare --model minimax-h3 --quantize 8 --path
+models/minimax-h3-8bit` and load it with `--model <path>` plus `--base-model minimax-h3-turbo-544p`
+(or `minimax-h3-turbo`) for a Turbo schedule; prepared packages stream shard by shard too. The MLX
+free-buffer cache follows the process default (up to 8 GiB), adjustable with `--mlx-cache-limit-gb`.
+Measured on an Apple M5 Max with 124 frames: `960x544` Turbo 8 steps at ~55 s per step (about 8
+minutes of denoise and decode, 80 GB MLX peak, 88 GB process footprint); `1344x768` Turbo 8 steps at
+about 5 minutes per step (93 GB footprint). The first load reads 133 GB of shards (a few minutes); later loads from the page cache take
+seconds.
+
+Python: `MiniMaxH3(model_config=ModelConfig.minimax_h3_turbo_544p(), quantize=8)` and
+`generate_video(seed, prompt, soundscape=..., music=..., width=..., height=..., num_frames=...,
+num_inference_steps=..., video_shift=..., audio_shift=..., generate_audio=True,
+progress_callback=...)`; the result's `audio` is a `GeneratedAudio` (`waveform` `(2, samples)`
+float32, `sample_rate` 32000). `--image-path` selects first-frame image-to-video: the canvas follows the keyframe's aspect ratio at the
+entry's short edge unless `width`/`height` are given, the keyframe is stretched onto it and conditions
+both the latent rows and the text sequence through the Qwen3-VL vision tower. Motion prompts for a
+keyframe work best as one continuous action with its end state ("lifts straight up in one smooth
+motion and leaves through the top of the frame"), naming what must stay unchanged, with a continuous
+soundscape and explicit exclusions; the starship and takeoff sheets in `docs/assets/minimax-h3/`
+carry the complete prompts. Limits: reference-to-video and the closing keyframe are not available
+yet; no published package (prepare one locally); the 768p canvas is slow on Apple Silicon. MiniMax-H3 is released under the MiniMax H3 Community License, which restricts use
+in some territories; read it on the model card before downloading or distributing weights or
+outputs. Every component was verified against the diffusers 0.40 reference (layouts and schedules
+bit-exact, transformer / conditioner / VAEs at fp32 rounding noise on real weights).
 
 ## Bernini-R 1.3B
 

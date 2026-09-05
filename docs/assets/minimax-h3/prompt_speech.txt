@@ -1,0 +1,5 @@
+integrated_multimodal_description: [Shot 1] Live-action, cinematic medium close-up, static camera, shallow depth of field. A woman in her thirties with dark hair tied back sits at a sunlit kitchen table with a steaming mug, looking straight into the camera with a warm smile. The woman with a clear, warm mid-pitched voice (S1) says: <d>[English] Good morning! The coffee is ready, come and sit with me for a minute.</d> Her lips move in sync with every word, she tilts her head slightly and lifts the mug toward the camera as she finishes the sentence.
+
+overall_soundscape: A quiet kitchen room tone, faint birdsong through an open window, the soft clink of the mug being set down after she speaks.
+
+non_diegetic_music: No non-diegetic music; natural sound only.

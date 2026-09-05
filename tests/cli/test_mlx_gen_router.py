@@ -7476,3 +7476,20 @@ def test_flux2_text_backend_accepts_negative_prompt_on_base_weights(monkeypatch,
 
     assert observed["generate"]["negative_prompt"] == "blurry"
     assert observed["generate"]["guidance"] == 4.0
+
+
+def test_minimax_h3_local_path_forwards_base_model():
+    """A prepared MiniMax-H3 package picks its schedule through --base-model; the flag must reach the backend."""
+    invocation = mlx_gen._resolve_invocation(
+        ["--model", "models/minimax-h3-8bit", "--base-model", "minimax-h3-turbo-544p", "--prompt", "hello"]
+    )
+
+    assert invocation.target_name == "mlxgen-generate-minimax-h3"
+    assert invocation.argv[:5] == [
+        "mlxgen-generate-minimax-h3",
+        "--model",
+        "models/minimax-h3-8bit",
+        "--base-model",
+        "minimax-h3-turbo-544p",
+    ]
+    assert invocation.argv[-2:] == ["--prompt", "hello"]

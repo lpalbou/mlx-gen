@@ -14,7 +14,7 @@ source-exclude = [
 
 [project]
 name = "mlx-gen"
-version = "0.33.1"
+version = "0.34.0"
 description = "Generative image and video model runtimes for MLX."
 readme = "README.md"
 keywords = ["flux", "ai", "ml", "transformers", "mlx", "huggingface", "apple-silicon", "diffusers", "qwen", "qwen-image", "seedvr2", "z-image"]
@@ -110,6 +110,7 @@ mflux-generate-ernie-image = "mflux.models.ernie_image.cli.ernie_image_generate:
 mflux-generate-bonsai = "mflux.models.bonsai_image.cli.bonsai_image_generate:main"
 mflux-generate-wan = "mflux.models.wan.cli.wan_generate:main"
 mlxgen-generate-wan = "mflux.models.wan.cli.wan_generate:main"
+mlxgen-generate-minimax-h3 = "mflux.models.minimax_h3.cli.minimax_h3_generate:main"
 mflux-refine-fibo = "mflux.models.fibo_vlm.cli.fibo_refine:main"
 mflux-inspire-fibo = "mflux.models.fibo_vlm.cli.fibo_inspire:main"
 mflux-concept = "mflux.models.flux.cli.flux_concept:main"

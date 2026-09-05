@@ -1,0 +1,5 @@
+integrated_multimodal_description: [Shot 1] Medium close-up, slow dolly-in. A street musician in a worn denim jacket sits on a wooden stool in a cobblestone alley at dusk, fingerpicking an acoustic guitar under a warm string of cafe lights. His fingers move precisely on the strings and he closes his eyes, nodding gently with the rhythm.
+
+overall_soundscape: Clear fingerpicked acoustic guitar heard on camera in an intimate alley room-tone, faint cafe murmur and occasional distant footsteps on cobblestones.
+
+non_diegetic_music: The acoustic guitar heard on camera is the only music: gentle folk fingerpicking, medium-slow tempo, warm and melancholic.

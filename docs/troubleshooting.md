@@ -317,6 +317,18 @@ For RV2V/V2V, Bernini requires source-aspect, resize-only video conditioning. It
 rejects crop, pad, exact-resize, `--video-strength`, masks, LoRA, and non-UniPC solvers. See
 [Bernini-R 1.3B](bernini.md) and its [validation bundle](assets/validation/bernini-r-1.3b-2026-08-11/README.md).
 
+## MiniMax-H3 Runs Out Of Memory Or Disk
+
+MiniMax-H3 needs about 140 GB of disk for its snapshot and, with `--quantize 8`, peaks at about
+80 GB of MLX memory (88 GB process footprint) on a `960x544` clip and 93 GB at `1344x768`. Run it on a 128 GB Mac with
+`--quantize 8`, close other GPU-heavy applications, and prefer `minimax-h3-turbo-544p` over the
+768p entries while iterating; the 768p canvas costs about five minutes per step. The MLX
+free-buffer cache is capped at the process default (up to 8 GiB); `--mlx-cache-limit-gb` lowers or
+lifts that cap. If `mlxgen download` stops early, check free disk space and rerun it (downloads
+resume). The first load after a download reads 133 GB of shards from disk and takes a few minutes;
+later loads are fast, and a prepared package (`mlxgen prepare --model minimax-h3 --quantize 8
+--path ...`, 75 GB) skips the quantization pass on every load.
+
 ## `generate --path` Fails
 
 `--path` belongs to `mlxgen prepare`, where it names the local MLX-Gen package to create. It is not a generation option.

@@ -632,7 +632,7 @@ capability field.
 For Wan, omitting the option uses the model's official default negative prompt. Pass
 `--negative ""` or `--negative-prompt ""` to intentionally run without a negative prompt.
 
-Supported router families are `qwen`, `flux2`, `bonsai`, `fibo`, `z-image`, `ernie-image`, and `wan`:
+Supported router families are `qwen`, `flux2`, `bonsai`, `fibo`, `z-image`, `ernie-image`, `wan`, and `minimax-h3`:
 
 ```sh
 mlxgen generate \
@@ -836,6 +836,46 @@ explicit denoising grids, non-UniPC solvers, first/last/context/SVI conditioning
 the first frame. Metadata records ordered paths, condition shapes/source IDs, guidance activity,
 system/effective prompts, component-source revisions, and output health. See
 [Bernini-R 1.3B](bernini.md) for memory measurements and playable proof.
+
+### MiniMax-H3 Video With Audio
+
+`minimax-h3`, `minimax-h3-turbo`, and `minimax-h3-turbo-544p` route through `mlxgen generate` as
+`text-to-video`, or as `image-to-video` when `--image-path` is given, and write one MP4 with the
+generated stereo soundtrack. See
+[MiniMax-H3 video with audio](minimax-h3.md) for sizing, prompting, and measured cost.
+
+```sh
+mlxgen generate \
+  --model minimax-h3-turbo-544p \
+  --prompt "A red fox trots through fresh snow in a birch forest at dawn." \
+  --soundscape "Soft crunch of paws in dry snow, faint wind, two distant crow caws." \
+  --music "Sparse piano, slow tempo." \
+  --seed 42 --quantize 8 --output fox.mp4 --metadata
+```
+
+| Option | Behavior |
+| --- | --- |
+| `--prompt`, `--prompt-file` | The `integrated_multimodal_description` section, or a complete structured prompt (section labels present) passed through verbatim. No chat template, no special tokens. |
+| `--soundscape` | The `overall_soundscape` section: diegetic sound design. |
+| `--music` | The `non_diegetic_music` section: the score, or a statement that there is none. |
+| `--width`, `--height` | Multiples of 32, aspect ratio within `1:4` to `4:1`. Defaults: `1344x768` (`minimax-h3`, `minimax-h3-turbo`), `960x544` (`minimax-h3-turbo-544p`). |
+| `--frames` | Rounded up to `17n + 5`; `124` to `362` frames (5 to 15 s at 24 fps). Default `124`. |
+| `--steps` | Transformer evaluations. Defaults: `50` (base), `8` (Turbo entries). |
+| `--video-shift`, `--audio-shift` | Rectified-flow schedule shifts. Defaults: `12` / `3` (base and 544p adapter), `6` / `3` (768p adapter). |
+| `--no-audio` | Skip the audio decode and write a silent clip. |
+| `--quantize`, `-q` | Load-time q8 (recommended) or q4 quantization of the transformer and conditioner. Not needed for a prepared package. |
+| `--base-model` | The catalog entry a prepared package (`--model <path>`) or repo id runs as: `minimax-h3-turbo-544p` or `minimax-h3-turbo` applies that entry's defaults and attaches its Turbo adapter; omit it for the base 50-step schedule. |
+| `--mlx-cache-limit-gb` | Caps the MLX free-buffer cache (default: the process ladder, up to 8 GiB; `-1` for unlimited). |
+| `--lora-paths`, `--lora-scales` | Replace the automatic Turbo adapter with your own PEFT adapter(s) for the diffusers transformer module names. |
+| `--image-path` | One keyframe the clip starts from (`image-to-video`). The canvas follows its aspect ratio at the entry's short edge (768, or 544 for the 544p entry) unless `--width`/`--height` are given; the keyframe is stretched onto the canvas and conditions both the latent rows and the text sequence. |
+| `--negative-prompt` | Not supported: the model is guidance-distilled. |
+
+Saved metadata records `steps` (transformer evaluations), `video_shift`, `audio_shift`,
+`num_inference_steps` (the scheduler grid, one more than `steps`), `text_tokens`,
+`duration_seconds`, for image-to-video the source image path and size, and the generated-audio fields `audio_present`, `audio_source`,
+`audio_channels`, `audio_sample_rate`, `audio_duration_seconds`, `audio_muxed`, `audio_codec`,
+`audio_mux_mode`. When the track cannot be muxed it is written as `<output>.wav` and
+`audio_sidecar_path` names it.
 
 ### Wan Video Parameters
 

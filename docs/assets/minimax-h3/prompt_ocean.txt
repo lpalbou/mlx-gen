@@ -1,0 +1,5 @@
+integrated_multimodal_description: [Shot 1] Wide cinematic shot from a rocky shoreline at golden hour, static camera. Large turquoise waves roll in and crash against dark basalt rocks, throwing white spray high into the air; after each impact the foam slides back between the rocks. Gulls circle in the distance over the water.
+
+overall_soundscape: Deep rolling ocean swell with a loud crash and a long hiss of spray on every wave impact, receding foam fizzing over pebbles, distant gull cries between the waves.
+
+non_diegetic_music: No non-diegetic music; natural sound only.

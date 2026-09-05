@@ -937,7 +937,7 @@ def _resolve_model_identity(
         raise TaskInferenceError(
             f"Could not infer a supported backend from model {model!r}. "
             "Pass family='qwen', 'flux2', 'fibo', 'z-image', 'ernie-image', 'wan', 'bonsai', "
-            "'seedvr2', or 'swiftvr'."
+            "'minimax-h3', 'seedvr2', or 'swiftvr'."
         )
 
     trusted_identity_sources = {"catalog", "explicit_base", "official_prepared", "provided", "provided_derived"}
@@ -1045,6 +1045,8 @@ def _family_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
         return _fibo_capabilities(identity)
     if family == "wan":
         return _wan_capabilities(identity)
+    if family == "minimax-h3":
+        return _minimax_h3_capabilities(identity)
     if family == "seedvr2":
         return _seedvr2_capabilities(identity)
     if family == "swiftvr":
@@ -1823,6 +1825,60 @@ def _fibo_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
     )
 
 
+def _minimax_h3_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
+    # Guidance-distilled joint video + audio model: one text-to-video route (the audio track rides along),
+    # no negative prompt, LoRA on the single transformer (the lightx2v Turbo adapters). First-frame
+    # conditioning lands with the Qwen3-VL vision tower.
+    is_turbo = bool(identity.model_config is not None and identity.model_config.transformer_overrides.get("turbo_lora"))
+    return ModelCapabilities(
+        schema_version=CAPABILITIES_SCHEMA_VERSION,
+        family=identity.family,
+        label="MiniMax-H3 Turbo" if is_turbo else "MiniMax-H3",
+        model_name=identity.model_name,
+        capabilities=(
+            GenerationCapability(
+                id="minimax-h3.text-video",
+                public_task=TEXT_TO_VIDEO,
+                mode=MODE_TEXT_VIDEO,
+                handler_id="minimax-h3.generate",
+                supports_frames=True,
+                supports_fps=False,
+                default_for_task=True,
+                dimension_multiple=32,
+                **_lora_capability_kwargs(
+                    identity=identity,
+                    capability_id="minimax-h3.text-video",
+                    supports_lora=True,
+                    lora_target_roles=("transformer",),
+                ),
+            ),
+            # First-frame conditioning (the reference's FL2VA): the keyframe is stretched onto a canvas
+            # resolved from its own aspect ratio and conditions both the latent rows and the text sequence.
+            GenerationCapability(
+                id="minimax-h3.first-frame",
+                public_task=IMAGE_TO_VIDEO,
+                mode=MODE_FIRST_FRAME_I2V,
+                handler_id="minimax-h3.generate",
+                min_images=1,
+                max_images=1,
+                supports_frames=True,
+                supports_fps=False,
+                default_for_task=True,
+                dimension_multiple=32,
+                canvas_policies=(CANVAS_POLICY_SOURCE_ASPECT,),
+                default_canvas_policy=CANVAS_POLICY_SOURCE_ASPECT,
+                resize_modes=(RESIZE_MODE_RESIZE,),
+                **_lora_capability_kwargs(
+                    identity=identity,
+                    capability_id="minimax-h3.first-frame",
+                    supports_lora=True,
+                    lora_target_roles=("transformer",),
+                ),
+            ),
+        ),
+    )
+
+
 def _wan_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
     if identity.model_config is None:
         raise TaskInferenceError(
@@ -2161,6 +2217,8 @@ def _infer_family(aliases: set[str], model_key: str) -> str | None:
         return "seedvr2"
     if _is_swiftvr(aliases, model_key):
         return "swiftvr"
+    if _is_minimax_h3(aliases, model_key):
+        return "minimax-h3"
     if _is_wan(aliases, model_key):
         return "wan"
     return None
@@ -2294,6 +2352,10 @@ def _is_ernie(aliases: set[str], model_key: str) -> bool:
 
 def _is_wan(aliases: set[str], model_key: str) -> bool:
     return any(alias.startswith("wan") for alias in aliases) or "wan" in model_key
+
+
+def _is_minimax_h3(aliases: set[str], model_key: str) -> bool:
+    return any(alias.startswith("minimax-h3") for alias in aliases) or "minimax-h3" in model_key
 
 
 def _is_seedvr2(aliases: set[str], model_key: str) -> bool:

@@ -1003,6 +1003,25 @@ into separate clips or use a later keyframe/image input rather than relying on o
 conditioning run. For production checks, use seed sweeps and inspect decoded frames or contact
 sheets rather than relying only on MP4 existence.
 
+## Can MLX-Gen Generate Video With Sound?
+
+Yes. MiniMax-H3 (`--model minimax-h3-turbo-544p`, `minimax-h3-turbo`, or `minimax-h3`) generates a
+24 fps clip and a synchronized stereo soundtrack together, from a prompt or from a keyframe
+(`--image-path`), and saves both in one MP4 with an AAC track. Describe the picture with `--prompt`, the diegetic sound with `--soundscape`, and the score
+with `--music`; spoken lines go into the description as `The woman (S1) says: <d>[English] ...</d>`
+(see [Prompting](minimax-h3.md#prompting) for speaker ids, voice-over and the supported languages); run
+it with `--quantize 8` on a 128 GB Mac. See [MiniMax-H3 video with audio](minimax-h3.md). Wan and Bernini clips stay silent; Wan
+video-to-video copies the source clip's audio through.
+
+## My MiniMax-H3 Image-To-Video Clip Does Not Finish The Motion I Asked For
+
+Describe one continuous action and where it ends ("lifts straight up in one smooth motion and
+leaves through the top of the frame") rather than a sequence of pauses ("lifts off, hovers, then
+climbs"), name the parts of the subject that must stay unchanged, give the soundscape a continuous
+character, and exclude sounds you do not want. The keyframe already fixes the picture, so spend the
+prompt on the motion. [MiniMax-H3 image-to-video](minimax-h3.md#image-to-video) shows the two
+phrasings on the same seed and links the complete prompts behind the starship and takeoff sheets.
+
 ## Why Do Some Imports Or Paths Still Say `mflux`?
 
 MLX-Gen is built on the mflux codebase. Some internal modules and compatibility entry points still
