@@ -23,8 +23,8 @@
     "duration_seconds": 5.1667,
     "precision": "mlx.core.bfloat16",
     "quantize": 8,
-    "generation_time_seconds": 765.24,
-    "created_at": "2026-09-04T22:15:59.577202",
+    "generation_time_seconds": 704.4,
+    "created_at": "2026-09-05T09:26:29.647430",
     "image_path": null,
     "video_path": null,
     "prompt": "integrated_multimodal_description: [Shot 1] Cinematic medium shot, static camera, shallow depth of field. A red fox trots through fresh powder snow in a quiet birch forest at dawn; its breath steams in the cold blue light. Halfway through the clip it stops, ears twitching toward the camera, then bounds forward, kicking up a spray of snow that catches the low sun.\n\noverall_soundscape: Soft rhythmic crunch of paws in dry snow, a faint steady wind through bare branches, and two distant crow caws near the end.\n\nnon_diegetic_music: Sparse, gentle piano notes with long reverb, slow tempo, contemplative and cold.",
@@ -37,18 +37,18 @@
     ],
     "runtime_memory": {
         "phase": "video-save-complete",
-        "timestamp": 1788552961.9687219,
-        "pid": 98525,
+        "timestamp": 1788593190.897975,
+        "pid": 6830,
         "platform": "macOS-26.3-arm64-arm-64bit",
         "synchronized": true,
-        "mlx_active_memory_bytes": 81401103128,
-        "mlx_peak_memory_bytes": 85475015424,
-        "mlx_cache_memory_bytes": 28017354628,
-        "process_rss_bytes": 812089344,
-        "process_peak_rss_bytes": 14776467456,
-        "darwin_physical_footprint_bytes": 110383342312,
+        "mlx_active_memory_bytes": 82188537392,
+        "mlx_peak_memory_bytes": 86485280302,
+        "mlx_cache_memory_bytes": 27301436514,
+        "process_rss_bytes": 1143848960,
+        "process_peak_rss_bytes": 21021261824,
+        "darwin_physical_footprint_bytes": 110979130784,
         "errors": {},
-        "darwin_peak_physical_footprint_bytes": 110592926368
+        "darwin_peak_physical_footprint_bytes": 111213880712
     },
     "video_shift": 12.0,
     "audio_shift": 3.0,
@@ -64,19 +64,19 @@
             "fps": 24.0,
             "luma_min": 0.0,
             "luma_max": 255.0,
-            "luma_mean": 126.46872225115376,
-            "mean_temporal_delta": 9.004377463968789
+            "luma_mean": 112.75985022514097,
+            "mean_temporal_delta": 2.5870123529821876
         },
         "file": {
-            "source": "untracked/h3_out/fox_turbo544_q8_s43.mp4",
+            "source": "untracked/h3_out/fox_turbo544_q8_s43_v3.mp4",
             "frame_count": 124,
             "width": 960,
             "height": 544,
             "fps": 24.0,
             "luma_min": 0.0,
-            "luma_max": 253.29920959472656,
-            "luma_mean": 125.17470612064484,
-            "mean_temporal_delta": 9.005117280696465
+            "luma_max": 255.0,
+            "luma_mean": 111.53064032523862,
+            "mean_temporal_delta": 2.58254489520701
         }
     },
     "audio_present": true,
@@ -87,6 +87,6 @@
     "audio_muxed": true,
     "audio_codec": "aac",
     "audio_mux_mode": "ffmpeg_copy_video_aac_audio",
-    "save_time_seconds": 2.24,
-    "total_generation_time_seconds": 767.48
+    "save_time_seconds": 1.16,
+    "total_generation_time_seconds": 705.56
 }

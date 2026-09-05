@@ -9,6 +9,7 @@ from tqdm import tqdm
 from mflux.callbacks import ProgressEvent
 from mflux.cli.defaults import defaults as ui_defaults
 from mflux.cli.output_paths import normalize_output_template, resolve_output_path
+from mflux.cli.parser.parsers import cache_limit_gb_value
 from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.cli.seed_values import resolve_seed_values
 from mflux.models.common.config import ModelConfig
@@ -16,6 +17,7 @@ from mflux.models.common.lora.mapping.lora_loader import LoRALoader
 from mflux.models.minimax_h3.variants.minimax_h3 import MiniMaxH3
 from mflux.utils.exceptions import ModelConfigError, PromptFileReadError
 from mflux.utils.prompt_util import PromptUtil
+from mflux.utils.runtime_memory import RuntimeMemory
 
 
 def main() -> None:
@@ -28,9 +30,15 @@ def main() -> None:
         parser.error(str(exc))
     if len(args.seed) > 1:
         args.output = normalize_output_template(args.output, include_seed=True)
+    RuntimeMemory.apply_mlx_cache_limit(args.mlx_cache_limit_gb)
 
     try:
-        model_config, model_path = _resolve_model(args.model)
+        model_config, model_path = _resolve_model(args.model, args.base_model)
+        if model_path is not None:
+            cli_print(
+                f"Loading {model_path} as {model_config.aliases[0]} (base model {model_config.base_model}).",
+                json_events=bool(args.json_events),
+            )
         model = MiniMaxH3(
             model_config=model_config,
             quantize=args.quantize,
@@ -103,9 +111,11 @@ def main() -> None:
         raise SystemExit(1) from None
 
 
-def _resolve_model(model: str) -> tuple[ModelConfig, str | None]:
-    model_config = ModelConfig.from_name(model)
-    model_path = model if model_config.base_model is not None else None
+def _resolve_model(model: str, base_model: str | None = None) -> tuple[ModelConfig, str | None]:
+    """Catalog entries resolve by alias; a repo id or local package resolves by `--base-model` (or its name)."""
+    model_config = ModelConfig.from_name(model, base_model=base_model)
+    is_catalog_entry = model.lower() in {alias.lower() for alias in model_config.aliases}
+    model_path = None if is_catalog_entry else model
     return model_config, model_path
 
 
@@ -121,6 +131,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--model", "-m", required=True, help="minimax-h3, minimax-h3-turbo, a Hugging Face repo, or a local path."
     )
+    parser.add_argument(
+        "--base-model",
+        type=str,
+        default=None,
+        help="Catalog entry a prepared package or repo id runs as (minimax-h3, minimax-h3-turbo, minimax-h3-turbo-544p).",
+    )
     prompt_group = parser.add_mutually_exclusive_group()
     prompt_group.add_argument("--prompt", type=str, help="Visual description (or a complete structured H3 prompt).")
     prompt_group.add_argument("--prompt-file", type=Path, help="Path to a text file containing the prompt.")
@@ -128,7 +144,11 @@ def _parser() -> argparse.ArgumentParser:
         "--soundscape", type=str, default=None, help="`overall_soundscape` section: diegetic sound design."
     )
     parser.add_argument("--music", type=str, default=None, help="`non_diegetic_music` section: score description.")
-    parser.add_argument("--image-path", default=None, help="First-frame keyframe (FL2VA). Not yet available.")
+    parser.add_argument(
+        "--image-path",
+        default=None,
+        help="Keyframe the video starts from (image-to-video). The canvas follows its aspect ratio unless --width/--height are given.",
+    )
     parser.add_argument(
         "--width", type=int, default=None, help="Canvas width, multiple of 32 (default: 16:9 at 768p short edge)."
     )
@@ -147,6 +167,12 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--quantize", "-q", type=int, choices=ui_defaults.QUANTIZE_CHOICES, default=None)
     parser.add_argument("--lora-paths", type=str, nargs="*", default=None, help="LoRA files (PEFT diffusers layout).")
     parser.add_argument("--lora-scales", type=float, nargs="*", default=None, help="Per-LoRA scales (default 1.0).")
+    parser.add_argument(
+        "--mlx-cache-limit-gb",
+        type=cache_limit_gb_value,
+        default=None,
+        help="Cap the MLX free-buffer cache in GB (default: total RAM / 8, clamped to 1-8 GiB; -1 for unlimited).",
+    )
     parser.add_argument("--metadata", action="store_true", help="Export video metadata as JSON.")
     parser.add_argument("--output", type=str, default="video.mp4", help='Output path. Default is "video.mp4".')
     parser.add_argument("--json-events", action="store_true", help="Emit machine-readable runtime events on stdout.")

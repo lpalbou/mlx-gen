@@ -1,0 +1,5 @@
+integrated_multimodal_description: [Shot 1] First-person point of view, handheld, gentle walking motion, in the exact watercolor painting style of the pictured living room. Starting from the pictured view of the bright living room with its long couch, the big bay windows, the low table with two open laptops and the blue Greek-key rug, we walk slowly forward across the rug toward the couch. The camera lowers and settles as we sit down on the couch cushions, then a hand reaches out and lifts the lid of one laptop on the table, its screen lighting up softly. Finally the view turns to the right toward the tall bay windows and the green trees outside, sunlight streaming through the glass.
+
+overall_soundscape: Calm daytime park sounds heard through the open windows: birds chirping and singing, leaves rustling in a light breeze, distant children playing and a far-off dog bark; soft footsteps on the rug, the quiet creak of the couch cushions, and the gentle click of a laptop lid opening.
+
+non_diegetic_music: No non-diegetic music; natural sound only.

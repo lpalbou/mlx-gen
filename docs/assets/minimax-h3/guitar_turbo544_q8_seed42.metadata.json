@@ -23,8 +23,8 @@
     "duration_seconds": 5.1667,
     "precision": "mlx.core.bfloat16",
     "quantize": 8,
-    "generation_time_seconds": 965.6,
-    "created_at": "2026-09-04T22:47:40.886579",
+    "generation_time_seconds": 732.52,
+    "created_at": "2026-09-05T09:14:43.874386",
     "image_path": null,
     "video_path": null,
     "prompt": "integrated_multimodal_description: [Shot 1] Medium close-up, slow dolly-in. A street musician in a worn denim jacket sits on a wooden stool in a cobblestone alley at dusk, fingerpicking an acoustic guitar under a warm string of cafe lights. His fingers move precisely on the strings and he closes his eyes, nodding gently with the rhythm.\n\noverall_soundscape: Clear fingerpicked acoustic guitar heard on camera in an intimate alley room-tone, faint cafe murmur and occasional distant footsteps on cobblestones.\n\nnon_diegetic_music: The acoustic guitar heard on camera is the only music: gentle folk fingerpicking, medium-slow tempo, warm and melancholic.",
@@ -37,18 +37,18 @@
     ],
     "runtime_memory": {
         "phase": "video-save-complete",
-        "timestamp": 1788554862.664715,
-        "pid": 98525,
+        "timestamp": 1788592485.215252,
+        "pid": 6830,
         "platform": "macOS-26.3-arm64-arm-64bit",
         "synchronized": true,
-        "mlx_active_memory_bytes": 81403872024,
-        "mlx_peak_memory_bytes": 85478013926,
-        "mlx_cache_memory_bytes": 28143953656,
-        "process_rss_bytes": 1318977536,
-        "process_peak_rss_bytes": 14776467456,
-        "darwin_physical_footprint_bytes": 110863491936,
+        "mlx_active_memory_bytes": 82188537392,
+        "mlx_peak_memory_bytes": 86485280302,
+        "mlx_cache_memory_bytes": 27299242594,
+        "process_rss_bytes": 1143357440,
+        "process_peak_rss_bytes": 21021261824,
+        "darwin_physical_footprint_bytes": 110976574832,
         "errors": {},
-        "darwin_peak_physical_footprint_bytes": 111017321312
+        "darwin_peak_physical_footprint_bytes": 111213880712
     },
     "video_shift": 12.0,
     "audio_shift": 3.0,
@@ -64,19 +64,19 @@
             "fps": 24.0,
             "luma_min": 0.0,
             "luma_max": 255.0,
-            "luma_mean": 106.1428978212418,
-            "mean_temporal_delta": 8.016540360644582
+            "luma_mean": 79.41680674399099,
+            "mean_temporal_delta": 3.9678409215880603
         },
         "file": {
-            "source": "untracked/h3_out/guitar_turbo544_q8_s42.mp4",
+            "source": "untracked/h3_out/guitar_turbo544_q8_s42_v3.mp4",
             "frame_count": 124,
             "width": 960,
             "height": 544,
             "fps": 24.0,
             "luma_min": 0.0,
             "luma_max": 255.0,
-            "luma_mean": 104.80406379699707,
-            "mean_temporal_delta": 7.986413746345334
+            "luma_mean": 78.15062393680695,
+            "mean_temporal_delta": 3.930962548992498
         }
     },
     "audio_present": true,
@@ -87,6 +87,6 @@
     "audio_muxed": true,
     "audio_codec": "aac",
     "audio_mux_mode": "ffmpeg_copy_video_aac_audio",
-    "save_time_seconds": 1.67,
-    "total_generation_time_seconds": 967.27
+    "save_time_seconds": 1.24,
+    "total_generation_time_seconds": 733.76
 }

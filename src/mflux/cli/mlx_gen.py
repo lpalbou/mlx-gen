@@ -163,6 +163,7 @@ def _route_accepts_base_model(route: _Route) -> bool:
         "mflux-generate-qwen-edit",
         "mflux-generate-z-image",
         "mflux-generate-z-image-turbo",
+        "mlxgen-generate-minimax-h3",
     }
 
 
@@ -526,7 +527,18 @@ def _show_capabilities(argv: list[str]) -> None:
     parser.add_argument("--base-model", default=None, help="Base model hint for custom repositories or local paths.")
     parser.add_argument(
         "--family",
-        choices=["qwen", "flux2", "fibo", "z-image", "ernie-image", "wan", "minimax-h3", "bonsai", "seedvr2", "swiftvr"],
+        choices=[
+            "qwen",
+            "flux2",
+            "fibo",
+            "z-image",
+            "ernie-image",
+            "wan",
+            "minimax-h3",
+            "bonsai",
+            "seedvr2",
+            "swiftvr",
+        ],
         default=None,
         help="Override model-family detection for local paths or custom repo names.",
     )

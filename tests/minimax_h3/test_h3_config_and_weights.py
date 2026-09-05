@@ -25,9 +25,19 @@ def test_catalog_entries_and_capabilities():
     assert ModelConfig.minimax_h3_turbo().transformer_overrides["default_video_shift"] == 6.0
     capabilities = get_model_capabilities(model="minimax-h3-turbo", model_config=turbo).to_dict()
     assert capabilities["family"] == "minimax-h3" and capabilities["label"] == "MiniMax-H3 Turbo"
-    (row,) = capabilities["capabilities"]
-    assert row["handler_id"] == "minimax-h3.generate" and row["public_task"] == "text-to-video"
-    assert row["supports_negative_prompt"] is False and row["supports_lora"] is True and row["dimension_multiple"] == 32
+    text_row, image_row = capabilities["capabilities"]
+    assert text_row["handler_id"] == "minimax-h3.generate" and text_row["public_task"] == "text-to-video"
+    assert (
+        text_row["supports_negative_prompt"] is False
+        and text_row["supports_lora"] is True
+        and text_row["dimension_multiple"] == 32
+    )
+    assert image_row["id"] == "minimax-h3.first-frame" and image_row["public_task"] == "image-to-video"
+    assert (
+        image_row["min_images"] == 1
+        and image_row["max_images"] == 1
+        and image_row["default_canvas_policy"] == "source-aspect"
+    )
 
 
 @pytest.mark.fast
@@ -58,11 +68,8 @@ def test_text_encoder_key_selection_and_vae_transforms():
     assert needed("model.language_model.embed_tokens.weight")
     assert needed("model.language_model.layers.49.mlp.up_proj.weight")
     assert not needed("model.language_model.layers.50.mlp.up_proj.weight")
-    assert (
-        not needed("model.language_model.norm.weight")
-        and not needed("model.visual.blocks.0.attn.qkv.weight")
-        and not needed("lm_head.weight")
-    )
+    assert not needed("model.language_model.norm.weight") and not needed("lm_head.weight")
+    assert needed("model.visual.blocks.0.attn.qkv.weight") and needed("model.visual.merger.linear_fc2.weight")
     assert MiniMaxH3WeightMapping.video_vae_transform(mx.zeros((8, 3, 3, 3, 3))).shape == (8, 3, 3, 3, 3)
     assert MiniMaxH3WeightMapping.video_vae_transform(mx.zeros((8, 4, 3, 3, 3))).shape == (8, 3, 3, 3, 4)
     g, v = mx.random.normal((6, 1, 1)), mx.random.normal((6, 4, 7))
@@ -103,3 +110,35 @@ def test_turbo_lora_keys_map_onto_every_target_and_alpha_scale_is_read(tmp_path)
         {"alpha": "8"},
     )
     assert MiniMaxH3Initializer._peft_alpha_scale(str(path)) == pytest.approx(8 / 128)
+
+
+@pytest.mark.fast
+def test_h3_cli_accepts_mlx_cache_limit():
+    from mflux.models.minimax_h3.cli.minimax_h3_generate import _parser
+
+    args = _parser().parse_args(["--model", "minimax-h3", "--prompt", "x", "--mlx-cache-limit-gb", "2.5"])
+    assert args.mlx_cache_limit_gb == 2.5
+    assert _parser().parse_args(["--model", "minimax-h3", "--prompt", "x"]).mlx_cache_limit_gb is None
+
+
+@pytest.mark.fast
+def test_h3_cli_resolves_prepared_packages_through_base_model():
+    from mflux.models.minimax_h3.cli.minimax_h3_generate import _resolve_model
+
+    config, path = _resolve_model("models/minimax-h3-8bit", "minimax-h3-turbo-544p")
+    assert config.aliases[0] == "minimax-h3-turbo-544p" and path == "models/minimax-h3-8bit"
+    assert config.transformer_overrides.get("turbo_lora")
+
+    config, path = _resolve_model("models/minimax-h3-8bit")
+    assert config.aliases[0] == "minimax-h3" and path == "models/minimax-h3-8bit"
+
+    config, path = _resolve_model("minimax-h3-turbo-544p")
+    assert config.aliases[0] == "minimax-h3-turbo-544p" and path is None
+    assert _parser_accepts_base_model()
+
+
+def _parser_accepts_base_model() -> bool:
+    from mflux.models.minimax_h3.cli.minimax_h3_generate import _parser
+
+    args = _parser().parse_args(["--model", "models/x", "--base-model", "minimax-h3-turbo", "--prompt", "x"])
+    return args.base_model == "minimax-h3-turbo"

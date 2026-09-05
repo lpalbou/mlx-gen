@@ -877,7 +877,7 @@ AVAILABLE_MODELS = {
         transformer_overrides={
             "task": "text-to-video",
             "generates_audio": True,
-            "supports_image_to_video": False,
+            "supports_image_to_video": True,
             "default_frames": 124,
             "default_steps": 50,
             "default_fps": 24,
@@ -903,7 +903,7 @@ AVAILABLE_MODELS = {
         transformer_overrides={
             "task": "text-to-video",
             "generates_audio": True,
-            "supports_image_to_video": False,
+            "supports_image_to_video": True,
             "default_frames": 124,
             # lightx2v FL2VA Turbo 8-step v1.0, trained at 768p (1344x768) with shifts 6 / 3.
             "default_steps": 8,
@@ -931,13 +931,15 @@ AVAILABLE_MODELS = {
         transformer_overrides={
             "task": "text-to-video",
             "generates_audio": True,
-            "supports_image_to_video": False,
+            "supports_image_to_video": True,
             "default_frames": 124,
             # lightx2v FL2VA Turbo 8-step v1.0, trained at 544p on mixed aspect ratios with the base shifts 12 / 3.
             "default_steps": 8,
             "default_fps": 24,
             "default_width": 960,
             "default_height": 544,
+            "canvas_short_edge": 544,
+            "canvas_max_pixels": 544 * 960,
             "default_video_shift": 12.0,
             "default_audio_shift": 3.0,
             "turbo_lora": "hf:lightx2v/Minimax-h3-Turbo/minimax_h3_fl2v_turbo_8step_v1.0_bf16.safetensors",

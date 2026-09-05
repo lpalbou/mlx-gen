@@ -1852,6 +1852,29 @@ def _minimax_h3_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                     lora_target_roles=("transformer",),
                 ),
             ),
+            # First-frame conditioning (the reference's FL2VA): the keyframe is stretched onto a canvas
+            # resolved from its own aspect ratio and conditions both the latent rows and the text sequence.
+            GenerationCapability(
+                id="minimax-h3.first-frame",
+                public_task=IMAGE_TO_VIDEO,
+                mode=MODE_FIRST_FRAME_I2V,
+                handler_id="minimax-h3.generate",
+                min_images=1,
+                max_images=1,
+                supports_frames=True,
+                supports_fps=False,
+                default_for_task=True,
+                dimension_multiple=32,
+                canvas_policies=(CANVAS_POLICY_SOURCE_ASPECT,),
+                default_canvas_policy=CANVAS_POLICY_SOURCE_ASPECT,
+                resize_modes=(RESIZE_MODE_RESIZE,),
+                **_lora_capability_kwargs(
+                    identity=identity,
+                    capability_id="minimax-h3.first-frame",
+                    supports_lora=True,
+                    lora_target_roles=("transformer",),
+                ),
+            ),
         ),
     )
 

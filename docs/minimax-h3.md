@@ -11,6 +11,10 @@ limits; use [API and CLI](api.md#minimax-h3-video-with-audio) for the option tab
 
 - **Text-to-video with audio** (`text-to-video` public task): 5 to 15 seconds at 24 fps, stereo
   audio at 32 kHz, any aspect ratio between 1:4 and 4:1 on a 32-pixel grid.
+- **Image-to-video with audio** (`image-to-video` public task, `--image-path`): the clip starts from
+  your keyframe. The canvas follows the keyframe's aspect ratio at the entry's short edge unless you pass
+  `--width`/`--height`, the keyframe is stretched onto that canvas, and it conditions both the latent
+  rows and the text sequence (through the Qwen3-VL vision tower), exactly as the reference pipeline does.
 - **Three catalog entries** that share the same weights and differ only in speed defaults:
 
 | Alias | What it runs | Default canvas | Default steps | Flow shifts (video / audio) |
@@ -31,13 +35,42 @@ MLX-Gen loads the 50 layers the model conditions on), a 2.4B-parameter video VAE
 | Resource | Requirement |
 | --- | --- |
 | Disk | About 140 GB for the model snapshot (`transformer/`, `text_encoder/`, `vae/`, `audio_vae/`, tokenizer and configs) plus 1.4 GB per Turbo adapter. |
-| Memory | Run with `--quantize 8`. The measured `960x544`, 124-frame Turbo run peaks at 80 GB of MLX memory and a 103 GB process footprint on an Apple M5 Max, so plan on a 128 GB Mac. |
+| Memory | Run with `--quantize 8`. The measured `960x544`, 124-frame Turbo run peaks at 80 GB of MLX memory and an 88 GB process footprint on an Apple M5 Max (93 GB at `1344x768`), so plan on a 128 GB Mac. The MLX free-buffer cache is capped at the process default of up to 8 GiB; `--mlx-cache-limit-gb` changes it. |
 | Download | `mlxgen download --model minimax-h3-turbo-544p` fetches the snapshot subset MLX-Gen needs and the matching Turbo adapter. Generation never downloads. |
 
 `--quantize 8` quantizes the transformer and conditioner at load time, one shard at a time, so
 the load never holds a full BF16 copy next to the q8 copy. The first load reads 133 GB of shards
 from disk (about 4.5 minutes on the reference machine); repeated loads from the OS page cache
-take about 16 seconds. A prepared q8 package (`mlxgen prepare`) needs another 62 GB of disk.
+take about 16 seconds.
+
+### Prepared Package
+
+`mlxgen prepare` writes the quantized model once so later runs skip the 133 GB read and the
+quantization pass:
+
+```sh
+mlxgen prepare --model minimax-h3 --quantize 8 --path models/minimax-h3-8bit
+```
+
+The package is 75 GB (44 GB transformer, 26 GB conditioner including the vision tower, 5.5 GB for
+the two VAEs, plus tokenizer and configs). It stores the mixed policy MLX-Gen uses for this model:
+the attention and feed-forward linears of the transformer and the conditioner at q8, the fp32 heads,
+timestep MLP and AdaLN modulation projections at their source precision. Prepare from the base entry
+so the package carries no adapter, then pick the schedule with `--base-model`:
+
+```sh
+mlxgen generate --model models/minimax-h3-8bit --base-model minimax-h3-turbo-544p \
+  --prompt "..." --seed 42 --output fox.mp4
+```
+
+`--base-model minimax-h3-turbo-544p` (or `minimax-h3-turbo`) applies that entry's defaults and
+attaches its Turbo adapter on top of the stored weights; omit it for the base 50-step schedule. Do
+not pass `--quantize` when loading a prepared package. The package loads shard by shard like the
+Hugging Face snapshot, so its load-time memory is the 75 GB of stored weights, not a second copy, and
+a page-cached package loads in seconds. The stored weights are the load-time quantization: the fox
+clip below generated from the package with the same seed is byte-identical to the `--quantize 8` clip
+from the snapshot (all 124 frames and the soundtrack), at the same 80 GB MLX peak and an 88 GB
+process footprint.
 
 ## Quick Start
 
@@ -58,6 +91,19 @@ mlxgen generate \
 The command writes `fox.mp4` (124 frames, `960x544`, 24 fps, stereo AAC) and `fox.metadata.json`.
 Switch to `--model minimax-h3-turbo` for the 768p adapter and canvas, or to `--model minimax-h3`
 with `--steps 50` for the base schedule.
+
+To start from an image, add `--image-path` and describe what happens next; the first frame reproduces
+the picture and the motion follows the prompt:
+
+```sh
+mlxgen generate \
+  --model minimax-h3-turbo-544p \
+  --image-path keyframe.png \
+  --prompt "Starting from the pictured red fox in the snow, the fox turns its head toward the camera, then trots forward through the powder." \
+  --soundscape "Soft crunch of paws in dry snow, faint wind." \
+  --music "Sparse piano, slow tempo." \
+  --seed 42 --quantize 8 --output fox_i2v.mp4 --metadata
+```
 
 ## Prompting
 
@@ -82,6 +128,34 @@ Describe motion with timing ("halfway through the clip"), name the sounds you ex
 events, and state when a shot has no score. The model is guidance-distilled: there is no negative
 prompt and no guidance scale.
 
+## Image-To-Video
+
+`--image-path` selects MiniMax-H3's first-frame mode. The keyframe defines the canvas: its aspect
+ratio is mapped onto the entry's geometry (768-pixel short edge for `minimax-h3` and
+`minimax-h3-turbo`, 544 for `minimax-h3-turbo-544p`, capped at the entry's pixel budget) on the
+32-pixel grid, and the image is stretched onto that canvas. Pass `--width`/`--height` to force a
+different canvas; the keyframe is stretched to it. A 16:9 keyframe gives `960x544` on the 544p
+entry, a square one `544x544`.
+
+The keyframe reaches the model twice: as noise-augmented condition latents pinned at the start of
+the clip, and as a `<Picture 1>` vision block in the text sequence, so the prompt should describe
+the *motion* that follows ("the fox turns, then trots forward") rather than re-describe the picture.
+The soundtrack is generated as in text-to-video. Metadata records `task: image-to-video`, the
+source image path and size, and the resolved canvas. A second, closing keyframe (the reference's
+`last_image`) is not exposed yet.
+
+Motion prompts for still keyframes work best when they describe one continuous action and its end
+state: "lifts straight up in one smooth, continuous motion, never touching the ground again, and
+leaves through the top of the frame" produced a complete takeoff, while "lifts off slowly, hovers for
+a moment, then climbs" on the same seed produced a late, partial ascent. Name the parts of the subject
+that must stay as they are ("the same fixed landing legs, no wheels"), give the soundscape a
+continuous character ("a deep, steady engine roar that builds and then fades") and exclude what you
+do not want ("no crackling, no buzzing"). The 544p adapter was trained on `960x544`-class canvases: a
+16:9 keyframe lands on its native canvas, while a square keyframe gives `544x544` and still works,
+as the takeoff sheet below shows. First-person prompts work too: the room walkthrough below walks,
+sits, opens a laptop lid and turns to a window from one painted keyframe. See the starship, takeoff
+and room entries under [Contact Sheets](#contact-sheets) for the complete prompts.
+
 ## Sizing And Duration
 
 - Frames follow the video VAE's `17n + 5` rule; `--frames` rounds up to the next valid count.
@@ -97,9 +171,9 @@ Apple M5 Max, 128 GB, `--quantize 8`, 124 frames, MLX 0.31:
 
 | Route | Canvas | Steps | `generate_video` wall time (denoise + both decodes) | Peak MLX memory |
 | --- | --- | --- | --- | --- |
-| `minimax-h3-turbo-544p` | `960x544` | 8 | 12.5 to 16 min over four clips (750, 765, 932, 966 s; later clips in one process ran slower as the machine warmed up) | 80 GB |
-| `minimax-h3` (base) | `960x544` | 50 | 78 min (4691 s) | 78 GB |
-| `minimax-h3-turbo` | `1344x768` | 8 | 36 min (2144 s; about 4.5 min per transformer evaluation) | 84 GB |
+| `minimax-h3-turbo-544p` | `960x544` | 8 | 11 to 17 min per clip (650 to 1011 s over eight clips; a fresh process is fastest, later clips in one process run slower as the machine warms up) | 80 GB |
+| `minimax-h3` (base) | `960x544` | 50 | 62 min (3741 s) | 79 GB |
+| `minimax-h3-turbo` | `1344x768` | 8 | 34 min (2035 s; about 4.2 min per transformer evaluation) | 85 GB |
 
 Loading is separate: the first load after a download reads 133 GB of shards (about 4.5 min), and
 a warm page cache brings that down to about 16 s. The 768p step is dominated by attention over a
@@ -115,12 +189,14 @@ For scale, the same fox description through Wan2.2 TI2V-5B (q8, `832x480`, 121 f
   `--no-audio` to skip the audio decode and write a silent clip.
 - If the audio cannot be muxed (no `ffmpeg` on `PATH` and the PyAV fallback fails), the video is
   still written and the track is saved next to it as `<output>.wav`; the metadata records why.
-- Metadata records `video_shift`, `audio_shift`, `num_inference_steps`, `text_tokens`,
+- Metadata records `steps` (transformer evaluations, as passed to `--steps`), `video_shift`, `audio_shift`,
+  `num_inference_steps` (the scheduler grid, one more than `steps`), `text_tokens`,
   `duration_seconds`, and the `audio_*` fields (`audio_present`, `audio_source: "generated"`,
   `audio_channels`, `audio_sample_rate`, `audio_duration_seconds`, `audio_muxed`, `audio_codec`,
   `audio_mux_mode`).
-- `mlxgen capabilities --model minimax-h3-turbo` lists the single `minimax-h3.text-video` row with
-  `supports_frames`, `supports_lora`, `dimension_multiple: 32`, and `supports_negative_prompt: false`.
+- `mlxgen capabilities --model minimax-h3-turbo` lists the `minimax-h3.text-video` and
+  `minimax-h3.first-frame` rows with `supports_frames`, `supports_lora`, `dimension_multiple: 32`, and
+  `supports_negative_prompt: false`.
 
 ## Python
 
@@ -139,10 +215,12 @@ video.save("fox.mp4", export_json_metadata=True)
 waveform, rate = video.audio.waveform, video.audio.sample_rate  # (2, samples) float32, 32000
 ```
 
-`generate_video` also accepts `width`, `height`, `num_frames`, `num_inference_steps`,
-`video_shift`, `audio_shift`, `generate_audio`, and `progress_callback` (phases `start`,
-`denoising`, `decode`, `complete`). The unified runtime resolves `--model minimax-h3*` to this
-class through `load_generation_model(...)`.
+`generate_video` also accepts `image_path` (first-frame image-to-video), `width`, `height`,
+`num_frames`, `num_inference_steps`, `video_shift`, `audio_shift`, `generate_audio`, and
+`progress_callback` (phases `start`, `denoising`, `decode`, `complete`). The unified runtime resolves `--model minimax-h3*` to this
+class through `load_generation_model(...)`. A prepared package loads with
+`MiniMaxH3(model_config=ModelConfig.from_name("models/minimax-h3-8bit", base_model="minimax-h3-turbo-544p"), model_path="models/minimax-h3-8bit")`
+and no `quantize` argument.
 
 ## Adapters
 
@@ -155,10 +233,10 @@ works with `--steps 4 --video-shift 6`.
 
 ## Current Limits
 
-- **First-frame conditioning (FL2VA) and reference-to-video (Ref2VA) are not available yet.**
-  `--image-path` is rejected; the keyframe tokens need the Qwen3-VL vision tower, which is tracked in
-  [backlog 0118](backlog/planned/0118_minimax_h3_first_frame_conditioning_vision_tower.md).
-- No published MLX-Gen q8 package yet; `--quantize 8` quantizes at load time.
+- **Reference-to-video (Ref2VA) and the closing keyframe (`last_image`) are not available yet.**
+  Text-to-video and first-frame image-to-video are.
+- No published MLX-Gen package yet: `--quantize 8` quantizes at load time, or `mlxgen prepare` writes a
+  local 75 GB package (see [Prepared Package](#prepared-package)).
 - The 768p canvas is slow on Apple Silicon (about 5 minutes per step); use the 544p adapter to
   iterate.
 - MiniMax-H3 is released under the MiniMax H3 Community License, which restricts use in some
@@ -170,8 +248,9 @@ works with `--steps 4 --video-shift 6`.
 Every component is a direct port of the diffusers 0.40 reference implementation and was checked
 against it with real weights: the packed layout and per-row timestep plan are bit-exact, the
 rectified-flow schedules match `torch.linspace` bit-for-bit on 600 grids, the transformer
-(one real block), the Qwen3-VL conditioner, the video VAE encoder/decoder and the audio VAE
-encoder/decoder all match at fp32 rounding noise, and the q8 transformer block stays within
+(one real block), the Qwen3-VL conditioner (text and image-conditioned: vision tower, image
+processor, 3-axis rope index and DeepStack injection), the video VAE encoder/decoder and the audio
+VAE encoder/decoder all match at fp32 rounding noise, and the q8 transformer block stays within
 1.3e-2 relative RMS of the fp32 reference. The included contact sheets below are the model-backed
 proof for the shipped routes.
 
@@ -179,40 +258,98 @@ proof for the shipped routes.
 
 Each sheet shows eight evenly spaced frames of one clip with the generated track's waveform and
 spectrogram on the right; the MP4 next to each sheet in `docs/assets/minimax-h3/` is the playable
-proof, and the `prompt_*.txt` files hold the complete structured prompts. All clips:
-`minimax-h3-turbo-544p`, `960x544`, 124 frames, 8 steps, `--quantize 8`, Apple M5 Max.
+proof, and the `prompt_*.txt` files hold the complete structured prompts. Unless a row says
+otherwise: `minimax-h3-turbo-544p`, `960x544`, 124 frames, 8 steps, `--quantize 8`, seed 42, Apple
+M5 Max.
 
 **Fox, seed 42** ([clip](assets/minimax-h3/fox_turbo544_q8_seed42.mp4),
-[prompt](assets/minimax-h3/prompt_fox.txt)): the fox walks through the birch forest and turns
-its head toward the camera in the second half as the prompt asks; the quiet track carries paw
-crunches under a steady wind (about -41 dBFS RMS), stereo correlation 0.91.
+[prompt](assets/minimax-h3/prompt_fox.txt)): the backlit fox walks straight toward the camera down
+a snowy forest path, stops and faces it halfway through as the prompt asks, then bounds forward
+kicking up snow; the very quiet track (about -49 dBFS RMS, peaks at -31 dBFS) carries the paw
+crunches and the sparse piano notes under a faint wind.
 
 ![Fox seed 42](assets/minimax-h3/sheet_fox_turbo544_q8_seed42.jpg)
 
 **Fox, seed 43** ([clip](assets/minimax-h3/fox_turbo544_q8_seed43.mp4)): a different fox and
-framing from the same prompt, with a louder track (-21 dBFS RMS) and a burst near the end where the
-prompt places the snow spray and crow caws.
+framing from the same prompt, walking out of the birch shadows into the low sun and breaking into a
+run at the end; a quiet track (-43 dBFS RMS) with the paw crunches and piano notes spaced along it.
 
 ![Fox seed 43](assets/minimax-h3/sheet_fox_turbo544_q8_seed43.jpg)
 
 **Turbo versus base, seed 42** ([base clip](assets/minimax-h3/fox_base544_q8_seed42.mp4)): the same
-prompt and seed through the 8-step 544p adapter (top, 12.5 min) and the 50-step base schedule at the
-same canvas (bottom, 78 min). On this seed the adapter kept the medium shot, the birch forest and the
-head turn toward the camera; the base schedule settled on a wider open-snowfield framing with a
-smaller fox and a quieter track. The base entry remains the reference schedule for the 768p canvas it
-was released with; for 544p iteration the adapter is both the faster and, here, the more faithful
-choice.
+prompt and seed through the 8-step 544p adapter (top, 17 min in a long-running process) and the
+50-step base schedule at the same canvas (bottom, 62 min). Both stage the prompt: the fox approaches
+down the forest path, pauses facing the camera, then bounds forward through the powder. The base
+schedule keeps the fox smaller and deeper in the birch shadows with steadier motion and a similarly
+quiet track (-44 dBFS RMS); the adapter frames it closer and brighter. The base entry remains the
+reference schedule for the 768p canvas it was released with; for 544p iteration the adapter is the
+faster choice at comparable fidelity.
 
 ![Turbo versus base](assets/minimax-h3/sheet_fox_turbo_vs_base_544.jpg)
 
+**Fox image-to-video, seed 42** ([clip](assets/minimax-h3/fox_i2v_turbo544_q8_seed42.mp4),
+[keyframe](assets/minimax-h3/keyframe_fox.png), [prompt](assets/minimax-h3/prompt_fox_i2v.txt)):
+the first frame of the 768p fox clip as keyframe through `minimax-h3-turbo-544p`. Frame 0 reproduces
+the keyframe at PSNR 32.3 dB, the fox then looks at the camera and trots to the right with the camera
+following, and the quiet track (-26.9 dBFS RMS) carries the paw crunches under the sparse piano the
+prompt asks for; 14.8 min for 8 steps and both decodes in a long-running process, 86 GB MLX peak. The
+sheet's first tile is the keyframe.
+
+![Fox image-to-video](assets/minimax-h3/sheet_fox_i2v_turbo544_q8_seed42.jpg)
+
+**Starship image-to-video, seed 42** ([clip](assets/minimax-h3/starship_i2v_turbo544_q8_seed42.mp4),
+[keyframe](assets/examples/spaceship-snow/01_t2i_spaceship_snow.png),
+[prompt](assets/minimax-h3/prompt_starship_i2v.txt)): the repository's `768x432` spaceship-on-snow
+image on the 544p entry's native `960x544` canvas. Frame 0 reproduces the keyframe at PSNR 29.4 dB;
+the hull, the two side engine pods, the red antenna and the landing legs stay intact while the
+engines light up, a ring of ice dust spreads under the hull, the craft rises straight out of the top
+of the frame and the dust settles on the empty plain. The track is a continuous low engine roar
+(more than 80% of its energy below 200 Hz in every half second, -10.8 dBFS RMS) that builds with the
+liftoff and fades as the craft leaves. 15.5 min for 8 steps and both decodes in a long-running
+process (10.8 min in a fresh one).
+
+![Starship image-to-video](assets/minimax-h3/sheet_starship_i2v_turbo544_q8_seed42.jpg)
+
+**Spaceship takeoff image-to-video, seed 42** ([clip](assets/minimax-h3/takeoff_i2v_turbo544_q8_seed42.mp4),
+[keyframe](assets/i2v_takeoff_source.png), [prompt](assets/minimax-h3/prompt_takeoff_i2v.txt)): the
+repository's square `512x512` cargo-ship image gives a `544x544` canvas on the 544p entry. The ship
+keeps its shape and landing struts, lifts off in one continuous motion with a snow ring beneath it,
+leaves through the top of the frame and the blown snow settles on the empty field; the engine
+rumble builds from -21 to -14 dBFS RMS and fades with the climb, and the motion/audio-energy
+correlation peaks at 0.71. 5.8 min for 8 steps and both decodes. Frame 0 matches the stretched
+keyframe at PSNR 26.5 dB (the source carries film grain).
+
+![Spaceship takeoff image-to-video](assets/minimax-h3/sheet_takeoff_i2v_turbo544_q8_seed42.jpg)
+
+The same keyframe, prompt and seed through `minimax-h3-turbo` ([clip](assets/minimax-h3/takeoff_i2v_turbo768_q8_seed42.mp4))
+lands on a `768x768` canvas: the same continuous liftoff with sharper hull plating, portholes and
+struts (frame 0 at PSNR 29.3 dB), a -19 dBFS RMS engine track, 17.3 min for 8 steps and both
+decodes, 88 GB process footprint.
+
+![Spaceship takeoff image-to-video at 768p](assets/minimax-h3/sheet_takeoff_i2v_turbo768_q8_seed42.jpg)
+
+**Room walkthrough image-to-video, seed 42** ([clip](assets/minimax-h3/room_i2v_turbo544_q8_seed42.mp4),
+[keyframe](assets/minimax-h3/keyframe_room.png), [prompt](assets/minimax-h3/prompt_room_i2v.txt)): a
+first-person prompt on a watercolor living room. The keyframe is a `960x544` Z-Image Turbo image
+(`mlxgen generate --model z-image-turbo --quantize 8 --steps 9 --seed 7 --width 960 --height 544`
+with the prompt in [prompt_room_keyframe.txt](assets/minimax-h3/prompt_room_keyframe.txt)), so the whole example is reproducible without a photo.
+The camera walks across the rug toward the couch, lowers as it sits, a hand reaches out and lifts a
+laptop lid whose screen lights up, and the view turns to the bay windows and the trees outside, all
+in the painting's style. The park track stays quiet until the lid opens (a click peaking at
+-0.1 dBFS), with birdsong energy between 1 and 8 kHz around it; the motion/audio-energy correlation
+peaks at 0.70. Frame 0 matches the keyframe at PSNR 27.7 dB; 14.7 min for 8 steps and both decodes.
+
+![Room walkthrough image-to-video](assets/minimax-h3/sheet_room_i2v_turbo544_q8_seed42.jpg)
+
 **Ocean waves, seed 42** ([clip](assets/minimax-h3/ocean_turbo544_q8_seed42.mp4),
 [prompt](assets/minimax-h3/prompt_ocean.txt)): waves break over basalt rocks with a large spray
-mid-clip; the broadband ocean track builds into a crash at the same point.
+mid-clip while sea birds cross the sky; the broadband ocean track (-29.5 dBFS RMS) swells with the
+break.
 
 ![Ocean seed 42](assets/minimax-h3/sheet_ocean_turbo544_q8_seed42.jpg)
 
 **Fox at 768p, seed 42** ([clip](assets/minimax-h3/fox_turbo768_q8_seed42.mp4)): the same prompt
-through `minimax-h3-turbo` on its native `1344x768` canvas (8 steps, 36 min). Denser fur and snow
+through `minimax-h3-turbo` on its native `1344x768` canvas (8 steps, 34 min). Denser fur and snow
 detail than the 544p clips, the same walk-then-look-at-camera staging, and a quiet stereo track with
 the paw crunches tracking the motion.
 
@@ -229,6 +366,6 @@ generates the soundtrack.
 **Street guitarist, seed 42** ([clip](assets/minimax-h3/guitar_turbo544_q8_seed42.mp4),
 [prompt](assets/minimax-h3/prompt_guitar.txt)): a slow dolly-in on a fingerpicking musician; the
 spectrogram shows the plucked-string harmonics and rhythm of the on-camera guitar (-14 dBFS RMS,
-stereo correlation 0.98).
+stereo correlation 0.88).
 
 ![Guitar seed 42](assets/minimax-h3/sheet_guitar_turbo544_q8_seed42.jpg)

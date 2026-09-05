@@ -11,7 +11,31 @@ import mlx.core as mx
 from mflux.models.common.weights.mapping.weight_mapping import WeightTarget
 
 TEXT_ENCODER_PREFIX = "model.language_model."
+VISION_PREFIX = "model.visual."
 TEXT_ENCODER_NUM_LAYERS = 50
+VISION_NUM_BLOCKS = 27
+_VISION_BLOCK_TENSORS = (
+    "norm1.weight",
+    "norm1.bias",
+    "norm2.weight",
+    "norm2.bias",
+    "attn.qkv.weight",
+    "attn.qkv.bias",
+    "attn.proj.weight",
+    "attn.proj.bias",
+    "mlp.linear_fc1.weight",
+    "mlp.linear_fc1.bias",
+    "mlp.linear_fc2.weight",
+    "mlp.linear_fc2.bias",
+)
+_VISION_MERGER_TENSORS = (
+    "norm.weight",
+    "norm.bias",
+    "linear_fc1.weight",
+    "linear_fc1.bias",
+    "linear_fc2.weight",
+    "linear_fc2.bias",
+)
 _TEXT_LAYER_TENSORS = (
     "self_attn.q_proj.weight",
     "self_attn.k_proj.weight",
@@ -31,21 +55,54 @@ _AUDIO_TRANSPOSED_CONV_PREFIX = "decoder.ups."
 class MiniMaxH3WeightMapping:
     @staticmethod
     def get_text_encoder_mapping() -> list[WeightTarget]:
+        """Qwen3-VL conditioner: decoder layers `0..49` under `language_model.` and the vision tower under `visual.`."""
         targets = [
-            WeightTarget(to_pattern="embed_tokens.weight", from_pattern=[f"{TEXT_ENCODER_PREFIX}embed_tokens.weight"])
+            WeightTarget(
+                to_pattern="language_model.embed_tokens.weight",
+                from_pattern=[f"{TEXT_ENCODER_PREFIX}embed_tokens.weight"],
+            )
         ]
         targets.extend(
             WeightTarget(
-                to_pattern=f"layers.{{layer}}.{name}",
+                to_pattern=f"language_model.layers.{{layer}}.{name}",
                 from_pattern=[f"{TEXT_ENCODER_PREFIX}layers.{{layer}}.{name}"],
             )
             for name in _TEXT_LAYER_TENSORS
         )
+        targets.append(
+            WeightTarget(
+                to_pattern="visual.patch_embed.proj.weight",
+                from_pattern=[f"{VISION_PREFIX}patch_embed.proj.weight"],
+                transform=MiniMaxH3WeightMapping.flatten_patch_embed,
+            )
+        )
+        targets.extend(
+            WeightTarget(to_pattern=f"visual.{name}", from_pattern=[f"{VISION_PREFIX}{name}"])
+            for name in ("patch_embed.proj.bias", "pos_embed.weight")
+        )
+        targets.extend(
+            WeightTarget(
+                to_pattern=f"visual.blocks.{{block}}.{name}", from_pattern=[f"{VISION_PREFIX}blocks.{{block}}.{name}"]
+            )
+            for name in _VISION_BLOCK_TENSORS
+        )
+        for merger in ("merger", "deepstack_merger_list.0", "deepstack_merger_list.1", "deepstack_merger_list.2"):
+            targets.extend(
+                WeightTarget(to_pattern=f"visual.{merger}.{name}", from_pattern=[f"{VISION_PREFIX}{merger}.{name}"])
+                for name in _VISION_MERGER_TENSORS
+            )
         return targets
+
+    @staticmethod
+    def flatten_patch_embed(tensor: mx.array) -> mx.array:
+        """The reference `Conv3d(3, hidden, (2, 16, 16))` kernel as a `(hidden, 3 * 2 * 16 * 16)` linear weight."""
+        return tensor.reshape(tensor.shape[0], -1)
 
     @staticmethod
     def text_encoder_key_is_needed(key: str, num_layers: int = TEXT_ENCODER_NUM_LAYERS) -> bool:
         """Whether a checkpoint key feeds the truncated conditioner (embeddings and layers below `num_layers`)."""
+        if key.startswith(VISION_PREFIX):
+            return True
         if not key.startswith(TEXT_ENCODER_PREFIX):
             return False
         rest = key[len(TEXT_ENCODER_PREFIX) :]

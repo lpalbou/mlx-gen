@@ -25,6 +25,19 @@ def disable_tf32() -> None:
     os.environ.setdefault("MLX_ENABLE_TF32", "0")
 
 
+def linear_input_dtype(layer) -> mx.Dtype:
+    """The floating dtype a (possibly quantized or LoRA-wrapped) linear expects its input in.
+
+    `nn.QuantizedLinear.weight` is packed `uint32`; casting activations to it truncates them to
+    integers, so the scales (or the bias) carry the layer's real compute dtype.
+    """
+    base = getattr(layer, "linear", getattr(layer, "base_linear", layer))
+    scales = getattr(base, "scales", None)
+    if scales is not None:
+        return scales.dtype
+    return base.weight.dtype
+
+
 def rowwise(layer, x: mx.array) -> mx.array:
     """Apply a linear layer to `(B, S, C)` input in chunks of at most `QUANTIZED_MATMUL_MAX_ROWS` rows."""
     rows = x.shape[1]

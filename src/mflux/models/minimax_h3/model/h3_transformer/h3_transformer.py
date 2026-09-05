@@ -9,6 +9,7 @@ heads. The caller builds the layout (see `latent_creator/h3_layout.py`).
 import mlx.core as mx
 from mlx import nn
 
+from mflux.models.minimax_h3.model.h3_precision import linear_input_dtype
 from mflux.models.minimax_h3.model.h3_transformer.h3_embedding import (
     H3AdaLayerNormOut,
     H3RotaryPosEmbed,
@@ -92,7 +93,7 @@ class MiniMaxH3Transformer(nn.Module):
 
         video_embeds = self.proj_in(hidden_states.astype(self.proj_in.weight.dtype))
         audio_embeds = self.audio_proj_in(audio_hidden_states.astype(self.audio_proj_in.weight.dtype))
-        text_embeds = self.context_embedder(encoder_hidden_states.astype(self.context_embedder.weight.dtype))
+        text_embeds = self.context_embedder(encoder_hidden_states.astype(linear_input_dtype(self.context_embedder)))
         text_embeds = self.token_refiner(text_embeds)
 
         packed = mx.zeros((text_embeds.shape[0], sequence_length, text_embeds.shape[-1]), dtype=text_embeds.dtype)

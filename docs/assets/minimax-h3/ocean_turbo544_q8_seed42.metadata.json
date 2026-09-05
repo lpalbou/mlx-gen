@@ -23,8 +23,8 @@
     "duration_seconds": 5.1667,
     "precision": "mlx.core.bfloat16",
     "quantize": 8,
-    "generation_time_seconds": 931.72,
-    "created_at": "2026-09-04T22:31:33.732635",
+    "generation_time_seconds": 964.84,
+    "created_at": "2026-09-05T09:02:29.334477",
     "image_path": null,
     "video_path": null,
     "prompt": "integrated_multimodal_description: [Shot 1] Wide cinematic shot from a rocky shoreline at golden hour, static camera. Large turquoise waves roll in and crash against dark basalt rocks, throwing white spray high into the air; after each impact the foam slides back between the rocks. Gulls circle in the distance over the water.\n\noverall_soundscape: Deep rolling ocean swell with a loud crash and a long hiss of spray on every wave impact, receding foam fizzing over pebbles, distant gull cries between the waves.\n\nnon_diegetic_music: No non-diegetic music; natural sound only.",
@@ -37,18 +37,18 @@
     ],
     "runtime_memory": {
         "phase": "video-save-complete",
-        "timestamp": 1788553895.2345421,
-        "pid": 98525,
+        "timestamp": 1788591751.324911,
+        "pid": 6830,
         "platform": "macOS-26.3-arm64-arm-64bit",
         "synchronized": true,
-        "mlx_active_memory_bytes": 81402413848,
-        "mlx_peak_memory_bytes": 85475015424,
-        "mlx_cache_memory_bytes": 28063277336,
-        "process_rss_bytes": 1330036736,
-        "process_peak_rss_bytes": 14776467456,
-        "darwin_physical_footprint_bytes": 110635885408,
+        "mlx_active_memory_bytes": 82187079216,
+        "mlx_peak_memory_bytes": 86485280302,
+        "mlx_cache_memory_bytes": 27184063202,
+        "process_rss_bytes": 1140523008,
+        "process_peak_rss_bytes": 21021261824,
+        "darwin_physical_footprint_bytes": 110855431560,
         "errors": {},
-        "darwin_peak_physical_footprint_bytes": 110864343880
+        "darwin_peak_physical_footprint_bytes": 111208048008
     },
     "video_shift": 12.0,
     "audio_shift": 3.0,
@@ -63,20 +63,20 @@
             "height": 544,
             "fps": 24.0,
             "luma_min": 0.0,
-            "luma_max": 247.28480529785156,
-            "luma_mean": 146.33933670290054,
-            "mean_temporal_delta": 6.287969728795494
+            "luma_max": 252.66139221191406,
+            "luma_mean": 137.03812371530842,
+            "mean_temporal_delta": 4.818128762206411
         },
         "file": {
-            "source": "untracked/h3_out/ocean_turbo544_q8_s42.mp4",
+            "source": "untracked/h3_out/ocean_turbo544_q8_s42_v3.mp4",
             "frame_count": 124,
             "width": 960,
             "height": 544,
             "fps": 24.0,
             "luma_min": 0.0,
-            "luma_max": 245.51181030273438,
-            "luma_mean": 145.01617117851012,
-            "mean_temporal_delta": 6.087099114084632
+            "luma_max": 250.24539184570312,
+            "luma_mean": 135.7603652707992,
+            "mean_temporal_delta": 4.538325133362437
         }
     },
     "audio_present": true,
@@ -87,6 +87,6 @@
     "audio_muxed": true,
     "audio_codec": "aac",
     "audio_mux_mode": "ffmpeg_copy_video_aac_audio",
-    "save_time_seconds": 1.42,
-    "total_generation_time_seconds": 933.14
+    "save_time_seconds": 1.88,
+    "total_generation_time_seconds": 966.72
 }

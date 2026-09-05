@@ -40,3 +40,20 @@ def test_rowwise_matches_plain_call_below_the_limit():
     x = mx.random.normal((1, 300, 64)).astype(mx.bfloat16)
     mx.eval(x)
     assert mx.array_equal(rowwise(layer, x), layer(x)).item()
+
+
+@pytest.mark.fast
+def test_quantized_entry_projections_keep_floating_inputs():
+    """q8 packs `weight` as uint32; the entry projections must not cast their activations to it."""
+    from mflux.models.minimax_h3.model.h3_precision import linear_input_dtype
+    from mflux.models.minimax_h3.model.h3_text_encoder.qwen3_vl_vision_model import Qwen3VLVisionPatchEmbed
+
+    embed = Qwen3VLVisionPatchEmbed(3, 4, 2, 64)
+    mx.eval(embed.parameters())
+    patches = mx.random.normal((10, 3 * 2 * 4 * 4))
+    reference = embed(patches)
+    nn.quantize(embed, group_size=32, bits=8)
+    assert linear_input_dtype(embed.proj) == mx.float32 and embed.proj.weight.dtype == mx.uint32
+    quantized = embed(patches)
+    rel = float(mx.abs(quantized - reference).max() / mx.abs(reference).max())
+    assert rel < 5e-2, rel

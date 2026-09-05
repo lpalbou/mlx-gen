@@ -6,6 +6,7 @@ step), two rectified-flow schedulers (video shift 12, audio shift 3) advanced in
 visual VAE decode in ImageNet pixel space and the fp32 audio VAE decode at 32 kHz.
 """
 
+import hashlib
 import time
 from dataclasses import dataclass
 
@@ -19,13 +20,17 @@ from mflux.callbacks import ProgressEvent
 from mflux.models.common.config import ModelConfig
 from mflux.models.minimax_h3.latent_creator.h3_layout import (
     AUDIO_CHANNELS,
+    CANVAS_MAX_PIXELS,
+    CANVAS_SHORT_EDGE,
     FPS,
+    KEYFRAME_ENCODE_SEED,
     KEYFRAME_NOISE_AUG,
     MAX_ASPECT_RATIO,
     MIN_ASPECT_RATIO,
     PIXEL_MEAN,
     PIXEL_STD,
     TEXT_TAG,
+    VIDEO_TAG,
     align_num_frames,
     audio_latent_num_frames,
     build_packed_sequence,
@@ -37,6 +42,12 @@ from mflux.models.minimax_h3.latent_creator.h3_layout import (
     video_latent_num_frames,
 )
 from mflux.models.minimax_h3.minimax_h3_initializer import MiniMaxH3Initializer
+from mflux.models.minimax_h3.model.h3_text_encoder.qwen3_vl_model import (
+    IMAGE_TOKEN_ID,
+    VISION_END_TOKEN_ID,
+    VISION_START_TOKEN_ID,
+)
+from mflux.models.minimax_h3.model.h3_text_encoder.qwen3_vl_vision_model import preprocess_image
 from mflux.models.minimax_h3.scheduler.minimax_h3_scheduler import MiniMaxH3Scheduler
 from mflux.models.minimax_h3.weights.h3_weight_definition import MiniMaxH3WeightDefinition
 from mflux.utils.generated_audio import GeneratedAudio
@@ -122,33 +133,39 @@ class MiniMaxH3(nn.Module):
         progress_callback=None,
         release_text_encoder: bool = False,
     ) -> GeneratedVideo:
-        if image_path is not None:
-            raise NotImplementedError(
-                "MiniMax-H3 first-frame conditioning (FL2VA) needs the Qwen3-VL vision tower for the keyframe tokens; "
-                "it is not ported yet. Text-to-video-with-audio is available."
-            )
         started = time.perf_counter()
-        plan = self._plan(width, height, num_frames, num_inference_steps, video_shift, audio_shift)
+        keyframe = self._load_keyframe(image_path) if image_path is not None else None
+        plan = self._plan(width, height, num_frames, num_inference_steps, video_shift, audio_shift, keyframe=keyframe)
         full_prompt = compose_prompt(prompt, soundscape, music)
-        task = "text-to-video"
+        task = "image-to-video" if keyframe is not None else "text-to-video"
+        # The keyframe is stretched onto the canvas (the reference's geometry anchor), then conditions both the text
+        # sequence (a `<Picture 1>: ` label plus its vision block) and the packed latent rows.
+        keyframes = [self._fit_keyframe(keyframe, plan.width, plan.height)] if keyframe is not None else []
 
-        prompt_embeds = self._encode_prompt(full_prompt)
+        prompt_embeds, text_token_tags = self._encode_presentation(full_prompt, keyframes)
         if release_text_encoder:
             self.release_text_encoder()
         text_length = prompt_embeds.shape[1]
         layout = build_packed_sequence(
-            np.full((text_length,), TEXT_TAG, dtype=np.int32),
+            text_token_tags,
             plan.num_latent_frames,
             plan.latent_height,
             plan.latent_width,
             plan.num_audio_latents,
             patch_size=self.transformer.patch_size,
             audio_channels=AUDIO_CHANNELS,
+            keyframe_anchors=("first",) if keyframes else (),
         )
         self._emit(progress_callback, phase="start", plan=plan, step=0, seed=seed, task=task)
 
-        # Draw order matches the reference: video latents first, then the audio rows.
-        key_video, key_audio = mx.random.split(mx.random.key(seed), 2)
+        video_scheduler = MiniMaxH3Scheduler(shift=plan.video_shift)
+        audio_scheduler = MiniMaxH3Scheduler(shift=plan.audio_shift)
+        video_scheduler.set_timesteps(plan.num_inference_steps)
+        audio_scheduler.set_timesteps(plan.num_inference_steps)
+
+        # Draw order matches the reference: conditioning noise first, then the video latents, then the audio rows.
+        keys = mx.random.split(mx.random.key(seed), 3 if keyframes else 2)
+        key_video, key_audio = keys[-2], keys[-1]
         latent_channels = self.transformer.in_channels
         video_latents = mx.random.normal(
             (1, latent_channels, plan.num_latent_frames, plan.latent_height, plan.latent_width),
@@ -156,16 +173,20 @@ class MiniMaxH3(nn.Module):
             dtype=mx.float32,
         )
         video_rows = patchify_video_latents(video_latents, self.transformer.patch_size)
+        if keyframes:
+            condition = self._encode_keyframe_latents(keyframes[0])
+            condition_noise = mx.random.normal(condition.shape, key=keys[0], dtype=mx.float32)
+            # The anchor is not fully clean: the released model holds it at `t = 0.999` for every step.
+            noised = video_scheduler.scale_noise(condition, KEYFRAME_NOISE_AUG, condition_noise)
+            video_rows = mx.concatenate(
+                [patchify_video_latents(noised, self.transformer.patch_size), video_rows], axis=0
+            )
         audio_rows = mx.random.normal(
             (plan.num_audio_latents * AUDIO_CHANNELS, self.transformer.audio_in_channels),
             key=key_audio,
             dtype=mx.float32,
         )
 
-        video_scheduler = MiniMaxH3Scheduler(shift=plan.video_shift)
-        audio_scheduler = MiniMaxH3Scheduler(shift=plan.audio_shift)
-        video_scheduler.set_timesteps(plan.num_inference_steps)
-        audio_scheduler.set_timesteps(plan.num_inference_steps)
         num_condition_video_rows = layout.num_condition_video_rows
         num_condition_audio_rows = layout.num_condition_audio_rows
 
@@ -227,6 +248,8 @@ class MiniMaxH3(nn.Module):
             width=plan.width,
             task=task,
             image_path=image_path,
+            source_width=keyframe.width if keyframe is not None else None,
+            source_height=keyframe.height if keyframe is not None else None,
             flow_shift=plan.video_shift,
             lora_paths=getattr(self, "lora_paths", None) or None,
             lora_scales=getattr(self, "lora_scales", None) or None,
@@ -293,12 +316,22 @@ class MiniMaxH3(nn.Module):
         num_inference_steps: int | None,
         video_shift: float | None,
         audio_shift: float | None,
+        keyframe: PIL.Image.Image | None = None,
     ) -> H3GenerationPlan:
         overrides = self.model_config.transformer_overrides
         if (width is None) != (height is None):
             raise ValueError("width and height must be given together, or neither of them.")
         if width is None:
-            if overrides.get("default_width") and overrides.get("default_height"):
+            if keyframe is not None:
+                # MiniMax-H3's own geometry for the keyframe's aspect ratio (768 short edge, or the entry's override).
+                height, width = resolve_canvas_size(
+                    keyframe.width,
+                    keyframe.height,
+                    CANVAS_MULTIPLE,
+                    int(overrides.get("canvas_short_edge", CANVAS_SHORT_EDGE)),
+                    int(overrides.get("canvas_max_pixels", CANVAS_MAX_PIXELS)),
+                )
+            elif overrides.get("default_width") and overrides.get("default_height"):
                 width, height = int(overrides["default_width"]), int(overrides["default_height"])
             else:
                 height, width = resolve_canvas_size(16, 9, CANVAS_MULTIPLE)
@@ -341,19 +374,73 @@ class MiniMaxH3(nn.Module):
     # ------------------------------------------------------------------ conditioning
 
     def _encode_prompt(self, prompt: str) -> mx.array:
-        cached = self.prompt_embed_cache.get(prompt)
+        return self._encode_presentation(prompt, [])[0]
+
+    def _encode_presentation(self, prompt: str, keyframes: list[PIL.Image.Image]) -> tuple[mx.array, np.ndarray]:
+        """Tokenize the presentation (`<Picture i>: ` + vision block per keyframe, then the prompt verbatim) and
+        return `hidden_states[50]` with MiniMax-H3's per-row modality tags (vision blocks count as video rows)."""
+        digest = hashlib.sha1(prompt.encode("utf-8"))
+        for frame in keyframes:
+            digest.update(str(frame.size).encode())
+            digest.update(frame.tobytes())
+        cache_key = digest.hexdigest()
+        cached = self.prompt_embed_cache.get(cache_key)
         if cached is not None:
             return cached
         if getattr(self, "text_encoder", None) is None:
             raise RuntimeError("The MiniMax-H3 text encoder was released; only cached prompts can be generated.")
-        tokens = self.tokenizers[MiniMaxH3WeightDefinition.TOKENIZER_NAME].tokenize(prompt)
-        input_ids = tokens.input_ids
-        if input_ids.shape[1] == 0:
+        tokenizer = self.tokenizers[MiniMaxH3WeightDefinition.TOKENIZER_NAME].tokenizer
+        merge = self.text_encoder.visual.spatial_merge_size
+        token_ids: list[int] = []
+        tags: list[int] = []
+        patches, grids = [], []
+        for index, frame in enumerate(keyframes):
+            frame_patches, grid = preprocess_image(frame)
+            patches.append(frame_patches)
+            grids.append(grid)
+            label = tokenizer(f"<Picture {index + 1}>: ", add_special_tokens=False)["input_ids"]
+            num_image_tokens = (grid[0] * grid[1] * grid[2]) // (merge * merge)
+            vision = [VISION_START_TOKEN_ID] + [IMAGE_TOKEN_ID] * num_image_tokens + [VISION_END_TOKEN_ID]
+            token_ids += label + vision
+            tags += [TEXT_TAG] * len(label) + [VIDEO_TAG] * len(vision)
+        prompt_ids = tokenizer(prompt, add_special_tokens=False)["input_ids"]
+        if not prompt_ids:
             raise ValueError("MiniMax-H3 needs a non-empty prompt.")
-        embeds = self.text_encoder(input_ids).astype(ModelConfig.precision)
+        token_ids += prompt_ids
+        tags += [TEXT_TAG] * len(prompt_ids)
+        embeds = self.text_encoder.encode(np.array(token_ids, dtype=np.int32), patches or None, grids or None)
+        embeds = embeds.astype(ModelConfig.precision)
         mx.eval(embeds)
-        self.prompt_embed_cache[prompt] = embeds
-        return embeds
+        result = (embeds, np.array(tags, dtype=np.int32))
+        self.prompt_embed_cache[cache_key] = result
+        return result
+
+    @staticmethod
+    def _load_keyframe(image_path: str) -> PIL.Image.Image:
+        return PIL.Image.open(image_path).convert("RGB")
+
+    @staticmethod
+    def _fit_keyframe(keyframe: PIL.Image.Image, width: int, height: int) -> PIL.Image.Image:
+        """The geometry anchor is stretched onto the canvas (PIL LANCZOS), as in the reference pipeline."""
+        if keyframe.size == (width, height):
+            return keyframe
+        return keyframe.resize((width, height), PIL.Image.Resampling.LANCZOS)
+
+    def _encode_keyframe_latents(self, keyframe: PIL.Image.Image) -> mx.array:
+        """Normalized condition latents `(1, C, 1, H/16, W/16)`: ImageNet-normalized pixels through the video VAE,
+        the posterior *sampled* under a fixed seed and rounded to float16, as the released model conditions."""
+        pixels = np.asarray(keyframe, dtype=np.float32) / 255.0
+        pixels = (pixels - np.array(PIXEL_MEAN, dtype=np.float32)) / np.array(PIXEL_STD, dtype=np.float32)
+        pixels = mx.array(pixels.transpose(2, 0, 1))[None, :, None]  # (1, 3, 1, H, W)
+        mean, logvar = self.vae.encode(pixels.astype(self._component_dtype(self.vae)))
+        mean, logvar = mean.astype(mx.float32), logvar.astype(mx.float32)
+        noise = mx.random.normal(mean.shape, key=mx.random.key(KEYFRAME_ENCODE_SEED), dtype=mx.float32)
+        latents = (mean + mx.exp(0.5 * logvar) * noise).astype(mx.float16).astype(mx.float32)
+        latents = (latents - self.vae.latents_mean.reshape(1, -1, 1, 1, 1)) / self.vae.latents_std.reshape(
+            1, -1, 1, 1, 1
+        )
+        mx.eval(latents)
+        return latents
 
     # ------------------------------------------------------------------ decoding
 

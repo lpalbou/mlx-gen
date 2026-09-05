@@ -30,6 +30,7 @@ Choose the workflow by the media you start from and the outcome you want:
 | --- | --- | --- |
 | Only a prompt | A new image or a new video | `mlxgen generate` |
 | Only a prompt | A new video with its own synchronized soundtrack | `mlxgen generate --model minimax-h3-turbo-544p --quantize 8 ...` |
+| One image | A video with a soundtrack that starts from that image | `mlxgen generate --model minimax-h3-turbo-544p --image-path ... --quantize 8 ...` |
 | One image | Image editing, reframe/outpaint, or Wan first-frame image-to-video | `mlxgen generate` |
 | One to eight ordinary reference images | A new reference-guided Bernini video | `mlxgen generate --model bernini-r-1.3b --reference-image ...` |
 | One video clip | SeedVR2 restoration or upscale, with no prompt | `mlxgen upscale --video-path ...` |
@@ -599,7 +600,8 @@ mlxgen generate \
   --metadata
 ```
 
-The MP4 carries an AAC stereo track; `--no-audio` writes a silent clip. See
+The MP4 carries an AAC stereo track; `--no-audio` writes a silent clip, and `--image-path` starts the
+clip from a keyframe. See
 [MiniMax-H3 video with audio](minimax-h3.md) for prompting, sizing, and runtime cost.
 
 ## Next Steps

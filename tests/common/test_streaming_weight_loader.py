@@ -94,3 +94,52 @@ def test_streaming_applies_mapping_prefix_filter_and_layer_limit(tmp_path):
     for i in range(2):
         assert mx.array_equal(model.layers[i].weight, source.layers[i].weight).item()
     assert mx.array_equal(model.embed.weight, source.embed.weight).item()
+
+
+@pytest.mark.fast
+def test_streaming_loads_prepared_packages_shard_by_shard(tmp_path):
+    """A prepared (already quantized) package restores the same parameters through the streaming loader."""
+    import json as _json
+
+    source = _Tiny()
+    mx.eval(source.parameters())
+    nn.quantize(source, class_predicate=_predicate, bits=8)
+    mx.eval(source.parameters())
+    flat = dict(tree_flatten(source.parameters()))
+    keys = sorted(flat)
+    path = tmp_path / "comp"
+    path.mkdir()
+    metadata = {"quantization_level": "8", "mflux_version": "test"}
+    index = {}
+    for i, chunk in enumerate((keys[: len(keys) // 2], keys[len(keys) // 2 :])):
+        name = f"{i}.safetensors"
+        mx.save_safetensors(str(path / name), {k: flat[k] for k in chunk}, metadata)
+        index.update({k: name for k in chunk})
+    (path / "model.safetensors.index.json").write_text(_json.dumps({"metadata": metadata, "weight_map": index}))
+
+    model = _Tiny()
+    component = ComponentDefinition(name="comp", hf_subdir="comp", loading_mode="multi_glob", precision=mx.bfloat16)
+    bits = StreamingWeightLoader.load_into(
+        model, tmp_path, component, quantize_arg=None, quantization_predicate=_predicate
+    )
+    got = dict(tree_flatten(model.parameters()))
+    assert bits == 8 and sorted(got) == keys
+    assert all(mx.array_equal(got[k], flat[k]).item() for k in keys)
+
+
+@pytest.mark.fast
+def test_streaming_load_applies_default_cache_limit_once(tmp_path, monkeypatch):
+    """Python-API hosts never run the CLI memory setup, so the streaming loader applies the process default."""
+    from mflux.utils.runtime_memory import RuntimeMemory
+
+    calls: list[int] = []
+    monkeypatch.setattr(RuntimeMemory, "_cache_limit_state", "unset")
+    monkeypatch.setattr(mx, "set_cache_limit", lambda value: calls.append(value))
+    monkeypatch.setattr(mx, "clear_cache", lambda: None)
+    monkeypatch.setattr(mx, "reset_peak_memory", lambda: None)
+    model = _Tiny()
+    component = ComponentDefinition(name="comp", hf_subdir="missing", loading_mode="multi_glob", precision=mx.bfloat16)
+    with pytest.raises(Exception):
+        StreamingWeightLoader.load_into(model, tmp_path, component, quantize_arg=None)
+    assert len(calls) == 1 and calls[0] == RuntimeMemory.resolve_cache_limit_bytes(None)
+    assert RuntimeMemory._cache_limit_state == "default"

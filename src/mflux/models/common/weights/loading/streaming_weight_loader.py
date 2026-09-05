@@ -4,7 +4,7 @@
 30B-class MiniMax-H3 components would hold 50+ GB of bf16 next to the growing q8 copy. Here each
 shard is mapped, quantized into the already-quantized module structure and released before the
 next one is read, so the peak is one shard above the final footprint. Prepared MLX-Gen packages
-(`mlxgen prepare`) are already in the module's layout and go through `WeightApplier` unchanged.
+(`mlxgen prepare`) are already in the module's layout and stream shard by shard as well.
 """
 
 import gc
@@ -15,11 +15,11 @@ import mlx.core as mx
 from mlx import nn
 from mlx.utils import tree_flatten, tree_unflatten
 
-from mflux.models.common.weights.loading.loaded_weights import LoadedWeights, MetaData
 from mflux.models.common.weights.loading.weight_applier import WeightApplier
 from mflux.models.common.weights.loading.weight_definition import ComponentDefinition
 from mflux.models.common.weights.loading.weight_loader import WeightLoader
 from mflux.models.common.weights.mapping.weight_mapper import WeightMapper
+from mflux.utils.runtime_memory import RuntimeMemory
 
 
 class StreamingWeightLoader:
@@ -33,19 +33,13 @@ class StreamingWeightLoader:
         post_transform: Callable[[dict[str, mx.array]], dict[str, mx.array]] | None = None,
     ) -> int | None:
         """Load `component` from `component_root / component.hf_subdir` into `model`; returns the resolved bits."""
+        # Same once-per-process MLX cache-limit default as `WeightLoader` (Python-API hosts skip the CLI setup).
+        RuntimeMemory.apply_default_cache_limit_once()
         component_path = Path(component_root) / component.hf_subdir
-        stored_weights, stored_q_level, version = WeightLoader._try_load_mflux_format(component_path)
-        if stored_weights is not None:
-            loaded = LoadedWeights(
-                components={component.name: stored_weights},
-                meta_data=MetaData(quantization_level=stored_q_level, mflux_version=version),
-            )
-            return WeightApplier.apply_and_quantize_single(
-                weights=loaded,
-                model=model,
-                component=component,
-                quantize_arg=quantize_arg,
-                quantization_predicate=quantization_predicate,
+        prepared_shards = StreamingWeightLoader._prepared_shards(component_path)
+        if prepared_shards:
+            return StreamingWeightLoader._load_prepared(
+                model, component, prepared_shards, quantize_arg, quantization_predicate
             )
 
         files = WeightLoader._resolve_weight_files(component_path, component.weight_files, "*.safetensors")
@@ -100,3 +94,49 @@ class StreamingWeightLoader:
             gc.collect()
             mx.clear_cache()
         return bits
+
+    @staticmethod
+    def _prepared_shards(component_path: Path) -> list[Path]:
+        """Shards of a prepared MLX-Gen package (identified by its metadata), or [] for a Hugging Face snapshot."""
+        if not component_path.exists():
+            return []
+        shards = WeightLoader._mflux_shard_files(component_path)
+        if not shards:
+            return []
+        metadata = WeightLoader._load_safetensors_metadata(shards[0])
+        return shards if "mflux_version" in metadata or "quantization_level" in metadata else []
+
+    @staticmethod
+    def _load_prepared(
+        model: nn.Module,
+        component: ComponentDefinition,
+        shards: list[Path],
+        quantize_arg: int | None,
+        quantization_predicate: Callable | None,
+    ) -> int | None:
+        """A prepared MLX-Gen package already holds the module's own tensors (quantized or not); stream its shards.
+
+        The whole-component path would hold a 75 GB MiniMax-H3 package in memory twice over while applying it.
+        """
+        metadata = WeightLoader._load_safetensors_metadata(shards[0])
+        stored = metadata.get("quantization_level")
+        stored_bits = None if stored in (None, "None") else int(stored)
+        if component.skip_quantization:
+            stored_bits = None
+        elif quantize_arg is not None and stored_bits is not None and int(quantize_arg) != stored_bits:
+            print(f"⚠️  {component.name}: stored q{stored_bits} package; ignoring --quantize {quantize_arg}.")
+        if stored_bits is not None:
+            predicate = quantization_predicate or (lambda path, module: hasattr(module, "to_quantized"))
+            nn.quantize(
+                model,
+                class_predicate=WeightApplier.quantization_predicate_for_bits(predicate, stored_bits),
+                bits=stored_bits,
+            )
+        for shard in shards:
+            weights = dict(mx.load(str(shard)).items())
+            model.update(tree_unflatten(list(weights.items())), strict=False)
+            mx.eval(*weights.values())
+            del weights
+            gc.collect()
+            mx.clear_cache()
+        return stored_bits

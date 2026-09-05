@@ -13,6 +13,7 @@ from mflux.models.common.tokenizer import TokenizerLoader
 from mflux.models.common.weights.loading.streaming_weight_loader import StreamingWeightLoader
 from mflux.models.minimax_h3.model.h3_audio_vae.h3_audio_vae import H3AudioVAE
 from mflux.models.minimax_h3.model.h3_precision import disable_tf32
+from mflux.models.minimax_h3.model.h3_text_encoder.qwen3_vl_model import Qwen3VLModel
 from mflux.models.minimax_h3.model.h3_text_encoder.qwen3_vl_text_model import Qwen3VLTextModel
 from mflux.models.minimax_h3.model.h3_transformer.h3_transformer import MiniMaxH3Transformer
 from mflux.models.minimax_h3.model.h3_video_vae.h3_video_vae import H3VideoVAE
@@ -63,7 +64,7 @@ class MiniMaxH3Initializer:
     def _init_models(model, root_path: Path) -> None:
         # Every constructor defaults to the released configuration; the component config.json files refine
         # them when present (they are not part of a prepared MLX-Gen package).
-        model.text_encoder = Qwen3VLTextModel(num_hidden_layers=TEXT_ENCODER_NUM_LAYERS)
+        model.text_encoder = Qwen3VLModel(language_model=Qwen3VLTextModel(num_hidden_layers=TEXT_ENCODER_NUM_LAYERS))
         model.transformer = MiniMaxH3Transformer()
         vae_config = MiniMaxH3Initializer._read_json(root_path / "vae" / "config.json")
         model.vae = H3VideoVAE(**video_vae_kwargs(vae_config)) if vae_config else H3VideoVAE()

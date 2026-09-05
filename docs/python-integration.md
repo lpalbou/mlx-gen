@@ -446,9 +446,9 @@ video.save("fox.mp4", export_json_metadata=True)
 ```
 
 `generate_video` also takes `width`, `height`, `num_frames` (rounded up to `17n + 5`),
-`num_inference_steps` (transformer evaluations), `video_shift`, `audio_shift`, and
-`generate_audio=False` for a silent clip; `image_path` is rejected until first-frame conditioning
-ships. See [MiniMax-H3 video with audio](minimax-h3.md).
+`num_inference_steps` (transformer evaluations), `video_shift`, `audio_shift`,
+`generate_audio=False` for a silent clip, and `image_path` for first-frame image-to-video (the canvas
+then follows the keyframe's aspect ratio unless `width`/`height` are given). See [MiniMax-H3 video with audio](minimax-h3.md).
 
 Bernini uses a dedicated renderer class and keeps references separate from first-frame images:
 

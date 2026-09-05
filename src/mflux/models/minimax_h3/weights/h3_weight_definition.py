@@ -8,6 +8,8 @@ from mflux.models.common.weights.loading.weight_definition import ComponentDefin
 from mflux.models.minimax_h3.weights.h3_weight_mapping import (
     TEXT_ENCODER_NUM_LAYERS,
     TEXT_ENCODER_PREFIX,
+    VISION_NUM_BLOCKS,
+    VISION_PREFIX,
     MiniMaxH3WeightMapping,
 )
 
@@ -44,8 +46,9 @@ class MiniMaxH3WeightDefinition:
                 loading_mode="multi_glob",
                 precision=ModelConfig.precision,
                 num_layers=TEXT_ENCODER_NUM_LAYERS,
+                num_blocks=VISION_NUM_BLOCKS,
                 mapping_getter=MiniMaxH3WeightMapping.get_text_encoder_mapping,
-                weight_prefix_filters=[TEXT_ENCODER_PREFIX],
+                weight_prefix_filters=[TEXT_ENCODER_PREFIX, VISION_PREFIX],
             ),
             ComponentDefinition(
                 name="transformer",

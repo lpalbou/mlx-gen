@@ -840,7 +840,8 @@ system/effective prompts, component-source revisions, and output health. See
 ### MiniMax-H3 Video With Audio
 
 `minimax-h3`, `minimax-h3-turbo`, and `minimax-h3-turbo-544p` route through `mlxgen generate` as
-`text-to-video` and write one MP4 with the generated stereo soundtrack. See
+`text-to-video`, or as `image-to-video` when `--image-path` is given, and write one MP4 with the
+generated stereo soundtrack. See
 [MiniMax-H3 video with audio](minimax-h3.md) for sizing, prompting, and measured cost.
 
 ```sh
@@ -862,13 +863,16 @@ mlxgen generate \
 | `--steps` | Transformer evaluations. Defaults: `50` (base), `8` (Turbo entries). |
 | `--video-shift`, `--audio-shift` | Rectified-flow schedule shifts. Defaults: `12` / `3` (base and 544p adapter), `6` / `3` (768p adapter). |
 | `--no-audio` | Skip the audio decode and write a silent clip. |
-| `--quantize`, `-q` | Load-time q8 (recommended) or q4 quantization of the transformer and conditioner. |
+| `--quantize`, `-q` | Load-time q8 (recommended) or q4 quantization of the transformer and conditioner. Not needed for a prepared package. |
+| `--base-model` | The catalog entry a prepared package (`--model <path>`) or repo id runs as: `minimax-h3-turbo-544p` or `minimax-h3-turbo` applies that entry's defaults and attaches its Turbo adapter; omit it for the base 50-step schedule. |
+| `--mlx-cache-limit-gb` | Caps the MLX free-buffer cache (default: the process ladder, up to 8 GiB; `-1` for unlimited). |
 | `--lora-paths`, `--lora-scales` | Replace the automatic Turbo adapter with your own PEFT adapter(s) for the diffusers transformer module names. |
-| `--image-path` | Not supported yet (first-frame conditioning is pending); rejected before weights load. |
+| `--image-path` | One keyframe the clip starts from (`image-to-video`). The canvas follows its aspect ratio at the entry's short edge (768, or 544 for the 544p entry) unless `--width`/`--height` are given; the keyframe is stretched onto the canvas and conditions both the latent rows and the text sequence. |
 | `--negative-prompt` | Not supported: the model is guidance-distilled. |
 
-Saved metadata records `video_shift`, `audio_shift`, `num_inference_steps`, `text_tokens`,
-`duration_seconds`, and the generated-audio fields `audio_present`, `audio_source`,
+Saved metadata records `steps` (transformer evaluations), `video_shift`, `audio_shift`,
+`num_inference_steps` (the scheduler grid, one more than `steps`), `text_tokens`,
+`duration_seconds`, for image-to-video the source image path and size, and the generated-audio fields `audio_present`, `audio_source`,
 `audio_channels`, `audio_sample_rate`, `audio_duration_seconds`, `audio_muxed`, `audio_codec`,
 `audio_mux_mode`. When the track cannot be muxed it is written as `<output>.wav` and
 `audio_sidecar_path` names it.

@@ -11,13 +11,13 @@ outside chat history.
 
 | State | Count |
 | --- | ---: |
-| Planned | 16 |
+| Planned | 15 |
 | Proposed | 30 |
-| Completed | 65 |
+| Completed | 66 |
 | Deprecated | 2 |
 | Recurrent | 1 |
 
-Counts are item files (recounted 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
+Counts are item files (recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
 2026-07-25 release hygiene had moved 0093-0095, 0097-0099, and release
 item 0101 to completed/), including topic-track items under
 `planned/memory/`; the completed `planned/runtime_contracts/` track holds only its index.
@@ -353,10 +353,10 @@ memory follow-up state.
    Wan items. Proposed [Krea 2 Turbo integration](proposed/0050_krea2_turbo_integration.md) is an
    adjacent low-priority watch item: technically credible, but held back mainly by its
    materially restrictive custom license.
-21. MiniMax-H3 shipped as completed item [0117](completed/0117_minimax_h3_text_to_video_audio_runtime.md)
-   (text-to-video with synchronized stereo audio, Turbo adapters). Next: first-frame conditioning
-   through the Qwen3-VL vision tower ([0118](planned/0118_minimax_h3_first_frame_conditioning_vision_tower.md)),
-   then the AdaLN precompute and long-sequence performance work
+21. MiniMax-H3 shipped as completed items [0117](completed/0117_minimax_h3_text_to_video_audio_runtime.md)
+   (text-to-video with synchronized stereo audio, Turbo adapters) and
+   [0118](completed/0118_minimax_h3_first_frame_conditioning_vision_tower.md) (first-frame
+   image-to-video through the Qwen3-VL vision tower). Next: the AdaLN precompute and long-sequence performance work
    ([0119](proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance.md)). The
    joint audio-video contract ADR and the license policy decision recorded in deprecated item 0104
    are still owed.
@@ -378,7 +378,6 @@ memory follow-up state.
 | 0063 | [Component-wise model loading memory policy](planned/memory/0063_componentwise_model_loading_memory_policy.md) | Memory, CLI, model loading | P0 | Quantitative validation pending |
 | 0064 | [Generation retention cleanup](planned/memory/0064_generation_retention_cleanup.md) | Memory, hidden states, stepwise output | P0 | Quantitative validation pending |
 | 0106 | [Bernini-R 1.3B full-trajectory parity and release quality](planned/0106_bernini_full_trajectory_parity_and_release_quality.md) | Bernini video, exact-input parity, cadence, visual release proof | P0 release blocker | Planned |
-| 0118 | [MiniMax-H3 first-frame conditioning through the Qwen3-VL vision tower](planned/0118_minimax_h3_first_frame_conditioning_vision_tower.md) | MiniMax-H3 video, image-to-video, vision tower port, parity | P1 | Planned |
 
 ## Proposed ledger
 
@@ -488,6 +487,7 @@ memory follow-up state.
 | 0082 | [Masked edit expansion: native base-Qwen and Z-Image non-turbo](completed/0082_masked_edit_expansion_qwen_zimage.md) | Image edit, Qwen base, Z-Image, mask routing | 2026-07-15 | Shipped native `qwen.base-inpaint` (diffusers `QwenImageInpaintPipeline` port, internal 0.85 warm start, `effective_steps` metadata, one masked route per row) and non-turbo `z-image.inpaint`, plan-time maskless rejection, the canonical `docs/masked-editing.md` page, and a published visual-smoke proof bundle with preservation measurements. |
 | 0105 | [Bernini-R 1.3B renderer integration](completed/0105_bernini_r_1_3b_renderer_integration.md) | Video generation/editing, reference roles, factored sources, proof | 2026-08-04 | Shipped the exact BF16 renderer-only R2V/RV2V/V2V runtime and factored-source contracts. Post-completion audit withdrew the quality claim: every required visual row fails, the registry is `FAIL`, and item 0106 owns the blocking trajectory/quality work. |
 | 0117 | [MiniMax-H3 text-to-video-with-audio runtime and Turbo adapters](completed/0117_minimax_h3_text_to_video_audio_runtime.md) | Video with audio, MiniMax-H3, streaming q8 loading, generated-audio contract | 2026-09-04 | Ported the diffusers modular pipeline natively (layout, schedulers, transformer, Qwen3-VL conditioner, video and audio VAEs) with component parity at fp32 noise, shipped `minimax-h3`, `minimax-h3-turbo` and `minimax-h3-turbo-544p` with lightx2v adapters, generated stereo AAC audio in the MP4, and the first model-backed clips. First-frame conditioning is item 0118. |
+| 0118 | [MiniMax-H3 first-frame conditioning through the Qwen3-VL vision tower](completed/0118_minimax_h3_first_frame_conditioning_vision_tower.md) | MiniMax-H3 image-to-video, Qwen3-VL vision tower, DeepStack | 2026-09-05 | Ported the vision tower, processor, rope index and DeepStack injection (exact vs transformers, real weights 1e-5), shipped `--image-path` first-frame conditioning with the reference's keyframe canvas, presentation and condition-latent recipe, and the `minimax-h3.first-frame` capability row. |
 
 ## Deprecated ledger
 
