@@ -1,6 +1,6 @@
 # Architecture
 
-MLX-Gen is an independent package forked from mflux. It keeps the MLX-native model runtime from mflux while exposing a cleaner `mlxgen` command surface for new users and applications. The video paths include Wan2.2 TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, Wan2.2 A14B text-to-video, Wan2.2 A14B image-to-video and video-to-video, Wan2.1-VACE-1.3B conditioning, and an experimental Bernini-R 1.3B role-aware reference renderer whose current visual validation fails. SeedVR2 image and video restoration use `mlxgen upscale`.
+MLX-Gen is an independent package forked from mflux. It keeps the MLX-native model runtime from mflux while exposing a cleaner `mlxgen` command surface for new users and applications. The video paths include Wan2.2 TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, Wan2.2 A14B text-to-video, Wan2.2 A14B image-to-video and video-to-video, Wan2.1-VACE-1.3B conditioning, MiniMax-H3 text-to-video with synchronized stereo audio (with lightx2v Turbo adapters), and an experimental Bernini-R 1.3B role-aware reference renderer whose current visual validation fails. SeedVR2 image and video restoration use `mlxgen upscale`.
 
 ## System Overview
 
@@ -11,7 +11,7 @@ flowchart TD
     R --> TI[Task inference and capability planner]
     P --> TI
     TI -->|generation plan: task, mode, capability, handler| B[Backend command and runtime selection]
-    B --> M[Model runtime variants<br/>FLUX.2 Klein, Qwen, Z-Image, ERNIE, FIBO, Bonsai, Wan, SeedVR2]
+    B --> M[Model runtime variants<br/>FLUX.2 Klein, Qwen, Z-Image, ERNIE, FIBO, Bonsai, Wan, MiniMax-H3, SeedVR2]
     M --> W[Weight loading<br/>single or factored pinned sources / local packages]
     M --> CB[Progress callbacks and runtime memory telemetry]
     M --> O[Saved images and videos with metadata]
@@ -65,7 +65,7 @@ flowchart LR
 
 MLX-Gen model packages use the MLX/mflux saved-weight layout. They may contain MLX quantization tensors and generated Hugging Face model cards. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers loading.
 
-Video support follows the same setup/runtime boundary. Wan2.2 loads local source files and writes MP4 output. Text-to-video starts from random video latents. TI2V-5B image-to-video VAE-encodes the first frame, masks first-frame timesteps, keeps the condition active during denoising, and reinserts the condition before decode. A14B uses Diffusers-compatible two-transformer boundary routing and, for the separate I2V model, concatenated image-condition latents.
+Video support follows the same setup/runtime boundary. Wan2.2 loads local source files and writes MP4 output. Text-to-video starts from random video latents. TI2V-5B image-to-video VAE-encodes the first frame, masks first-frame timesteps, keeps the condition active during denoising, and reinserts the condition before decode. A14B uses Diffusers-compatible two-transformer boundary routing and, for the separate I2V model, concatenated image-condition latents. MiniMax-H3 packs text, audio and video rows into one sequence for a single dense transformer, steps two rectified-flow schedules (video and audio) in lockstep, and decodes the video rows with its ViT VAE and the audio rows with its fp32 audio VAE before muxing the stereo track into the MP4; its 30B-class components load shard by shard and quantize as they land.
 
 Bernini is a dedicated single-transformer renderer variant rather than a VACE or first-frame-I2V
 branch. It independently VAE-encodes a source video and each ordered reference, patches each into
@@ -88,7 +88,7 @@ The error includes actionable command fields such as `download_command` and, whe
 
 ## Quantization Policy
 
-Quantization is model-specific. Qwen and ERNIE q4 paths use mixed q4/q8 policies because fully q4 checkpoints can lose coherent generative behavior for those model families. SeedVR2 3B and 7B use q4/q8 MLX-Gen packages for the transformer linears and VAE attention linears that support MLX quantization. Bonsai Image uses Prism's pre-packed ternary 2-bit transformer path instead of MLX-Gen's q4/q8 `prepare` flow; it follows the same quality principle of keeping sensitive paths at higher precision, but ships as a pre-packed artifact. Bernini is BF16-only: its generic Wan q4 path failed transformer/video gates, while nominal q8 quantized no renderer linears and would misstate the execution. Other model families keep their existing predicates unless model behavior requires a dedicated policy.
+Quantization is model-specific. Qwen and ERNIE q4 paths use mixed q4/q8 policies because fully q4 checkpoints can lose coherent generative behavior for those model families. SeedVR2 3B and 7B use q4/q8 MLX-Gen packages for the transformer linears and VAE attention linears that support MLX quantization. Bonsai Image uses Prism's pre-packed ternary 2-bit transformer path instead of MLX-Gen's q4/q8 `prepare` flow; it follows the same quality principle of keeping sensitive paths at higher precision, but ships as a pre-packed artifact. Bernini is BF16-only: its generic Wan q4 path failed transformer/video gates, while nominal q8 quantized no renderer linears and would misstate the execution. MiniMax-H3 q8 quantizes the transformer attention/feed-forward linears and the Qwen3-VL conditioner and keeps the fp32 input/output heads, the timestep MLP and the AdaLN modulation projections at their source precision. Other model families keep their existing predicates unless model behavior requires a dedicated policy.
 
 See [Quantization](quantization.md) for the current rules.
 

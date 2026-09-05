@@ -68,6 +68,10 @@ The main capabilities are:
   object into a new scene from one or more `--reference-image` inputs, or run learned masked
   source-video edits, verified stage-by-stage against the diffusers reference with an included
   proof bundle;
+- MiniMax-H3 text-to-video **with synchronized stereo audio** (`minimax-h3`, `minimax-h3-turbo`,
+  `minimax-h3-turbo-544p`): one prompt produces a 24 fps clip and its soundtrack in a single MP4
+  (AAC track), 5 to 15 seconds long, with the lightx2v 8-step Turbo adapters attached
+  automatically; run it with `--quantize 8` on a 128 GB Mac (see `docs/minimax-h3.md`);
 - ByteDance Bernini-R 1.3B renderer support (`bernini-r-1.3b`): generate video from one to eight
   ordered ordinary reference images, edit one source video with those references, or run
   source-only prompt-guided video editing through the unified CLI and Python runtime. Download

@@ -11,13 +11,13 @@ outside chat history.
 
 | State | Count |
 | --- | ---: |
-| Planned | 15 |
+| Planned | 16 |
 | Proposed | 30 |
-| Completed | 64 |
-| Deprecated | 1 |
+| Completed | 65 |
+| Deprecated | 2 |
 | Recurrent | 1 |
 
-Counts are item files (recounted 2026-08-04 after adding item 0106; the
+Counts are item files (recounted 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
 2026-07-25 release hygiene had moved 0093-0095, 0097-0099, and release
 item 0101 to completed/), including topic-track items under
 `planned/memory/`; the completed `planned/runtime_contracts/` track holds only its index.
@@ -353,24 +353,13 @@ memory follow-up state.
    Wan items. Proposed [Krea 2 Turbo integration](proposed/0050_krea2_turbo_integration.md) is an
    adjacent low-priority watch item: technically credible, but held back mainly by its
    materially restrictive custom license.
-21. Keep [MiniMax H3 joint audio-video](proposed/0104_minimax_h3_joint_audio_video_watch.md)
-   license-blocked. The published grant excludes the EU development territory even though the
-   repository is public. Do not fetch or execute the weights unless the public terms change or
-   written permission is obtained; only then consider a five-second FL2VA parity spike and a new
-   generated joint audio-video contract ADR.
-22. Continue ERNIE-Image/Turbo after completed
-   [ERNIE Image Turbo LoRA runtime support](completed/0037_ernie_image_turbo_lora_runtime_support.md):
-   the latent img2img proof is now accepted, so the remaining follow-up is stronger Diffusers
-   parity coverage and non-turbo validation.
-23. Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
-   stronger quality/performance checks, and remaining cancel APIs. SeedVR2 has a validated
-   `mlxgen upscale` command, official 3B/7B source loading, and q8/q4 `mlxgen prepare` package
-   support.
-24. Keep Bonsai LoRA fail-closed and low priority; revisit it only through
-   [proposed item 0038](proposed/0038_bonsai_packed_lora_runtime_support.md). The current packed
-   runtime does not expose replaceable linear targets for standard LoRA injection, and the first
-   public “Bonsai LoRA” candidate inspected used unrelated SDXL UNet keys.
-## Planned ledger
+21. MiniMax-H3 shipped as completed item [0117](completed/0117_minimax_h3_text_to_video_audio_runtime.md)
+   (text-to-video with synchronized stereo audio, Turbo adapters). Next: first-frame conditioning
+   through the Qwen3-VL vision tower ([0118](planned/0118_minimax_h3_first_frame_conditioning_vision_tower.md)),
+   then the AdaLN precompute and long-sequence performance work
+   ([0119](proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance.md)). The
+   joint audio-video contract ADR and the license policy decision recorded in deprecated item 0104
+   are still owed.
 
 | ID | Item | Area | Priority | Status |
 | --- | --- | --- | --- | --- |
@@ -389,6 +378,7 @@ memory follow-up state.
 | 0063 | [Component-wise model loading memory policy](planned/memory/0063_componentwise_model_loading_memory_policy.md) | Memory, CLI, model loading | P0 | Quantitative validation pending |
 | 0064 | [Generation retention cleanup](planned/memory/0064_generation_retention_cleanup.md) | Memory, hidden states, stepwise output | P0 | Quantitative validation pending |
 | 0106 | [Bernini-R 1.3B full-trajectory parity and release quality](planned/0106_bernini_full_trajectory_parity_and_release_quality.md) | Bernini video, exact-input parity, cadence, visual release proof | P0 release blocker | Planned |
+| 0118 | [MiniMax-H3 first-frame conditioning through the Qwen3-VL vision tower](planned/0118_minimax_h3_first_frame_conditioning_vision_tower.md) | MiniMax-H3 video, image-to-video, vision tower port, parity | P1 | Planned |
 
 ## Proposed ledger
 
@@ -418,7 +408,6 @@ memory follow-up state.
 | 0100 | [VACE identity-anchor recipe documentation](proposed/0100_wan_vace_identity_anchor_recipe.md) | Wan VACE, subject reference, draft/repair tier | Conditional: decide after 0097's A/B (supersession gate); recipe is wireable today with no code changes. |
 | 0102 | [Wan A14B i2v multi-frame context head conditioning](proposed/0102_wan_context_frame_head_conditioning.md) | Wan video, storyboard continue seams, momentum carry | Implemented 2026-07-27 (EXPERIMENTAL, unreleased): `--context-frames`/`--context-noise` extend the i2v conditioned head to K in {5,9,13} frames (the 0097 non-goal, now gated per the BlackPixel frame-consistency blueprint); zero-shot probe measured momentum carry (K=5 seam magnitude ratio 0.90 vs single-frame 1.90) with a mild boundary flare; capabilities `schema_version` 6 adds `supports_context_frames`. |
 | 0103 | [Wan A14B i2v SVI 2.0 Pro conditioning](proposed/0103_wan_svi_pro_conditioning.md) | Wan video, storyboard chains, identity anchor + latent motion handover | Implemented 2026-07-27 (EXPERIMENTAL, unreleased): `--svi-anchor-image`/`--svi-motion-latent`/`--svi-lora-high`/`--svi-lora-low` port Stable Video Infinity 2.0 Pro chain conditioning (`[anchor, motion latent, zero-latents]` + error-recycling LoRA pair under a strict `unmatched_key_count == 0` contract, 800/800 verified) to the A14B i2v route per the BlackPixel consistency-redo doctrine (mechanism 4, probe-gated); capabilities `schema_version` 7 adds `supports_svi`. |
-| 0104 | [MiniMax H3 joint audio-video license-blocked watch](proposed/0104_minimax_h3_joint_audio_video_watch.md) | Joint audio-video generation, licensing, new artifact contract | Promote only after the EU license gate clears, stable official upstream semantics exist, a target-Mac resource envelope is credible, and a generated joint audio-video contract ADR is accepted. |
 | 0108 | [Bernini-R 1.3B selective 8-bit package](proposed/0108_bernini_selective_8bit_package.md) | Bernini, quantization, published packages | Promote after a selective q8 policy passes the step-0 tensor probe, same-seed reduced comparison, and full-profile contact-sheet gates against the BF16 baseline. |
 | 0109 | [Bernini task-type and guidance-mode CLI exposure](proposed/0109_bernini_task_type_cli_exposure.md) | Bernini, CLI surface | Promote when the mv2v structure-changing recipe should be CLI-reachable; low risk, surfaces existing runtime parameters. |
 | 0110 | [Bernini-R 1.3B promotion policy decision](proposed/0110_bernini_promotion_policy_decision.md) | Bernini, release policy, ADR | Promote when the team is ready to decide the tuned-recipe promotion standard; requires an ADR and reconciling backlog 0106. |
@@ -428,6 +417,8 @@ memory follow-up state.
 | 0114 | [SwiftVR one-step restoration as a second restore family](proposed/0114_swiftvr_streaming_restoration.md) | Video restoration, Wan2.2-TI2V-5B reuse, CLI surface | Promote only after a target-machine microbenchmark confirms the derived 0.2-0.9 FPS 1080p band is beatable and a quality read beats SeedVR2 on output, not throughput; the streaming positioning does not survive Apple Silicon and the three-mode taxonomy is rejected on ADR 0002/0003 grounds. |
 | 0115 | [SeedVR2 video decode artifact at larger latent geometries](proposed/0115_seedvr2_video_decode_artifact_at_larger_geometries.md) | SeedVR2, causal VAE decode, ADR 0002 | Promote when the SeedVR2 video route must be correct above latent 48x36: one pixel frame per latent group of four is corrupted at 480x352 while 320x240 and 384x288 are clean, isolated to causal-sliced decode and reproducible with a committed command. |
 | 0116 | [Version label must prefer installed metadata over ancestor repo files](proposed/0116_version_label_prefers_repo_files_over_dist_info.md) | Version identity, CLI banner | Promote when developer-layout venvs matter: a stale in-repo venv reports the checkout's version instead of the installed one, observed masquerading as a broken 0.30.0 during the release audit. |
+| 0119 | [MiniMax-H3 AdaLN precompute-and-drop and long-sequence attention performance](proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance.md) | MiniMax-H3 video, memory, step time | Promote when 768p clips need to be practical: precomputing the per-schedule AdaLN tables frees ~26 GB and may allow a bf16 transformer; head-grouped attention and per-segment modulation are measured follow-ups. |
+
 ## Completed ledger
 
 | ID | Item | Area | Completed | Outcome |
@@ -496,12 +487,14 @@ memory follow-up state.
 | 0081 | [FLUX.2 Klein masked edit / inpaint](completed/0081_flux2_klein_masked_edit.md) | Image edit, FLUX.2 Klein, mask-based inpaint | 2026-07-15 | Ported the diffusers `Flux2KleinInpaintPipeline` semantics onto the Klein family: new `flux2.inpaint` capability with per-step source compositing and clean-source conditioning tokens, torch-parity bilinear mask downsampling, optional masked-area reference images on the backend/Python surface, adversarial review, and local q8 smoke proofs (published visual-QA rows remain follow-up). |
 | 0082 | [Masked edit expansion: native base-Qwen and Z-Image non-turbo](completed/0082_masked_edit_expansion_qwen_zimage.md) | Image edit, Qwen base, Z-Image, mask routing | 2026-07-15 | Shipped native `qwen.base-inpaint` (diffusers `QwenImageInpaintPipeline` port, internal 0.85 warm start, `effective_steps` metadata, one masked route per row) and non-turbo `z-image.inpaint`, plan-time maskless rejection, the canonical `docs/masked-editing.md` page, and a published visual-smoke proof bundle with preservation measurements. |
 | 0105 | [Bernini-R 1.3B renderer integration](completed/0105_bernini_r_1_3b_renderer_integration.md) | Video generation/editing, reference roles, factored sources, proof | 2026-08-04 | Shipped the exact BF16 renderer-only R2V/RV2V/V2V runtime and factored-source contracts. Post-completion audit withdrew the quality claim: every required visual row fails, the registry is `FAIL`, and item 0106 owns the blocking trajectory/quality work. |
+| 0117 | [MiniMax-H3 text-to-video-with-audio runtime and Turbo adapters](completed/0117_minimax_h3_text_to_video_audio_runtime.md) | Video with audio, MiniMax-H3, streaming q8 loading, generated-audio contract | 2026-09-04 | Ported the diffusers modular pipeline natively (layout, schedulers, transformer, Qwen3-VL conditioner, video and audio VAEs) with component parity at fp32 noise, shipped `minimax-h3`, `minimax-h3-turbo` and `minimax-h3-turbo-544p` with lightx2v adapters, generated stereo AAC audio in the MP4, and the first model-backed clips. First-frame conditioning is item 0118. |
 
 ## Deprecated ledger
 
 | ID | Item | Deprecated | Reason |
 | --- | --- | --- | --- |
 | 0047 | [SeedVR2 7B quality and safe video scale revalidation](deprecated/0047_seedvr2_7b_quality_and_safe_video_scale_revalidation.md) | 2026-06-21 | Release `0.18.20` closed the bounded 7B quality revalidation through completed item 0032; the only remaining question was split into proposed item 0048. |
+| 0104 | [MiniMax H3 joint audio-video license-blocked watch](deprecated/0104_minimax_h3_joint_audio_video_watch.md) | 2026-09-04 | Superseded by the owner's decision to port MiniMax-H3 (completed item 0117); the license analysis stays the reference for the policy decision still owed. |
 
 ## Recurrent ledger
 

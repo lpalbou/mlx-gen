@@ -30,6 +30,7 @@ class CompletionGenerator:
             "mflux-generate-bonsai",
             "mflux-generate-wan",
             "mlxgen-generate-wan",
+            "mlxgen-generate-minimax-h3",
             "mflux-refine-fibo",
             "mflux-inspire-fibo",
             "mflux-concept",
@@ -285,6 +286,11 @@ class CompletionGenerator:
             from mflux.models.wan.cli.wan_generate import _parser as wan_parser
 
             return wan_parser()
+
+        elif command == "mlxgen-generate-minimax-h3":
+            from mflux.models.minimax_h3.cli.minimax_h3_generate import _parser as minimax_h3_parser
+
+            return minimax_h3_parser()
 
         elif command == "mflux-refine-fibo":
             parser.add_argument("--prompt-file", type=Path, required=True, help="Path to JSON prompt file to refine")

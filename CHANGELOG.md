@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.34.0] - 2026-09-04
+
+MiniMax-H3: text-to-video with a synchronized stereo soundtrack, natively on MLX, with the lightx2v
+Turbo adapters.
+
+### Added
+
+- **MiniMax-H3 (`minimax-h3`, `minimax-h3-turbo`, `minimax-h3-turbo-544p`).** One prompt produces a
+  24 fps clip of 5 to 15 seconds and its stereo soundtrack, saved together in one MP4 with an AAC
+  track. The Turbo entries attach the lightx2v 8-step adapters automatically (768p adapter with
+  shifts 6/3; 544p mixed-aspect adapter with shifts 12/3) and `mlxgen download` fetches them with
+  the snapshot. `--prompt`, `--soundscape`, and `--music` fill the model's three structured prompt
+  sections; complete structured prompts pass through verbatim. Routed through `mlxgen generate`,
+  `mlxgen capabilities`, `mlxgen prepare`, and the Python runtime (`MiniMaxH3.generate_video`).
+  Every component (packed layout, rectified-flow schedulers, transformer, Qwen3-VL conditioner,
+  video and audio VAEs) is a direct port of the diffusers 0.40 reference and matches it at fp32
+  rounding noise on real weights. See `docs/minimax-h3.md`.
+- **Generated audio on `GeneratedVideo`.** `video.audio` carries a `GeneratedAudio`
+  (`waveform`, `sample_rate`); `save()` muxes it as AAC (ffmpeg, PyAV fallback, sidecar WAV when
+  muxing fails) and records the `audio_*` metadata fields.
+- **Shard-streaming quantized loading.** `--quantize 8` on MiniMax-H3 quantizes each shard as it
+  loads, so the two 30B-class components never hold a full BF16 copy next to the q8 copy; the
+  measured `960x544` run peaks at 80 GB of MLX memory on a 128 GB Mac.
+
+### Notes
+
+- MiniMax-H3 first-frame conditioning (`--image-path`) and reference-to-video are not available
+  yet. The 768p canvas costs about five minutes per step on an Apple M5 Max; the 544p adapter is the
+  iteration setting.
+- MiniMax-H3 is released under the MiniMax H3 Community License, which restricts use in some
+  territories; read it on the model card before downloading or distributing weights or outputs.
+
 ## [0.33.1] - 2026-09-02
 
 Video restore routes work again on FFmpeg 9.

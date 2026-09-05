@@ -608,6 +608,11 @@ def _runtime_definition_for_plan(plan: GenerationPlan, model_config: ModelConfig
             runtime_id="wan2.2-ti2v",
             import_path="mflux.models.wan.variants.wan2_2_ti2v.Wan2_2_TI2V",
         )
+    if plan.handler_id == "minimax-h3.generate":
+        return _RuntimeDefinition(
+            runtime_id="minimax-h3",
+            import_path="mflux.models.minimax_h3.variants.minimax_h3.MiniMaxH3",
+        )
     if plan.handler_id == "qwen.edit":
         return _RuntimeDefinition(
             runtime_id="qwen.edit",

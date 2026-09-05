@@ -1003,6 +1003,15 @@ into separate clips or use a later keyframe/image input rather than relying on o
 conditioning run. For production checks, use seed sweeps and inspect decoded frames or contact
 sheets rather than relying only on MP4 existence.
 
+## Can MLX-Gen Generate Video With Sound?
+
+Yes. MiniMax-H3 (`--model minimax-h3-turbo-544p`, `minimax-h3-turbo`, or `minimax-h3`) generates a
+24 fps clip and a synchronized stereo soundtrack together and saves both in one MP4 with an AAC
+track. Describe the picture with `--prompt`, the diegetic sound with `--soundscape`, and the score
+with `--music`; run it with `--quantize 8` on a 128 GB Mac. See
+[MiniMax-H3 video with audio](minimax-h3.md). Wan and Bernini clips stay silent; Wan
+video-to-video copies the source clip's audio through.
+
 ## Why Do Some Imports Or Paths Still Say `mflux`?
 
 MLX-Gen is built on the mflux codebase. Some internal modules and compatibility entry points still

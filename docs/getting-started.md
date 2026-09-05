@@ -29,6 +29,7 @@ Choose the workflow by the media you start from and the outcome you want:
 | You have | You want | Current command |
 | --- | --- | --- |
 | Only a prompt | A new image or a new video | `mlxgen generate` |
+| Only a prompt | A new video with its own synchronized soundtrack | `mlxgen generate --model minimax-h3-turbo-544p --quantize 8 ...` |
 | One image | Image editing, reframe/outpaint, or Wan first-frame image-to-video | `mlxgen generate` |
 | One to eight ordinary reference images | A new reference-guided Bernini video | `mlxgen generate --model bernini-r-1.3b --reference-image ...` |
 | One video clip | SeedVR2 restoration or upscale, with no prompt | `mlxgen upscale --video-path ...` |
@@ -578,6 +579,28 @@ Spatial-scale sanity outputs at 1280x704, 17 frames, and 20 steps:
 ![Wan2.2 TI2V 1280x704 text-to-video contact sheet](assets/generation/wan2.2-ti2v-5b-t2v-1280x704-17f-20steps-contact-sheet.png)
 
 ![Wan2.2 TI2V first-frame image-to-video contact sheet](assets/generation/wan2.2-ti2v-5b-i2v-bateau-1280x704-17f-20steps-contact-sheet.png)
+
+### Generate A Video With Sound (MiniMax-H3)
+
+MiniMax-H3 generates the clip and a synchronized stereo soundtrack together. It needs about 140 GB
+of disk and a 128 GB Mac with `--quantize 8`:
+
+```sh
+mlxgen download --model minimax-h3-turbo-544p
+
+mlxgen generate \
+  --model minimax-h3-turbo-544p \
+  --prompt "A red fox trots through fresh snow in a birch forest at dawn; halfway through it stops and looks at the camera." \
+  --soundscape "Soft crunch of paws in dry snow, faint wind, two distant crow caws." \
+  --music "Sparse piano, slow tempo." \
+  --seed 42 \
+  --quantize 8 \
+  --output fox.mp4 \
+  --metadata
+```
+
+The MP4 carries an AAC stereo track; `--no-audio` writes a silent clip. See
+[MiniMax-H3 video with audio](minimax-h3.md) for prompting, sizing, and runtime cost.
 
 ## Next Steps
 
