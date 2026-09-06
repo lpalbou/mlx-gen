@@ -40,6 +40,7 @@ from mflux.models.minimax_h3.latent_creator.h3_layout import (
     audio_latent_num_frames,
     build_packed_sequence,
     build_row_timesteps,
+    packed_sequence_length,
     patchify_video_latents,
     resolve_canvas_size,
     unpack_audio_rows,
@@ -58,6 +59,7 @@ from mflux.models.minimax_h3.scheduler.minimax_h3_scheduler import MiniMaxH3Sche
 from mflux.models.minimax_h3.weights.h3_weight_definition import MiniMaxH3WeightDefinition
 from mflux.utils.generated_audio import GeneratedAudio
 from mflux.utils.generated_video import GeneratedVideo
+from mflux.utils.runtime_memory import RuntimeMemory
 
 PROMPT_FIELDS = ("integrated_multimodal_description", "overall_soundscape", "non_diegetic_music")
 CANVAS_MULTIPLE = 32
@@ -164,6 +166,7 @@ class MiniMaxH3(nn.Module):
         started = time.perf_counter()
         keyframe = self._load_keyframe(image_path) if image_path is not None else None
         plan = self._plan(width, height, num_frames, num_inference_steps, video_shift, audio_shift, keyframe=keyframe)
+        self._preflight_request(plan)
         full_prompt = compose_prompt(prompt, soundscape, music)
         task = "image-to-video" if keyframe is not None else "text-to-video"
         # The keyframe is stretched onto the canvas (the reference's geometry anchor), then conditions both the text
@@ -526,6 +529,63 @@ class MiniMaxH3(nn.Module):
             if value.dtype in (mx.float32, mx.bfloat16, mx.float16):
                 return value.dtype
         return ModelConfig.precision
+
+    # Bytes the footprint grows by per packed row, measured across runs at 960x544 and 1344x768 and
+    # confirmed by a third at a different frame count: a 243-frame 960x544 clip and a 124-frame
+    # 1344x768 clip differ by 0.5% in rows and reached the same MLX peak, 84.8 GiB. Measured at q8
+    # with the conditioner resident.
+    PEAK_BYTES_PER_PACKED_ROW = 271_356
+
+    @classmethod
+    def estimate_peak_bytes(cls, width: int, height: int, num_frames: int, *, resident_bytes: int) -> int:
+        """Expected peak process footprint for a request, given what is already resident.
+
+        Anchored on a measured footprint rather than on a constant for the released weights, so the
+        estimate follows whatever is actually loaded rather than assuming one model. Above that
+        baseline a run adds the MLX free-buffer cache, which fills toward its limit, and a term
+        linear in packed rows. Reproduces all three measured runs within 0.5 GiB.
+        """
+        cache_bytes = RuntimeMemory.resolve_cache_limit_bytes(None) or 0
+        rows = packed_sequence_length(width, height, num_frames)
+        return int(resident_bytes + cache_bytes + cls.PEAK_BYTES_PER_PACKED_ROW * rows)
+
+    def _preflight_request(self, plan: H3GenerationPlan) -> None:
+        """Report before a long run whose expected peak does not fit, rather than after.
+
+        The expected peak is a measured line through packed rows, not a guarantee: whether a run
+        survives also depends on what else is resident, and a request has been killed at 72% of this
+        machine's RAM because another application held 7.5 GiB. So this refuses only what cannot fit
+        at all and warns about the rest, naming the levers instead of changing the request.
+        """
+        physical_bytes = RuntimeMemory.total_physical_memory_bytes()
+        if physical_bytes <= 0:
+            return
+        snapshot = RuntimeMemory.snapshot("minimax-h3-preflight", synchronize=False)
+        resident_bytes = snapshot.darwin_physical_footprint_bytes or snapshot.process_rss_bytes or 0
+        if resident_bytes <= 0:
+            return
+        expected = self.estimate_peak_bytes(plan.width, plan.height, plan.num_frames, resident_bytes=resident_bytes)
+        gib = 1024**3
+        shape = (
+            f"{plan.width}x{plan.height} at {plan.num_frames} frames needs about {expected / gib:.0f} GiB, "
+            f"and this machine has {physical_bytes / gib:.0f} GiB"
+        )
+        levers = (
+            "Shorten the clip or use a smaller canvas (both reduce the packed sequence, which is what "
+            "the peak follows), pass --release-text-encoder, or lower --mlx-cache-limit-gb."
+        )
+        if expected >= physical_bytes:
+            raise MemoryError(f"MiniMax-H3: {shape}, so the run cannot fit. {levers}")
+        if expected > physical_bytes * self.REQUEST_BUDGET_SHARE:
+            print(
+                f"⚠️  MiniMax-H3: {shape}. That leaves little room for anything else resident, and runs "
+                f"this close to the limit have been killed by the OS mid-denoise. {levers}",
+                file=sys.stderr,
+            )
+
+    # Above this share of physical memory a run is close enough to the limit that other resident
+    # processes decide the outcome. The 243-frame measurement that was killed sat at 0.73.
+    REQUEST_BUDGET_SHARE = 0.72
 
     # ------------------------------------------------------------------ progress
 

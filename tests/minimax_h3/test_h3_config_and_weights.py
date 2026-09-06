@@ -218,7 +218,7 @@ def test_capability_rows_publish_the_audio_duration_and_default_contract():
     """A host builds H3 controls from the row alone, without importing ModelConfig or hardcoding the family."""
     from mflux.task_inference import CAPABILITIES_SCHEMA_VERSION, get_model_capabilities
 
-    assert CAPABILITIES_SCHEMA_VERSION == 15
+    assert CAPABILITIES_SCHEMA_VERSION == 16
     payload = get_model_capabilities(model="minimax-h3-turbo-544p").to_dict()
     rows = {row["id"]: row for row in payload["capabilities"]}
     assert set(rows) == {"minimax-h3.text-video", "minimax-h3.first-frame"}
@@ -284,8 +284,8 @@ def test_rows_publish_the_precision_and_memory_contract():
     """A host decides whether a run fits from the row, in bytes, without parsing prose."""
     from mflux.task_inference import CAPABILITIES_SCHEMA_VERSION, get_model_capabilities
 
-    assert CAPABILITIES_SCHEMA_VERSION == 15
-    for alias, canvas in (("minimax-h3-turbo-544p", (960, 544)), ("minimax-h3-turbo", (1344, 768))):
+    assert CAPABILITIES_SCHEMA_VERSION == 16
+    for alias in ("minimax-h3-turbo-544p", "minimax-h3-turbo"):
         for row in get_model_capabilities(model=alias).to_dict()["capabilities"]:
             assert row["weight_precision"] == "bf16"
             assert row["recommended_quantize"] == 8
@@ -295,10 +295,11 @@ def test_rows_publish_the_precision_and_memory_contract():
             # has to guess GB versus GiB: 134.2 GB is 125 GiB, and the difference decides the run.
             assert row["unquantized_weights_bytes"] / 1024**3 > 0.95 * 128
             assert row["unquantized_weights_bytes"] / 1024**3 < 128
-            peak = row["measured_peak"]
-            assert (peak["width"], peak["height"]) == canvas
-            assert peak["quantize"] == 8 and peak["frames"] == 124
-            assert 80 * 1024**3 < peak["peak_bytes"] < 128 * 1024**3
+            completed = [run for run in row["measured_runs"] if run["outcome"] == "completed"]
+            assert {(run["width"], run["height"]) for run in completed} == {(960, 544), (1344, 768)}
+            for run in completed:
+                assert run["quantize"] == 8 and run["frames"] == 124
+                assert 80 * 1024**3 < run["footprint_bytes"] < 128 * 1024**3
 
 
 @pytest.mark.fast
@@ -479,3 +480,116 @@ def _capture_help(module) -> str:
     finally:
         sys.argv = argv
     return buffer.getvalue()
+
+
+@pytest.mark.fast
+def test_packed_sequence_length_is_the_axis_the_peak_follows():
+    """Peak tracks packed rows, not the canvas or the frame count separately.
+
+    A 243-frame `960x544` request and a 124-frame `1344x768` request differ by 0.5% in rows, and were
+    measured at the same MLX peak. The helper exists so a caller can size a request without
+    reverse-engineering the layout.
+    """
+    from mflux.models.minimax_h3.latent_creator.h3_layout import packed_sequence_length
+
+    assert packed_sequence_length(960, 544, 124) == 19_484
+    assert packed_sequence_length(1344, 768, 124) == 37_910
+    assert packed_sequence_length(960, 544, 243) == 37_730
+    assert packed_sequence_length(960, 544, 345) == 53_370
+    assert packed_sequence_length(1344, 768, 345) == 104_166
+    # Off-grid requests are sized at the count that will actually run.
+    assert packed_sequence_length(960, 544, 130) == packed_sequence_length(960, 544, 141)
+
+
+@pytest.mark.fast
+def test_request_preflight_warns_near_the_limit_and_refuses_the_impossible(capsys, monkeypatch):
+    """A request that cannot fit is reported before the run, not discovered by the OS killing it."""
+    from types import SimpleNamespace
+
+    from mflux.models.minimax_h3.variants.minimax_h3 import MiniMaxH3
+    from mflux.utils.runtime_memory import RuntimeMemory
+
+    gib = 1024**3
+    model = MiniMaxH3.__new__(MiniMaxH3)
+
+    def plan(width, height, frames):
+        return SimpleNamespace(width=width, height=height, num_frames=frames)
+
+    # Anchored on what is actually resident, so it estimates the loaded model rather than assuming
+    # the released weights. At the released weights' measured 75.7 GiB baseline it reproduces both
+    # published measurements and the killed run's observed footprint, all within 0.5 GiB.
+    loaded = int(75.7 * gib)
+    # The cache term is RAM-derived, so pin it to the 8 GiB the runs were measured under. Without
+    # this the expectations below only hold on a machine with the same amount of memory.
+    monkeypatch.setattr(RuntimeMemory, "resolve_cache_limit_bytes", staticmethod(lambda *a, **k: 8 * gib))
+
+    def estimate(w, h, f):
+        return MiniMaxH3.estimate_peak_bytes(w, h, f, resident_bytes=loaded) / gib
+
+    assert abs(estimate(960, 544, 124) - 88.2) < 0.5
+    assert abs(estimate(1344, 768, 124) - 92.9) < 0.5
+    assert abs(estimate(960, 544, 243) - 92.7) < 0.6
+
+    # A tiny model resident in a few hundred MB must not be sized as if it were the released one:
+    # that refused every tiny-config test on a small machine.
+    assert MiniMaxH3.estimate_peak_bytes(96, 64, 124, resident_bytes=200 * 1024**2) < 12 * gib
+    # The cache term follows the machine, which is why the pin above is needed at all.
+    monkeypatch.setattr(RuntimeMemory, "resolve_cache_limit_bytes", staticmethod(lambda *a, **k: 1 * gib))
+    assert estimate(960, 544, 124) < 88.2 - 6.0
+    monkeypatch.setattr(RuntimeMemory, "resolve_cache_limit_bytes", staticmethod(lambda *a, **k: 8 * gib))
+
+    def resident(byte_count):
+        monkeypatch.setattr(
+            RuntimeMemory,
+            "snapshot",
+            staticmethod(
+                lambda *a, **k: SimpleNamespace(
+                    darwin_physical_footprint_bytes=byte_count, process_rss_bytes=byte_count
+                )
+            ),
+        )
+
+    resident(loaded)
+    monkeypatch.setattr(RuntimeMemory, "total_physical_memory_bytes", staticmethod(lambda: 128 * gib))
+    model._preflight_request(plan(960, 544, 124))
+    assert capsys.readouterr().err == "", "a run with headroom says nothing"
+
+    model._preflight_request(plan(960, 544, 345))
+    warning = capsys.readouterr().err
+    assert "345 frames" in warning and "killed" in warning and "--release-text-encoder" in warning
+
+    # A request larger than the whole machine is refused rather than warned about.
+    monkeypatch.setattr(RuntimeMemory, "total_physical_memory_bytes", staticmethod(lambda: 64 * gib))
+    with pytest.raises(MemoryError, match="cannot fit"):
+        model._preflight_request(plan(1344, 768, 345))
+
+    # Unknown physical memory, and an unreadable footprint, never guess.
+    monkeypatch.setattr(RuntimeMemory, "total_physical_memory_bytes", staticmethod(lambda: 0))
+    model._preflight_request(plan(1344, 768, 345))
+    monkeypatch.setattr(RuntimeMemory, "total_physical_memory_bytes", staticmethod(lambda: 64 * gib))
+    resident(0)
+    model._preflight_request(plan(1344, 768, 345))
+
+
+@pytest.mark.fast
+def test_measured_runs_publish_outcomes_and_their_conditions():
+    """A killed run is evidence a host needs; its number is a lower bound and must not be called a peak."""
+    from mflux.task_inference import CAPABILITIES_SCHEMA_VERSION, get_model_capabilities
+
+    assert CAPABILITIES_SCHEMA_VERSION == 16
+    for row in get_model_capabilities(model="minimax-h3-turbo-544p").to_dict()["capabilities"]:
+        runs = row["measured_runs"]
+        assert len(runs) == 3
+        outcomes = [run["outcome"] for run in runs]
+        assert outcomes == ["completed", "completed", "killed"]
+        for run in runs:
+            # Conditions travel with every number, because they move it more than the canvas does.
+            assert run["cache_limit_bytes"] == 8 * 1024**3
+            assert run["machine_total_ram_bytes"] == 128 * 1024**3
+            assert run["quantize"] == 8 and run["steps"] == 8
+            assert "peak_bytes" not in run, "a killed run has no peak, only a highest observed value"
+        killed = runs[-1]
+        assert killed["frames"] == 243 and killed["terminated_at"]
+        # The grid bound and the evidence bound are different questions.
+        assert row["max_frames"] == 345 and row["max_validated_frames"] == 124
+        assert row["peak_bytes_per_packed_row"] == 271_356 and row["peak_bytes_fixed"] == 89_410_000_000

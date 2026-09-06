@@ -23,6 +23,10 @@ AUDIO_LATENTS_PER_SECOND = 40
 AUDIO_CHANNELS = 2
 # The rate the released audio VAE writes; a run reads the real value off the VAE's own config.
 AUDIO_SAMPLE_RATE = 32000
+# The video VAE's spatial compression and the transformer's spatial patch, which together set how
+# many packed rows one latent frame costs.
+VAE_SPATIAL_COMPRESSION = 16
+PATCH_SIZE = 2
 MIN_ASPECT_RATIO = 1 / 4
 MAX_ASPECT_RATIO = 4
 MIN_DURATION_SECONDS = 5.0
@@ -80,6 +84,24 @@ MAX_NUM_FRAMES = 345
 def valid_frame_counts() -> tuple[int, ...]:
     """Every frame count MiniMax-H3 accepts: the `17 * n + 5` grid inside the 5 to 15 second window."""
     return tuple(range(MIN_NUM_FRAMES, MAX_NUM_FRAMES + 1, 17))
+
+
+def packed_sequence_length(width: int, height: int, num_frames: int, text_tokens: int = 200) -> int:
+    """Rows in the packed sequence for a request: text, then stereo audio, then patched video.
+
+    Peak memory on this model is a function of this number rather than of the canvas or the frame
+    count separately: a 243-frame `960x544` clip and a 124-frame `1344x768` clip differ by 0.5% here
+    and were measured at the same peak. Deterministic, so a caller can size a request before running
+    it instead of reverse-engineering the layout.
+    """
+    latent_frames = video_latent_num_frames(align_num_frames(num_frames))
+    video_rows = (
+        latent_frames
+        * (height // (VAE_SPATIAL_COMPRESSION * PATCH_SIZE))
+        * (width // (VAE_SPATIAL_COMPRESSION * PATCH_SIZE))
+    )
+    audio_rows = AUDIO_CHANNELS * round(align_num_frames(num_frames) / FPS * AUDIO_LATENTS_PER_SECOND)
+    return int(text_tokens + audio_rows + video_rows)
 
 
 def align_num_frames(num_frames: int, frames_per_chunk: int = 17, latents_per_chunk: int = 5) -> int:

@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.36.0] - 2026-09-06
+
+Peak memory on MiniMax-H3, measured rather than projected, plus a guard that reports a request too
+large for the machine instead of leaving the OS to kill it. The capabilities payload moves to
+`schema_version` 16.
+
+### Added
+
+- **`measured_runs` on the capability row**, replacing the singular `measured_peak`. Each run carries
+  its `outcome` (`completed` or `killed`), `footprint_bytes` (the highest process footprint observed,
+  which is a peak for a completed run and a lower bound for a killed one), `mlx_peak_bytes`,
+  `terminated_at`, and the conditions that make it reproducible: canvas, frames, steps, quantization,
+  cache limit, whether the conditioner was released, and the machine's total memory. Runs that were
+  killed are published too, because a configuration that did not fit is what a host most needs.
+- **`max_validated_frames` beside `max_frames`.** The first says how far the measurements go, the
+  second is the decode grid's `17n + 5` bound and holds on any machine. Publishing only the second
+  invites projecting a memory budget from a number that was never about memory.
+- **`peak_bytes_fixed` and `peak_bytes_per_packed_row`.** Peak memory follows the packed sequence
+  length, not the canvas and the frame count separately: a 243-frame `960x544` request and a
+  124-frame `1344x768` request differ by 0.5% in packed rows and reached the same MLX peak. These
+  publish the measured line through that axis, as bytes and not as a guarantee that a run fits.
+- **`packed_sequence_length(width, height, frames)`** in the MiniMax-H3 layout module, so a caller
+  can size a request from the layout instead of reverse-engineering it.
+- **A request preflight.** Before a run the runtime estimates the peak from the packed rows, refuses
+  what cannot fit at all, and warns when a request is close enough to the limit that other resident
+  processes decide the outcome. It reports and stops; it never alters the request.
+
+### Fixed
+
+- **Low-RAM mode no longer loses its cache tightening silently.** An explicit `--mlx-cache-limit-gb`
+  overrides it, which is deliberate and which a documented restore profile relies on, but the
+  override is now announced. The cache limit is the largest single term in this model's footprint:
+  the same configuration measured under a raised limit came out 16.8 GB higher, more than three times
+  the difference between the two canvases.
+
 ## [0.35.0] - 2026-09-06
 
 MiniMax-H3 becomes drivable by an embedding host: progress on the Python path, a corrected duration

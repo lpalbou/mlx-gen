@@ -21,6 +21,15 @@ uv run ruff check src tests
 MFLUX_PRESERVE_TEST_OUTPUT=1 uv run pytest -q
 ```
 
+Some behaviour scales with the machine's physical memory: the MLX cache ladder, and the MiniMax-H3
+preflight that sizes a request before running it. A test that hard-codes a byte figure can pass on a
+large development machine and fail on a smaller CI runner, so run the band once at a smaller size
+before opening a pull request:
+
+```sh
+MFLUX_FAKE_TOTAL_RAM_GIB=7 uv run pytest -m "not slow and not high_memory_requirement" -q
+```
+
 For documentation-only changes, check that links and command examples match the current CLI help.
 
 Wan full-model parity checks are opt-in because they require the cached Wan source snapshot and enough local memory:

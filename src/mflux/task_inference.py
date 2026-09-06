@@ -61,7 +61,7 @@ VALID_TASKS = {TASK_AUTO, EDIT, *PUBLIC_TASKS}
 # set changed in the same release: every outpaint route now publishes
 # `adaptive-content-aware-source-blend`, and `latent-locked-transition-band-no-postblend` is no
 # longer emitted.
-CAPABILITIES_SCHEMA_VERSION = 15
+CAPABILITIES_SCHEMA_VERSION = 16
 
 # Options every generate route in this build accepts, so a host can send them without checking the
 # route or the release. Published as a list rather than a per-row boolean: a flag accepted everywhere
@@ -225,27 +225,41 @@ class PromptSection:
 
 @dataclass(frozen=True)
 class MemoryMeasurement:
-    """A peak-memory figure with the run it was measured on.
+    """One measured run, with the conditions that make it reproducible and how it ended.
 
-    A single scalar would be dishonest: the peak on this model scales with the canvas and the frame
-    count, so the conditions travel with the number.
+    `footprint_bytes` is the highest process footprint observed, which is a peak for a run that
+    completed and a lower bound for one the OS killed; `outcome` says which. The conditions travel
+    with the number because they move it: the same configuration measured under a raised cache limit
+    came out 16.8 GB higher, more than three times the difference between the two canvases.
     """
 
-    peak_bytes: int
-    """Peak process footprint, which is the figure the OS kills a job on."""
-
+    footprint_bytes: int
+    outcome: str
     quantize: int | None
     width: int
     height: int
     frames: int
+    steps: int | None = None
+    mlx_peak_bytes: int | None = None
+    cache_limit_bytes: int | None = None
+    release_text_encoder: bool = False
+    machine_total_ram_bytes: int | None = None
+    terminated_at: str | None = None
 
     def to_dict(self) -> dict:
         return {
-            "peak_bytes": self.peak_bytes,
+            "footprint_bytes": self.footprint_bytes,
+            "outcome": self.outcome,
             "quantize": self.quantize,
             "width": self.width,
             "height": self.height,
             "frames": self.frames,
+            "steps": self.steps,
+            "mlx_peak_bytes": self.mlx_peak_bytes,
+            "cache_limit_bytes": self.cache_limit_bytes,
+            "release_text_encoder": self.release_text_encoder,
+            "machine_total_ram_bytes": self.machine_total_ram_bytes,
+            "terminated_at": self.terminated_at,
         }
 
 
@@ -367,7 +381,12 @@ class GenerationCapability:
     unquantized_weights_bytes: int | None = None
     recommended_quantize: int | None = None
     validated_quantization_bits: tuple[int, ...] = ()
-    measured_peak: MemoryMeasurement | None = None
+    measured_runs: tuple[MemoryMeasurement, ...] = ()
+    # Largest frame count with a completed measurement. `max_frames` is the decode grid's bound and
+    # is machine-independent; this one says how far the evidence goes, which is a different question.
+    max_validated_frames: int | None = None
+    peak_bytes_fixed: int | None = None
+    peak_bytes_per_packed_row: int | None = None
 
     def allows_image_count(self, image_count: int) -> bool:
         if image_count < self.min_images:
@@ -421,7 +440,10 @@ class GenerationCapability:
             "unquantized_weights_bytes": self.unquantized_weights_bytes,
             "recommended_quantize": self.recommended_quantize,
             "validated_quantization_bits": list(self.validated_quantization_bits),
-            "measured_peak": self.measured_peak.to_dict() if self.measured_peak is not None else None,
+            "measured_runs": [run.to_dict() for run in self.measured_runs],
+            "max_validated_frames": self.max_validated_frames,
+            "peak_bytes_fixed": self.peak_bytes_fixed,
+            "peak_bytes_per_packed_row": self.peak_bytes_per_packed_row,
             "supports_image_strength": self.supports_image_strength,
             "supports_video_strength": self.supports_video_strength,
             "supports_video_mask": self.supports_video_mask,
@@ -2024,14 +2046,53 @@ MINIMAX_H3_PROMPT_SECTIONS = (
 )
 
 
-# Peak PROCESS footprint measured per entry on an Apple M5 Max at q8, with the run each figure came
-# from. The process footprint rather than the MLX allocator's own peak, because the footprint is what
-# the OS measures when it decides to kill a job (88.2 GiB and 92.9 GiB respectively; the MLX peaks
-# underneath them are 80.5 and 84.8 GiB). Keyed by the canvas each was measured at.
-MINIMAX_H3_MEASURED_PEAKS = {
-    (960, 544): MemoryMeasurement(peak_bytes=94_700_000_000, quantize=8, width=960, height=544, frames=124),
-    (1344, 768): MemoryMeasurement(peak_bytes=99_700_000_000, quantize=8, width=1344, height=768, frames=124),
-}
+# Measured runs on an Apple M5 Max with 128 GiB, at q8 with the default 8 GiB cache limit and the
+# conditioner resident. Peak follows the packed row count rather than the canvas or the frame count
+# separately: the 243-frame `960x544` run and the 124-frame `1344x768` run differ by 0.5% in rows and
+# reached the same 84.8 GiB MLX peak. The killed run is published because it is the most informative
+# of the three: it was killed at 72% of the machine's memory, with another application holding
+# 7.5 GiB, which is what decided it.
+_M5_MAX_RAM_BYTES = 128 * 1024**3
+_DEFAULT_CACHE_LIMIT_BYTES = 8 * 1024**3
+MINIMAX_H3_MEASURED_RUNS: tuple[MemoryMeasurement, ...] = (
+    MemoryMeasurement(
+        footprint_bytes=94_700_000_000,
+        outcome="completed",
+        quantize=8,
+        width=960,
+        height=544,
+        frames=124,
+        steps=8,
+        mlx_peak_bytes=86_400_000_000,
+        cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
+        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
+    ),
+    MemoryMeasurement(
+        footprint_bytes=99_700_000_000,
+        outcome="completed",
+        quantize=8,
+        width=1344,
+        height=768,
+        frames=124,
+        steps=8,
+        mlx_peak_bytes=91_000_000_000,
+        cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
+        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
+    ),
+    MemoryMeasurement(
+        footprint_bytes=99_500_000_000,
+        outcome="killed",
+        quantize=8,
+        width=960,
+        height=544,
+        frames=243,
+        steps=8,
+        mlx_peak_bytes=91_000_000_000,
+        cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
+        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
+        terminated_at="denoise step 4 of 8, before decode",
+    ),
+)
 
 
 def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
@@ -2043,13 +2104,6 @@ def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
         MIN_NUM_FRAMES,
     )
 
-    # The base entry defaults to 1344x768 but was measured at 960x544, so it publishes the run it
-    # actually has rather than one inferred for its default canvas.
-    measured_peak = (
-        MINIMAX_H3_MEASURED_PEAKS.get((overrides.get("default_width"), overrides.get("default_height")))
-        if overrides.get("turbo_lora")
-        else MINIMAX_H3_MEASURED_PEAKS[(960, 544)]
-    )
     return {
         "generates_audio": True,
         "supports_audio_shift": True,
@@ -2076,7 +2130,11 @@ def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
         "unquantized_weights_bytes": 134_200_000_000,
         "recommended_quantize": 8,
         "validated_quantization_bits": (8,),
-        "measured_peak": measured_peak,
+        "measured_runs": MINIMAX_H3_MEASURED_RUNS,
+        # Every completed measurement is at 124 frames; `max_frames` is the decode grid, not evidence.
+        "max_validated_frames": 124,
+        "peak_bytes_fixed": 89_410_000_000,
+        "peak_bytes_per_packed_row": 271_356,
     }
 
 

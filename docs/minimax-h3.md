@@ -236,7 +236,8 @@ controls for this model without hardcoding its name. Both rows, `minimax-h3.text
 | `supports_flow_shift`, `supports_audio_shift`, `supports_text_encoder_release` | `true` |
 | `flow_shift_option`, `flow_shift_parameter` | `"--video-shift"`, `"video_shift"` — the same control Wan spells `--flow-shift`, so read the spelling off the row rather than keeping a per-family table |
 | `weight_precision`, `unquantized_weights_bytes`, `recommended_quantize`, `validated_quantization_bits` | `"bf16"`, `134200000000`, `8`, `[8]` |
-| `measured_peak` | The peak process footprint with the run it came from: `peak_bytes`, `quantize`, `width`, `height`, `frames` |
+| `measured_runs` | Three measured runs with their outcomes and conditions, including one the OS killed |
+| `max_validated_frames`, `peak_bytes_fixed`, `peak_bytes_per_packed_row` | `124`, and the measured line through those runs |
 | `supports_guidance`, `supports_negative_prompt` | `false`, `false` — published separately because they are independent properties |
 
 Each catalog entry publishes its own label and defaults, so `minimax-h3-turbo` (`1344x768`) and
@@ -247,6 +248,25 @@ capability `schema_version` 13 and are additive, so an application can gate on
 Use `prompt_sections[].label` to detect a section a prompt already carries: pairing such a prompt
 with the option that fills the same section is refused, since it would send the model two of that
 section.
+
+### How much memory a length needs
+
+Peak memory follows the packed sequence length, which is a deterministic function of canvas and frame
+count. It is not two separate axes: a 243-frame `960x544` request and a 124-frame `1344x768` request
+differ by 0.5% in packed rows and were measured at the same MLX peak. Expected footprint is roughly what is already
+resident, plus the MLX cache as it fills, plus `peak_bytes_per_packed_row x rows`.
+
+That is an estimate of bytes, not a promise that a run fits. The 243-frame request above was killed
+by the OS at a footprint of at least 92.7 GiB, four denoise steps in, on a 128 GiB machine at
+recommended settings, because another application held 7.5 GiB. The same request on an otherwise idle
+machine has room. `max_frames` is the decode grid, which holds anywhere; `max_validated_frames` says
+how far the measurements go. Before a long run the runtime estimates the peak, refuses what cannot fit
+at all, and warns when a request is close enough that other resident processes decide the outcome.
+
+The largest lever is the cache limit, not the canvas: the same configuration measured under a raised
+`--mlx-cache-limit-gb` came out 16.8 GB higher, over three times the difference between `960x544` and
+`1344x768`. Low-RAM mode tightens that cache, and an explicit `--mlx-cache-limit-gb` overrides the
+tightening; the runtime says so on stderr when it happens.
 
 Sizes are bytes rather than GB so that no consumer has to guess which unit is meant; the weight
 figure is 134.2 GB, which is 125 GiB, and on a 128 GiB machine that difference decides whether a run

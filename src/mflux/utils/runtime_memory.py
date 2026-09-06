@@ -110,6 +110,17 @@ class RuntimeMemory:
                 RuntimeMemory._cache_limit_state = "explicit"
             return None
         if explicit:
+            if low_ram and cache_limit_bytes > RuntimeMemory.resolve_cache_limit_bytes(None):
+                # Low-RAM mode asked for a tighter cache and an explicit limit overrides it. That is
+                # the documented precedence and some profiles want it, but it is the difference
+                # between a run that fits and one that does not, so it does not happen quietly.
+                print(
+                    f"Low-RAM mode requested, but the explicit MLX cache limit of "
+                    f"{cache_limit_bytes / 1024**3:.1f} GiB overrides its tightening and exceeds the "
+                    f"machine default. The cache is the largest single term in this process's "
+                    f"footprint; lower it if the run is close to the limit.",
+                    file=sys.stderr,
+                )
             mx.set_cache_limit(cache_limit_bytes)
             mx.clear_cache()
             mx.reset_peak_memory()
