@@ -519,6 +519,9 @@ def test_request_preflight_warns_near_the_limit_and_refuses_the_impossible(capsy
     # the released weights. At the released weights' measured 75.7 GiB baseline it reproduces both
     # published measurements and the killed run's observed footprint, all within 0.5 GiB.
     loaded = int(75.7 * gib)
+    # The cache term is RAM-derived, so pin it to the 8 GiB the runs were measured under. Without
+    # this the expectations below only hold on a machine with the same amount of memory.
+    monkeypatch.setattr(RuntimeMemory, "resolve_cache_limit_bytes", staticmethod(lambda *a, **k: 8 * gib))
 
     def estimate(w, h, f):
         return MiniMaxH3.estimate_peak_bytes(w, h, f, resident_bytes=loaded) / gib
@@ -530,6 +533,10 @@ def test_request_preflight_warns_near_the_limit_and_refuses_the_impossible(capsy
     # A tiny model resident in a few hundred MB must not be sized as if it were the released one:
     # that refused every tiny-config test on a small machine.
     assert MiniMaxH3.estimate_peak_bytes(96, 64, 124, resident_bytes=200 * 1024**2) < 12 * gib
+    # The cache term follows the machine, which is why the pin above is needed at all.
+    monkeypatch.setattr(RuntimeMemory, "resolve_cache_limit_bytes", staticmethod(lambda *a, **k: 1 * gib))
+    assert estimate(960, 544, 124) < 88.2 - 6.0
+    monkeypatch.setattr(RuntimeMemory, "resolve_cache_limit_bytes", staticmethod(lambda *a, **k: 8 * gib))
 
     def resident(byte_count):
         monkeypatch.setattr(
