@@ -241,7 +241,7 @@ rather than preserved bit-for-bit. Every run records how far the source region m
 
 Outpaint-capable capability rows publish the conditioning-canvas contract and the validated
 envelope, so an application can read both from `mlxgen capabilities` JSON before starting a job. The
-payload carries `schema_version` 12.
+payload carries `schema_version` 15.
 
 | Field | `flux2.outpaint` on `flux.2-klein-base-4b-8bit` | `flux2.outpaint` on `flux.2-klein-4b-8bit` | `qwen.outpaint` on `qwen-image-edit-2511-8bit` |
 | --- | --- | --- | --- |

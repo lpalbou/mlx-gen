@@ -37,7 +37,7 @@ MLX-Gen loads the 50 layers the model conditions on), a 2.4B-parameter video VAE
 | Resource | Requirement |
 | --- | --- |
 | Disk | About 140 GB for the model snapshot (`transformer/`, `text_encoder/`, `vae/`, `audio_vae/`, tokenizer and configs) plus 1.4 GB per Turbo adapter. |
-| Memory | Run with `--quantize 8`. The measured `960x544`, 124-frame Turbo run peaks at 80 GB of MLX memory and an 88 GB process footprint on an Apple M5 Max (93 GB at `1344x768`), so plan on a 128 GB Mac. The MLX free-buffer cache is capped at the process default of up to 8 GiB; `--mlx-cache-limit-gb` changes it. |
+| Memory | `--quantize 8` is required on a 128 GB Mac, not an optional saving: unquantized the weights are 125 GiB resident, which is 97% of the machine before a single activation. The runtime refuses such a load with an explanatory error rather than letting the OS kill it. At q8 the measured `960x544`, 124-frame Turbo run peaks at 80.5 GiB of MLX memory inside an 88.2 GiB process footprint on an Apple M5 Max, and `1344x768` at 84.8 GiB inside 92.9 GiB. The MLX free-buffer cache is capped at the process default of up to 8 GiB; `--mlx-cache-limit-gb` changes it. |
 | Download | `mlxgen download --model minimax-h3-turbo-544p` fetches the snapshot subset MLX-Gen needs and the matching Turbo adapter. Generation never downloads. |
 
 `--quantize 8` quantizes the transformer and conditioner at load time, one shard at a time, so
@@ -179,8 +179,11 @@ prompts.
 
 ## Sizing And Duration
 
-- Frames follow the video VAE's `17n + 5` rule; `--frames` rounds up to the next valid count.
-  `124` frames is 5.17 s, `141` is 5.88 s, `362` is the 15-second maximum.
+- Frames follow the video VAE's `17n + 5` rule, and `--frames` rounds up to the next valid count,
+  warning when it does. There are fourteen accepted counts, `124` (5.17 s) through `345` (14.375 s):
+  `124, 141, 158, 175, 192, 209, 226, 243, 260, 277, 294, 311, 328, 345`. The duration ceiling
+  applies to the rounded count, so `346` and above are rejected rather than rounded to `362`. The
+  metadata records both `frames` and the `requested_frames` you asked for.
 - Width and height must be multiples of 32. The default 16:9 canvas is `1344x768`; the 544p
   adapter defaults to `960x544`. Portrait and square canvases follow the same 768-pixel short edge
   (`768x1344`, `768x768`) when you omit the size.
@@ -212,12 +215,49 @@ For scale, the same fox description through Wan2.2 TI2V-5B (q8, `832x480`, 121 f
   still written and the track is saved next to it as `<output>.wav`; the metadata records why.
 - Metadata records `steps` (transformer evaluations, as passed to `--steps`), `video_shift`, `audio_shift`,
   `num_inference_steps` (the scheduler grid, one more than `steps`), `text_tokens`,
-  `duration_seconds`, and the `audio_*` fields (`audio_present`, `audio_source: "generated"`,
-  `audio_channels`, `audio_sample_rate`, `audio_duration_seconds`, `audio_muxed`, `audio_codec`,
-  `audio_mux_mode`).
-- `mlxgen capabilities --model minimax-h3-turbo` lists the `minimax-h3.text-video` and
-  `minimax-h3.first-frame` rows with `supports_frames`, `supports_lora`, `dimension_multiple: 32`, and
-  `supports_negative_prompt: false`.
+  `duration_seconds`, `frames` and `requested_frames`, and the `audio_*` fields (`audio_present`,
+  `audio_source: "generated"`, `audio_channels`, `audio_sample_rate`, `audio_duration_seconds`,
+  `audio_muxed`, `audio_codec`, `audio_mux_mode`).
+
+## Driving MiniMax-H3 From An Application
+
+`mlxgen capabilities --model minimax-h3-turbo-544p` returns everything an application needs to build
+controls for this model without hardcoding its name. Both rows, `minimax-h3.text-video` and
+`minimax-h3.first-frame`, publish:
+
+| Field | Value on the 544p entry |
+| --- | --- |
+| `generates_audio`, `audio_channels`, `audio_sample_rate` | `true`, `2`, `32000` — this route composes a soundtrack with the picture, which is different from a restoration row's `supports_audio_passthrough` |
+| `prompt_sections` | One descriptor per structured section, carrying its `key`, the engine's literal `label`, the `option` and `parameter` that fill it, its `role` and whether it is `required` |
+| `min_frames`, `max_frames`, `frame_multiple`, `frame_remainder`, `frame_rounding` | `124`, `345`, `17`, `5`, `"up"` |
+| `output_fps` | `24.0` — `supports_fps: false` only says you may not choose a rate |
+| `default_steps`, `default_width`, `default_height`, `default_frames` | `8`, `960`, `544`, `124` |
+| `default_flow_shift`, `default_audio_shift` | `12.0`, `3.0` |
+| `supports_flow_shift`, `supports_audio_shift`, `supports_text_encoder_release` | `true` |
+| `flow_shift_option`, `flow_shift_parameter` | `"--video-shift"`, `"video_shift"` — the same control Wan spells `--flow-shift`, so read the spelling off the row rather than keeping a per-family table |
+| `weight_precision`, `unquantized_weights_bytes`, `recommended_quantize`, `validated_quantization_bits` | `"bf16"`, `134200000000`, `8`, `[8]` |
+| `measured_peak` | The peak process footprint with the run it came from: `peak_bytes`, `quantize`, `width`, `height`, `frames` |
+| `supports_guidance`, `supports_negative_prompt` | `false`, `false` — published separately because they are independent properties |
+
+Each catalog entry publishes its own label and defaults, so `minimax-h3-turbo` (`1344x768`) and
+`minimax-h3-turbo-544p` (`960x544`) are distinguishable in a model list. The fields arrived in
+capability `schema_version` 13 and are additive, so an application can gate on
+`schema_version >= 13`.
+
+Use `prompt_sections[].label` to detect a section a prompt already carries: pairing such a prompt
+with the option that fills the same section is refused, since it would send the model two of that
+section.
+
+Sizes are bytes rather than GB so that no consumer has to guess which unit is meant; the weight
+figure is 134.2 GB, which is 125 GiB, and on a 128 GiB machine that difference decides whether a run
+starts. Compare `unquantized_weights_bytes` against your own memory to decide whether you can skip
+quantization: a larger machine runs this model unquantized. `measured_peak` carries the conditions it
+was measured under because the peak scales with the canvas and the frame count; a longer clip on the
+same entry costs more than the published figure.
+
+`supports_text_encoder_release` lowers the peak during denoising, not during loading. The conditioner
+loads first and stays resident while the transformer loads, so it cannot reduce the load-time peak,
+which is the larger of the two on this model.
 
 ## Python
 
@@ -237,9 +277,12 @@ waveform, rate = video.audio.waveform, video.audio.sample_rate  # (2, samples) f
 ```
 
 `generate_video` also accepts `image_path` (first-frame image-to-video), `width`, `height`,
-`num_frames`, `num_inference_steps`, `video_shift`, `audio_shift`, `generate_audio`, and
-`progress_callback` (phases `start`, `denoising`, `decode`, `complete`). The unified runtime resolves `--model minimax-h3*` to this
-class through `load_generation_model(...)`. A prepared package loads with
+`num_frames`, `num_inference_steps`, `video_shift`, `audio_shift`, `generate_audio`,
+`release_text_encoder`, and `progress_callback`. Progress phases are `start`, `denoise` once per
+transformer evaluation, `decode`, and `generated`; the CLI adds `save` and a final `complete` once
+the file is written and the soundtrack muxed. Every event also reaches the model's registry, so
+`model.callbacks.subscribe_progress(...)` sees the whole run. The unified runtime resolves
+`--model minimax-h3*` to this class through `load_generation_model(...)`. A prepared package loads with
 `MiniMaxH3(model_config=ModelConfig.from_name("models/minimax-h3-8bit", base_model="minimax-h3-turbo-544p"), model_path="models/minimax-h3-8bit")`
 and no `quantize` argument.
 

@@ -9,7 +9,7 @@ from tqdm import tqdm
 from mflux.callbacks import ProgressEvent
 from mflux.cli.defaults import defaults as ui_defaults
 from mflux.cli.output_paths import normalize_output_template, resolve_output_path
-from mflux.cli.parser.parsers import cache_limit_gb_value
+from mflux.cli.parser.parsers import boolean_flag_value, cache_limit_gb_value
 from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.cli.seed_values import resolve_seed_values
 from mflux.models.common.config import ModelConfig
@@ -30,7 +30,7 @@ def main() -> None:
         parser.error(str(exc))
     if len(args.seed) > 1:
         args.output = normalize_output_template(args.output, include_seed=True)
-    RuntimeMemory.apply_mlx_cache_limit(args.mlx_cache_limit_gb)
+    RuntimeMemory.apply_mlx_cache_limit(args.mlx_cache_limit_gb, low_ram=args.low_ram)
 
     try:
         model_config, model_path = _resolve_model(args.model, args.base_model)
@@ -69,6 +69,8 @@ def main() -> None:
                     audio_shift=args.audio_shift,
                     image_path=args.image_path,
                     generate_audio=not args.no_audio,
+                    # Low-RAM mode uses this model's own lever; the flag stays available on its own.
+                    release_text_encoder=args.release_text_encoder or args.low_ram,
                     progress_callback=events.handle_progress
                     if events.enabled
                     else (progress if args.progress else None),
@@ -162,6 +164,18 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--video-shift", type=float, default=None, help="Video flow shift (default 12; Turbo 768p: 6).")
     parser.add_argument("--audio-shift", type=float, default=None, help="Audio flow shift (default 3).")
     parser.add_argument("--no-audio", action="store_true", help="Skip the audio decode and write a silent clip.")
+    parser.add_argument(
+        "--release-text-encoder",
+        action="store_true",
+        help="Drop the Qwen3-VL conditioner once the prompt is encoded, lowering the peak by its resident size. "
+        "Cached prompt embeddings stay usable; a later run with a new prompt reloads it.",
+    )
+    parser.add_argument(
+        "--low-ram",
+        action="store_true",
+        help="Low-RAM mode: tighten the MLX cache and release the conditioner after encoding. "
+        "Every other generate route accepts this option, so a host can offer one toggle for all of them.",
+    )
     parser.add_argument("--seed", "-s", type=int, default=None, nargs="+", help="One or more random seeds.")
     parser.add_argument("--auto-seeds", type=int, default=-1, help="Generate N random seeds between 0 and 10,000,000.")
     parser.add_argument("--quantize", "-q", type=int, choices=ui_defaults.QUANTIZE_CHOICES, default=None)
@@ -176,7 +190,23 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--metadata", action="store_true", help="Export video metadata as JSON.")
     parser.add_argument("--output", type=str, default="video.mp4", help='Output path. Default is "video.mp4".')
     parser.add_argument("--json-events", action="store_true", help="Emit machine-readable runtime events on stdout.")
+    parser.add_argument(
+        "--progress",
+        type=boolean_flag_value,
+        nargs="?",
+        const=True,
+        default=True,
+        help="Show denoise-step progress with the requested frame count as context. Default is true.",
+    )
     parser.add_argument("--no-progress", action="store_false", dest="progress")
+    parser.add_argument(
+        "--replace",
+        type=boolean_flag_value,
+        nargs="?",
+        const=True,
+        default=True,
+        help="Replace the target output when it already exists. Default is true.",
+    )
     parser.add_argument("--no-replace", action="store_false", dest="replace")
     parser.add_argument("--no-validate-health", action="store_true", help="Skip the post-save decode check.")
     parser.add_argument("--debug", action="store_true", help="Verbose LoRA loading diagnostics.")
@@ -204,7 +234,7 @@ class _CliProgress:
             self._bar.update(delta)
             self._last_step = event.step
         self._bar.set_postfix_str(f"{event.phase}; {event.total_frames} frames")
-        if event.phase in {"complete", "failed"}:
+        if event.phase in {"generated", "complete", "failed"}:
             self.close()
 
     def close(self) -> None:

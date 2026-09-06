@@ -184,6 +184,11 @@ process, ~11 GB resident RAM for skipping the per-prompt reload — built for ho
 scene generations) and `prompt_embed_disk_cache=False` (opt out of the exact on-disk prompt-embed
 cache). Passing a kwarg the resolved model class does not accept raises `TypeError` at load time.
 
+Generation keywords are checked the same way. `generate_output(...)` and `generate_outputs(...)`
+refuse a keyword the route's generate call does not take, before the run starts, naming the
+parameter, the route and what that route accepts, so a keyword belonging to another family fails in
+milliseconds rather than after the weights are resident.
+
 ```python
 loaded = load_generation_model(
     model="wan2.2-i2v-a14b",

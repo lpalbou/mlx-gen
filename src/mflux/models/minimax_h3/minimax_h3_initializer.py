@@ -22,6 +22,7 @@ from mflux.models.minimax_h3.weights.h3_lora_mapping import MiniMaxH3LoRAMapping
 from mflux.models.minimax_h3.weights.h3_video_vae_weights import video_vae_kwargs
 from mflux.models.minimax_h3.weights.h3_weight_definition import MiniMaxH3WeightDefinition
 from mflux.models.minimax_h3.weights.h3_weight_mapping import TEXT_ENCODER_NUM_LAYERS, MiniMaxH3WeightMapping
+from mflux.utils.runtime_memory import RuntimeMemory
 
 # PEFT adapters carry `lora_alpha` in the safetensors metadata, not as tensors; the lightx2v Turbo
 # adapters are trained with alpha 8 at rank 128 (an effective 1/16 scale on `B @ A`).
@@ -56,9 +57,64 @@ class MiniMaxH3Initializer:
             definitions=weight_definition.get_tokenizers(), model_path=str(root_path)
         )
 
+        MiniMaxH3Initializer._preflight_memory(root_path, weight_definition, quantize)
         MiniMaxH3Initializer._init_models(model, root_path)
         model.bits = MiniMaxH3Initializer._load_weights(model, root_path, quantize, weight_definition)
         MiniMaxH3Initializer._apply_lora(model, lora_paths=lora_paths, lora_scales=lora_scales)
+
+    # Above this share of physical memory the weights alone leave no room for the rest of a run. The
+    # measured q8 960x544 clip peaks at 88.2 GiB over ~70 GiB of weights, so activations, the MLX
+    # cache and the OS want roughly 18 GiB, which is 14% of a 128 GiB machine.
+    WEIGHT_BUDGET_SHARE = 0.85
+
+    @staticmethod
+    def _preflight_memory(root_path: Path, weight_definition, quantize: int | None) -> None:
+        """Refuse a load whose weights alone cannot leave room for the run.
+
+        MiniMax-H3 is the one catalog model whose released weights do not fit a 128 GiB machine
+        unquantized, and the failure without this is the OS killing the process partway through the
+        load with nothing said. Never quantizes on the caller's behalf: ADR 0002 forbids substituting
+        a quantization policy that was not asked for, so this reports and stops.
+        """
+        physical_bytes = RuntimeMemory.total_physical_memory_bytes()
+        if physical_bytes <= 0:
+            # Unknown physical memory: a preflight that guesses would refuse runs that fit.
+            return
+        weight_bytes = MiniMaxH3Initializer._estimate_resident_weight_bytes(root_path, weight_definition, quantize)
+        if weight_bytes <= 0 or weight_bytes <= physical_bytes * MiniMaxH3Initializer.WEIGHT_BUDGET_SHARE:
+            return
+        gib = 1024**3
+        remedy = (
+            "Pass --quantize 8 (the validated setting for this model), or load a prepared q8 package."
+            if quantize is None
+            else "Use a machine with more memory, or a prepared q8 package."
+        )
+        raise MemoryError(
+            f"MiniMax-H3 needs about {weight_bytes / gib:.0f} GiB of resident weights"
+            f"{'' if quantize is None else f' at q{quantize}'}, and this machine has "
+            f"{physical_bytes / gib:.0f} GiB. The weights alone would leave no room for the run. {remedy}"
+        )
+
+    @staticmethod
+    def _estimate_resident_weight_bytes(root_path: Path, weight_definition, quantize: int | None) -> int:
+        """Resident bytes for the shards this model actually loads, at the requested quantization."""
+        total = 0
+        for component in weight_definition.get_components():
+            component_root = root_path / component.hf_subdir
+            if not component_root.exists():
+                return 0
+            # The same shard selection the load performs: only the conditioner layers below 50 are
+            # read, so counting the whole of Qwen3-VL here would refuse loads that actually fit.
+            names = component.weight_files
+            if component.name == "text_encoder":
+                names = MiniMaxH3Initializer._text_encoder_shards(component_root) or names
+            paths = [component_root / name for name in names] if names else list(component_root.glob("*.safetensors"))
+            component_bytes = sum(path.stat().st_size for path in paths if path.is_file())
+            if quantize is not None and not component.skip_quantization:
+                # bf16 source to `quantize` bits, plus the scales and biases each group carries.
+                component_bytes = int(component_bytes * (quantize / 16) * 1.06)
+            total += component_bytes
+        return total
 
     @staticmethod
     def _init_models(model, root_path: Path) -> None:

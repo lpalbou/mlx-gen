@@ -66,7 +66,7 @@ mlxgen capabilities --model flux2-klein-4b
 ```
 
 The JSON includes each route-supported public task, internal mode, image count, route handler, and
-option support. The payload carries `schema_version` 12. It reports `min_reference_images` and
+option support. The payload carries `schema_version` 15. It reports `min_reference_images` and
 `max_reference_images` so applications can keep semantic references separate from primary `--image`
 inputs, and the outpaint conditioning-canvas contract described in
 [Outpaint Conditioning Canvas](#outpaint-conditioning-canvas). Route support
@@ -541,6 +541,12 @@ rather than the padded region, and a blank seam does not hand the model a stretc
 continue.
 ```
 
+The payload also carries `universal_options`, the options every generate route in this build accepts
+(`--low-ram` today). Accepted means the route parses it; a few combinations are still refused at
+runtime, such as low-RAM mode together with several seeds and a prompt file. Read it instead of gating on `schema_version`: it describes the build in front of
+you rather than the release it came from. Options that only some routes accept are per-route and are
+not published yet; send those by route.
+
 Applications can read the same contract as JSON without running a job. Capability rows carry:
 
 | Field | Meaning |
@@ -553,6 +559,15 @@ Applications can read the same contract as JSON without running a job. Capabilit
 | `outpaint_preservation` | How the route keeps the source pixels. Every outpaint route publishes `adaptive-content-aware-source-blend`: the source region is held in latent space during denoising, then the original crop is pasted back while the generated source window still matches it. The same string is recorded in the generated artifact's metadata. |
 | `outpaint_validated_padding`, `outpaint_validated_fill_mode`, `outpaint_validated_max_canvas_pixels` | The release-validation envelope: the padding, fill mode, and canvas size the published proof runs used. Also published per route, so a row states its own evidence. Outside the envelope, outpaint is supported but unvalidated. |
 | `outpaint_pass_modes`, `outpaint_default_passes` | The `--outpaint-passes` values the route accepts (`["auto", "1", "2"]` on every outpaint route) and the one that runs when the option is omitted (`auto`). |
+| `supports_flow_shift`, `default_flow_shift` | Whether the route takes a flow shift on its sampling schedule, and the entry's default. One mechanism, two CLI spellings, so the field is named for the concept and both Wan and MiniMax-H3 publish `true`. |
+| `flow_shift_option`, `flow_shift_parameter` | How this route spells that control: `--flow-shift` / `flow_shift` on Wan, `--video-shift` / `video_shift` on MiniMax-H3. Both are `null` exactly when `supports_flow_shift` is `false`, so a host emits the right flag or keyword without a per-family table. |
+| `supports_audio_shift`, `default_audio_shift` | A second, independent shift for a route that schedules audio alongside video. Meaningful only where `generates_audio` is `true`. |
+| `supports_guidance` | Whether a guidance scale steers the route. Independent of `supports_negative_prompt`: a distilled FLUX.2 Klein route has guidance but no negative prompt, and Z-Image Turbo has a negative prompt but no guidance, so neither field substitutes for the other. |
+| `weight_precision` | The precision the released weights are stored at, before any quantization. |
+| `unquantized_weights_bytes` | Resident size of the weights this route loads, unquantized, in bytes. Compare it against the machine's own memory to decide whether quantization can be skipped. |
+| `recommended_quantize` | The quantization the route is validated at, and what a control should default to. `null` where a route has no recommendation. |
+| `validated_quantization_bits` | The bit widths with recorded evidence for this route, which is narrower than what `--quantize` accepts. |
+| `measured_peak` | A measured peak process footprint with the run it came from: `peak_bytes`, `quantize`, `width`, `height`, `frames`. The conditions travel with the number because the peak scales with canvas and frame count. `null` where no measurement is published. |
 | `outpaint_auto_split_corner_ratio` | With `outpaint_default_passes` `auto`: the depth past which a request that pads both axes runs as two single-axis passes, measured as the shallower of the deepest vertical padding over the source height and the deepest horizontal padding over the source width. `0.3` on the FLUX.2 Klein and Qwen edit routes; `null` on a route that never splits. Lets a host predict a second pass before starting the job. |
 
 For example, `AbstractFramework/flux.2-klein-base-4b-8bit` reports `flux2.outpaint` with
@@ -859,7 +874,7 @@ mlxgen generate \
 | `--soundscape` | The `overall_soundscape` section: diegetic sound design. |
 | `--music` | The `non_diegetic_music` section: the score, or a statement that there is none. |
 | `--width`, `--height` | Multiples of 32, aspect ratio within `1:4` to `4:1`. Defaults: `1344x768` (`minimax-h3`, `minimax-h3-turbo`), `960x544` (`minimax-h3-turbo-544p`). |
-| `--frames` | Rounded up to `17n + 5`; `124` to `362` frames (5 to 15 s at 24 fps). Default `124`. |
+| `--frames` | Rounded up to `17n + 5`, warning when it rounds; `124` to `345` frames (5.17 to 14.375 s at 24 fps), fourteen accepted counts. Default `124`. The row publishes them as `min_frames`, `max_frames`, `frame_multiple`, `frame_remainder` and `frame_rounding`. |
 | `--steps` | Transformer evaluations. Defaults: `50` (base), `8` (Turbo entries). |
 | `--video-shift`, `--audio-shift` | Rectified-flow schedule shifts. Defaults: `12` / `3` (base and 544p adapter), `6` / `3` (768p adapter). |
 | `--no-audio` | Skip the audio decode and write a silent clip. |
@@ -868,11 +883,21 @@ mlxgen generate \
 | `--mlx-cache-limit-gb` | Caps the MLX free-buffer cache (default: the process ladder, up to 8 GiB; `-1` for unlimited). |
 | `--lora-paths`, `--lora-scales` | Replace the automatic Turbo adapter with your own PEFT adapter(s) for the diffusers transformer module names. |
 | `--image-path` | One keyframe the clip starts from (`image-to-video`). The canvas follows its aspect ratio at the entry's short edge (768, or 544 for the 544p entry) unless `--width`/`--height` are given; the keyframe is stretched onto the canvas and conditions both the latent rows and the text sequence. |
+| `--release-text-encoder` | Drop the Qwen3-VL conditioner once the prompt is encoded, lowering the peak by its resident size. Cached prompt embeddings stay usable; a run with a new prompt reloads it. |
+| `--low-ram` | Low-RAM mode, as on every other generate route: tightens the MLX cache and releases the conditioner after encoding. |
+| `--video-shift`, `--audio-shift` | This route's two flow shifts. Published as `supports_flow_shift` / `default_flow_shift` and `supports_audio_shift` / `default_audio_shift`; Wan spells the same video-side control `--flow-shift`. |
+| `--progress`, `--no-progress`, `--replace`, `--no-replace` | As on every other generate route. |
 | `--negative-prompt` | Not supported: the model is guidance-distilled. |
+
+A prompt that already opens a line with a section label is passed through verbatim, so pairing it
+with the option that fills the same section is refused rather than sending the model two of that
+section. Use one or the other.
 
 Saved metadata records `steps` (transformer evaluations), `video_shift`, `audio_shift`,
 `num_inference_steps` (the scheduler grid, one more than `steps`), `text_tokens`,
-`duration_seconds`, for image-to-video the source image path and size, and the generated-audio fields `audio_present`, `audio_source`,
+`duration_seconds`, `frames` and the `requested_frames` you asked for (they differ when `--frames`
+was rounded up to the grid), for image-to-video the source image path and size, and the
+generated-audio fields `audio_present`, `audio_source`,
 `audio_channels`, `audio_sample_rate`, `audio_duration_seconds`, `audio_muxed`, `audio_codec`,
 `audio_mux_mode`. When the track cannot be muxed it is written as `<output>.wav` and
 `audio_sidecar_path` names it.
@@ -904,9 +929,9 @@ and the source duration plus requested fps may resolve fewer `4n+1` frames. Use
 | `--guidance-2` | Optional low-noise guidance scale for Wan A14B `transformer_2`. If both guidance flags are omitted, model-specific two-stage defaults are used. If `--guidance` is set and `--guidance-2` is omitted, the low-noise stage follows `--guidance`. It is rejected for single-transformer Wan models. |
 | `--flow-shift` | Flow-matching scheduler shift. Defaults to the selected Wan model config. TI2V-5B and Bernini default to `5.0`; A14B defaults to `3.0`. For new 480p-class TI2V-5B checks such as `832x480`, pass `--flow-shift 3`. Python callers use `flow_shift=...`. |
 | `--last-image` | Wan A14B image-to-video only (experimental on Wan 2.2): a second anchor image the clip should END near, alongside the `--image-path` first frame (diffusers `last_image` first+last bracket conditioning). The last image maps through the same resolved canvas and `--resize-mode` as the first frame — match their aspect ratios. Requires `--image-path`; rejected on TI2V-5B (`expand_timesteps`), Wan VACE, and text/video-to-video. Recorded in metadata (`last_image_path`) and replayed by `--config-from-metadata`; advertised as `supports_last_image` on the `wan.first-frame` capability row. Official first+last training exists for Wan 2.1 (FLF2V); on Wan 2.2 A14B the shipped probe measured end-frame adherence at MAE 4.6/255 vs the target (baseline without the flag: 56.1) with no mid-clip artifacts on one Lightning 4-step storyboard pair — treat broader recipes as unverified (backlog item 0097 records the bounds). |
-| `--context-frames` | Wan A14B image-to-video only (EXPERIMENTAL zero-shot): the ordered frames that FOLLOW `--image-path` in the motion being continued. The conditioned head becomes `[--image-path, *--context-frames]`, so a continuation clip inherits the predecessor's real momentum instead of restarting from one frozen frame (the multi-frame handover used by SkyReels-V2/SVI-class pipelines). Pass 4, 8, or 12 frames — the head must fill whole 4x VAE latent groups (5, 9, or 13 conditioned frames); passing the start frame here too is the common misuse and fails on that count check. Requires `--image-path`; needs `--frames >= head + 4`; composes with `--last-image`; rejected on TI2V-5B (`expand_timesteps`), Wan VACE, and text/video-to-video — CLI rejects before weight load. All frames map through the same canvas and `--resize-mode` as the first frame. Recorded in metadata (`context_image_paths`), replayed by `--config-from-metadata`, advertised as `supports_context_frames` on the `wan.first-frame` capability row. The field was introduced in schema 6; the current capabilities payload is schema 12. Measured zero-shot on a Lightning 4-step continuation pair (backlog 0102): the K=5 head carried the source clip's motion speed (seam magnitude ratio 0.90 vs the single-frame baseline's 1.90 = double-speed restart) with a mild ~2-frame flare/exposure step at the conditioned-to-free boundary (luma delta ~3.2/255 vs the source clip's own max 1.15; visually mild, structurally clean). Treat as a storyboard continue-seam tool, not a validated general feature. |
+| `--context-frames` | Wan A14B image-to-video only (EXPERIMENTAL zero-shot): the ordered frames that FOLLOW `--image-path` in the motion being continued. The conditioned head becomes `[--image-path, *--context-frames]`, so a continuation clip inherits the predecessor's real momentum instead of restarting from one frozen frame (the multi-frame handover used by SkyReels-V2/SVI-class pipelines). Pass 4, 8, or 12 frames — the head must fill whole 4x VAE latent groups (5, 9, or 13 conditioned frames); passing the start frame here too is the common misuse and fails on that count check. Requires `--image-path`; needs `--frames >= head + 4`; composes with `--last-image`; rejected on TI2V-5B (`expand_timesteps`), Wan VACE, and text/video-to-video — CLI rejects before weight load. All frames map through the same canvas and `--resize-mode` as the first frame. Recorded in metadata (`context_image_paths`), replayed by `--config-from-metadata`, advertised as `supports_context_frames` on the `wan.first-frame` capability row. The field was introduced in schema 6; the current capabilities payload is schema 15. Measured zero-shot on a Lightning 4-step continuation pair (backlog 0102): the K=5 head carried the source clip's motion speed (seam magnitude ratio 0.90 vs the single-frame baseline's 1.90 = double-speed restart) with a mild ~2-frame flare/exposure step at the conditioned-to-free boundary (luma delta ~3.2/255 vs the source clip's own max 1.15; visually mild, structurally clean). Treat as a storyboard continue-seam tool, not a validated general feature. |
 | `--context-noise` | Optional noise on the `--context-frames` conditioned head, `0-1000` timestep-like scale (SkyReels `addnoise_condition` precedent, ~20 is the community default). Applied in latent space to the head only, deterministic per seed, recorded in metadata (`context_noise`) and replayed. In the shipped zero-shot probe it did not reduce the boundary flare (backlog 0102); it exists so adapter recipes (SVI-class) that expect conditioning noise can be reproduced exactly. Requires `--context-frames`. |
-| `--svi-anchor-image` | Wan A14B image-to-video only (EXPERIMENTAL): SVI 2.0 Pro chain conditioning (Stable Video Infinity, ICLR'26, trained for Wan 2.2 A14B i2v). One persistent anchor image is re-injected into EVERY clip of a chain as `[anchor_latent, motion_latent?, zero-latents]` — identity from the anchor, momentum from the previous clip's exported latent, TRUE zero-latent padding (not the stock zero-frame VAE encode; the conventions are mutually unintelligible, which is why the mode and the LoRA pair gate each other loudly in both directions). Replaces `--image-path`; conflicts with `--image-path`, `--last-image`, `--context-frames`, `--video-path`; rejected on TI2V-5B and VACE before weight load. Requires `--svi-lora-high`/`--svi-lora-low`. Every SVI run exports `<output>.svi_latent.safetensors` for the next clip and records `svi_*` metadata including `svi_assembly_trim_frames` (drop that many frames of every CONTINUATION clip at assembly: `1 + 4 x count`). Use a unique seed per clip. Advertised as `supports_svi` on the `wan.first-frame` capability row. The field was introduced in schema 7; the current capabilities payload is schema 12. |
+| `--svi-anchor-image` | Wan A14B image-to-video only (EXPERIMENTAL): SVI 2.0 Pro chain conditioning (Stable Video Infinity, ICLR'26, trained for Wan 2.2 A14B i2v). One persistent anchor image is re-injected into EVERY clip of a chain as `[anchor_latent, motion_latent?, zero-latents]` — identity from the anchor, momentum from the previous clip's exported latent, TRUE zero-latent padding (not the stock zero-frame VAE encode; the conventions are mutually unintelligible, which is why the mode and the LoRA pair gate each other loudly in both directions). Replaces `--image-path`; conflicts with `--image-path`, `--last-image`, `--context-frames`, `--video-path`; rejected on TI2V-5B and VACE before weight load. Requires `--svi-lora-high`/`--svi-lora-low`. Every SVI run exports `<output>.svi_latent.safetensors` for the next clip and records `svi_*` metadata including `svi_assembly_trim_frames` (drop that many frames of every CONTINUATION clip at assembly: `1 + 4 x count`). Use a unique seed per clip. Advertised as `supports_svi` on the `wan.first-frame` capability row. The field was introduced in schema 7; the current capabilities payload is schema 15. |
 | `--svi-motion-latent` | The `*.svi_latent.safetensors` exported by the PREVIOUS clip's SVI run: its trailing latent entries hand the motion over losslessly (never a pixel round-trip). Omit on the first clip of a chain. The chain must keep one canvas end to end (mismatch rejected at load). `--svi-motion-latent-count` (default `1`, the reference recipe) selects how many trailing entries carry over. Requires `--svi-anchor-image`. Continuation segments beyond 65 frames print a trained-length advisory (community-measured color shifts). |
 | `--svi-lora-high`, `--svi-lora-low` | The SVI 2.0 Pro error-recycling LoRA pair (high/low-noise experts; official weights `vita-video-gen/svi-model:version-2.0/SVI_Wan2.2-I2V-A14B_{high,low}_noise_lora_v2.0_pro.safetensors`). Loaded at fixed scale 1.0 under a STRICT key-match contract: any unmatched key aborts the load (`unmatched_key_count == 0` per file; verified 800/800 on the official pack) — a partially applied SVI LoRA silently corrupts the convention. Both-or-neither; requires `--svi-anchor-image` (the pack corrupts non-SVI runs and is rejected for them); re-fused automatically on per-item high-noise expert reloads. Composes with the Lightning 4-step pair through the ordinary `--lora-paths`/`--lora-scales`: the author-documented coexistence sets lightx2v HIGH scale to 0.5-0.6 (1.0 weakens dynamics/text-following and snaps back to the anchor) and keeps lightx2v LOW at 1.0. |
 | `--video`, `--video-path` | One source video for the public Wan video-to-video routes. The SDEdit-style route (with `--video-strength`, optionally a mask) is limited to `Wan2.2-T2V-A14B`. Wan VACE uses learned control conditioning. Bernini uses the video as an independently VAE-encoded packed source, selects V2V without references or RV2V with them, and has no warm start. TI2V-5B and I2V-A14B reject source-video input. |
@@ -1164,6 +1189,12 @@ progress starts.
 SeedVR2 streamed restore uses the same terminal rule on `restore_video_to_path(...)` and the
 `mlxgen upscale --video-path ...` CLI path: `task="video-to-video"` and `complete` means the
 restored MP4, metadata, and optional post-write validation steps all succeeded.
+
+MiniMax-H3 follows the same video vocabulary: model generation emits `start`, `denoise` once per
+transformer evaluation, `decode`, and `generated`; the CLI then emits `save` and finally `complete`
+once the MP4 is written and the soundtrack muxed. Every event reaches both the direct
+`progress_callback` argument and the model's `callbacks` registry, so an embedded runtime that
+subscribes with `model.callbacks.subscribe_progress(...)` sees the whole run.
 
 When a CLI consumer needs saved-artifact semantics instead of in-memory model progress, use
 `--json-events`: image routes emit `generated`, then `save`, then `complete` after the file is

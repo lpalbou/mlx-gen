@@ -1013,6 +1013,14 @@ with `--music`; spoken lines go into the description as `The woman (S1) says: <d
 it with `--quantize 8` on a 128 GB Mac. See [MiniMax-H3 video with audio](minimax-h3.md). Wan and Bernini clips stay silent; Wan
 video-to-video copies the source clip's audio through.
 
+## Why Did MiniMax-H3 Give Me A Longer Clip Than I Asked For?
+
+Its video autoencoder decodes frame counts of the form `17n + 5`, so `--frames` rounds up to the
+next valid count and says so. There are fourteen: `124, 141, 158, 175, 192, 209, 226, 243, 260,
+277, 294, 311, 328, 345`, from 5.17 to 14.375 seconds at 24 fps. Ask for one of those to get exactly
+what you asked for, and read `frames` and `requested_frames` in the metadata to see whether a run
+rounded. Counts above `345` are rejected, because rounding them up would pass the 15-second ceiling.
+
 ## My MiniMax-H3 Image-To-Video Clip Does Not Finish The Motion I Asked For
 
 Describe one continuous action and where it ends ("lifts straight up in one smooth motion and

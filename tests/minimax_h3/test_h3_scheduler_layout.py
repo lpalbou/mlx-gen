@@ -127,3 +127,33 @@ def test_compose_prompt_wraps_plain_text_and_keeps_structured_prompts():
     structured = "integrated_multimodal_description: [Shot 1] A fox.\n\noverall_soundscape: Wind."
     assert compose_prompt(structured) == structured
     assert compose_prompt("  A fox  ") == "integrated_multimodal_description: A fox"
+
+
+@pytest.mark.fast
+def test_compose_prompt_rejects_a_section_the_prompt_already_carries():
+    """A structured prompt plus the matching flag would send the model two of the same section."""
+    from mflux.models.minimax_h3.variants.minimax_h3 import compose_prompt, prompt_sections_present
+
+    structured = "integrated_multimodal_description: A fox.\n\noverall_soundscape: Wind.\n\nnon_diegetic_music: None."
+    assert prompt_sections_present(structured) == (
+        "integrated_multimodal_description",
+        "overall_soundscape",
+        "non_diegetic_music",
+    )
+    for option, kwargs in (("--soundscape", {"soundscape": "birds"}), ("--music", {"music": "piano"})):
+        with pytest.raises(ValueError, match=option):
+            compose_prompt(structured, **kwargs)
+
+    # A partial structured prompt still accepts the sections it does not carry.
+    partial = "integrated_multimodal_description: A fox."
+    assert prompt_sections_present(partial) == ("integrated_multimodal_description",)
+    composed = compose_prompt(partial, soundscape="birds", music="piano")
+    assert composed.count("overall_soundscape:") == 1 and composed.count("non_diegetic_music:") == 1
+
+    # A label mentioned mid-sentence is prose, not a section header: the words stay in the description
+    # and the flag still adds the one real section.
+    prose = "A documentary about how an overall_soundscape: is written."
+    assert prompt_sections_present(prose) == ()
+    composed = compose_prompt(prose, soundscape="birds")
+    assert prompt_sections_present(composed) == ("integrated_multimodal_description", "overall_soundscape")
+    assert composed.endswith("overall_soundscape: birds")

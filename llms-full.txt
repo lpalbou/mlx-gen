@@ -11,7 +11,7 @@
 - `docs/README.md`: documentation tree index.
 - `docs/getting-started.md`: install, first download, model preparation, image generation, image editing, SeedVR2 image/video restoration and upscaling, and Wan video examples.
 - `docs/architecture.md`: system overview and model-file lifecycle diagrams, package shape, command boundaries, runtime failure contract, quantization policy, and the Python integration boundary.
-- `docs/api.md`: public CLI, generation routing, public tasks and internal modes, image/video/reference input roles, the `--outpaint-fill`/`--outpaint-fill-color`/`--outpaint-passes` conditioning-canvas options, Bernini R2V/RV2V/V2V options, Wan video controls, SeedVR2 and SwiftVR restoration, runtime events, metadata, and the capability schema (`schema_version` 12, including reference-image bounds, the `restoration` route rows, and the outpaint fill and pass contracts).
+- `docs/api.md`: public CLI, generation routing, public tasks and internal modes, image/video/reference input roles, the `--outpaint-fill`/`--outpaint-fill-color`/`--outpaint-passes` conditioning-canvas options, Bernini R2V/RV2V/V2V options, Wan video controls, SeedVR2 and SwiftVR restoration, runtime events, metadata, and the capability schema (`schema_version` 15, including reference-image bounds, the `restoration` route rows, generated-audio and duration fields, prompt-section descriptors, per-entry defaults, and the outpaint fill and pass contracts).
 - `docs/image-edit-modes.md`: plain-language guide to latent img2img, edit-reference, masked edit/inpaint, structured control, multi-reference, generative reframe, and outpaint with its per-side padding and selectable conditioning canvas, including what each mode preserves and what to expect from the output.
 - `docs/masked-editing.md`: canonical masked-edit reference — request contract, per-model route matrix with proof grades (Qwen edit/base, Z-Image Turbo, FLUX.2 Klein, video masks; non-turbo Z-Image masked edit is withdrawn for now), per-family behavior including the tunable base-Qwen `--mask-strength` warm start and `effective_steps` metadata, and route selection advice.
 - `docs/qwen-route-matrix.md`: current MLX-Gen route truth for Qwen Image and Qwen Image Edit, mapping public `mlxgen` capability ids to the upstream Diffusers Qwen pipeline families and to the proof surfaces that already exist.
@@ -637,7 +637,7 @@ music section, and speech written into the description with a stable speaker id 
 The model generates the voice and animates the speaker's mouth; 11 dialogue languages are listed as
 stably supported, and `<d>`, `</d>`, `<|cutoff|>` and the lyric/caption markers are dedicated
 vocabulary tokens that MLX-Gen tokenizes exactly as the reference does.
-Frames round up to `17n + 5` (124 to 362, 5 to 15 s); width and height are multiples of 32 within
+Frames round up to `17n + 5` (fourteen counts, 124 to 345, 5.17 to 14.375 s) and warn when they do; width and height are multiples of 32 within
 1:4 to 4:1. `--no-audio` writes a silent clip. Metadata records `steps` (transformer evaluations),
 `video_shift`, `audio_shift`, `num_inference_steps` (the scheduler grid, one more than `steps`),
 `text_tokens`, `duration_seconds`, and `audio_present`, `audio_source`,
@@ -654,6 +654,29 @@ Measured on an Apple M5 Max with 124 frames: `960x544` Turbo 8 steps at ~55 s pe
 minutes of denoise and decode, 80 GB MLX peak, 88 GB process footprint); `1344x768` Turbo 8 steps at
 about 5 minutes per step (93 GB footprint). The first load reads 133 GB of shards (a few minutes); later loads from the page cache take
 seconds.
+
+Driving it from an application: `mlxgen capabilities` publishes everything needed to build controls
+without hardcoding the model — `generates_audio`, `audio_channels`, `audio_sample_rate`, the
+`prompt_sections` descriptors (each with the engine's literal label and the option that fills it),
+the frame grid (`min_frames` 124, `max_frames` 345, `frame_multiple` 17, `frame_remainder` 5,
+`frame_rounding` up), `output_fps` 24, and the per-entry `default_steps` / `default_width` /
+`default_height` / `default_flow_shift` / `default_audio_shift`. Each entry publishes its own label.
+The shift field is named for the concept, not for one family's spelling: Wan calls the same control
+`--flow-shift` and MiniMax-H3 calls it `--video-shift`, and both publish `supports_flow_shift: true`.
+Each row also carries `flow_shift_option` and `flow_shift_parameter`, the CLI flag and Python keyword
+that route uses, so a host emits the right one without a per-family table; both are null exactly when
+`supports_flow_shift` is false. `--low-ram` works here as on every other generate route, and the
+payload's `universal_options` names the options every generate route in this build accepts, so an
+application reads the build instead of gating on the release number.
+It also publishes the precision and memory contract in bytes: `weight_precision` bf16,
+`unquantized_weights_bytes` (125 GiB, which is 97% of a 128 GiB Mac, so `--quantize 8` is required
+rather than optional there and the runtime refuses an impossible load with an explanatory error),
+`recommended_quantize` 8, `validated_quantization_bits` [8], and a `measured_peak` carrying the peak
+process footprint with the canvas, frame count and quantization it was measured at.
+`supports_guidance` is published separately from `supports_negative_prompt`, since the two diverge in
+both directions across the catalog.
+Progress phases are `start`, `denoise`, `decode`, `generated`, then the CLI's `save` and `complete`,
+delivered to both a `progress_callback` and the model's registry.
 
 Python: `MiniMaxH3(model_config=ModelConfig.minimax_h3_turbo_544p(), quantize=8)` and
 `generate_video(seed, prompt, soundscape=..., music=..., width=..., height=..., num_frames=...,

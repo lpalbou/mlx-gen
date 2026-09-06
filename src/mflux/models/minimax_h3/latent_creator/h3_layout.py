@@ -21,6 +21,8 @@ AUDIO_TAG = 2
 MODALITY_NUM = 3
 AUDIO_LATENTS_PER_SECOND = 40
 AUDIO_CHANNELS = 2
+# The rate the released audio VAE writes; a run reads the real value off the VAE's own config.
+AUDIO_SAMPLE_RATE = 32000
 MIN_ASPECT_RATIO = 1 / 4
 MAX_ASPECT_RATIO = 4
 MIN_DURATION_SECONDS = 5.0
@@ -64,6 +66,20 @@ def resolve_canvas_size(
         width, height = width * scale, height * scale
     multiple = canvas_multiple
     return max(multiple, round(height / multiple) * multiple), max(multiple, round(width / multiple) * multiple)
+
+
+MIN_DURATION_SECONDS = 5.0
+MAX_DURATION_SECONDS = 15.0
+# The duration a request generates is the one of the *aligned* count, so the ceiling holds for that:
+# 346 frames would pass a check on the request and then round up to 362, i.e. 15.083 s. The largest
+# `17 * n + 5` inside the window is therefore 345 (14.375 s), not 360 or 362.
+MIN_NUM_FRAMES = 124
+MAX_NUM_FRAMES = 345
+
+
+def valid_frame_counts() -> tuple[int, ...]:
+    """Every frame count MiniMax-H3 accepts: the `17 * n + 5` grid inside the 5 to 15 second window."""
+    return tuple(range(MIN_NUM_FRAMES, MAX_NUM_FRAMES + 1, 17))
 
 
 def align_num_frames(num_frames: int, frames_per_chunk: int = 17, latents_per_chunk: int = 5) -> int:

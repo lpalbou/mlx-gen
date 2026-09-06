@@ -7,6 +7,7 @@ visual VAE decode in ImageNet pixel space and the fp32 audio VAE decode at 32 kH
 """
 
 import hashlib
+import sys
 import time
 from dataclasses import dataclass
 
@@ -26,7 +27,11 @@ from mflux.models.minimax_h3.latent_creator.h3_layout import (
     KEYFRAME_ENCODE_SEED,
     KEYFRAME_NOISE_AUG,
     MAX_ASPECT_RATIO,
+    MAX_DURATION_SECONDS,
+    MAX_NUM_FRAMES,
     MIN_ASPECT_RATIO,
+    MIN_DURATION_SECONDS,
+    MIN_NUM_FRAMES,
     PIXEL_MEAN,
     PIXEL_STD,
     TEXT_TAG,
@@ -39,6 +44,7 @@ from mflux.models.minimax_h3.latent_creator.h3_layout import (
     resolve_canvas_size,
     unpack_audio_rows,
     unpatchify_video_rows,
+    valid_frame_counts,
     video_latent_num_frames,
 )
 from mflux.models.minimax_h3.minimax_h3_initializer import MiniMaxH3Initializer
@@ -59,6 +65,16 @@ DEFAULT_VIDEO_SHIFT = 12.0
 DEFAULT_AUDIO_SHIFT = 3.0
 
 
+def prompt_sections_present(prompt: str) -> tuple[str, ...]:
+    """The section labels a prompt already carries, in `PROMPT_FIELDS` order.
+
+    A label counts only where it opens a line, which is the format the model was trained on; the
+    same words inside a sentence are prose, not a section header.
+    """
+    lines = [line.lstrip() for line in prompt.strip().splitlines()]
+    return tuple(field for field in PROMPT_FIELDS if any(line.startswith(f"{field}:") for line in lines))
+
+
 def compose_prompt(prompt: str, soundscape: str | None = None, music: str | None = None) -> str:
     """The structured prompt MiniMax-H3 was trained on: labelled sections separated by blank lines.
 
@@ -66,7 +82,17 @@ def compose_prompt(prompt: str, soundscape: str | None = None, music: str | None
     Context-IR output); a plain description becomes the `integrated_multimodal_description`.
     """
     text = prompt.strip()
-    sections = [text] if any(f"{field}:" in text for field in PROMPT_FIELDS) else [f"{PROMPT_FIELDS[0]}: {text}"]
+    present = prompt_sections_present(text)
+    for field, value in ((PROMPT_FIELDS[1], soundscape), (PROMPT_FIELDS[2], music)):
+        if value and value.strip() and field in present:
+            # Appending would send the model two of the same section, and the contradiction only
+            # surfaces after the whole run. Say so now instead.
+            option = "--soundscape" if field == PROMPT_FIELDS[1] else "--music"
+            raise ValueError(
+                f"The prompt already carries a `{field}:` section, so {option} would add a second one. "
+                f"Drop {option}, or remove that section from the prompt."
+            )
+    sections = [text] if present else [f"{PROMPT_FIELDS[0]}: {text}"]
     if soundscape and soundscape.strip():
         sections.append(f"{PROMPT_FIELDS[1]}: {soundscape.strip()}")
     if music and music.strip():
@@ -86,6 +112,8 @@ class H3GenerationPlan:
     num_inference_steps: int
     video_shift: float
     audio_shift: float
+    # The caller's own count before the 17n+5 snap; equal to `num_frames` unless the request was off-grid.
+    requested_frames: int = 0
 
     @property
     def duration_seconds(self) -> float:
@@ -220,7 +248,7 @@ class MiniMaxH3(nn.Module):
             mx.eval(video_rows, audio_rows)
             self._emit(
                 progress_callback,
-                phase="denoising",
+                phase="denoise",
                 plan=plan,
                 step=step + 1,
                 seed=seed,
@@ -231,7 +259,9 @@ class MiniMaxH3(nn.Module):
         self._emit(progress_callback, phase="decode", plan=plan, step=total_steps, seed=seed, task=task)
         frames = self._decode_video(video_rows[num_condition_video_rows:], plan)
         audio = self._decode_audio(audio_rows[num_condition_audio_rows:], plan) if generate_audio else None
-        self._emit(progress_callback, phase="complete", plan=plan, step=total_steps, seed=seed, task=task)
+        # `generated`, not `complete`: the CLI emits `complete` once the file is written and the audio
+        # muxed, so a terminal `complete` here would point a host at a path with no file behind it.
+        self._emit(progress_callback, phase="generated", plan=plan, step=total_steps, seed=seed, task=task)
 
         return GeneratedVideo(
             frames=frames,
@@ -258,6 +288,8 @@ class MiniMaxH3(nn.Module):
                 "audio_shift": plan.audio_shift,
                 "num_inference_steps": plan.num_inference_steps,
                 "duration_seconds": round(plan.duration_seconds, 4),
+                # What the caller asked for, so a host can see that an off-grid request was rounded up.
+                "requested_frames": plan.requested_frames,
                 "text_tokens": int(text_length),
                 "generate_audio": bool(generate_audio),
             },
@@ -344,10 +376,22 @@ class MiniMaxH3(nn.Module):
         requested_frames = num_frames or int(overrides.get("default_frames", self.RECOMMENDED_FRAMES))
         aligned_frames = align_num_frames(requested_frames)
         duration = aligned_frames / FPS
-        if not 5.0 <= duration <= 15.0:
+        if not MIN_DURATION_SECONDS <= duration <= MAX_DURATION_SECONDS:
+            # The ceiling holds for the ALIGNED count, so the largest accepted value is 345, not 362:
+            # 346 rounds up to 362, which is 15.083 s and outside the window the model generates.
             raise ValueError(
-                f"MiniMax-H3 generates 5 to 15 seconds at {FPS} fps: num_frames (rounded up to 17n+5) must lie in "
-                f"[124, 362], got {requested_frames} (rounded to {aligned_frames})."
+                f"MiniMax-H3 generates {MIN_DURATION_SECONDS:g} to {MAX_DURATION_SECONDS:g} seconds at {FPS} fps, so "
+                f"num_frames (rounded up to the next 17n+5) must lie in [{MIN_NUM_FRAMES}, {MAX_NUM_FRAMES}], got "
+                f"{requested_frames} (rounded to {aligned_frames}). Accepted counts: "
+                f"{', '.join(str(count) for count in valid_frame_counts())}."
+            )
+        if aligned_frames != requested_frames:
+            # The reference warns here too: a silently lengthened clip is the failure mode of a host
+            # slider that steps off the grid. `requested_frames` also lands in the metadata.
+            print(
+                f"⚠️  MiniMax-H3 frame counts are 17n+5: rounding {requested_frames} up to {aligned_frames} "
+                f"({aligned_frames / FPS:.2f} s).",
+                file=sys.stderr,
             )
         steps = int(num_inference_steps or overrides.get("default_steps", 50))
         if steps < 1:
@@ -357,6 +401,7 @@ class MiniMaxH3(nn.Module):
             width=int(width),
             height=int(height),
             num_frames=aligned_frames,
+            requested_frames=int(requested_frames),
             num_latent_frames=video_latent_num_frames(aligned_frames),
             latent_height=height // ratio,
             latent_width=width // ratio,
@@ -484,22 +529,37 @@ class MiniMaxH3(nn.Module):
 
     # ------------------------------------------------------------------ progress
 
-    @staticmethod
     def _emit(
-        callback, *, phase: str, plan: H3GenerationPlan, step: int, seed: int, task: str, timestep: float | None = None
+        self,
+        callback,
+        *,
+        phase: str,
+        plan: H3GenerationPlan,
+        step: int,
+        seed: int,
+        task: str,
+        timestep: float | None = None,
     ):
-        if callback is None:
+        """Publish one progress event to the caller's callback and to the model's registry.
+
+        Hosts embedding the runtime subscribe to the registry rather than passing a callback, so a
+        run that only invoked the callback was invisible to them for its whole duration.
+        """
+        registry = getattr(self, "callbacks", None)
+        if callback is None and registry is None:
             return
-        callback(
-            ProgressEvent(
-                phase=phase,
-                step=step,
-                total_steps=plan.num_inference_steps - 1,
-                total_frames=plan.num_frames,
-                task=task,
-                timestep=timestep,
-                seed=seed,
-                width=plan.width,
-                height=plan.height,
-            )
+        event = ProgressEvent(
+            phase=phase,
+            step=step,
+            total_steps=plan.num_inference_steps - 1,
+            total_frames=plan.num_frames,
+            task=task,
+            timestep=timestep,
+            seed=seed,
+            width=plan.width,
+            height=plan.height,
         )
+        if callback is not None:
+            callback(event)
+        if registry is not None:
+            registry.emit_progress(event)
