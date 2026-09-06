@@ -317,6 +317,14 @@ For RV2V/V2V, Bernini requires source-aspect, resize-only video conditioning. It
 rejects crop, pad, exact-resize, `--video-strength`, masks, LoRA, and non-UniPC solvers. See
 [Bernini-R 1.3B](bernini.md) and its [validation bundle](assets/validation/bernini-r-1.3b-2026-08-11/README.md).
 
+## MiniMax-H3 Refuses To Load Without `--quantize 8`
+
+Unquantized, this model's weights are 125 GiB resident, which is 97% of a 128 GiB Mac before any
+activations, so the runtime refuses the load and names the remedy instead of letting the OS kill the
+process partway through. Pass `--quantize 8`, or load a prepared q8 package. On a machine with enough
+memory the same load proceeds: the check compares against your own hardware, and the capability row
+publishes `unquantized_weights_bytes` so an application can make the same decision in advance.
+
 ## MiniMax-H3 Runs Out Of Memory Or Disk
 
 MiniMax-H3 needs about 140 GB of disk for its snapshot and, with `--quantize 8`, peaks at about

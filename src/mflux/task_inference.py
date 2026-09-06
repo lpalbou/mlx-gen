@@ -61,7 +61,18 @@ VALID_TASKS = {TASK_AUTO, EDIT, *PUBLIC_TASKS}
 # set changed in the same release: every outpaint route now publishes
 # `adaptive-content-aware-source-blend`, and `latent-locked-transition-band-no-postblend` is no
 # longer emitted.
-CAPABILITIES_SCHEMA_VERSION = 13
+CAPABILITIES_SCHEMA_VERSION = 15
+
+# Options every generate route in this build accepts, so a host can send them without checking the
+# route or the release. Published as a list rather than a per-row boolean: a flag accepted everywhere
+# makes a boolean that is true on every row, whose only signal is that the field exists at all.
+UNIVERSAL_GENERATE_OPTIONS: tuple[str, ...] = ("--low-ram",)
+
+# How each family spells its flow shift. One mechanism, two spellings; a host emits one of them.
+FLOW_SHIFT_SPELLINGS: dict[str, tuple[str, str]] = {
+    "wan": ("--flow-shift", "flow_shift"),
+    "minimax-h3": ("--video-shift", "video_shift"),
+}
 
 # Outpaint conditioning-canvas contract. Outpaint quality is decided by which canvas the source
 # is pasted onto before denoising, and that used to be inferred from --lora-paths basenames, so a
@@ -213,6 +224,32 @@ class PromptSection:
 
 
 @dataclass(frozen=True)
+class MemoryMeasurement:
+    """A peak-memory figure with the run it was measured on.
+
+    A single scalar would be dishonest: the peak on this model scales with the canvas and the frame
+    count, so the conditions travel with the number.
+    """
+
+    peak_bytes: int
+    """Peak process footprint, which is the figure the OS kills a job on."""
+
+    quantize: int | None
+    width: int
+    height: int
+    frames: int
+
+    def to_dict(self) -> dict:
+        return {
+            "peak_bytes": self.peak_bytes,
+            "quantize": self.quantize,
+            "width": self.width,
+            "height": self.height,
+            "frames": self.frames,
+        }
+
+
+@dataclass(frozen=True)
 class GenerationCapability:
     id: str
     public_task: str
@@ -235,6 +272,8 @@ class GenerationCapability:
     # guidance against it). False where the backend rejects the option or the weights run no
     # guidance branch: Bonsai, and FLUX.2 Klein distilled weights, which are step-distilled.
     supports_negative_prompt: bool = False
+    # Whether a guidance scale steers this route. Independent of `supports_negative_prompt`.
+    supports_guidance: bool = False
     supports_mask: bool = False
     supports_control_image: bool = False
     supports_control_mask: bool = False
@@ -309,15 +348,26 @@ class GenerationCapability:
     frame_rounding: str | None = None
     # The rate the route writes. `supports_fps: false` only says the caller may not choose one.
     output_fps: float | None = None
-    supports_video_shift: bool = False
+    supports_flow_shift: bool = False
+    # How this route spells that control. The concept is shared; the CLI option and the Python
+    # keyword are not, and a host has to emit one of them.
+    flow_shift_option: str | None = None
+    flow_shift_parameter: str | None = None
     supports_text_encoder_release: bool = False
     # Per-entry defaults, so a host seeds its controls from the catalog instead of copying constants.
     default_steps: int | None = None
     default_width: int | None = None
     default_height: int | None = None
     default_frames: int | None = None
-    default_video_shift: float | None = None
+    default_flow_shift: float | None = None
     default_audio_shift: float | None = None
+    # Precision and memory. Sizes are bytes, not GB, because a host does arithmetic with them and
+    # the GB/GiB ambiguity is the difference between a run that fits and one that is killed.
+    weight_precision: str | None = None
+    unquantized_weights_bytes: int | None = None
+    recommended_quantize: int | None = None
+    validated_quantization_bits: tuple[int, ...] = ()
+    measured_peak: MemoryMeasurement | None = None
 
     def allows_image_count(self, image_count: int) -> bool:
         if image_count < self.min_images:
@@ -357,14 +407,21 @@ class GenerationCapability:
             "frame_remainder": self.frame_remainder,
             "frame_rounding": self.frame_rounding,
             "output_fps": self.output_fps,
-            "supports_video_shift": self.supports_video_shift,
+            "supports_flow_shift": self.supports_flow_shift,
+            "flow_shift_option": self.flow_shift_option,
+            "flow_shift_parameter": self.flow_shift_parameter,
             "supports_text_encoder_release": self.supports_text_encoder_release,
             "default_steps": self.default_steps,
             "default_width": self.default_width,
             "default_height": self.default_height,
             "default_frames": self.default_frames,
-            "default_video_shift": self.default_video_shift,
+            "default_flow_shift": self.default_flow_shift,
             "default_audio_shift": self.default_audio_shift,
+            "weight_precision": self.weight_precision,
+            "unquantized_weights_bytes": self.unquantized_weights_bytes,
+            "recommended_quantize": self.recommended_quantize,
+            "validated_quantization_bits": list(self.validated_quantization_bits),
+            "measured_peak": self.measured_peak.to_dict() if self.measured_peak is not None else None,
             "supports_image_strength": self.supports_image_strength,
             "supports_video_strength": self.supports_video_strength,
             "supports_video_mask": self.supports_video_mask,
@@ -375,6 +432,7 @@ class GenerationCapability:
             "supports_control_image": self.supports_control_image,
             "supports_control_mask": self.supports_control_mask,
             "supports_negative_prompt": self.supports_negative_prompt,
+            "supports_guidance": self.supports_guidance,
             "supports_outpaint": self.supports_outpaint,
             "supports_outpaint_fill": self.supports_outpaint_fill,
             "outpaint_fill_modes": list(self.outpaint_fill_modes),
@@ -557,6 +615,7 @@ class ModelCapabilities:
             "family": self.family,
             "label": self.label,
             "model_name": self.model_name,
+            "universal_options": list(UNIVERSAL_GENERATE_OPTIONS),
             "capabilities": [capability.to_dict() for capability in self.capabilities],
             "restoration": [capability.to_dict() for capability in self.restoration],
         }
@@ -1056,15 +1115,57 @@ def _is_unsupported_flux2_dev_model(model: str) -> bool:
 
 def _capabilities_for(identity: _ModelIdentity) -> ModelCapabilities:
     capabilities = _family_capabilities(identity)
-    # Negative-prompt support is a property of the family and, for FLUX.2, of the weights, so it
-    # is stamped here once rather than repeated on every row constructor.
+    # Negative-prompt and guidance support are properties of the family and, for FLUX.2, of the
+    # weights, so they are stamped here once rather than repeated on every row constructor. They are
+    # independent of each other: distilled FLUX.2 Klein has a guidance control but no negative
+    # prompt, and Z-Image Turbo has a negative prompt but no guidance control.
     return replace(
         capabilities,
         capabilities=tuple(
-            replace(row, supports_negative_prompt=_supports_negative_prompt(identity))
+            replace(
+                row,
+                supports_negative_prompt=_supports_negative_prompt(identity),
+                supports_guidance=_supports_guidance(identity),
+                **_flow_shift_contract(identity),
+            )
             for row in capabilities.capabilities
         ),
     )
+
+
+def _flow_shift_contract(identity: _ModelIdentity) -> dict:
+    """Whether the route takes a flow shift, and its default, read from the entry's own config.
+
+    One mechanism under two spellings: the sigma transform is identical in the MiniMax-H3 and Wan
+    schedulers, both write the shared `flow_shift` metadata key, and only the CLI option differs
+    (`--flow-shift` on Wan, `--video-shift` on MiniMax-H3). Naming the field for either spelling
+    would make it read `false` on the family that uses the other one.
+    """
+    # Keyed by family, not by whether an entry happens to declare a default: every runtime falls back
+    # to its own shift when the override is absent, so keying on the value would publish `false` for a
+    # future entry whose flag still works, and would publish a Wan option for any entry that borrowed
+    # the `flow_shift` key.
+    spelling = FLOW_SHIFT_SPELLINGS.get(identity.family)
+    if spelling is None:
+        return {}
+    overrides = identity.model_config.transformer_overrides if identity.model_config is not None else {}
+    default = overrides.get("flow_shift", overrides.get("default_video_shift"))
+    option, parameter = spelling
+    return {
+        "supports_flow_shift": True,
+        "default_flow_shift": None if default is None else float(default),
+        "flow_shift_option": option,
+        "flow_shift_parameter": parameter,
+    }
+
+
+def _supports_guidance(identity: _ModelIdentity) -> bool:
+    """Whether a guidance scale is a meaningful control on this route.
+
+    A guidance-distilled route ignores one, so a host should not offer the control there. This is
+    not the same question as `supports_negative_prompt`, and the two diverge in both directions.
+    """
+    return bool(identity.model_config is not None and identity.model_config.supports_guidance)
 
 
 def _supports_negative_prompt(identity: _ModelIdentity) -> bool:
@@ -1104,7 +1205,6 @@ def _family_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
             label="ERNIE Image Turbo",
             model_name=identity.model_name,
             handler_id="ernie-image.generate",
-            supports_guidance=True,
             supports_lora=True,
         )
     if family == "z-image":
@@ -1442,7 +1542,6 @@ def _image_latent_capabilities(
     label: str,
     model_name: str | None,
     handler_id: str,
-    supports_guidance: bool,
     supports_lora: bool = False,
 ) -> ModelCapabilities:
     i2i_canvas = _ordinary_i2i_canvas_contract()
@@ -1491,7 +1590,6 @@ def _z_image_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
         label="Z-Image",
         model_name=identity.model_name,
         handler_id=handler_id,
-        supports_guidance=True,
         supports_lora=True,
     )
     # Native inpaint is Turbo-only: the 2026-07-15 masked matrix measured reproducible
@@ -1926,6 +2024,16 @@ MINIMAX_H3_PROMPT_SECTIONS = (
 )
 
 
+# Peak PROCESS footprint measured per entry on an Apple M5 Max at q8, with the run each figure came
+# from. The process footprint rather than the MLX allocator's own peak, because the footprint is what
+# the OS measures when it decides to kill a job (88.2 GiB and 92.9 GiB respectively; the MLX peaks
+# underneath them are 80.5 and 84.8 GiB). Keyed by the canvas each was measured at.
+MINIMAX_H3_MEASURED_PEAKS = {
+    (960, 544): MemoryMeasurement(peak_bytes=94_700_000_000, quantize=8, width=960, height=544, frames=124),
+    (1344, 768): MemoryMeasurement(peak_bytes=99_700_000_000, quantize=8, width=1344, height=768, frames=124),
+}
+
+
 def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
     """Facts both H3 rows publish: the soundtrack, the frame grid, and the entry's own defaults."""
     from mflux.models.minimax_h3.latent_creator.h3_layout import (
@@ -1935,6 +2043,13 @@ def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
         MIN_NUM_FRAMES,
     )
 
+    # The base entry defaults to 1344x768 but was measured at 960x544, so it publishes the run it
+    # actually has rather than one inferred for its default canvas.
+    measured_peak = (
+        MINIMAX_H3_MEASURED_PEAKS.get((overrides.get("default_width"), overrides.get("default_height")))
+        if overrides.get("turbo_lora")
+        else MINIMAX_H3_MEASURED_PEAKS[(960, 544)]
+    )
     return {
         "generates_audio": True,
         "supports_audio_shift": True,
@@ -1947,14 +2062,21 @@ def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
         "frame_remainder": 5,
         "frame_rounding": "up",
         "output_fps": float(FPS),
-        "supports_video_shift": True,
         "supports_text_encoder_release": True,
         "default_steps": overrides.get("default_steps"),
         "default_width": overrides.get("default_width"),
         "default_height": overrides.get("default_height"),
         "default_frames": overrides.get("default_frames"),
-        "default_video_shift": overrides.get("default_video_shift"),
         "default_audio_shift": overrides.get("default_audio_shift"),
+        # The released weights are bf16 (the two VAEs are fp32 and are never quantized). Unquantized
+        # they are ~134 GB resident, which is all of a 128 GiB Mac before activations, so q8 is the
+        # setting these entries are validated at rather than an optional saving. A host with more
+        # memory can compare `unquantized_weights_bytes` against its own and decide for itself.
+        "weight_precision": "bf16",
+        "unquantized_weights_bytes": 134_200_000_000,
+        "recommended_quantize": 8,
+        "validated_quantization_bits": (8,),
+        "measured_peak": measured_peak,
     }
 
 

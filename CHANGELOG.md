@@ -7,6 +7,92 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.35.0] - 2026-09-06
+
+MiniMax-H3 becomes drivable by an embedding host: progress on the Python path, a corrected duration
+contract, and a capability row that describes the soundtrack, the frame grid and the entry defaults.
+The capabilities payload moves to `schema_version` 15. Every field added below is additive with a
+falsy or null default, so an application can gate on `schema_version >= 15` and older readers are
+unaffected.
+
+### Added
+
+- **The generation capability row describes generated audio and duration** (all fields additive with
+  falsy defaults). `generates_audio`, `audio_channels`, `audio_sample_rate` and
+  `supports_audio_shift` describe a route that composes a soundtrack with the picture, distinct from
+  a restoration row's `supports_audio_passthrough`. `min_frames`, `max_frames`, `frame_multiple`,
+  `frame_remainder`, `frame_rounding` and `output_fps` publish the duration contract, so a host can
+  build a frame control without rediscovering the grid; `supports_fps: false` only ever said the
+  caller may not choose a rate, never that the route writes 24 fps.
+- **`prompt_sections` publishes a model's structured prompt.** Each section carries its `key`, the
+  engine's literal `label`, the `option` and `parameter` that fill it, its `role` and whether it is
+  `required`. A host can render the fields, address them, and recognise a label already present in a
+  prompt it was given.
+- **Per-entry defaults on the row**: `default_steps`, `default_width`, `default_height`,
+  `default_frames`, `default_video_shift` and `default_audio_shift`, so a host seeds its controls
+  from the catalog instead of copying constants that drift.
+- **`--release-text-encoder` on MiniMax-H3.** Drops the Qwen3-VL conditioner once the prompt is
+  encoded. `generate_video` already accepted it; the CLI now exposes it, and the row advertises it as
+  `supports_text_encoder_release`.
+- **`--progress` and `--replace` on MiniMax-H3**, matching every other generate CLI. Only the
+  negative forms existed, so the documented convention failed on this one model.
+- **Rows publish a precision and memory contract**: `weight_precision`,
+  `unquantized_weights_bytes`, `recommended_quantize`, `validated_quantization_bits`, and a
+  `measured_peak` carrying a measured peak process footprint together with the canvas, frame count
+  and quantization it was measured at. Sizes are bytes, because the difference between 134.2 GB and
+  125 GiB is the difference between a run that starts and one that does not. MiniMax-H3 fills all of
+  them; other families publish nulls until their figures are measured.
+- **`supports_flow_shift` and `default_flow_shift` on every generation row**, named for the mechanism
+  rather than for one family's CLI spelling. Wan calls this control `--flow-shift` and MiniMax-H3
+  calls it `--video-shift`, but the sigma transform is the same and both write the same `flow_shift`
+  metadata key, so both families publish `true` with their own default. `--audio-shift` stays a
+  separate field, since a route that schedules audio has two.
+- **`flow_shift_option` and `flow_shift_parameter` on every generation row.** The control is one
+  concept with two spellings, so the row now carries the CLI option and the Python keyword this route
+  uses (`--flow-shift` / `flow_shift` on Wan, `--video-shift` / `video_shift` on MiniMax-H3). Both are
+  `null` exactly when `supports_flow_shift` is `false`.
+- **`universal_options` on the capabilities payload.** The options every generate route in this build
+  accepts, `--low-ram` today. An application reads the build rather than gating on `schema_version`.
+- **`--low-ram` on MiniMax-H3**, which was the one generate route rejecting a shared-parser option.
+  It tightens the MLX cache and releases the conditioner after encoding, so one host-level toggle
+  now works across every generate route.
+- **`supports_guidance` on every generation row.** Whether a guidance scale steers the route, which
+  is independent of `supports_negative_prompt`: distilled FLUX.2 Klein has guidance but no negative
+  prompt, and Z-Image Turbo has a negative prompt but no guidance.
+- **MiniMax-H3 refuses a load that cannot fit.** Unquantized the weights are 125 GiB resident, 97% of
+  a 128 GiB Mac, and the load used to end in the OS killing the process with nothing said. The
+  runtime now compares the resident size it will need against the machine's own memory and stops with
+  an error naming `--quantize 8`. It never quantizes on the caller's behalf.
+
+### Fixed
+
+- **MiniMax-H3 reported no progress through the Python API.** The variant emitted only to the
+  `progress_callback` argument and never to the model's callback registry, which is what
+  `load_generation_model` subscribes to, so an embedding host saw nothing for the length of a run.
+- **Progress phase names now match the rest of the catalog.** MiniMax-H3 emitted `denoising` where
+  every other runtime emits `denoise`, so a host matching the house name dropped every step event. It
+  also emitted `complete` from the model before the file was written and again after saving; the
+  model now emits `generated`, leaving `complete` as the single terminal event that carries the
+  output path.
+- **The documented maximum frame count could never be generated.** The duration ceiling applies to
+  the count after it is snapped up to the `17n + 5` grid, so 362 frames is 15.083 seconds and always
+  failed while the error message and docs named it as the bound. The real maximum is 345, the error
+  now lists every accepted count, and an off-grid request warns that it was rounded up and records
+  `requested_frames` in the metadata beside the resolved `frames`.
+- **A structured prompt plus `--soundscape` or `--music` sent the model two of the same section.**
+  A prompt carrying a section label now refuses the option that would duplicate it, and section
+  labels are recognised only where they open a line rather than anywhere in the text.
+- **The two Turbo entries published the same label.** `minimax-h3-turbo` and `minimax-h3-turbo-544p`
+  both read `MiniMax-H3 Turbo`, hiding the choice between an 11-minute and a 34-minute clip; each
+  entry now names its canvas.
+- **Unknown Python-runtime keywords fail with an actionable error.** `generate_outputs` splatted
+  keywords straight into the model, so a keyword from another family surfaced as a bare `TypeError`
+  from inside the executor; it now names the parameter, the route and what the route accepts.
+- **Video health validation describes the file that ships.** It ran before the audio mux rewrote the
+  container, so the recorded result described a file that no longer existed in that form.
+- **The fallback audio sidecar no longer overwrites an existing file.** A failed mux writes
+  `clip.wav` beside `clip.mp4` through the same collision handling as every other artifact.
+
 ## [0.34.0] - 2026-09-05
 
 MiniMax-H3: text-to-video and first-frame image-to-video with a synchronized stereo soundtrack,

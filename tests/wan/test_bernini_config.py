@@ -96,7 +96,7 @@ def test_bernini_capabilities_expose_reference_role_separately():
     capabilities = get_model_capabilities(model="ByteDance/Bernini-R-1.3B-Diffusers")
     rows = {row.id: row for row in capabilities.capabilities}
 
-    assert capabilities.schema_version == 13
+    assert capabilities.schema_version == 15
     assert capabilities.family == "wan"
     assert capabilities.label == "Bernini-R 1.3B"
     assert rows["bernini.reference-video"].public_task == "text-to-video"

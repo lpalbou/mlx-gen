@@ -30,7 +30,7 @@ def main() -> None:
         parser.error(str(exc))
     if len(args.seed) > 1:
         args.output = normalize_output_template(args.output, include_seed=True)
-    RuntimeMemory.apply_mlx_cache_limit(args.mlx_cache_limit_gb)
+    RuntimeMemory.apply_mlx_cache_limit(args.mlx_cache_limit_gb, low_ram=args.low_ram)
 
     try:
         model_config, model_path = _resolve_model(args.model, args.base_model)
@@ -69,7 +69,8 @@ def main() -> None:
                     audio_shift=args.audio_shift,
                     image_path=args.image_path,
                     generate_audio=not args.no_audio,
-                    release_text_encoder=args.release_text_encoder,
+                    # Low-RAM mode uses this model's own lever; the flag stays available on its own.
+                    release_text_encoder=args.release_text_encoder or args.low_ram,
                     progress_callback=events.handle_progress
                     if events.enabled
                     else (progress if args.progress else None),
@@ -168,6 +169,12 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Drop the Qwen3-VL conditioner once the prompt is encoded, lowering the peak by its resident size. "
         "Cached prompt embeddings stay usable; a later run with a new prompt reloads it.",
+    )
+    parser.add_argument(
+        "--low-ram",
+        action="store_true",
+        help="Low-RAM mode: tighten the MLX cache and release the conditioner after encoding. "
+        "Every other generate route accepts this option, so a host can offer one toggle for all of them.",
     )
     parser.add_argument("--seed", "-s", type=int, default=None, nargs="+", help="One or more random seeds.")
     parser.add_argument("--auto-seeds", type=int, default=-1, help="Generate N random seeds between 0 and 10,000,000.")

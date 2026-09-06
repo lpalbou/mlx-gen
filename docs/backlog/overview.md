@@ -12,12 +12,12 @@ outside chat history.
 | State | Count |
 | --- | ---: |
 | Planned | 15 |
-| Proposed | 30 |
-| Completed | 66 |
+| Proposed | 39 |
+| Completed | 67 |
 | Deprecated | 2 |
 | Recurrent | 1 |
 
-Counts are item files (recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
+Counts are item files (recounted 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
 2026-07-25 release hygiene had moved 0093-0095, 0097-0099, and release
 item 0101 to completed/), including topic-track items under
 `planned/memory/`; the completed `planned/runtime_contracts/` track holds only its index.
@@ -417,6 +417,10 @@ memory follow-up state.
 | 0115 | [SeedVR2 video decode artifact at larger latent geometries](proposed/0115_seedvr2_video_decode_artifact_at_larger_geometries.md) | SeedVR2, causal VAE decode, ADR 0002 | Promote when the SeedVR2 video route must be correct above latent 48x36: one pixel frame per latent group of four is corrupted at 480x352 while 320x240 and 384x288 are clean, isolated to causal-sliced decode and reproducible with a committed command. |
 | 0116 | [Version label must prefer installed metadata over ancestor repo files](proposed/0116_version_label_prefers_repo_files_over_dist_info.md) | Version identity, CLI banner | Promote when developer-layout venvs matter: a stale in-repo venv reports the checkout's version instead of the installed one, observed masquerading as a broken 0.30.0 during the release audit. |
 | 0119 | [MiniMax-H3 AdaLN precompute-and-drop and long-sequence attention performance](proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance.md) | MiniMax-H3 video, memory, step time | Promote when 768p clips need to be practical: precomputing the per-schedule AdaLN tables frees ~26 GB and may allow a bf16 transformer; head-grouped attention and per-segment modulation are measured follow-ups. |
+| 0121 | [`--config-from-metadata` replay for MiniMax-H3](proposed/0121_minimax_h3_config_from_metadata_replay.md) | MiniMax-H3 CLI, metadata replay | Promote when a host or user needs to reproduce an H3 clip from its sidecar; H3 is the only video route without the flag. |
+| 0122 | [Declare runtime metadata keys in `metadata_schema.py`](proposed/0122_declare_metadata_keys_in_metadata_schema.md) | Metadata contract, host integration | Promote when a consumer needs a declared metadata surface; the module is a stub today and every key lives only at its write site. |
+| 0123 | [Publish the duration and sampling fields on the other families](proposed/0123_publish_duration_and_audio_fields_on_other_families.md) | Capability schema, Wan, Bernini | Promote alongside the next Wan capability work; the fields exist as of schema 13 but only MiniMax-H3 fills them, so a null reads as unknown rather than as absent. |
+| 0124 | [Publish each route's accepted options, derived from its parser](proposed/0124_publish_accepted_options_per_route.md) | Capability schema, CLI routing, host integration | Promote when a host again needs per-family knowledge to withhold an option; adding one `supports_<option>` boolean per case does not scale and mis-declares routes nobody considered. |
 
 ## Completed ledger
 
@@ -488,6 +492,7 @@ memory follow-up state.
 | 0105 | [Bernini-R 1.3B renderer integration](completed/0105_bernini_r_1_3b_renderer_integration.md) | Video generation/editing, reference roles, factored sources, proof | 2026-08-04 | Shipped the exact BF16 renderer-only R2V/RV2V/V2V runtime and factored-source contracts. Post-completion audit withdrew the quality claim: every required visual row fails, the registry is `FAIL`, and item 0106 owns the blocking trajectory/quality work. |
 | 0117 | [MiniMax-H3 text-to-video-with-audio runtime and Turbo adapters](completed/0117_minimax_h3_text_to_video_audio_runtime.md) | Video with audio, MiniMax-H3, streaming q8 loading, generated-audio contract | 2026-09-04 | Ported the diffusers modular pipeline natively (layout, schedulers, transformer, Qwen3-VL conditioner, video and audio VAEs) with component parity at fp32 noise, shipped `minimax-h3`, `minimax-h3-turbo` and `minimax-h3-turbo-544p` with lightx2v adapters, generated stereo AAC audio in the MP4, and the first model-backed clips. First-frame conditioning is item 0118. |
 | 0118 | [MiniMax-H3 first-frame conditioning through the Qwen3-VL vision tower](completed/0118_minimax_h3_first_frame_conditioning_vision_tower.md) | MiniMax-H3 image-to-video, Qwen3-VL vision tower, DeepStack | 2026-09-05 | Ported the vision tower, processor, rope index and DeepStack injection (exact vs transformers, real weights 1e-5), shipped `--image-path` first-frame conditioning with the reference's keyframe canvas, presentation and condition-latent recipe, and the `minimax-h3.first-frame` capability row. |
+| 0120 | [MiniMax-H3 embedding-host contract](completed/0120_minimax_h3_embedding_host_contract.md) | Capability schema 13, progress events, duration bounds, host integration | 2026-09-06 | From a BlackPixel feature request, adversarially verified first. Fixed progress never reaching the callback registry, the `denoising`/duplicate-`complete` phase vocabulary, a documented maximum frame count (362) that always raised, duplicate prompt sections, the duplicate Turbo label, unvalidated Python-runtime keywords, health validation running before the audio mux, and a sidecar that could overwrite. Published the audio, duration, sampling and per-entry-default fields plus `prompt_sections` descriptors at `schema_version` 13. Follow-ups 0121-0123. |
 
 ## Deprecated ledger
 
