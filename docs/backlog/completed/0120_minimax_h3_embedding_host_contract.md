@@ -227,7 +227,10 @@ Shipped as a result:
 - `max_validated_frames` beside `max_frames`, because the grid bound and the evidence bound are
   different questions and publishing only the first invites exactly the projection that failed.
 - The measured line itself, `peak_bytes_fixed` and `peak_bytes_per_packed_row`, as measured bytes and
-  explicitly not a feasibility guarantee.
+  explicitly not a feasibility guarantee. The runtime's own estimate anchors on the footprint it
+  measures rather than on the fixed constant: a first version used the constant and refused every
+  tiny-config test on a small machine, which CI caught. Anchored, it reproduces all three measured
+  runs within 0.5 GiB and sizes whatever is actually loaded.
 - Low-RAM mode no longer loses its cache tightening silently to an explicit `--mlx-cache-limit-gb`.
   The precedence is deliberate and a documented restore profile depends on it, so the fix is a
   warning rather than taking the minimum. The same configuration measured under a raised cache limit

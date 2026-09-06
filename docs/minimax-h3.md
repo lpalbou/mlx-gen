@@ -253,8 +253,8 @@ section.
 
 Peak memory follows the packed sequence length, which is a deterministic function of canvas and frame
 count. It is not two separate axes: a 243-frame `960x544` request and a 124-frame `1344x768` request
-differ by 0.5% in packed rows and were measured at the same MLX peak. Expected footprint is roughly
-`peak_bytes_fixed + peak_bytes_per_packed_row x rows`, both published on the row.
+differ by 0.5% in packed rows and were measured at the same MLX peak. Expected footprint is roughly what is already
+resident, plus the MLX cache as it fills, plus `peak_bytes_per_packed_row x rows`.
 
 That is an estimate of bytes, not a promise that a run fits. The 243-frame request above was killed
 by the OS at a footprint of at least 92.7 GiB, four denoise steps in, on a 128 GiB machine at

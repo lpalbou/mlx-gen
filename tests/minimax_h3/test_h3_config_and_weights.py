@@ -515,11 +515,34 @@ def test_request_preflight_warns_near_the_limit_and_refuses_the_impossible(capsy
     def plan(width, height, frames):
         return SimpleNamespace(width=width, height=height, num_frames=frames)
 
-    # The estimate reproduces both published measurements and the killed run's observed footprint.
-    assert round(MiniMaxH3.estimate_peak_bytes(960, 544, 124) / gib) == 88
-    assert round(MiniMaxH3.estimate_peak_bytes(1344, 768, 124) / gib) == 93
-    assert round(MiniMaxH3.estimate_peak_bytes(960, 544, 243) / gib) == 93
+    # Anchored on what is actually resident, so it estimates the loaded model rather than assuming
+    # the released weights. At the released weights' measured 75.7 GiB baseline it reproduces both
+    # published measurements and the killed run's observed footprint, all within 0.5 GiB.
+    loaded = int(75.7 * gib)
 
+    def estimate(w, h, f):
+        return MiniMaxH3.estimate_peak_bytes(w, h, f, resident_bytes=loaded) / gib
+
+    assert abs(estimate(960, 544, 124) - 88.2) < 0.5
+    assert abs(estimate(1344, 768, 124) - 92.9) < 0.5
+    assert abs(estimate(960, 544, 243) - 92.7) < 0.6
+
+    # A tiny model resident in a few hundred MB must not be sized as if it were the released one:
+    # that refused every tiny-config test on a small machine.
+    assert MiniMaxH3.estimate_peak_bytes(96, 64, 124, resident_bytes=200 * 1024**2) < 12 * gib
+
+    def resident(byte_count):
+        monkeypatch.setattr(
+            RuntimeMemory,
+            "snapshot",
+            staticmethod(
+                lambda *a, **k: SimpleNamespace(
+                    darwin_physical_footprint_bytes=byte_count, process_rss_bytes=byte_count
+                )
+            ),
+        )
+
+    resident(loaded)
     monkeypatch.setattr(RuntimeMemory, "total_physical_memory_bytes", staticmethod(lambda: 128 * gib))
     model._preflight_request(plan(960, 544, 124))
     assert capsys.readouterr().err == "", "a run with headroom says nothing"
@@ -533,8 +556,11 @@ def test_request_preflight_warns_near_the_limit_and_refuses_the_impossible(capsy
     with pytest.raises(MemoryError, match="cannot fit"):
         model._preflight_request(plan(1344, 768, 345))
 
-    # Unknown physical memory never guesses.
+    # Unknown physical memory, and an unreadable footprint, never guess.
     monkeypatch.setattr(RuntimeMemory, "total_physical_memory_bytes", staticmethod(lambda: 0))
+    model._preflight_request(plan(1344, 768, 345))
+    monkeypatch.setattr(RuntimeMemory, "total_physical_memory_bytes", staticmethod(lambda: 64 * gib))
+    resident(0)
     model._preflight_request(plan(1344, 768, 345))
 
 

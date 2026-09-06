@@ -530,20 +530,24 @@ class MiniMaxH3(nn.Module):
                 return value.dtype
         return ModelConfig.precision
 
-    # Peak process footprint as a function of packed rows, fitted on runs at 960x544 and 1344x768 and
+    # Bytes the footprint grows by per packed row, measured across runs at 960x544 and 1344x768 and
     # confirmed by a third at a different frame count: a 243-frame 960x544 clip and a 124-frame
-    # 1344x768 clip differ by 0.5% in rows and were measured at the same MLX peak, 84.8 GiB. Measured
-    # at q8 with the default 8 GiB cache and the conditioner resident; a different cache limit moves
-    # the footprint by far more than the canvas does.
-    PEAK_FIXED_BYTES = 89_410_000_000
+    # 1344x768 clip differ by 0.5% in rows and reached the same MLX peak, 84.8 GiB. Measured at q8
+    # with the conditioner resident.
     PEAK_BYTES_PER_PACKED_ROW = 271_356
 
     @classmethod
-    def estimate_peak_bytes(cls, width: int, height: int, num_frames: int) -> int:
-        """Expected peak process footprint for a request, from its packed row count."""
-        return int(
-            cls.PEAK_FIXED_BYTES + cls.PEAK_BYTES_PER_PACKED_ROW * packed_sequence_length(width, height, num_frames)
-        )
+    def estimate_peak_bytes(cls, width: int, height: int, num_frames: int, *, resident_bytes: int) -> int:
+        """Expected peak process footprint for a request, given what is already resident.
+
+        Anchored on a measured footprint rather than on a constant for the released weights, so the
+        estimate follows whatever is actually loaded rather than assuming one model. Above that
+        baseline a run adds the MLX free-buffer cache, which fills toward its limit, and a term
+        linear in packed rows. Reproduces all three measured runs within 0.5 GiB.
+        """
+        cache_bytes = RuntimeMemory.resolve_cache_limit_bytes(None) or 0
+        rows = packed_sequence_length(width, height, num_frames)
+        return int(resident_bytes + cache_bytes + cls.PEAK_BYTES_PER_PACKED_ROW * rows)
 
     def _preflight_request(self, plan: H3GenerationPlan) -> None:
         """Report before a long run whose expected peak does not fit, rather than after.
@@ -556,7 +560,11 @@ class MiniMaxH3(nn.Module):
         physical_bytes = RuntimeMemory.total_physical_memory_bytes()
         if physical_bytes <= 0:
             return
-        expected = self.estimate_peak_bytes(plan.width, plan.height, plan.num_frames)
+        snapshot = RuntimeMemory.snapshot("minimax-h3-preflight", synchronize=False)
+        resident_bytes = snapshot.darwin_physical_footprint_bytes or snapshot.process_rss_bytes or 0
+        if resident_bytes <= 0:
+            return
+        expected = self.estimate_peak_bytes(plan.width, plan.height, plan.num_frames, resident_bytes=resident_bytes)
         gib = 1024**3
         shape = (
             f"{plan.width}x{plan.height} at {plan.num_frames} frames needs about {expected / gib:.0f} GiB, "
