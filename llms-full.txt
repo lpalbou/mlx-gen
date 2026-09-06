@@ -11,7 +11,7 @@
 - `docs/README.md`: documentation tree index.
 - `docs/getting-started.md`: install, first download, model preparation, image generation, image editing, SeedVR2 image/video restoration and upscaling, and Wan video examples.
 - `docs/architecture.md`: system overview and model-file lifecycle diagrams, package shape, command boundaries, runtime failure contract, quantization policy, and the Python integration boundary.
-- `docs/api.md`: public CLI, generation routing, public tasks and internal modes, image/video/reference input roles, the `--outpaint-fill`/`--outpaint-fill-color`/`--outpaint-passes` conditioning-canvas options, Bernini R2V/RV2V/V2V options, Wan video controls, SeedVR2 and SwiftVR restoration, runtime events, metadata, and the capability schema (`schema_version` 15, including reference-image bounds, the `restoration` route rows, generated-audio and duration fields, prompt-section descriptors, per-entry defaults, and the outpaint fill and pass contracts).
+- `docs/api.md`: public CLI, generation routing, public tasks and internal modes, image/video/reference input roles, the `--outpaint-fill`/`--outpaint-fill-color`/`--outpaint-passes` conditioning-canvas options, Bernini R2V/RV2V/V2V options, Wan video controls, SeedVR2 and SwiftVR restoration, runtime events, metadata, and the capability schema (`schema_version` 16, including reference-image bounds, the `restoration` route rows, generated-audio and duration fields, prompt-section descriptors, per-entry defaults, and the outpaint fill and pass contracts).
 - `docs/image-edit-modes.md`: plain-language guide to latent img2img, edit-reference, masked edit/inpaint, structured control, multi-reference, generative reframe, and outpaint with its per-side padding and selectable conditioning canvas, including what each mode preserves and what to expect from the output.
 - `docs/masked-editing.md`: canonical masked-edit reference — request contract, per-model route matrix with proof grades (Qwen edit/base, Z-Image Turbo, FLUX.2 Klein, video masks; non-turbo Z-Image masked edit is withdrawn for now), per-family behavior including the tunable base-Qwen `--mask-strength` warm start and `effective_steps` metadata, and route selection advice.
 - `docs/qwen-route-matrix.md`: current MLX-Gen route truth for Qwen Image and Qwen Image Edit, mapping public `mlxgen` capability ids to the upstream Diffusers Qwen pipeline families and to the proof surfaces that already exist.
@@ -671,8 +671,13 @@ application reads the build instead of gating on the release number.
 It also publishes the precision and memory contract in bytes: `weight_precision` bf16,
 `unquantized_weights_bytes` (125 GiB, which is 97% of a 128 GiB Mac, so `--quantize 8` is required
 rather than optional there and the runtime refuses an impossible load with an explanatory error),
-`recommended_quantize` 8, `validated_quantization_bits` [8], and a `measured_peak` carrying the peak
-process footprint with the canvas, frame count and quantization it was measured at.
+`recommended_quantize` 8, `validated_quantization_bits` [8], and `measured_runs`: measured runs with
+their outcome, the highest process footprint observed, and the conditions that make each reproducible.
+Peak memory follows the packed sequence length rather than the canvas and frame count separately, and
+`peak_bytes_fixed` / `peak_bytes_per_packed_row` publish the measured line through it;
+`max_validated_frames` says how far the evidence goes, where `max_frames` is the decode grid. Runs
+that the OS killed are published too, and before a long run the runtime estimates the peak, refuses
+what cannot fit and warns when a request is close enough that other resident processes decide it.
 `supports_guidance` is published separately from `supports_negative_prompt`, since the two diverge in
 both directions across the catalog.
 Progress phases are `start`, `denoise`, `decode`, `generated`, then the CLI's `save` and `complete`,

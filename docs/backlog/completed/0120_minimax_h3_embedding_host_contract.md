@@ -109,8 +109,9 @@ BlackPixel filed four more asks after reviewing 0.35.0. A second adversarial pas
   a host decide for itself. The field alone does not help CLI users, so `MiniMaxH3Initializer`
   also refuses an impossible load before reading weights, following the SeedVR2 precedent
   (`seedvr2_upscale.py:1005`) and ADR 0002: it reports and stops, never quantizing unasked.
-- **`peak_memory_gb`: implemented, not as a scalar.** The peak scales about 2.75x across the
-  allowed frame range, so a bare number would be dishonest. `measured_peak` carries `peak_bytes`
+- **`peak_memory_gb`: implemented, not as a scalar.** The stated reason was wrong and is corrected
+  in the fourth addendum: 2.75x is the latent-frame ratio, not the peak ratio. The decision stands on
+  better grounds - a scalar cannot separate the fixed floor from the part a request controls. `measured_peak` carries `peak_bytes`
   with the `quantize`, `width`, `height` and `frames` it was measured at. It publishes the process
   footprint rather than the MLX allocator peak, because the footprint is what the OS kills on.
 - **`supports_solver` / `supports_low_ram`: not implemented.** Both are Wan-only mechanisms -
@@ -187,6 +188,54 @@ Two remaining asks, both "declare a fact the build already has".
 Also recorded from that pass: "supports" is the wrong verb for the low-RAM axis in general, because
 SwiftVR forces it and SeedVR2 video requires it, so a future per-route field should carry
 accepted/required/forced rather than a boolean.
+
+## Fourth addendum - 2026-09-06: the peak model, measured
+
+BlackPixel corrected the reasoning recorded above, and they were right. This item said "the peak
+scales about 2.75x across the allowed frame range". That is the latent-frame ratio (37 at 124 frames
+to 102 at 345), not the peak ratio. Two independent recomputations agree. The conclusion to publish a
+measurement with its geometry rather than a scalar was still correct, but for the opposite reason:
+the scalar is not dishonest because the frame axis moves it a lot, it is insufficient because a host
+cannot separate the fixed floor from the part a request controls.
+
+Their functional form is also right, and is now measured rather than fitted. They proposed that peak
+follows the packed sequence length. A probe run for this addendum tested it on orthogonal axes: a
+243-frame `960x544` request has 37,730 packed rows against the 124-frame `1344x768` request's 37,910,
+a 0.5% difference, and both reached an MLX peak of 84.8 GiB. The resolution axis and the frame axis
+are the same axis.
+
+Their conclusion, that every legal configuration fits in 128 GB, is refuted. That 243-frame probe was
+killed by the OS at a process footprint of at least 92.7 GiB, four denoise steps in, at recommended
+settings with no cache override. It died at 72% of the machine's memory, with another application
+holding 7.5 GiB: feasibility is decided by what else is resident, not by the frame grid.
+
+Two errors in their arithmetic, both in the conservative direction and neither load-bearing: their
+345-frame row counts are high by 1,010 and 1,508 rows, and their two measured points straddle
+`QUANTIZED_MATMUL_MAX_ROWS`, so a one-time chunking cost was absorbed into the fitted slope.
+
+Shipped as a result:
+
+- `packed_sequence_length(width, height, frames)`, so a caller sizes a request from the layout rather
+  than reverse-engineering it, which is how the 345-frame counts went wrong.
+- A request preflight alongside the existing load preflight: it estimates the peak from the packed
+  rows, refuses what cannot fit at all, and warns when a request is close enough to the limit that
+  other resident processes decide the outcome. It reports and stops, never altering the request.
+- `measured_runs` replaces the singular `measured_peak`, carrying `outcome`, `footprint_bytes` (a
+  peak for a completed run, a lower bound for a killed one, which is why it is not called
+  `peak_bytes`), `terminated_at`, and the conditions that make a number reproducible. The killed run
+  is published: it is the most informative of the three.
+- `max_validated_frames` beside `max_frames`, because the grid bound and the evidence bound are
+  different questions and publishing only the first invites exactly the projection that failed.
+- The measured line itself, `peak_bytes_fixed` and `peak_bytes_per_packed_row`, as measured bytes and
+  explicitly not a feasibility guarantee.
+- Low-RAM mode no longer loses its cache tightening silently to an explicit `--mlx-cache-limit-gb`.
+  The precedence is deliberate and a documented restore profile depends on it, so the fix is a
+  warning rather than taking the minimum. The same configuration measured under a raised cache limit
+  came out 16.8 GB higher, which is more than three times the difference between the two canvases.
+
+Declined: capping `max_frames` by memory, which would hard-code one machine into the model contract
+when a larger machine runs the full grid; and publishing 243 frames as a limit, which would be false,
+since that request is iso-sequence with a shipped configuration that survives.
 
 ## Follow-ups filed
 

@@ -840,7 +840,7 @@ def test_capabilities_command_reports_wan_context_frames_on_a14b_i2v_only(capsys
     # concat i2v path as the bracket; hosts gate on this additive v6 field.
     mlx_gen._show_capabilities(["--model", "Wan-AI/Wan2.2-I2V-A14B-Diffusers"])
     i2v_payload = json.loads(capsys.readouterr().out)
-    assert i2v_payload["schema_version"] == 15
+    assert i2v_payload["schema_version"] == 16
     i2v_row = next(capability for capability in i2v_payload["capabilities"] if capability["id"] == "wan.first-frame")
     assert i2v_row["supports_context_frames"] is True
     assert i2v_row["supports_svi"] is True
