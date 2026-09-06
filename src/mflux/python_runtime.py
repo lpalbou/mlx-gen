@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import inspect
 import json
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field, replace
@@ -195,6 +196,9 @@ class _RuntimeGenerationExecutor:
         )
         if generate_method is None:
             generate_method = _RuntimeGenerationExecutor._generate_method(loaded)
+        _RuntimeGenerationExecutor._reject_unknown_generate_kwargs(
+            generate_method=generate_method, generate_kwargs=generate_kwargs, loaded=loaded
+        )
         results: list[GeneratedOutput] = []
         item_count = len(resolved_seeds)
 
@@ -283,6 +287,36 @@ class _RuntimeGenerationExecutor:
                 if unsubscribe is not None:
                     unsubscribe()
         return results
+
+    @staticmethod
+    def _reject_unknown_generate_kwargs(*, generate_method, generate_kwargs: dict, loaded: LoadedGenerationModel):
+        """Refuse a keyword the route's generate call does not take, before the run starts.
+
+        Splatting straight through surfaced a bare `TypeError` from inside the executor once the
+        weights were already resident, which for a video route is minutes of loading spent to learn
+        that a keyword was misspelled or belonged to another family.
+        """
+        try:
+            parameters = inspect.signature(generate_method).parameters
+        except (TypeError, ValueError):  # pragma: no cover - builtins and C callables
+            return
+        if any(parameter.kind is inspect.Parameter.VAR_KEYWORD for parameter in parameters.values()):
+            return
+        accepted = {
+            name
+            for name, parameter in parameters.items()
+            if parameter.kind in (inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY)
+            and name != "self"
+        }
+        unknown = sorted(set(generate_kwargs) - accepted)
+        if not unknown:
+            return
+        raise TaskInferenceError(
+            f"{', '.join(repr(name) for name in unknown)} "
+            f"{'is not a parameter' if len(unknown) == 1 else 'are not parameters'} of "
+            f"{loaded.plan.task!r} on {loaded.model_config.model_name!r}. "
+            f"Accepted: {', '.join(sorted(accepted - {'seed'}))}."
+        )
 
     @staticmethod
     def _generate_method(loaded: LoadedGenerationModel):

@@ -571,7 +571,11 @@ class VideoUtil:
                 strict_visual=True,
             )
         VideoUtil._save_video_with_pyav(frames=frames, file_path=file_path, fps=fps, width=width, height=height)
+        audio_fields = VideoUtil._apply_source_audio_copy(spec=source_audio_copy, file_path=file_path)
+        audio_fields.update(VideoUtil._apply_generated_audio(audio=generated_audio, file_path=file_path))
         if validate_health:
+            # After the audio work, not before it: muxing rewrites the container, so validating first
+            # would describe a file that no longer exists in that form.
             file_health = VideoHealth.validate_file(
                 file_path,
                 expected_width=width,
@@ -588,8 +592,6 @@ class VideoUtil:
                     "frames": frame_health.to_metadata(),
                     "file": file_health.to_metadata(),
                 }
-        audio_fields = VideoUtil._apply_source_audio_copy(spec=source_audio_copy, file_path=file_path)
-        audio_fields.update(VideoUtil._apply_generated_audio(audio=generated_audio, file_path=file_path))
         if metadata is not None and audio_fields:
             metadata.update(audio_fields)
         VideoUtil._finalize_save_metadata(
@@ -684,16 +686,25 @@ class VideoUtil:
             return VideoUtil.mux_generated_audio(video_path=file_path, audio=audio)
         except Exception as exc:  # noqa: BLE001
             reason = f"{exc.__class__.__name__}: {exc}"
-        sidecar = file_path.with_suffix(".wav")
+        # `clip.mp4` -> `clip.wav`, and never over a file that is already there: the sidecar is a
+        # fallback artifact, so it must not be the one write in the run that destroys something.
+        sidecar = ImageUtil.resolve_output_path(path=file_path.with_suffix(".wav"), overwrite=False)
         audio.save_wav(sidecar)
         print(f"⚠️  Generated audio could not be muxed into {file_path.name} ({reason}); wrote {sidecar.name} instead.")
-        return {**audio.metadata(), "audio_muxed": False, "audio_mux_reason": reason, "audio_sidecar_path": str(sidecar)}
+        return {
+            **audio.metadata(),
+            "audio_muxed": False,
+            "audio_mux_reason": reason,
+            "audio_sidecar_path": str(sidecar),
+        }
 
     @staticmethod
     def mux_generated_audio(*, video_path: str | Path, audio: "GeneratedAudio") -> dict:
         """Replace `video_path` with the same video stream plus `audio` encoded as AAC (ffmpeg, else PyAV)."""
         video_path = Path(video_path)
-        with NamedTemporaryFile(suffix=".wav", prefix=f".{video_path.stem}-audio-", dir=video_path.parent, delete=False) as f:
+        with NamedTemporaryFile(
+            suffix=".wav", prefix=f".{video_path.stem}-audio-", dir=video_path.parent, delete=False
+        ) as f:
             wav_path = Path(f.name)
         with NamedTemporaryFile(
             suffix=video_path.suffix or ".mp4", prefix=f".{video_path.stem}-mux-", dir=video_path.parent, delete=False

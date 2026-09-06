@@ -24,7 +24,8 @@ def test_catalog_entries_and_capabilities():
     assert ModelConfig.minimax_h3_turbo_544p().transformer_overrides["default_width"] == 960
     assert ModelConfig.minimax_h3_turbo().transformer_overrides["default_video_shift"] == 6.0
     capabilities = get_model_capabilities(model="minimax-h3-turbo", model_config=turbo).to_dict()
-    assert capabilities["family"] == "minimax-h3" and capabilities["label"] == "MiniMax-H3 Turbo"
+    # Each entry's label names its canvas: choosing between them is the 11-versus-34-minute decision.
+    assert capabilities["family"] == "minimax-h3" and capabilities["label"] == "MiniMax-H3 Turbo 768p"
     text_row, image_row = capabilities["capabilities"]
     assert text_row["handler_id"] == "minimax-h3.generate" and text_row["public_task"] == "text-to-video"
     assert (
@@ -181,3 +182,96 @@ def test_qwen2_tokenizer_workaround_keeps_config_only_special_tokens(tmp_path):
     text = "a <d>hi</d>"
     assert ours.convert_tokens_to_ids("<d>") == reference.convert_tokens_to_ids("<d>") == len(vocab)
     assert ours(text, add_special_tokens=False)["input_ids"] == reference(text, add_special_tokens=False)["input_ids"]
+
+
+@pytest.mark.fast
+def test_python_runtime_rejects_a_keyword_the_route_does_not_take():
+    """A Wan-shaped keyword used to surface as a bare TypeError once the weights were resident."""
+    from types import SimpleNamespace
+
+    from mflux.python_runtime import _RuntimeGenerationExecutor
+    from mflux.task_inference import TaskInferenceError
+
+    def generate_video(seed, prompt=None, soundscape=None, music=None, num_frames=None):
+        return None
+
+    loaded = SimpleNamespace(
+        plan=SimpleNamespace(task="text-to-video"),
+        model_config=SimpleNamespace(model_name="MiniMaxAI/MiniMax-H3"),
+    )
+    reject = _RuntimeGenerationExecutor._reject_unknown_generate_kwargs
+
+    with pytest.raises(TaskInferenceError) as excinfo:
+        reject(generate_method=generate_video, generate_kwargs={"fps": 24}, loaded=loaded)
+    message = str(excinfo.value)
+    assert "'fps'" in message and "MiniMaxAI/MiniMax-H3" in message and "soundscape" in message
+
+    # Accepted keywords pass, and a callable taking **kwargs is never second-guessed.
+    reject(generate_method=generate_video, generate_kwargs={"prompt": "x", "soundscape": "y"}, loaded=loaded)
+    reject(generate_method=lambda seed, **kwargs: None, generate_kwargs={"anything": 1}, loaded=loaded)
+
+
+@pytest.mark.fast
+def test_capability_rows_publish_the_audio_duration_and_default_contract():
+    """A host builds H3 controls from the row alone, without importing ModelConfig or hardcoding the family."""
+    from mflux.task_inference import CAPABILITIES_SCHEMA_VERSION, get_model_capabilities
+
+    assert CAPABILITIES_SCHEMA_VERSION == 13
+    payload = get_model_capabilities(model="minimax-h3-turbo-544p").to_dict()
+    rows = {row["id"]: row for row in payload["capabilities"]}
+    assert set(rows) == {"minimax-h3.text-video", "minimax-h3.first-frame"}
+
+    for row in rows.values():
+        # The soundtrack: generated with the picture, unlike a restoration row's passthrough.
+        assert row["generates_audio"] is True
+        assert row["audio_channels"] == 2 and row["audio_sample_rate"] == 32000
+        assert row["supports_audio_shift"] is True and row["supports_video_shift"] is True
+        assert row["supports_text_encoder_release"] is True
+        # The duration contract: the grid, the real bounds, and the rate the route writes.
+        assert (row["min_frames"], row["max_frames"]) == (124, 345)
+        assert (row["frame_multiple"], row["frame_remainder"]) == (17, 5)
+        assert row["frame_rounding"] == "up" and row["output_fps"] == 24.0
+        assert row["supports_fps"] is False
+        # Per-entry defaults, so a host seeds its controls from the catalog.
+        assert (row["default_width"], row["default_height"]) == (960, 544)
+        assert row["default_steps"] == 8
+        assert (row["default_video_shift"], row["default_audio_shift"]) == (12.0, 3.0)
+        # The engine's own section labels, addressable and in order.
+        sections = row["prompt_sections"]
+        assert [s["label"] for s in sections] == [
+            "integrated_multimodal_description",
+            "overall_soundscape",
+            "non_diegetic_music",
+        ]
+        assert [s["option"] for s in sections] == ["--prompt", "--soundscape", "--music"]
+        assert [s["parameter"] for s in sections] == ["prompt", "soundscape", "music"]
+        assert [s["role"] for s in sections] == ["picture", "audio", "audio"]
+        assert sections[0]["required"] is True and sections[1]["required"] is False
+
+    # The published bounds are the ones the runtime enforces.
+    from mflux.models.minimax_h3.latent_creator.h3_layout import valid_frame_counts
+
+    counts = valid_frame_counts()
+    row = rows["minimax-h3.text-video"]
+    assert counts[0] == row["min_frames"] and counts[-1] == row["max_frames"]
+    assert all(count % row["frame_multiple"] == row["frame_remainder"] for count in counts)
+
+
+@pytest.mark.fast
+def test_each_catalog_entry_publishes_a_distinct_label_and_its_own_defaults():
+    """The two Turbo entries used to share one label, hiding the 11-versus-34-minute choice."""
+    from mflux.task_inference import get_model_capabilities
+
+    seen = {}
+    for alias, canvas, steps, shift in (
+        ("minimax-h3", (1344, 768), 50, 12.0),
+        ("minimax-h3-turbo", (1344, 768), 8, 6.0),
+        ("minimax-h3-turbo-544p", (960, 544), 8, 12.0),
+    ):
+        payload = get_model_capabilities(model=alias).to_dict()
+        row = payload["capabilities"][0]
+        seen[alias] = payload["label"]
+        assert (row["default_width"], row["default_height"]) == canvas
+        assert row["default_steps"] == steps and row["default_video_shift"] == shift
+    assert len(set(seen.values())) == 3, seen
+    assert seen["minimax-h3-turbo"] != seen["minimax-h3-turbo-544p"]

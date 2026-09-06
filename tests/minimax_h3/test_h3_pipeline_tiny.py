@@ -7,6 +7,7 @@ import mlx.core as mx
 import pytest
 from mlx import nn
 
+from mflux.callbacks.callback_registry import CallbackRegistry
 from mflux.models.common.config import ModelConfig
 from mflux.models.minimax_h3.model.h3_audio_vae.h3_audio_vae import H3AudioVAE
 from mflux.models.minimax_h3.model.h3_text_encoder.qwen3_vl_model import Qwen3VLModel
@@ -36,6 +37,7 @@ def _tiny_model() -> MiniMaxH3:
     model = MiniMaxH3.__new__(MiniMaxH3)
     nn.Module.__init__(model)
     model.model_config = ModelConfig.minimax_h3()
+    model.callbacks = CallbackRegistry()
     model.bits = None
     model.prompt_embed_cache = {}
     model.lora_paths, model.lora_scales = [], []
@@ -120,7 +122,7 @@ def test_generate_video_produces_aligned_frames_and_stereo_audio(tmp_path):
     assert video.frames[0].size == (96, 64)
     assert video.audio.channels == 2 and video.audio.sample_rate == 32000
     assert abs(video.audio.duration_seconds - 124 / 24) < 1e-3
-    assert [event.phase for event in events] == ["start", "denoising", "denoising", "decode", "complete"]
+    assert [event.phase for event in events] == ["start", "denoise", "denoise", "decode", "generated"]
     assert video.steps == 2 and video.extra_metadata["num_inference_steps"] == 3
     assert video.prompt.startswith("integrated_multimodal_description: A fox")
 
@@ -164,3 +166,43 @@ def test_image_to_video_conditions_on_the_keyframe(tmp_path):
     assert embeds.shape[1] == len(tags) and (tags == 0).sum() > 0 and tags[-1] == 1
     condition = model._encode_keyframe_latents(model._load_keyframe(str(keyframe_path)))
     assert condition.shape == (1, 24, 1, 4, 6)
+
+
+@pytest.mark.fast
+def test_progress_reaches_the_callback_registry_hosts_subscribe_to():
+    """Embedding hosts subscribe to the model's registry instead of passing a callback, so it must be fed."""
+    model = _tiny_model()
+    from_registry: list = []
+    from_callback: list = []
+    model.callbacks.subscribe_progress(from_registry.append)
+
+    model.generate_video(
+        seed=1,
+        prompt="A fox",
+        num_frames=124,
+        width=96,
+        height=64,
+        num_inference_steps=2,
+        generate_audio=False,
+        progress_callback=from_callback.append,
+    )
+
+    phases = [event.phase for event in from_registry]
+    assert phases == ["start", "denoise", "denoise", "decode", "generated"]
+    assert phases == [event.phase for event in from_callback]
+    # `complete` stays the CLI's terminal phase, emitted once the file is written and the audio muxed.
+    assert "complete" not in phases
+    denoise = [event for event in from_registry if event.phase == "denoise"]
+    assert [event.step for event in denoise] == [1, 2]
+    assert all(event.total_steps == 2 and event.total_frames == 124 for event in denoise)
+
+
+@pytest.mark.fast
+def test_progress_still_works_without_a_registry_or_a_callback():
+    """Neither sink is required: a bare model with no registry and no callback must still generate."""
+    model = _tiny_model()
+    del model.callbacks
+    video = model.generate_video(
+        seed=1, prompt="A fox", num_frames=124, width=96, height=64, num_inference_steps=1, generate_audio=False
+    )
+    assert video.num_frames == 124

@@ -61,7 +61,7 @@ VALID_TASKS = {TASK_AUTO, EDIT, *PUBLIC_TASKS}
 # set changed in the same release: every outpaint route now publishes
 # `adaptive-content-aware-source-blend`, and `latent-locked-transition-band-no-postblend` is no
 # longer emitted.
-CAPABILITIES_SCHEMA_VERSION = 12
+CAPABILITIES_SCHEMA_VERSION = 13
 
 # Outpaint conditioning-canvas contract. Outpaint quality is decided by which canvas the source
 # is pasted onto before denoising, and that used to be inferred from --lora-paths basenames, so a
@@ -187,6 +187,32 @@ class TaskInferenceError(ValueError):
 
 
 @dataclass(frozen=True)
+class PromptSection:
+    """One labelled section of a model's structured prompt.
+
+    `label` is the literal string the engine expects at the start of the section; a host that already
+    writes that label into the prompt must not also send `option`, which would add a second one.
+    """
+
+    key: str
+    label: str
+    option: str
+    parameter: str
+    role: str
+    required: bool = False
+
+    def to_dict(self) -> dict:
+        return {
+            "key": self.key,
+            "label": self.label,
+            "option": self.option,
+            "parameter": self.parameter,
+            "role": self.role,
+            "required": self.required,
+        }
+
+
+@dataclass(frozen=True)
 class GenerationCapability:
     id: str
     public_task: str
@@ -265,6 +291,33 @@ class GenerationCapability:
     dimension_multiple: int | None = None
     min_reference_images: int = 0
     max_reference_images: int | None = 0
+    # Generated audio. A joint route composes the soundtrack with the picture, so this is not
+    # `supports_audio_passthrough` (a restoration row copying its SOURCE's audio through).
+    generates_audio: bool = False
+    supports_audio_shift: bool = False
+    audio_channels: int | None = None
+    audio_sample_rate: int | None = None
+    # The engine's own prompt sections, in the order it expects them. Descriptors rather than bare
+    # names so a host can render the fields, address them, and recognise a label it must not duplicate.
+    prompt_sections: tuple["PromptSection", ...] = ()
+    # Duration contract, mirroring the restoration row's shape. `max_frames` is the largest count that
+    # PASSES, and the grid is `frame_multiple * n + frame_remainder`.
+    min_frames: int | None = None
+    max_frames: int | None = None
+    frame_multiple: int | None = None
+    frame_remainder: int | None = None
+    frame_rounding: str | None = None
+    # The rate the route writes. `supports_fps: false` only says the caller may not choose one.
+    output_fps: float | None = None
+    supports_video_shift: bool = False
+    supports_text_encoder_release: bool = False
+    # Per-entry defaults, so a host seeds its controls from the catalog instead of copying constants.
+    default_steps: int | None = None
+    default_width: int | None = None
+    default_height: int | None = None
+    default_frames: int | None = None
+    default_video_shift: float | None = None
+    default_audio_shift: float | None = None
 
     def allows_image_count(self, image_count: int) -> bool:
         if image_count < self.min_images:
@@ -293,6 +346,25 @@ class GenerationCapability:
             "max_videos": self.max_videos,
             "min_reference_images": self.min_reference_images,
             "max_reference_images": self.max_reference_images,
+            "generates_audio": self.generates_audio,
+            "supports_audio_shift": self.supports_audio_shift,
+            "audio_channels": self.audio_channels,
+            "audio_sample_rate": self.audio_sample_rate,
+            "prompt_sections": [section.to_dict() for section in self.prompt_sections],
+            "min_frames": self.min_frames,
+            "max_frames": self.max_frames,
+            "frame_multiple": self.frame_multiple,
+            "frame_remainder": self.frame_remainder,
+            "frame_rounding": self.frame_rounding,
+            "output_fps": self.output_fps,
+            "supports_video_shift": self.supports_video_shift,
+            "supports_text_encoder_release": self.supports_text_encoder_release,
+            "default_steps": self.default_steps,
+            "default_width": self.default_width,
+            "default_height": self.default_height,
+            "default_frames": self.default_frames,
+            "default_video_shift": self.default_video_shift,
+            "default_audio_shift": self.default_audio_shift,
             "supports_image_strength": self.supports_image_strength,
             "supports_video_strength": self.supports_video_strength,
             "supports_video_mask": self.supports_video_mask,
@@ -1825,15 +1897,86 @@ def _fibo_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
     )
 
 
+# MiniMax-H3's three structured prompt sections, in the order the model expects them. The labels are
+# the literal strings it was trained on: a prompt that already opens a line with one must not also be
+# given the matching option, which would send the model two of that section.
+MINIMAX_H3_PROMPT_SECTIONS = (
+    PromptSection(
+        key="description",
+        label="integrated_multimodal_description",
+        option="--prompt",
+        parameter="prompt",
+        role="picture",
+        required=True,
+    ),
+    PromptSection(
+        key="soundscape",
+        label="overall_soundscape",
+        option="--soundscape",
+        parameter="soundscape",
+        role="audio",
+    ),
+    PromptSection(
+        key="music",
+        label="non_diegetic_music",
+        option="--music",
+        parameter="music",
+        role="audio",
+    ),
+)
+
+
+def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
+    """Facts both H3 rows publish: the soundtrack, the frame grid, and the entry's own defaults."""
+    from mflux.models.minimax_h3.latent_creator.h3_layout import (
+        AUDIO_SAMPLE_RATE,
+        FPS,
+        MAX_NUM_FRAMES,
+        MIN_NUM_FRAMES,
+    )
+
+    return {
+        "generates_audio": True,
+        "supports_audio_shift": True,
+        "audio_channels": 2,
+        "audio_sample_rate": AUDIO_SAMPLE_RATE,
+        "prompt_sections": MINIMAX_H3_PROMPT_SECTIONS,
+        "min_frames": MIN_NUM_FRAMES,
+        "max_frames": MAX_NUM_FRAMES,
+        "frame_multiple": 17,
+        "frame_remainder": 5,
+        "frame_rounding": "up",
+        "output_fps": float(FPS),
+        "supports_video_shift": True,
+        "supports_text_encoder_release": True,
+        "default_steps": overrides.get("default_steps"),
+        "default_width": overrides.get("default_width"),
+        "default_height": overrides.get("default_height"),
+        "default_frames": overrides.get("default_frames"),
+        "default_video_shift": overrides.get("default_video_shift"),
+        "default_audio_shift": overrides.get("default_audio_shift"),
+    }
+
+
 def _minimax_h3_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
     # Guidance-distilled joint video + audio model: one text-to-video route (the audio track rides along),
     # no negative prompt, LoRA on the single transformer (the lightx2v Turbo adapters). First-frame
     # conditioning lands with the Qwen3-VL vision tower.
-    is_turbo = bool(identity.model_config is not None and identity.model_config.transformer_overrides.get("turbo_lora"))
+    overrides = identity.model_config.transformer_overrides if identity.model_config is not None else {}
+    is_turbo = bool(overrides.get("turbo_lora"))
+    # The two Turbo entries differ only in the canvas their adapter was trained for, and that choice is
+    # the difference between an 11-minute and a 34-minute clip, so the label has to name it.
+    short_edge = overrides.get("default_height")
+    label = (
+        f"MiniMax-H3 Turbo {short_edge}p"
+        if is_turbo and short_edge
+        else ("MiniMax-H3 Turbo" if is_turbo else "MiniMax-H3")
+    )
+    shared = _minimax_h3_shared_capability_kwargs(overrides)
     return ModelCapabilities(
         schema_version=CAPABILITIES_SCHEMA_VERSION,
         family=identity.family,
-        label="MiniMax-H3 Turbo" if is_turbo else "MiniMax-H3",
+        label=label,
         model_name=identity.model_name,
         capabilities=(
             GenerationCapability(
@@ -1845,6 +1988,7 @@ def _minimax_h3_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 supports_fps=False,
                 default_for_task=True,
                 dimension_multiple=32,
+                **shared,
                 **_lora_capability_kwargs(
                     identity=identity,
                     capability_id="minimax-h3.text-video",
@@ -1868,6 +2012,7 @@ def _minimax_h3_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
                 canvas_policies=(CANVAS_POLICY_SOURCE_ASPECT,),
                 default_canvas_policy=CANVAS_POLICY_SOURCE_ASPECT,
                 resize_modes=(RESIZE_MODE_RESIZE,),
+                **shared,
                 **_lora_capability_kwargs(
                     identity=identity,
                     capability_id="minimax-h3.first-frame",
