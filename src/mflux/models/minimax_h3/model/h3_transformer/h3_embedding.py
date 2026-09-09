@@ -3,6 +3,8 @@ import math
 import mlx.core as mx
 from mlx import nn
 
+from mflux.models.minimax_h3.model.h3_precision import linear_input_dtype
+
 
 class H3RotaryPosEmbed(nn.Module):
     """3-axis rotary embedding over `(t, h, w)`; one `rope_freq_dim`-long `inv_freq` shared by the three axes."""
@@ -58,7 +60,7 @@ class H3AdaLayerNormModulation(nn.Module):
         self.linear = nn.Linear(time_embed_dim, 6 * hidden_size * modality_num, bias=True)
 
     def __call__(self, temb: mx.array) -> tuple[mx.array, ...]:
-        modulation = self.linear(nn.silu(temb.astype(mx.float32)).astype(self.linear.weight.dtype))
+        modulation = self.linear(nn.silu(temb.astype(mx.float32)).astype(linear_input_dtype(self.linear)))
         modulation = modulation.reshape(-1, 6 * self.hidden_size)
         return tuple(mx.split(modulation, 6, axis=-1))
 
@@ -73,7 +75,7 @@ class H3AdaLayerNormOut(nn.Module):
 
     def __call__(self, hidden_states: mx.array, temb: mx.array, timestep_indices: mx.array) -> mx.array:
         shift, scale = mx.split(
-            self.linear(nn.silu(temb.astype(mx.float32)).astype(self.linear.weight.dtype)), 2, axis=-1
+            self.linear(nn.silu(temb.astype(mx.float32)).astype(linear_input_dtype(self.linear))), 2, axis=-1
         )
         hidden_states = self.norm(hidden_states)
         return hidden_states * (1.0 + mx.take(scale, timestep_indices, axis=0)) + mx.take(

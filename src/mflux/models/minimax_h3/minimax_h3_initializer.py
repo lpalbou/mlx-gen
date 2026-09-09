@@ -1,5 +1,6 @@
 import gc
 import json
+import re
 from pathlib import Path
 
 import mlx.core as mx
@@ -24,9 +25,7 @@ from mflux.models.minimax_h3.weights.h3_weight_definition import MiniMaxH3Weight
 from mflux.models.minimax_h3.weights.h3_weight_mapping import TEXT_ENCODER_NUM_LAYERS, MiniMaxH3WeightMapping
 from mflux.utils.runtime_memory import RuntimeMemory
 
-# PEFT adapters carry `lora_alpha` in the safetensors metadata, not as tensors; the lightx2v Turbo
-# adapters are trained with alpha 8 at rank 128 (an effective 1/16 scale on `B @ A`).
-DEFAULT_LORA_ALPHA = 8.0
+_LORA_DOWN_KEY = re.compile(r"\.lora_(A|down)(\.[^.]+)?\.weight$")
 
 
 class MiniMaxH3Initializer:
@@ -174,35 +173,42 @@ class MiniMaxH3Initializer:
         if not lora_paths and turbo_lora:
             lora_paths = [turbo_lora]
         if not lora_paths:
-            model.lora_paths, model.lora_scales, model.lora_report = [], [], None
+            model.lora_paths, model.lora_scales, model.lora_application_result = [], [], None
             return
         resolved_paths = LoraResolution.resolve_paths(lora_paths)
         user_scales = LoraResolution.resolve_scales(lora_scales, len(resolved_paths))
         effective_scales = [
-            scale * MiniMaxH3Initializer._peft_alpha_scale(path) for path, scale in zip(resolved_paths, user_scales)
+            scale * MiniMaxH3Initializer.adapter_scale(path) for path, scale in zip(resolved_paths, user_scales)
         ]
         result = LoRALoader.load_and_apply_lora_detailed(
             lora_mapping=MiniMaxH3LoRAMapping.get_mapping(),
             transformer=model.transformer,
             lora_paths=resolved_paths,
             lora_scales=effective_scales,
+            state_dict_transform=MiniMaxH3LoRAMapping.normalize_state_dict,
         )
         model.lora_paths = list(resolved_paths)
         model.lora_scales = list(user_scales)
-        model.lora_report = result
+        model.lora_application_result = result
 
     @staticmethod
-    def _peft_alpha_scale(path: str) -> float:
-        """`alpha / rank` of a PEFT adapter, read from the safetensors metadata (alpha) and any `lora_A` (rank)."""
+    def adapter_scale(path: str) -> float:
+        """The `alpha / rank` factor an adapter file was trained with, beyond the user's `--lora-scales`.
+
+        PEFT files carry `alpha` in the safetensors metadata (the lightx2v Turbo adapters: alpha 8 at
+        rank 128). A PEFT file without it runs at alpha == rank, which is how ai-toolkit exports (it
+        drops alpha on save) and how ComfyUI and diffusers then load them; kohya-style files carry
+        per-module `.alpha` tensors, which the loader folds into each target itself.
+        """
         weights, metadata = mx.load(path, return_metadata=True)
-        alpha = float((metadata or {}).get("alpha", DEFAULT_LORA_ALPHA))
-        rank = next(
-            (int(v.shape[0]) for k, v in weights.items() if k.endswith(("lora_A.weight", "lora_A.default.weight"))),
-            None,
-        )
-        if rank is None:
+        MiniMaxH3LoRAMapping.reject_unsupported_layout(weights.keys())
+        if any(key.endswith(".alpha") for key in weights):
             return 1.0
-        return alpha / rank
+        alpha = (metadata or {}).get("alpha")
+        rank = next((int(v.shape[0]) for k, v in weights.items() if _LORA_DOWN_KEY.search(k)), None)
+        if alpha is None or rank is None:
+            return 1.0
+        return float(alpha) / rank
 
     @staticmethod
     def _read_json(path: Path) -> dict | None:

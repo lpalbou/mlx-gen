@@ -12,12 +12,12 @@ outside chat history.
 | State | Count |
 | --- | ---: |
 | Planned | 15 |
-| Proposed | 39 |
+| Proposed | 40 |
 | Completed | 67 |
 | Deprecated | 2 |
 | Recurrent | 1 |
 
-Counts are item files (recounted 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
+Counts are item files (recounted 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
 2026-07-25 release hygiene had moved 0093-0095, 0097-0099, and release
 item 0101 to completed/), including topic-track items under
 `planned/memory/`; the completed `planned/runtime_contracts/` track holds only its index.
@@ -421,6 +421,7 @@ memory follow-up state.
 | 0122 | [Declare runtime metadata keys in `metadata_schema.py`](proposed/0122_declare_metadata_keys_in_metadata_schema.md) | Metadata contract, host integration | Promote when a consumer needs a declared metadata surface; the module is a stub today and every key lives only at its write site. |
 | 0123 | [Publish the duration and sampling fields on the other families](proposed/0123_publish_duration_and_audio_fields_on_other_families.md) | Capability schema, Wan, Bernini | Promote alongside the next Wan capability work; the fields exist as of schema 13 but only MiniMax-H3 fills them, so a null reads as unknown rather than as absent. |
 | 0124 | [Publish each route's accepted options, derived from its parser](proposed/0124_publish_accepted_options_per_route.md) | Capability schema, CLI routing, host integration | Promote when a host again needs per-family knowledge to withhold an option; adding one `supports_<option>` boolean per case does not scale and mis-declares routes nobody considered. |
+| 0125 | [MiniMax-H3 adapter layouts, validated one real file per producer](proposed/0125_minimax_h3_lora_layouts_validation.md) | MiniMax-H3, LoRA | Promote when a kohya / musubi-tuner or DiffSynth-Studio H3 adapter is at hand; the mapping ships for the original-checkpoint layout (validated with an ai-toolkit civitai file on 2026-09-09) and refuses DiffSynth's interleaved fused QKV until a real file proves the de-interleave. |
 
 ## Completed ledger
 

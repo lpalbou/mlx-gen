@@ -179,7 +179,13 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--seed", "-s", type=int, default=None, nargs="+", help="One or more random seeds.")
     parser.add_argument("--auto-seeds", type=int, default=-1, help="Generate N random seeds between 0 and 10,000,000.")
     parser.add_argument("--quantize", "-q", type=int, choices=ui_defaults.QUANTIZE_CHOICES, default=None)
-    parser.add_argument("--lora-paths", type=str, nargs="*", default=None, help="LoRA files (PEFT diffusers layout).")
+    parser.add_argument(
+        "--lora-paths",
+        type=str,
+        nargs="*",
+        default=None,
+        help="LoRA files: PEFT or kohya adapters over the diffusers or the original MiniMax-H3 module names.",
+    )
     parser.add_argument("--lora-scales", type=float, nargs="*", default=None, help="Per-LoRA scales (default 1.0).")
     parser.add_argument(
         "--mlx-cache-limit-gb",

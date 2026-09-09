@@ -19,6 +19,7 @@ from mlx.utils import tree_flatten
 
 from mflux.callbacks import ProgressEvent
 from mflux.models.common.config import ModelConfig
+from mflux.models.common.lora.mapping.lora_loader import LoRALoader
 from mflux.models.minimax_h3.latent_creator.h3_layout import (
     AUDIO_CHANNELS,
     CANVAS_MAX_PIXELS,
@@ -287,6 +288,7 @@ class MiniMaxH3(nn.Module):
             lora_paths=getattr(self, "lora_paths", None) or None,
             lora_scales=getattr(self, "lora_scales", None) or None,
             extra_metadata={
+                **(LoRALoader.extra_metadata_for_model(self) or {}),
                 "video_shift": plan.video_shift,
                 "audio_shift": plan.audio_shift,
                 "num_inference_steps": plan.num_inference_steps,
