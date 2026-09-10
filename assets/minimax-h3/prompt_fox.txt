@@ -1,0 +1,5 @@
+integrated_multimodal_description: [Shot 1] Cinematic medium shot, static camera, shallow depth of field. A red fox trots through fresh powder snow in a quiet birch forest at dawn; its breath steams in the cold blue light. Halfway through the clip it stops, ears twitching toward the camera, then bounds forward, kicking up a spray of snow that catches the low sun.
+
+overall_soundscape: Soft rhythmic crunch of paws in dry snow, a faint steady wind through bare branches, and two distant crow caws near the end.
+
+non_diegetic_music: Sparse, gentle piano notes with long reverb, slow tempo, contemplative and cold.

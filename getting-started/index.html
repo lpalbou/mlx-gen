@@ -423,6 +423,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Generate A Video">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generate-a-video-with-sound-minimax-h3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate A Video With Sound (MiniMax-H3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -734,6 +751,34 @@
     
   
     Wan Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../minimax-h3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
   
 
     
@@ -1306,6 +1351,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Generate A Video">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generate-a-video-with-sound-minimax-h3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate A Video With Sound (MiniMax-H3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1370,6 +1432,16 @@
 <td>Only a prompt</td>
 <td>A new image or a new video</td>
 <td><code>mlxgen generate</code></td>
+</tr>
+<tr>
+<td>Only a prompt</td>
+<td>A new video with its own synchronized soundtrack</td>
+<td><code>mlxgen generate --model minimax-h3-turbo-544p --quantize 8 ...</code></td>
+</tr>
+<tr>
+<td>One image</td>
+<td>A video with a soundtrack that starts from that image</td>
+<td><code>mlxgen generate --model minimax-h3-turbo-544p --image-path ... --quantize 8 ...</code></td>
 </tr>
 <tr>
 <td>One image</td>
@@ -1845,6 +1917,24 @@ minutes. See <a href="../wan-video/">Wan Video</a> for MP4 examples and frame st
 <p>Spatial-scale sanity outputs at 1280x704, 17 frames, and 20 steps:</p>
 <p><img alt="Wan2.2 TI2V 1280x704 text-to-video contact sheet" src="../assets/generation/wan2.2-ti2v-5b-t2v-1280x704-17f-20steps-contact-sheet.png" /></p>
 <p><img alt="Wan2.2 TI2V first-frame image-to-video contact sheet" src="../assets/generation/wan2.2-ti2v-5b-i2v-bateau-1280x704-17f-20steps-contact-sheet.png" /></p>
+<h3 id="generate-a-video-with-sound-minimax-h3">Generate A Video With Sound (MiniMax-H3)<a class="headerlink" href="#generate-a-video-with-sound-minimax-h3" title="Permanent link">&para;</a></h3>
+<p>MiniMax-H3 generates the clip and a synchronized stereo soundtrack together. It needs about 140 GB
+of disk and a 128 GB Mac with <code>--quantize 8</code>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>minimax-h3-turbo-544p
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>minimax-h3-turbo-544p<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A red fox trots through fresh snow in a birch forest at dawn; halfway through it stops and looks at the camera."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--soundscape<span class="w"> </span><span class="s2">"Soft crunch of paws in dry snow, faint wind, two distant crow caws."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--music<span class="w"> </span><span class="s2">"Sparse piano, slow tempo."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--quantize<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>fox.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata
+</code></pre></div>
+<p>The MP4 carries an AAC stereo track; <code>--no-audio</code> writes a silent clip, and <code>--image-path</code> starts the
+clip from a keyframe. See
+<a href="../minimax-h3/">MiniMax-H3 video with audio</a> for prompting, sizing, and runtime cost.</p>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
 <li>See <a href="../previews/">Generation Previews</a> to watch a generation as it forms, with tiny-decoder previews and the application integration path.</li>

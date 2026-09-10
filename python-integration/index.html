@@ -621,6 +621,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../minimax-h3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../upscaling/" class="md-nav__link">
         
   
@@ -1496,6 +1524,10 @@ hosts that dedupe loaded models see them as part of the identity). The current W
 process, ~11 GB resident RAM for skipping the per-prompt reload — built for hosts that chain
 scene generations) and <code>prompt_embed_disk_cache=False</code> (opt out of the exact on-disk prompt-embed
 cache). Passing a kwarg the resolved model class does not accept raises <code>TypeError</code> at load time.</p>
+<p>Generation keywords are checked the same way. <code>generate_output(...)</code> and <code>generate_outputs(...)</code>
+refuse a keyword the route's generate call does not take, before the run starts, naming the
+parameter, the route and what that route accepts, so a keyword belonging to another family fails in
+milliseconds rather than after the weights are resident.</p>
 <div class="highlight"><pre><span></span><code><span class="n">loaded</span> <span class="o">=</span> <span class="n">load_generation_model</span><span class="p">(</span>
     <span class="n">model</span><span class="o">=</span><span class="s2">"wan2.2-i2v-a14b"</span><span class="p">,</span>
     <span class="n">image_count</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
@@ -1701,6 +1733,26 @@ paths do not use <code>image_strength</code>.</p>
 <span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">"video.mp4"</span><span class="p">)</span>
 </code></pre></div>
 <p>For Wan2.2 T2V-A14B, construct the same class with <code>model_config=ModelConfig.wan2_2_t2v_a14b()</code> or the A14B model name routed through the CLI. That same route now owns public <code>video-to-video</code>: pass <code>video_path</code>, keep <code>solver="unipc"</code>, use <code>video_strength</code> for the source-change amount, and add <code>video_mask_path</code> when you want preserved regions locked to the source. For Wan2.2 I2V-A14B, use <code>model_config=ModelConfig.wan2_2_i2v_a14b()</code> or the <code>Wan-AI/Wan2.2-I2V-A14B-Diffusers</code> model name and pass <code>image_path</code> to <code>generate_video()</code>. On that i2v route, <code>last_image_path=...</code> adds an optional second anchor the clip should end near (first+last bracket conditioning, experimental on Wan 2.2 A14B; the last image maps through the same canvas and <code>resize_mode</code> as the first frame, and every other Wan route rejects it). Also on that route, <code>context_image_paths=[...]</code> extends the conditioned head with the ordered frames that FOLLOW <code>image_path</code> in the motion being continued (4, 8, or 12 frames — heads of 5, 9, or 13 fill whole 4x latent groups), so a continuation inherits real momentum instead of restarting from one frozen frame; <code>context_noise=...</code> (0-1000, ~20) optionally perturbs that head SkyReels-style. Both are experimental zero-shot behaviors measured in backlog 0102, rejected on every non-A14B-i2v route, and hosts should gate on the <code>supports_context_frames</code> capability field (introduced in schema 6; current schema 11). For chained scenes, the same i2v route also ships SVI 2.0 Pro conditioning (backlog 0103, EXPERIMENTAL): construct the model with the SVI error-recycling LoRA pair (<code>svi_lora_high_path=...</code>, <code>svi_lora_low_path=...</code>; strict key-match, fixed scale 1.0) and call <code>generate_video(svi_anchor_image_path=...)</code> for the first clip, then add <code>svi_motion_latent_path=...</code> (the previous clip's exported latent; export with <code>svi_motion_latent_export_path=...</code>) and a NEW seed per clip for continuations — one persistent anchor carries identity, the latent handover carries momentum, and assembly must drop <code>svi_assembly_trim_frames</code> frames (metadata; 5 for the default one motion latent) from each continuation clip. SVI mode replaces <code>image_path</code> and conflicts with <code>last_image_path</code>/<code>context_image_paths</code>/<code>video_path</code>; hosts gate on <code>supports_svi</code> (introduced in schema 7; current schema 11). <code>denoising_step_list=[1000, 750, 500, 250]</code> runs an exact distill timestep grid instead of a step count on text/image-to-video routes; it is mutually exclusive with <code>num_inference_steps</code> and an explicit <code>flow_shift</code>. A14B boundary routing is handled internally. If both <code>guidance</code> and <code>guidance_2</code> are omitted, MLX-Gen uses the model's two-stage defaults. If <code>guidance</code> is provided and <code>guidance_2</code> is omitted, the low-noise <code>transformer_2</code> stage follows <code>guidance</code>. For Wan image-to-video, <code>width</code> and <code>height</code> are size targets; the model API resolves the final output canvas from the source image aspect ratio and model spatial multiples. For Wan video-to-video, <code>width</code> and <code>height</code> are the requested output canvas after Wan patch-multiple normalization.</p>
+<p>MiniMax-H3 returns the generated soundtrack on the same <code>GeneratedVideo</code> object (<code>video.audio</code>, a
+<code>GeneratedAudio</code> with a <code>(channels, samples)</code> float32 <code>waveform</code> and <code>sample_rate</code>), and <code>save()</code>
+muxes it into the MP4:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.common.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.minimax_h3.variants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MiniMaxH3</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">MiniMaxH3</span><span class="p">(</span><span class="n">model_config</span><span class="o">=</span><span class="n">ModelConfig</span><span class="o">.</span><span class="n">minimax_h3_turbo_544p</span><span class="p">(),</span> <span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">video</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_video</span><span class="p">(</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">"A red fox trots through fresh snow in a birch forest at dawn."</span><span class="p">,</span>
+    <span class="n">soundscape</span><span class="o">=</span><span class="s2">"Soft crunch of paws in dry snow, faint wind, two distant crow caws."</span><span class="p">,</span>
+    <span class="n">music</span><span class="o">=</span><span class="s2">"Sparse piano, slow tempo."</span><span class="p">,</span>
+    <span class="n">progress_callback</span><span class="o">=</span><span class="n">on_progress</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">"fox.mp4"</span><span class="p">,</span> <span class="n">export_json_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
+<p><code>generate_video</code> also takes <code>width</code>, <code>height</code>, <code>num_frames</code> (rounded up to <code>17n + 5</code>),
+<code>num_inference_steps</code> (transformer evaluations), <code>video_shift</code>, <code>audio_shift</code>,
+<code>generate_audio=False</code> for a silent clip, and <code>image_path</code> for first-frame image-to-video (the canvas
+then follows the keyframe's aspect ratio unless <code>width</code>/<code>height</code> are given). See <a href="../minimax-h3/">MiniMax-H3 video with audio</a>.</p>
 <p>Bernini uses a dedicated renderer class and keeps references separate from first-frame images:</p>
 <div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
 

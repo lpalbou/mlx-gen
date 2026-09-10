@@ -1,0 +1,5 @@
+integrated_multimodal_description: [Shot 1] Wide cinematic shot, static camera. Starting from the pictured white spacecraft parked on the icy plain, the craft keeps its exact shape throughout: the two side engine pods, the red antenna, the round rear thruster, the panel lines and the dark cockpit canopy all stay intact. Its engines light up with a pale blue glow and the craft lifts straight up in one smooth, continuous motion, never touching the ground again, rising steadily and accelerating until it leaves through the top of the frame. A low ring of ice dust and snow is blown outward from under the hull and slowly settles as the empty plain remains.
+
+overall_soundscape: A rising electric whine that blends into a deep, steady, continuous engine roar, building smoothly as the craft lifts off and then gradually fading into the distance as it climbs away; ice crystals skittering across the frozen ground under the downwash; a thin cold wind over the empty plain at the end. No crackling, no buzzing, no explosion.
+
+non_diegetic_music: No non-diegetic music; natural sound only.

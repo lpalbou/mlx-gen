@@ -1,0 +1,1571 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/completed/0120_minimax_h3_embedding_host_contract/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Completed: MiniMax-H3 embedding-host contract - progress, duration bounds, capability surface - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#completed-minimax-h3-embedding-host-contract-progress-duration-bounds-capability-surface" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Completed: MiniMax-H3 embedding-host contract - progress, duration bounds, capability surface
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../previews/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generation Previews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../wan-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../minimax-h3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../upscaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#origin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Origin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completion-report-2026-09-06" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Completion report - 2026-09-06
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Completion report - 2026-09-06">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#defects-fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Defects fixed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#capability-contract-schema-12-13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Capability contract (schema 12 -&gt; 13)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#addendum-2026-09-06-four-follow-up-asks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Addendum - 2026-09-06: four follow-up asks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#second-addendum-2026-09-06-a-naming-defect-of-our-own" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Second addendum - 2026-09-06: a naming defect of our own
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#third-addendum-2026-09-06-declaring-what-is-already-true" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Third addendum - 2026-09-06: declaring what is already true
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fourth-addendum-2026-09-06-the-peak-model-measured" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Fourth addendum - 2026-09-06: the peak model, measured
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#follow-ups-filed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Follow-ups filed
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="completed-minimax-h3-embedding-host-contract-progress-duration-bounds-capability-surface">Completed: MiniMax-H3 embedding-host contract - progress, duration bounds, capability surface<a class="headerlink" href="#completed-minimax-h3-embedding-host-contract-progress-duration-bounds-capability-surface" title="Permanent link">&para;</a></h1>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Created: 2026-09-06</li>
+<li>Status: Completed</li>
+<li>Completed: 2026-09-06</li>
+</ul>
+<h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Governing ADRs: <a href="../../../adr/0001_runtime_smoke_validation_for_model_routes/">ADR 0001</a>,
+  <a href="../../adr/0002_visible_runtime_defaults.md">ADR 0002</a>.</li>
+<li>ADR impact: none. The capability schema already governs itself through
+  <code>CAPABILITIES_SCHEMA_VERSION</code> and its additive-field convention; this pass follows that convention
+  rather than changing it.</li>
+</ul>
+<h2 id="origin">Origin<a class="headerlink" href="#origin" title="Permanent link">&para;</a></h2>
+<p>A feature request from BlackPixel, an embedding host that drives the runtime through
+<code>mlxgen generate</code>, <code>mlxgen capabilities</code> and <code>mflux.load_generation_model</code>, filed against 0.34.0
+(<code>0eb1409</code>). It listed four defects and a proposed capability contract. An adversarial pass
+(<code>untracked/h3_verify/agent4/</code>) verified every claim against the released commit and corrected three
+of them before implementation.</p>
+<h2 id="completion-report-2026-09-06">Completion report - 2026-09-06<a class="headerlink" href="#completion-report-2026-09-06" title="Permanent link">&para;</a></h2>
+<h3 id="defects-fixed">Defects fixed<a class="headerlink" href="#defects-fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>No progress through the Python API.</strong> <code>MiniMaxH3._emit</code> was a staticmethod that only invoked the
+  caller's <code>progress_callback</code>; the model's <code>CallbackRegistry</code> (set by the initializer, and the only
+  thing <code>load_generation_model</code> subscribes to) was never fed. An embedding host saw nothing for the
+  11 to 62 minutes of a run. <code>_emit</code> is now an instance method publishing to both sinks, matching
+  <code>Wan2_2TI2V._emit_progress</code>.</li>
+<li><strong>Phase vocabulary.</strong> MiniMax-H3 was the only runtime emitting <code>denoising</code>; the house name across
+  Wan, VACE and Bernini is <code>denoise</code>, so a host matching it dropped every step event. It also emitted
+  <code>complete</code> from the model before the file existed and again from the CLI after saving; the model
+  now emits <code>generated</code>, leaving one terminal <code>complete</code> that carries the output path.</li>
+<li><strong>The documented maximum frame count always raised.</strong> The duration ceiling applies to the aligned
+  count, so 362 frames is 15.083 s and fails, while the error message and <code>docs/api.md</code> named 362 as
+  the bound. The real maximum is 345. The request offered "relax the guard to admit 362" as an
+  alternative; that was rejected because the reference applies the ceiling to the aligned count for
+  exactly this case (<code>before_denoise.py:398-406</code>) and MiniMax's own card caps output at 15 s, so
+  admitting 362 would have diverged from both. <code>MIN_NUM_FRAMES</code>/<code>MAX_NUM_FRAMES</code>/<code>valid_frame_counts</code>
+  now live in <code>h3_layout.py</code>, the error lists all 14 accepted counts, and an off-grid request warns
+  (as the reference does) and records <code>requested_frames</code> beside the resolved <code>frames</code> in metadata.</li>
+<li><strong><code>--progress</code> / <code>--replace</code> missing.</strong> MiniMax-H3 declared only the negative forms. The request
+  said "11 of 11 other CLIs"; the real count is 18, of which 16 inherit both polarities from the
+  shared parser and Wan declares them by hand.</li>
+<li><strong>Duplicate prompt sections.</strong> <code>compose_prompt</code> passed a structured prompt through verbatim and
+  still appended <code>--soundscape</code>/<code>--music</code>, sending the model two of the same section. It now refuses
+  the option for a section the prompt already declares, and recognises labels only where they open a
+  line (the previous substring match treated a prose mention as a section header).</li>
+<li><strong>Duplicate Turbo label.</strong> <code>minimax-h3-turbo</code> and <code>minimax-h3-turbo-544p</code> both published
+  <code>MiniMax-H3 Turbo</code>, hiding the 11-versus-34-minute choice; each entry now names its canvas.</li>
+<li><strong>Unvalidated Python-runtime keywords.</strong> <code>generate_outputs</code> splatted keywords into the model, so a
+  keyword from another family surfaced as a bare <code>TypeError</code> from inside the executor after the
+  weights were resident. <code>_reject_unknown_generate_kwargs</code> now names the parameter, the route and the
+  accepted set, and skips callables taking <code>**kwargs</code>.</li>
+<li><strong>Health validation described a file that no longer existed</strong>: it ran before the audio mux rewrote
+  the container. It now runs after. The fallback <code>.wav</code> sidecar also goes through
+  <code>resolve_output_path</code>, so a failed mux cannot overwrite an existing file.</li>
+</ul>
+<h3 id="capability-contract-schema-12-13">Capability contract (schema 12 -&gt; 13)<a class="headerlink" href="#capability-contract-schema-12-13" title="Permanent link">&para;</a></h3>
+<p>All fields additive with falsy/None defaults, so older hosts are unaffected and newer hosts gate on
+<code>schema_version &gt;= 13</code>. Added to <code>GenerationCapability</code>: <code>generates_audio</code>, <code>audio_channels</code>,
+<code>audio_sample_rate</code>, <code>supports_audio_shift</code>, <code>supports_video_shift</code>, <code>supports_text_encoder_release</code>,
+<code>prompt_sections</code>, <code>min_frames</code>, <code>max_frames</code>, <code>frame_multiple</code>, <code>frame_remainder</code>, <code>frame_rounding</code>,
+<code>output_fps</code>, and the per-entry <code>default_steps</code> / <code>default_width</code> / <code>default_height</code> /
+<code>default_frames</code> / <code>default_video_shift</code> / <code>default_audio_shift</code>.</p>
+<p>Three proposals were dropped on the adversarial pass's advice: <code>supports_audio_toggle</code> (definitionally
+equal to <code>generates_audio</code> for every current and plausible route), <code>canvas_multiple</code> (duplicates the
+published <code>dimension_multiple</code>), and a row-level <code>supports_guidance</code> (near-redundant with the
+published <code>supports_negative_prompt</code> for a guidance-distilled route). <code>audio_prompt_sections</code> as a
+bare tuple of names was replaced by the richer <code>PromptSection</code> descriptor - <code>key</code>, the engine's
+literal <code>label</code>, the <code>option</code> and <code>parameter</code> that fill it, <code>role</code>, <code>required</code> - because a host needs
+the literal string to detect a label a caller already wrote, not just a count.</p>
+<p><code>--release-text-encoder</code> reached the CLI (the kwarg already existed on <code>generate_video</code>) and is
+advertised as <code>supports_text_encoder_release</code>.</p>
+<h3 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>tests/minimax_h3/</code>: registry delivery and phase order, generation without either sink, the frame
+  grid and bounds, duplicate-section refusal and line-anchored label detection, the full capability
+  contract, distinct labels and per-entry defaults, keyword rejection. 29 tests.</li>
+<li>Full no-weights band: 2863 passed, 46 skipped, 1 pre-existing local failure
+  (<code>tests/swiftvr/test_streaming_dit.py::TestTemporalOffset</code>, an MLX TF32 tolerance issue on M5 that
+  passes on CI - see the note in that file's history).</li>
+<li>Model-backed run through <code>load_generation_model</code> (<code>untracked/h3_out/verify_host_contract.py</code>),
+  <code>minimax-h3-turbo-544p</code>, q8, seed 42, 124 frames: the registry delivered
+  <code>start, denoise x8, decode, generated, save, complete</code> with no <code>denoising</code> and exactly one
+  <code>complete</code>; <code>fps=24</code> was refused before the run with the accepted set named; the clip muxed AAC
+  stereo at 32 kHz and recorded <code>frames: 124</code>, <code>requested_frames: 124</code>, and a <code>video_health.file</code>
+  block describing the muxed file.</li>
+</ul>
+<h2 id="addendum-2026-09-06-four-follow-up-asks">Addendum - 2026-09-06: four follow-up asks<a class="headerlink" href="#addendum-2026-09-06-four-follow-up-asks" title="Permanent link">&para;</a></h2>
+<p>BlackPixel filed four more asks after reviewing 0.35.0. A second adversarial pass
+(<code>untracked/h3_verify/agent5/</code>) settled each.</p>
+<ul>
+<li><strong><code>recommended_quantize</code> (their highest-value item): implemented, reshaped.</strong> The claim is
+  correct - unquantized the loaded shards are 125 GiB, 97% of a 128 GiB machine, so q8 is required
+  there rather than optional, and the load previously ended in a silent OS kill. A bare int was the
+  wrong shape because "unrunnable" is relative to the host's memory, so the rows publish the generic
+  precision contract <code>RestorationCapability</code> already had (<code>weight_precision</code>,
+  <code>validated_quantization_bits</code>) plus <code>unquantized_weights_bytes</code> and <code>recommended_quantize</code>, letting
+  a host decide for itself. The field alone does not help CLI users, so <code>MiniMaxH3Initializer</code>
+  also refuses an impossible load before reading weights, following the SeedVR2 precedent
+  (<code>seedvr2_upscale.py:1005</code>) and ADR 0002: it reports and stops, never quantizing unasked.</li>
+<li><strong><code>peak_memory_gb</code>: implemented, not as a scalar.</strong> The stated reason was wrong and is corrected
+  in the fourth addendum: 2.75x is the latent-frame ratio, not the peak ratio. The decision stands on
+  better grounds - a scalar cannot separate the fixed floor from the part a request controls. <code>measured_peak</code> carries <code>peak_bytes</code>
+  with the <code>quantize</code>, <code>width</code>, <code>height</code> and <code>frames</code> it was measured at. It publishes the process
+  footprint rather than the MLX allocator peak, because the footprint is what the OS kills on.</li>
+<li><strong><code>supports_solver</code> / <code>supports_low_ram</code>: not implemented.</strong> Both are Wan-only mechanisms -
+  <code>--solver</code> is defined in exactly one file (<code>wan_generate.py:409</code>), and <code>--low-ram</code>'s effects are
+  Wan and SeedVR2 specific. A boolean that is false everywhere but Wan is a Wan detail leaking into
+  the shared row; it should wait for a second family to fill it. H3 already publishes the memory
+  lever a host can act on, <code>supports_text_encoder_release</code>.</li>
+<li><strong><code>supports_guidance</code>: implemented. Their push-back was right and the first round was wrong.</strong>
+  The <code>supports_negative_prompt</code> proxy is already broken today in both directions: distilled FLUX.2
+  Klein publishes guidance with no negative prompt, and Z-Image Turbo the reverse. Stamped centrally
+  from <code>ModelConfig.supports_guidance</code> next to the existing negative-prompt stamp, and the dead
+  <code>supports_guidance</code> parameter on <code>_image_latent_capabilities</code> (accepted, never read) was removed.</li>
+</ul>
+<p>Also corrected from that pass: <code>supports_text_encoder_release</code> is documented as lowering the
+denoise-time peak only, since the conditioner is resident throughout the larger load-time peak; and
+the ambiguous memory parenthetical in <code>docs/minimax-h3.md</code> now names which figure is the MLX peak and
+which the process footprint.</p>
+<p>Their cache-limit companion ask was self-flagged as low confidence (one failure against two
+successes) and was not acted on; it is not reproducible from the evidence available.</p>
+<h2 id="second-addendum-2026-09-06-a-naming-defect-of-our-own">Second addendum - 2026-09-06: a naming defect of our own<a class="headerlink" href="#second-addendum-2026-09-06-a-naming-defect-of-our-own" title="Permanent link">&para;</a></h2>
+<p>BlackPixel reported that they had aliased our <code>supports_video_shift</code> onto their generic flow-shift
+flag and silently stopped sending Wan its <code>--flow-shift</code>. They called it their bug. A third
+adversarial pass (<code>untracked/h3_verify/agent6/</code>) found it was ours.</p>
+<p>The mechanism is one: the sigma transform in <code>minimax_h3_scheduler.py:58</code> and
+<code>wan_euler_scheduler.py:52</code> is identical, MiniMax-H3's own help string calls its option a "video flow
+shift", and both families write the shared <code>flow_shift</code> metadata key. A shared row field named after
+one family's spelling therefore published <code>false</code> on the family that used the other, which is a
+positive and untrue claim. Item 0123 had already written down the warning - "Wan's shift control is
+named <code>--flow-shift</code>, not <code>--video-shift</code>; decide before populating, because the name is part of the
+published contract" - and the field was populated anyway.</p>
+<p>Fixed by renaming to <code>supports_flow_shift</code> / <code>default_flow_shift</code> and stamping both centrally from
+each entry's own config, so Wan and MiniMax-H3 publish <code>true</code> with their real defaults and a family
+with no such control publishes <code>false</code> truthfully. Free to do here because schema 13 and 14 exist
+only on this branch: no released consumer had read the old name.</p>
+<p>Their re-raised <code>--low-ram</code> ask was also better founded than our first refusal. That option is not
+Wan-specific at all: it lives in the shared <code>CommandLineParser.add_general_arguments()</code>, so every
+other generate route accepts it and MiniMax-H3 was the single one rejecting it. Rather than declaring
+<code>supports_low_ram: false</code>, the route now accepts the option and maps it to its own levers, tightening
+the MLX cache and releasing the conditioner after encoding. <code>--solver</code> stays rejected, since it is
+genuinely Wan-only and MiniMax-H3 has one scheduler.</p>
+<p>The general problem behind both - a host cannot tell which options a route accepts without per-family
+knowledge - is filed as <a href="../../proposed/0124_publish_accepted_options_per_route/">0124</a>, deriving the
+list from each route's parser so it cannot drift. Adding one <code>supports_&lt;option&gt;</code> boolean per case is
+the accretion that produced this defect in the first place.</p>
+<h2 id="third-addendum-2026-09-06-declaring-what-is-already-true">Third addendum - 2026-09-06: declaring what is already true<a class="headerlink" href="#third-addendum-2026-09-06-declaring-what-is-already-true" title="Permanent link">&para;</a></h2>
+<p>Two remaining asks, both "declare a fact the build already has".</p>
+<ul>
+<li><strong>The flow-shift spelling.</strong> The field is named for the concept, which was the right correction,
+  but a host still has to emit an actual flag or keyword and was keeping its own per-family table.
+  Rows now carry <code>flow_shift_option</code> and <code>flow_shift_parameter</code> (<code>--flow-shift</code> / <code>flow_shift</code> on
+  Wan, <code>--video-shift</code> / <code>video_shift</code> on MiniMax-H3), both null exactly when <code>supports_flow_shift</code>
+  is false. Publishing the spelling as a value is the inverse of the defect fixed in the second
+  addendum, which was naming a shared field after one spelling.</li>
+<li><strong><code>--low-ram</code> discovery.</strong> The host was gating on <code>schema_version &gt;= 14</code>, and their objection is
+  right that a version check is what capability rows exist to remove. But a per-row
+  <code>supports_low_ram</code> would be true on every row, since every generate route accepts the option; its
+  only signal would be that the field exists, which is a version check by another name. The payload
+  carries <code>universal_options</code> instead: the options every generate route in this build accepts, always
+  populated, so an empty list would be a real statement rather than an unfilled one.</li>
+<li><strong><code>--solver</code> was not declared.</strong> It is genuinely Wan-only and is the first of an unbounded series
+  (<code>--denoising-step-list</code>, the <code>--svi-*</code> family, <code>--context-noise</code>). Declaring it as a boolean is the
+  accretion that produced the naming defect; it is answered properly by the derived per-route option
+  list in <a href="../../proposed/0124_publish_accepted_options_per_route/">0124</a>.</li>
+</ul>
+<p>Also recorded from that pass: "supports" is the wrong verb for the low-RAM axis in general, because
+SwiftVR forces it and SeedVR2 video requires it, so a future per-route field should carry
+accepted/required/forced rather than a boolean.</p>
+<h2 id="fourth-addendum-2026-09-06-the-peak-model-measured">Fourth addendum - 2026-09-06: the peak model, measured<a class="headerlink" href="#fourth-addendum-2026-09-06-the-peak-model-measured" title="Permanent link">&para;</a></h2>
+<p>BlackPixel corrected the reasoning recorded above, and they were right. This item said "the peak
+scales about 2.75x across the allowed frame range". That is the latent-frame ratio (37 at 124 frames
+to 102 at 345), not the peak ratio. Two independent recomputations agree. The conclusion to publish a
+measurement with its geometry rather than a scalar was still correct, but for the opposite reason:
+the scalar is not dishonest because the frame axis moves it a lot, it is insufficient because a host
+cannot separate the fixed floor from the part a request controls.</p>
+<p>Their functional form is also right, and is now measured rather than fitted. They proposed that peak
+follows the packed sequence length. A probe run for this addendum tested it on orthogonal axes: a
+243-frame <code>960x544</code> request has 37,730 packed rows against the 124-frame <code>1344x768</code> request's 37,910,
+a 0.5% difference, and both reached an MLX peak of 84.8 GiB. The resolution axis and the frame axis
+are the same axis.</p>
+<p>Their conclusion, that every legal configuration fits in 128 GB, is refuted. That 243-frame probe was
+killed by the OS at a process footprint of at least 92.7 GiB, four denoise steps in, at recommended
+settings with no cache override. It died at 72% of the machine's memory, with another application
+holding 7.5 GiB: feasibility is decided by what else is resident, not by the frame grid.</p>
+<p>Two errors in their arithmetic, both in the conservative direction and neither load-bearing: their
+345-frame row counts are high by 1,010 and 1,508 rows, and their two measured points straddle
+<code>QUANTIZED_MATMUL_MAX_ROWS</code>, so a one-time chunking cost was absorbed into the fitted slope.</p>
+<p>Shipped as a result:</p>
+<ul>
+<li><code>packed_sequence_length(width, height, frames)</code>, so a caller sizes a request from the layout rather
+  than reverse-engineering it, which is how the 345-frame counts went wrong.</li>
+<li>A request preflight alongside the existing load preflight: it estimates the peak from the packed
+  rows, refuses what cannot fit at all, and warns when a request is close enough to the limit that
+  other resident processes decide the outcome. It reports and stops, never altering the request.</li>
+<li><code>measured_runs</code> replaces the singular <code>measured_peak</code>, carrying <code>outcome</code>, <code>footprint_bytes</code> (a
+  peak for a completed run, a lower bound for a killed one, which is why it is not called
+  <code>peak_bytes</code>), <code>terminated_at</code>, and the conditions that make a number reproducible. The killed run
+  is published: it is the most informative of the three.</li>
+<li><code>max_validated_frames</code> beside <code>max_frames</code>, because the grid bound and the evidence bound are
+  different questions and publishing only the first invites exactly the projection that failed.</li>
+<li>The measured line itself, <code>peak_bytes_fixed</code> and <code>peak_bytes_per_packed_row</code>, as measured bytes and
+  explicitly not a feasibility guarantee. The runtime's own estimate anchors on the footprint it
+  measures rather than on the fixed constant: a first version used the constant and refused every
+  tiny-config test on a small machine, which CI caught. Anchored, it reproduces all three measured
+  runs within 0.5 GiB and sizes whatever is actually loaded.</li>
+<li>Low-RAM mode no longer loses its cache tightening silently to an explicit <code>--mlx-cache-limit-gb</code>.
+  The precedence is deliberate and a documented restore profile depends on it, so the fix is a
+  warning rather than taking the minimum. The same configuration measured under a raised cache limit
+  came out 16.8 GB higher, which is more than three times the difference between the two canvases.</li>
+</ul>
+<p>Declined: capping <code>max_frames</code> by memory, which would hard-code one machine into the model contract
+when a larger machine runs the full grid; and publishing 243 frames as a limit, which would be false,
+since that request is iso-sequence with a shipped configuration that survives.</p>
+<h2 id="follow-ups-filed">Follow-ups filed<a class="headerlink" href="#follow-ups-filed" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../../proposed/0121_minimax_h3_config_from_metadata_replay/">0121</a> - <code>--config-from-metadata</code>
+  replay for MiniMax-H3.</li>
+<li><a href="../../proposed/0122_declare_metadata_keys_in_metadata_schema/">0122</a> - declare the <code>audio_*</code> and
+  other runtime metadata keys in <code>metadata_schema.py</code>.</li>
+<li><a href="../../proposed/0123_publish_duration_and_audio_fields_on_other_families/">0123</a> - publish the new
+  duration and sampling fields on the non-H3 families that have real values for them.</li>
+<li><a href="../../proposed/0124_publish_accepted_options_per_route/">0124</a> - publish each route's accepted
+  options, derived from its parser.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

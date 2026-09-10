@@ -619,6 +619,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../minimax-h3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../upscaling/" class="md-nav__link">
         
   
@@ -1185,6 +1213,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#does-minimax-h3-support-lora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does MiniMax-H3 Support LoRA?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#can-i-treat-mlx-gen-q8-packages-like-third-party-fp8-checkpoints-for-lightning-loras" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1398,6 +1437,39 @@
     <span class="md-ellipsis">
       
         How Should I Prompt Wan Image-To-Video?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#can-mlx-gen-generate-video-with-sound" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can MLX-Gen Generate Video With Sound?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-did-minimax-h3-give-me-a-longer-clip-than-i-asked-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Did MiniMax-H3 Give Me A Longer Clip Than I Asked For?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#my-minimax-h3-image-to-video-clip-does-not-finish-the-motion-i-asked-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        My MiniMax-H3 Image-To-Video Clip Does Not Finish The Motion I Asked For
       
     </span>
   </a>
@@ -1718,6 +1790,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#does-minimax-h3-support-lora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Does MiniMax-H3 Support LoRA?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#can-i-treat-mlx-gen-q8-packages-like-third-party-fp8-checkpoints-for-lightning-loras" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1938,6 +2021,39 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#can-mlx-gen-generate-video-with-sound" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Can MLX-Gen Generate Video With Sound?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-did-minimax-h3-give-me-a-longer-clip-than-i-asked-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why Did MiniMax-H3 Give Me A Longer Clip Than I Asked For?
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#my-minimax-h3-image-to-video-clip-does-not-finish-the-motion-i-asked-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        My MiniMax-H3 Image-To-Video Clip Does Not Finish The Motion I Asked For
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#why-do-some-imports-or-paths-still-say-mflux" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2133,6 +2249,19 @@ specific Wan LoRA workflow. For the current A14B Lightning example, start with:<
 <a href="../lora/">LoRA</a>. You can also point directly at absolute local <code>.safetensors</code> files after
 downloading them. For Wan A14B, pass each file as its own <code>--lora-paths</code> argument rather than one
 quoted combined string.</p>
+<h2 id="does-minimax-h3-support-lora">Does MiniMax-H3 Support LoRA?<a class="headerlink" href="#does-minimax-h3-support-lora" title="Permanent link">&para;</a></h2>
+<p>Yes. The Turbo entries load their lightx2v adapter automatically, and <code>--lora-paths</code> accepts
+adapters in both published key layouts: PEFT files over the diffusers module names (the lightx2v
+files) and community files trained against the original checkpoint's names (civitai, ai-toolkit,
+ComfyUI, kohya, musubi-tuner). On a Turbo entry the files you pass replace the automatic one, so
+list the Turbo file alongside yours with a scale for each:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>minimax-h3-turbo-544p<span class="w"> </span>--prompt<span class="w"> </span><span class="s2">"&lt;prompt&gt;"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span><span class="s2">"hf:lightx2v/Minimax-h3-Turbo/minimax_h3_fl2v_turbo_8step_v1.0_bf16.safetensors"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">               </span>loras/&lt;character&gt;.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span>--quantize<span class="w"> </span><span class="m">8</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--output<span class="w"> </span>clip.mp4
+</code></pre></div>
+<p>The scale rule, the one refused layout (DiffSynth-Studio) and the included with/without evidence
+clips are in <a href="../minimax-h3/#adapters">MiniMax-H3: Adapters</a>.</p>
 <h2 id="can-i-treat-mlx-gen-q8-packages-like-third-party-fp8-checkpoints-for-lightning-loras">Can I Treat MLX-Gen q8 Packages Like Third-Party FP8 Checkpoints For Lightning LoRAs?<a class="headerlink" href="#can-i-treat-mlx-gen-q8-packages-like-third-party-fp8-checkpoints-for-lightning-loras" title="Permanent link">&para;</a></h2>
 <p>No.</p>
 <p>The current MLX-Gen recommendation is to use the validated <code>AbstractFramework/*-8bit</code> q8 package
@@ -2913,6 +3042,27 @@ the subject to leave the frame, turn away fully, or return from an occluded/back
 into separate clips or use a later keyframe/image input rather than relying on one long single-image
 conditioning run. For production checks, use seed sweeps and inspect decoded frames or contact
 sheets rather than relying only on MP4 existence.</p>
+<h2 id="can-mlx-gen-generate-video-with-sound">Can MLX-Gen Generate Video With Sound?<a class="headerlink" href="#can-mlx-gen-generate-video-with-sound" title="Permanent link">&para;</a></h2>
+<p>Yes. MiniMax-H3 (<code>--model minimax-h3-turbo-544p</code>, <code>minimax-h3-turbo</code>, or <code>minimax-h3</code>) generates a
+24 fps clip and a synchronized stereo soundtrack together, from a prompt or from a keyframe
+(<code>--image-path</code>), and saves both in one MP4 with an AAC track. Describe the picture with <code>--prompt</code>, the diegetic sound with <code>--soundscape</code>, and the score
+with <code>--music</code>; spoken lines go into the description as <code>The woman (S1) says: &lt;d&gt;[English] ...&lt;/d&gt;</code>
+(see <a href="../minimax-h3/#prompting">Prompting</a> for speaker ids, voice-over and the supported languages); run
+it with <code>--quantize 8</code> on a 128 GB Mac. See <a href="../minimax-h3/">MiniMax-H3 video with audio</a>. Wan and Bernini clips stay silent; Wan
+video-to-video copies the source clip's audio through.</p>
+<h2 id="why-did-minimax-h3-give-me-a-longer-clip-than-i-asked-for">Why Did MiniMax-H3 Give Me A Longer Clip Than I Asked For?<a class="headerlink" href="#why-did-minimax-h3-give-me-a-longer-clip-than-i-asked-for" title="Permanent link">&para;</a></h2>
+<p>Its video autoencoder decodes frame counts of the form <code>17n + 5</code>, so <code>--frames</code> rounds up to the
+next valid count and says so. There are fourteen: <code>124, 141, 158, 175, 192, 209, 226, 243, 260,
+277, 294, 311, 328, 345</code>, from 5.17 to 14.375 seconds at 24 fps. Ask for one of those to get exactly
+what you asked for, and read <code>frames</code> and <code>requested_frames</code> in the metadata to see whether a run
+rounded. Counts above <code>345</code> are rejected, because rounding them up would pass the 15-second ceiling.</p>
+<h2 id="my-minimax-h3-image-to-video-clip-does-not-finish-the-motion-i-asked-for">My MiniMax-H3 Image-To-Video Clip Does Not Finish The Motion I Asked For<a class="headerlink" href="#my-minimax-h3-image-to-video-clip-does-not-finish-the-motion-i-asked-for" title="Permanent link">&para;</a></h2>
+<p>Describe one continuous action and where it ends ("lifts straight up in one smooth motion and
+leaves through the top of the frame") rather than a sequence of pauses ("lifts off, hovers, then
+climbs"), name the parts of the subject that must stay unchanged, give the soundscape a continuous
+character, and exclude sounds you do not want. The keyframe already fixes the picture, so spend the
+prompt on the motion. <a href="../minimax-h3/#image-to-video">MiniMax-H3 image-to-video</a> shows the two
+phrasings on the same seed and links the complete prompts behind the starship and takeoff sheets.</p>
 <h2 id="why-do-some-imports-or-paths-still-say-mflux">Why Do Some Imports Or Paths Still Say <code>mflux</code>?<a class="headerlink" href="#why-do-some-imports-or-paths-still-say-mflux" title="Permanent link">&para;</a></h2>
 <p>MLX-Gen is built on the mflux codebase. Some internal modules and compatibility entry points still
 use <code>mflux.*</code> names, while the public package and command surface use <code>mlx-gen</code> and <code>mlxgen</code>.</p>

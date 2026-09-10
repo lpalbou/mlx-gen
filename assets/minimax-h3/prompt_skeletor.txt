@@ -1,0 +1,3 @@
+integrated_multimodal_description: [Shot 1] Cinematic medium close-up, slow push-in. Skeletor stands in a torch-lit stone throne room, raises his staff toward the camera and, with a raspy, nasal, high-pitched voice (S1) says: <d>[English] Bow before me, you fools!</d> then throws his head back and cackles.
+
+overall_soundscape: Crackling torches, a low stone-hall echo, the raspy voice and a cackling laugh.

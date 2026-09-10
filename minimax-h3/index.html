@@ -1,0 +1,2202 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/minimax-h3/">
+      
+      
+        <link rel="prev" href="../wan-video/">
+      
+      
+        <link rel="next" href="../upscaling/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>MiniMax-H3 Video With Audio - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#minimax-h3-video-with-audio" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              MiniMax-H3 Video With Audio
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../previews/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generation Previews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wan-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-get" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What You Get
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prepared-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prepared Package
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prompting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prompting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#image-to-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image-To-Video
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sizing-and-duration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sizing And Duration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#measured-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured Runtime
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#driving-minimax-h3-from-an-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Driving MiniMax-H3 From An Application
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Driving MiniMax-H3 From An Application">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-much-memory-a-length-needs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How much memory a length needs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adapters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Limits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contact-sheets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contact Sheets
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upscaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-you-get" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What You Get
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Requirements">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#prepared-package" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prepared Package
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Start
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prompting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prompting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#image-to-video" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Image-To-Video
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sizing-and-duration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sizing And Duration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#measured-runtime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured Runtime
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#output-contract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Output Contract
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#driving-minimax-h3-from-an-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Driving MiniMax-H3 From An Application
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Driving MiniMax-H3 From An Application">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-much-memory-a-length-needs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How much memory a length needs
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Python
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adapters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adapters
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Limits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#contact-sheets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contact Sheets
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="minimax-h3-video-with-audio">MiniMax-H3 Video With Audio<a class="headerlink" href="#minimax-h3-video-with-audio" title="Permanent link">&para;</a></h1>
+<p>MLX-Gen runs <a href="https://huggingface.co/MiniMaxAI/MiniMax-H3">MiniMax-H3</a> natively on Apple Silicon:
+one text prompt produces a 24 fps video clip <strong>and</strong> a synchronized stereo soundtrack, saved as a
+single MP4 with an AAC audio track. The lightx2v <a href="https://huggingface.co/lightx2v/Minimax-h3-Turbo">Turbo</a>
+adapters run the same model in 8 transformer evaluations instead of 50, which is the practical
+way to use it locally. Use this page for setup, prompting, sizing, runtime cost, and current
+limits; use <a href="../api/#minimax-h3-video-with-audio">API and CLI</a> for the option table.</p>
+<h2 id="what-you-get">What You Get<a class="headerlink" href="#what-you-get" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Text-to-video with audio</strong> (<code>text-to-video</code> public task): 5 to 15 seconds at 24 fps, stereo
+  audio at 32 kHz, any aspect ratio between 1:4 and 4:1 on a 32-pixel grid.</li>
+<li><strong>Image-to-video with audio</strong> (<code>image-to-video</code> public task, <code>--image-path</code>): the clip starts from
+  your keyframe. The canvas follows the keyframe's aspect ratio at the entry's short edge unless you pass
+  <code>--width</code>/<code>--height</code>, the keyframe is stretched onto that canvas, and it conditions both the latent
+  rows and the text sequence (through the Qwen3-VL vision tower), exactly as the reference pipeline does.</li>
+<li><strong>One soundtrack covering three kinds of sound</strong>: ambient and diegetic sound, a score, and spoken
+  dialogue with the speaker's mouth animated to match. See <a href="#prompting">Prompting</a>.</li>
+<li><strong>Three catalog entries</strong> that share the same weights and differ only in speed defaults:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Alias</th>
+<th>What it runs</th>
+<th>Default canvas</th>
+<th>Default steps</th>
+<th>Flow shifts (video / audio)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>minimax-h3</code></td>
+<td>Base model, no adapter</td>
+<td><code>1344x768</code></td>
+<td><code>50</code></td>
+<td><code>12</code> / <code>3</code></td>
+</tr>
+<tr>
+<td><code>minimax-h3-turbo</code></td>
+<td>lightx2v 8-step Turbo adapter trained at 768p</td>
+<td><code>1344x768</code></td>
+<td><code>8</code></td>
+<td><code>6</code> / <code>3</code></td>
+</tr>
+<tr>
+<td><code>minimax-h3-turbo-544p</code></td>
+<td>lightx2v 8-step Turbo adapter trained at 544p, mixed aspect ratios</td>
+<td><code>960x544</code></td>
+<td><code>8</code></td>
+<td><code>12</code> / <code>3</code></td>
+</tr>
+</tbody>
+</table>
+<p>The <code>--steps</code> value counts transformer evaluations; the schedulers use one more grid point
+internally. All three entries resolve to the <code>MiniMaxAI/MiniMax-H3</code> repository and the Turbo
+entries add their adapter automatically.</p>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<p>MiniMax-H3 is large: a 27B-parameter transformer, a 32B-parameter Qwen3-VL conditioner (of which
+MLX-Gen loads the 50 layers the model conditions on), a 2.4B-parameter video VAE and an audio VAE.</p>
+<table>
+<thead>
+<tr>
+<th>Resource</th>
+<th>Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Disk</td>
+<td>About 140 GB for the model snapshot (<code>transformer/</code>, <code>text_encoder/</code>, <code>vae/</code>, <code>audio_vae/</code>, tokenizer and configs) plus 1.4 GB per Turbo adapter.</td>
+</tr>
+<tr>
+<td>Memory</td>
+<td><code>--quantize 8</code> is required on a 128 GB Mac, not an optional saving: unquantized the weights are 125 GiB resident, which is 97% of the machine before a single activation. The runtime refuses such a load with an explanatory error rather than letting the OS kill it. At q8 the measured <code>960x544</code>, 124-frame Turbo run peaks at 80.5 GiB of MLX memory inside an 88.2 GiB process footprint on an Apple M5 Max, and <code>1344x768</code> at 84.8 GiB inside 92.9 GiB. The MLX free-buffer cache is capped at the process default of up to 8 GiB; <code>--mlx-cache-limit-gb</code> changes it.</td>
+</tr>
+<tr>
+<td>Download</td>
+<td><code>mlxgen download --model minimax-h3-turbo-544p</code> fetches the snapshot subset MLX-Gen needs and the matching Turbo adapter. Generation never downloads.</td>
+</tr>
+</tbody>
+</table>
+<p><code>--quantize 8</code> quantizes the transformer and conditioner at load time, one shard at a time, so
+the load never holds a full BF16 copy next to the q8 copy. The first load reads 133 GB of shards
+from disk (about 4.5 minutes on the reference machine); repeated loads from the OS page cache
+take about 16 seconds.</p>
+<h3 id="prepared-package">Prepared Package<a class="headerlink" href="#prepared-package" title="Permanent link">&para;</a></h3>
+<p><code>mlxgen prepare</code> writes the quantized model once so later runs skip the 133 GB read and the
+quantization pass:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>minimax-h3<span class="w"> </span>--quantize<span class="w"> </span><span class="m">8</span><span class="w"> </span>--path<span class="w"> </span>models/minimax-h3-8bit
+</code></pre></div>
+<p>The package is 75 GB (44 GB transformer, 26 GB conditioner including the vision tower, 5.5 GB for
+the two VAEs, plus tokenizer and configs). It stores the mixed policy MLX-Gen uses for this model:
+the attention and feed-forward linears of the transformer and the conditioner at q8, the fp32 heads,
+timestep MLP and AdaLN modulation projections at their source precision. Prepare from the base entry
+so the package carries no adapter, then pick the schedule with <code>--base-model</code>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>models/minimax-h3-8bit<span class="w"> </span>--base-model<span class="w"> </span>minimax-h3-turbo-544p<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"..."</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--output<span class="w"> </span>fox.mp4
+</code></pre></div>
+<p><code>--base-model minimax-h3-turbo-544p</code> (or <code>minimax-h3-turbo</code>) applies that entry's defaults and
+attaches its Turbo adapter on top of the stored weights; omit it for the base 50-step schedule. Do
+not pass <code>--quantize</code> when loading a prepared package. The package loads shard by shard like the
+Hugging Face snapshot, so its load-time memory is the 75 GB of stored weights, not a second copy, and
+a page-cached package loads in seconds. The stored weights are the load-time quantization: the fox
+clip below generated from the package with the same seed is byte-identical to the <code>--quantize 8</code> clip
+from the snapshot (all 124 frames and the soundtrack), at the same 80 GB MLX peak and an 88 GB
+process footprint.</p>
+<h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>minimax-h3-turbo-544p
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>minimax-h3-turbo-544p<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"[Shot 1] Cinematic medium shot, static camera, shallow depth of field. A red fox trots through fresh powder snow in a quiet birch forest at dawn; its breath steams in the cold blue light. Halfway through the clip it stops, ears twitching toward the camera, then bounds forward, kicking up a spray of snow that catches the low sun."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--soundscape<span class="w"> </span><span class="s2">"Soft rhythmic crunch of paws in dry snow, a faint steady wind through bare branches, and two distant crow caws near the end."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--music<span class="w"> </span><span class="s2">"Sparse, gentle piano notes with long reverb, slow tempo, contemplative and cold."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--quantize<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>fox.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--metadata
+</code></pre></div>
+<p>The command writes <code>fox.mp4</code> (124 frames, <code>960x544</code>, 24 fps, stereo AAC) and <code>fox.metadata.json</code>.
+Switch to <code>--model minimax-h3-turbo</code> for the 768p adapter and canvas, or to <code>--model minimax-h3</code>
+with <code>--steps 50</code> for the base schedule.</p>
+<p>To start from an image, add <code>--image-path</code> and describe what happens next; the first frame reproduces
+the picture and the motion follows the prompt:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>minimax-h3-turbo-544p<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image-path<span class="w"> </span>keyframe.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Starting from the pictured red fox in the snow, the fox turns its head toward the camera, then trots forward through the powder."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--soundscape<span class="w"> </span><span class="s2">"Soft crunch of paws in dry snow, faint wind."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--music<span class="w"> </span><span class="s2">"Sparse piano, slow tempo."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--quantize<span class="w"> </span><span class="m">8</span><span class="w"> </span>--output<span class="w"> </span>fox_i2v.mp4<span class="w"> </span>--metadata
+</code></pre></div>
+<h2 id="prompting">Prompting<a class="headerlink" href="#prompting" title="Permanent link">&para;</a></h2>
+<p>MiniMax-H3 is trained on a structured prompt with three labelled sections separated by blank
+lines:</p>
+<div class="highlight"><pre><span></span><code>integrated_multimodal_description: &lt;what happens on screen, shot by shot&gt;
+
+overall_soundscape: &lt;diegetic sound: what the scene itself sounds like&gt;
+
+non_diegetic_music: &lt;score, or "No non-diegetic music; natural sound only."&gt;
+</code></pre></div>
+<p><code>--prompt</code> fills the first section, <code>--soundscape</code> the second, and <code>--music</code> the third. A prompt
+that already contains the section labels (for example one written with MiniMax's
+<a href="https://github.com/MiniMax-AI/MiniMax-H3/tree/main/docs">prompting guides</a>) is passed through
+verbatim, so <code>--prompt-file</code> works for complete structured prompts. The prompt is tokenized as-is,
+without a chat template or special tokens; it may be long, and detailed shot descriptions help.</p>
+<p>Describe motion with timing ("halfway through the clip"), name the sounds you expect on impact
+events, and state when a shot has no score. The model is guidance-distilled: there is no negative
+prompt and no guidance scale.</p>
+<p>The three kinds of sound each have a place in the prompt:</p>
+<ul>
+<li><strong>Ambient and diegetic sound</strong> goes in <code>overall_soundscape</code> (<code>--soundscape</code>): room tone, weather,
+  footsteps, engines, birds, impacts.</li>
+<li><strong>Music</strong> goes in <code>non_diegetic_music</code> (<code>--music</code>), or write "No non-diegetic music; natural sound
+  only." for silence; music that plays inside the scene (a busker, a radio) belongs in the soundscape.</li>
+<li><strong>Speech</strong> is written into the description with a speaker id and a dialogue tag:
+  <code>The woman with a warm mid-pitched voice (S1) says: &lt;d&gt;[English] Good morning!&lt;/d&gt;</code>. Give each
+  speaker a stable <code>(S1)</code>, <code>(S2)</code> id and enough identity for a voice (age, gender, pitch, pace); keep
+  only the language tag and the exact words inside <code>&lt;d&gt;</code>. For narration use the phrase
+  <code>says in an off-screen voiceover</code> and add that the on-screen lips stay closed. MiniMax lists 11
+  stably supported dialogue languages (Arabic, Chinese, English, French, German, Italian, Japanese,
+  Korean, Portuguese, Russian, Spanish). <code>&lt;d&gt;</code>, <code>&lt;/d&gt;</code>, <code>&lt;|cutoff|&gt;</code> and the lyric and caption markers
+  are dedicated tokens of the model's vocabulary; MLX-Gen tokenizes them exactly as the reference does.</li>
+</ul>
+<h2 id="image-to-video">Image-To-Video<a class="headerlink" href="#image-to-video" title="Permanent link">&para;</a></h2>
+<p><code>--image-path</code> selects MiniMax-H3's first-frame mode. The keyframe defines the canvas: its aspect
+ratio is mapped onto the entry's geometry (768-pixel short edge for <code>minimax-h3</code> and
+<code>minimax-h3-turbo</code>, 544 for <code>minimax-h3-turbo-544p</code>, capped at the entry's pixel budget) on the
+32-pixel grid, and the image is stretched onto that canvas. Pass <code>--width</code>/<code>--height</code> to force a
+different canvas; the keyframe is stretched to it. A 16:9 keyframe gives <code>960x544</code> on the 544p
+entry, a square one <code>544x544</code>.</p>
+<p>The keyframe reaches the model twice: as noise-augmented condition latents pinned at the start of
+the clip, and as a <code>&lt;Picture 1&gt;</code> vision block in the text sequence, so the prompt should describe
+the <em>motion</em> that follows ("the fox turns, then trots forward") rather than re-describe the picture.
+The soundtrack is generated as in text-to-video. Metadata records <code>task: image-to-video</code>, the
+source image path and size, and the resolved canvas. A second, closing keyframe (the reference's
+<code>last_image</code>) is not exposed yet.</p>
+<p>Motion prompts for still keyframes work best when they describe one continuous action and its end
+state: "lifts straight up in one smooth, continuous motion, never touching the ground again, and
+leaves through the top of the frame" produced a complete takeoff, while "lifts off slowly, hovers for
+a moment, then climbs" on the same seed produced a late, partial ascent. Name the parts of the subject
+that must stay as they are ("the same fixed landing legs, no wheels"), give the soundscape a
+continuous character ("a deep, steady engine roar that builds and then fades") and exclude what you
+do not want ("no crackling, no buzzing"). The 544p adapter was trained on <code>960x544</code>-class canvases: a
+16:9 keyframe lands on its native canvas, while a square keyframe gives <code>544x544</code> and still works,
+as the takeoff sheet below shows; a portrait keyframe gives a portrait canvas. First-person prompts
+work too: the room walkthrough below walks, sits, opens a laptop and turns to a window from one
+painted keyframe. Describe object manipulation as one motion about a fixed pivot ("lifts its lid in
+one slow, continuous rotation about the hinge at the back") and keep the object anchored ("which stays
+in place on the table"); fast hand-object interaction is where the 8-step adapter is least reliable.
+See the starship, takeoff and room entries under <a href="#contact-sheets">Contact Sheets</a> for the complete
+prompts.</p>
+<h2 id="sizing-and-duration">Sizing And Duration<a class="headerlink" href="#sizing-and-duration" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Frames follow the video VAE's <code>17n + 5</code> rule, and <code>--frames</code> rounds up to the next valid count,
+  warning when it does. There are fourteen accepted counts, <code>124</code> (5.17 s) through <code>345</code> (14.375 s):
+  <code>124, 141, 158, 175, 192, 209, 226, 243, 260, 277, 294, 311, 328, 345</code>. The duration ceiling
+  applies to the rounded count, so <code>346</code> and above are rejected rather than rounded to <code>362</code>. The
+  metadata records both <code>frames</code> and the <code>requested_frames</code> you asked for.</li>
+<li>Width and height must be multiples of 32. The default 16:9 canvas is <code>1344x768</code>; the 544p
+  adapter defaults to <code>960x544</code>. Portrait and square canvases follow the same 768-pixel short edge
+  (<code>768x1344</code>, <code>768x768</code>) when you omit the size.</li>
+<li>Audio length follows the video: 40 audio latents per second, trimmed to the clip duration.</li>
+</ul>
+<h2 id="measured-runtime">Measured Runtime<a class="headerlink" href="#measured-runtime" title="Permanent link">&para;</a></h2>
+<p>Apple M5 Max, 128 GB, <code>--quantize 8</code>, 124 frames, MLX 0.31:</p>
+<table>
+<thead>
+<tr>
+<th>Route</th>
+<th>Canvas</th>
+<th>Steps</th>
+<th><code>generate_video</code> wall time (denoise + both decodes)</th>
+<th>Peak MLX memory</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>minimax-h3-turbo-544p</code></td>
+<td><code>960x544</code></td>
+<td>8</td>
+<td>11 to 17 min per clip (650 to 1011 s over eight clips; a fresh process is fastest, later clips in one process run slower as the machine warms up)</td>
+<td>80 GB</td>
+</tr>
+<tr>
+<td><code>minimax-h3</code> (base)</td>
+<td><code>960x544</code></td>
+<td>50</td>
+<td>62 min (3741 s)</td>
+<td>79 GB</td>
+</tr>
+<tr>
+<td><code>minimax-h3-turbo</code></td>
+<td><code>1344x768</code></td>
+<td>8</td>
+<td>34 min (2035 s; about 4.2 min per transformer evaluation)</td>
+<td>85 GB</td>
+</tr>
+</tbody>
+</table>
+<p>Loading is separate: the first load after a download reads 133 GB of shards (about 4.5 min), and
+a warm page cache brings that down to about 16 s. The 768p step is dominated by attention over a
+37,800-row packed sequence; the 544p canvas is the practical iteration setting on Apple Silicon
+today, and the 768p canvas is the quality setting for a final render.</p>
+<p>For scale, the same fox description through Wan2.2 TI2V-5B (q8, <code>832x480</code>, 121 frames at 24 fps,
+50 steps, silent) took 23 min on the same machine at a 25 GB MLX peak; its sheet is included below.</p>
+<h2 id="output-contract">Output Contract<a class="headerlink" href="#output-contract" title="Permanent link">&para;</a></h2>
+<ul>
+<li>The MP4 carries the video stream plus one stereo AAC track (32 kHz, 192 kb/s). Pass
+  <code>--no-audio</code> to skip the audio decode and write a silent clip.</li>
+<li>If the audio cannot be muxed (no <code>ffmpeg</code> on <code>PATH</code> and the PyAV fallback fails), the video is
+  still written and the track is saved next to it as <code>&lt;output&gt;.wav</code>; the metadata records why.</li>
+<li>Metadata records <code>steps</code> (transformer evaluations, as passed to <code>--steps</code>), <code>video_shift</code>, <code>audio_shift</code>,
+  <code>num_inference_steps</code> (the scheduler grid, one more than <code>steps</code>), <code>text_tokens</code>,
+  <code>duration_seconds</code>, <code>frames</code> and <code>requested_frames</code>, and the <code>audio_*</code> fields (<code>audio_present</code>,
+  <code>audio_source: "generated"</code>, <code>audio_channels</code>, <code>audio_sample_rate</code>, <code>audio_duration_seconds</code>,
+  <code>audio_muxed</code>, <code>audio_codec</code>, <code>audio_mux_mode</code>).</li>
+</ul>
+<h2 id="driving-minimax-h3-from-an-application">Driving MiniMax-H3 From An Application<a class="headerlink" href="#driving-minimax-h3-from-an-application" title="Permanent link">&para;</a></h2>
+<p><code>mlxgen capabilities --model minimax-h3-turbo-544p</code> returns everything an application needs to build
+controls for this model without hardcoding its name. Both rows, <code>minimax-h3.text-video</code> and
+<code>minimax-h3.first-frame</code>, publish:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value on the 544p entry</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>generates_audio</code>, <code>audio_channels</code>, <code>audio_sample_rate</code></td>
+<td><code>true</code>, <code>2</code>, <code>32000</code> — this route composes a soundtrack with the picture, which is different from a restoration row's <code>supports_audio_passthrough</code></td>
+</tr>
+<tr>
+<td><code>prompt_sections</code></td>
+<td>One descriptor per structured section, carrying its <code>key</code>, the engine's literal <code>label</code>, the <code>option</code> and <code>parameter</code> that fill it, its <code>role</code> and whether it is <code>required</code></td>
+</tr>
+<tr>
+<td><code>min_frames</code>, <code>max_frames</code>, <code>frame_multiple</code>, <code>frame_remainder</code>, <code>frame_rounding</code></td>
+<td><code>124</code>, <code>345</code>, <code>17</code>, <code>5</code>, <code>"up"</code></td>
+</tr>
+<tr>
+<td><code>output_fps</code></td>
+<td><code>24.0</code> — <code>supports_fps: false</code> only says you may not choose a rate</td>
+</tr>
+<tr>
+<td><code>default_steps</code>, <code>default_width</code>, <code>default_height</code>, <code>default_frames</code></td>
+<td><code>8</code>, <code>960</code>, <code>544</code>, <code>124</code></td>
+</tr>
+<tr>
+<td><code>default_flow_shift</code>, <code>default_audio_shift</code></td>
+<td><code>12.0</code>, <code>3.0</code></td>
+</tr>
+<tr>
+<td><code>supports_flow_shift</code>, <code>supports_audio_shift</code>, <code>supports_text_encoder_release</code></td>
+<td><code>true</code></td>
+</tr>
+<tr>
+<td><code>flow_shift_option</code>, <code>flow_shift_parameter</code></td>
+<td><code>"--video-shift"</code>, <code>"video_shift"</code> — the same control Wan spells <code>--flow-shift</code>, so read the spelling off the row rather than keeping a per-family table</td>
+</tr>
+<tr>
+<td><code>weight_precision</code>, <code>unquantized_weights_bytes</code>, <code>recommended_quantize</code>, <code>validated_quantization_bits</code></td>
+<td><code>"bf16"</code>, <code>134200000000</code>, <code>8</code>, <code>[8]</code></td>
+</tr>
+<tr>
+<td><code>measured_runs</code></td>
+<td>Three measured runs with their outcomes and conditions, including one the OS killed</td>
+</tr>
+<tr>
+<td><code>max_validated_frames</code>, <code>peak_bytes_fixed</code>, <code>peak_bytes_per_packed_row</code></td>
+<td><code>124</code>, and the measured line through those runs</td>
+</tr>
+<tr>
+<td><code>supports_guidance</code>, <code>supports_negative_prompt</code></td>
+<td><code>false</code>, <code>false</code> — published separately because they are independent properties</td>
+</tr>
+</tbody>
+</table>
+<p>Each catalog entry publishes its own label and defaults, so <code>minimax-h3-turbo</code> (<code>1344x768</code>) and
+<code>minimax-h3-turbo-544p</code> (<code>960x544</code>) are distinguishable in a model list. The fields arrived in
+capability <code>schema_version</code> 13 and are additive, so an application can gate on
+<code>schema_version &gt;= 13</code>.</p>
+<p>Use <code>prompt_sections[].label</code> to detect a section a prompt already carries: pairing such a prompt
+with the option that fills the same section is refused, since it would send the model two of that
+section.</p>
+<h3 id="how-much-memory-a-length-needs">How much memory a length needs<a class="headerlink" href="#how-much-memory-a-length-needs" title="Permanent link">&para;</a></h3>
+<p>Peak memory follows the packed sequence length, which is a deterministic function of canvas and frame
+count. It is not two separate axes: a 243-frame <code>960x544</code> request and a 124-frame <code>1344x768</code> request
+differ by 0.5% in packed rows and were measured at the same MLX peak. Expected footprint is roughly what is already
+resident, plus the MLX cache as it fills, plus <code>peak_bytes_per_packed_row x rows</code>.</p>
+<p>That is an estimate of bytes, not a promise that a run fits. The 243-frame request above was killed
+by the OS at a footprint of at least 92.7 GiB, four denoise steps in, on a 128 GiB machine at
+recommended settings, because another application held 7.5 GiB. The same request on an otherwise idle
+machine has room. <code>max_frames</code> is the decode grid, which holds anywhere; <code>max_validated_frames</code> says
+how far the measurements go. Before a long run the runtime estimates the peak, refuses what cannot fit
+at all, and warns when a request is close enough that other resident processes decide the outcome.</p>
+<p>The largest lever is the cache limit, not the canvas: the same configuration measured under a raised
+<code>--mlx-cache-limit-gb</code> came out 16.8 GB higher, over three times the difference between <code>960x544</code> and
+<code>1344x768</code>. Low-RAM mode tightens that cache, and an explicit <code>--mlx-cache-limit-gb</code> overrides the
+tightening; the runtime says so on stderr when it happens.</p>
+<p>Sizes are bytes rather than GB so that no consumer has to guess which unit is meant; the weight
+figure is 134.2 GB, which is 125 GiB, and on a 128 GiB machine that difference decides whether a run
+starts. Compare <code>unquantized_weights_bytes</code> against your own memory to decide whether you can skip
+quantization: a larger machine runs this model unquantized. <code>measured_peak</code> carries the conditions it
+was measured under because the peak scales with the canvas and the frame count; a longer clip on the
+same entry costs more than the published figure.</p>
+<p><code>supports_text_encoder_release</code> lowers the peak during denoising, not during loading. The conditioner
+loads first and stays resident while the transformer loads, so it cannot reduce the load-time peak,
+which is the larger of the two on this model.</p>
+<h2 id="python">Python<a class="headerlink" href="#python" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.common.config</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.minimax_h3.variants</span><span class="w"> </span><span class="kn">import</span> <span class="n">MiniMaxH3</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">MiniMaxH3</span><span class="p">(</span><span class="n">model_config</span><span class="o">=</span><span class="n">ModelConfig</span><span class="o">.</span><span class="n">minimax_h3_turbo_544p</span><span class="p">(),</span> <span class="n">quantize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">video</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_video</span><span class="p">(</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="o">=</span><span class="s2">"A red fox trots through fresh snow in a birch forest at dawn."</span><span class="p">,</span>
+    <span class="n">soundscape</span><span class="o">=</span><span class="s2">"Soft crunch of paws in dry snow, faint wind, two distant crow caws."</span><span class="p">,</span>
+    <span class="n">music</span><span class="o">=</span><span class="s2">"Sparse piano, slow tempo."</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">"fox.mp4"</span><span class="p">,</span> <span class="n">export_json_metadata</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">waveform</span><span class="p">,</span> <span class="n">rate</span> <span class="o">=</span> <span class="n">video</span><span class="o">.</span><span class="n">audio</span><span class="o">.</span><span class="n">waveform</span><span class="p">,</span> <span class="n">video</span><span class="o">.</span><span class="n">audio</span><span class="o">.</span><span class="n">sample_rate</span>  <span class="c1"># (2, samples) float32, 32000</span>
+</code></pre></div>
+<p><code>generate_video</code> also accepts <code>image_path</code> (first-frame image-to-video), <code>width</code>, <code>height</code>,
+<code>num_frames</code>, <code>num_inference_steps</code>, <code>video_shift</code>, <code>audio_shift</code>, <code>generate_audio</code>,
+<code>release_text_encoder</code>, and <code>progress_callback</code>. Progress phases are <code>start</code>, <code>denoise</code> once per
+transformer evaluation, <code>decode</code>, and <code>generated</code>; the CLI adds <code>save</code> and a final <code>complete</code> once
+the file is written and the soundtrack muxed. Every event also reaches the model's registry, so
+<code>model.callbacks.subscribe_progress(...)</code> sees the whole run. The unified runtime resolves
+<code>--model minimax-h3*</code> to this class through <code>load_generation_model(...)</code>. A prepared package loads with
+<code>MiniMaxH3(model_config=ModelConfig.from_name("models/minimax-h3-8bit", base_model="minimax-h3-turbo-544p"), model_path="models/minimax-h3-8bit")</code>
+and no <code>quantize</code> argument.</p>
+<h2 id="adapters">Adapters<a class="headerlink" href="#adapters" title="Permanent link">&para;</a></h2>
+<p>The Turbo entries load their lightx2v adapter from <code>lightx2v/Minimax-h3-Turbo</code> with the effective
+scale the adapter was trained with (alpha 8 at rank 128). Pass your own <code>--lora-paths</code> to replace
+the automatic adapter: the list you pass is the complete list, so a style or character adapter on a
+Turbo entry goes together with the Turbo file (the adapters stack on the same layers). The 4-step
+768p Turbo adapter (<code>minimax_h3_fl2v_turbo_4step_v1.2_768p_bf16.safetensors</code>) works with
+<code>--steps 4 --video-shift 6</code>.</p>
+<p>Steps per adapter, from the lightx2v model specifications: the 544p 8-step adapter (the
+<code>minimax-h3-turbo-544p</code> entry) is distilled at 8 evaluations and recommended at 8 or 4; the 768p
+8-step adapter (<code>minimax-h3-turbo</code>) at 8 only; the dedicated 4-step adapters (v0.1 at 544p, v1.0 to
+v1.2 at 768p) at 4. Eight evaluations is the setting every included clip uses and the one the
+lightx2v Studio runs; four halves the denoise time and is the draft setting, which community
+reports describe as softer on detail and weaker on fast motion. MLX-Gen steps the video and audio
+streams on their own shifts, as the reference does, so the soundtrack keeps its schedule at any
+step count. Measured on the same seed and prompt at <code>640x352</code> (the
+<a href="#contact-sheets">step-count sheet</a> below): the 544p 8-step adapter at 4 steps keeps the staging of
+its 8-step clip and finishes in a third of the time, the 4-step v1.2 adapter at 4 steps renders a
+brighter, more saturated take of the same scene, and running that adapter at 8 steps changes little.
+The dedicated 4-step adapter needs <code>--video-shift 6</code>; the 8-step adapter keeps the entry's 12:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>minimax-h3-turbo-544p<span class="w"> </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span>--prompt<span class="w"> </span><span class="s2">"..."</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--output<span class="w"> </span>draft.mp4
+mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>minimax-h3-turbo-544p<span class="w"> </span>--steps<span class="w"> </span><span class="m">4</span><span class="w"> </span>--video-shift<span class="w"> </span><span class="m">6</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span><span class="s2">"hf:lightx2v/Minimax-h3-Turbo/minimax_h3_fl2v_turbo_4step_v1.2_768p_bf16.safetensors"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"..."</span><span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--output<span class="w"> </span>draft.mp4
+</code></pre></div>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>models/minimax-h3-8bit<span class="w"> </span>--base-model<span class="w"> </span>minimax-h3-turbo-544p<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Skeletor stands in a torch-lit stone throne room and raises his staff."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span><span class="s2">"hf:lightx2v/Minimax-h3-Turbo/minimax_h3_fl2v_turbo_8step_v1.0_bf16.safetensors"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">               </span>loras/H3_Skeletor_1.4.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span>--output<span class="w"> </span>skeletor.mp4
+</code></pre></div>
+<p>Two key layouts load. PEFT adapters over the diffusers module names (<code>transformer_blocks.N.attn.to_q</code>,
+<code>ff.net.0.proj</code>, <code>ff.net.2</code>, the token refiner) are what lightx2v publishes. Community adapters
+(civitai, ai-toolkit, the reference <code>generate.py</code>, ComfyUI, kohya and musubi-tuner) are trained
+against the original checkpoint's names (<code>blocks.N.attn.qkv_proj</code>, <code>attn.out_proj</code>, <code>mlp.fc1</code>,
+<code>mlp.fc2</code>, <code>token_refiner.blocks.N</code>, the <code>final_layer</code> and patch projections), with or without a
+<code>diffusion_model.</code> prefix, in PEFT (<code>lora_A</code>/<code>lora_B</code>) or kohya (<code>lora_down</code>/<code>lora_up</code> plus
+<code>.alpha</code>) naming, and in musubi-tuner's flattened <code>lora_unet_</code> form. The runtime maps them onto
+our modules the way the diffusers converter does: the fused QKV shares one <code>lora_A</code> and splits
+<code>lora_B</code> into <code>to_q</code>/<code>to_k</code>/<code>to_v</code> row thirds, and <code>fc1</code>'s <code>[gate; value]</code> halves swap to our
+SwiGLU's <code>[value; gate]</code>. Scale follows the file: PEFT metadata <code>alpha</code> gives <code>alpha / rank</code>,
+kohya <code>.alpha</code> tensors are folded per module, and a PEFT file with neither (how ai-toolkit exports)
+runs at <code>alpha == rank</code>, the same as ComfyUI and diffusers. The one layout refused is
+DiffSynth-Studio's (<code>.lora_A.default.</code> over <code>attn.qkv_proj</code>), whose fused QKV rows keep the raw
+checkpoint's per-head interleaving; loading it silently would apply the rows in the wrong order.
+Every metadata export lists the adapter files, their scales and the matched / unmatched key
+counts (<code>lora_application_reports</code>).</p>
+<h2 id="current-limits">Current Limits<a class="headerlink" href="#current-limits" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Reference-to-video (Ref2VA) and the closing keyframe (<code>last_image</code>) are not available yet.</strong>
+  Text-to-video and first-frame image-to-video are.</li>
+<li>No published MLX-Gen package yet: <code>--quantize 8</code> quantizes at load time, or <code>mlxgen prepare</code> writes a
+  local 75 GB package (see <a href="#prepared-package">Prepared Package</a>).</li>
+<li>The 768p canvas is slow on Apple Silicon (about 5 minutes per step); use the 544p adapter to
+  iterate.</li>
+<li>MiniMax-H3 is released under the MiniMax H3 Community License, which restricts use in some
+  territories. Read the license on the model card before you download or distribute weights or
+  outputs.</li>
+</ul>
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">&para;</a></h2>
+<p>Every component is a direct port of the diffusers 0.40 reference implementation and was checked
+against it with real weights: the packed layout and per-row timestep plan are bit-exact, the
+rectified-flow schedules match <code>torch.linspace</code> bit-for-bit on 600 grids, the transformer
+(one real block), the Qwen3-VL conditioner (text and image-conditioned: vision tower, image
+processor, 3-axis rope index and DeepStack injection), the video VAE encoder/decoder and the audio
+VAE encoder/decoder all match at fp32 rounding noise, and the q8 transformer block stays within
+1.3e-2 relative RMS of the fp32 reference. The included contact sheets below are the model-backed
+proof for the shipped routes.</p>
+<h2 id="contact-sheets">Contact Sheets<a class="headerlink" href="#contact-sheets" title="Permanent link">&para;</a></h2>
+<p>Each sheet shows eight evenly spaced frames of one clip with the generated track's waveform and
+spectrogram on the right; the MP4 next to each sheet in <code>docs/assets/minimax-h3/</code> is the playable
+proof, and the <code>prompt_*.txt</code> files hold the complete structured prompts. Unless a row says
+otherwise: <code>minimax-h3-turbo-544p</code>, <code>960x544</code>, 124 frames, 8 steps, <code>--quantize 8</code>, seed 42, Apple
+M5 Max.</p>
+<p><strong>Fox, seed 42</strong> (<a href="../assets/minimax-h3/fox_turbo544_q8_seed42.mp4">clip</a>,
+<a href="../assets/minimax-h3/prompt_fox.txt">prompt</a>): the backlit fox walks straight toward the camera down
+a snowy forest path, stops and faces it halfway through as the prompt asks, then bounds forward
+kicking up snow; the very quiet track (about -49 dBFS RMS, peaks at -31 dBFS) carries the paw
+crunches and the sparse piano notes under a faint wind.</p>
+<p><img alt="Fox seed 42" src="../assets/minimax-h3/sheet_fox_turbo544_q8_seed42.jpg" /></p>
+<p><strong>Fox, seed 43</strong> (<a href="../assets/minimax-h3/fox_turbo544_q8_seed43.mp4">clip</a>): a different fox and
+framing from the same prompt, walking out of the birch shadows into the low sun and breaking into a
+run at the end; a quiet track (-43 dBFS RMS) with the paw crunches and piano notes spaced along it.</p>
+<p><img alt="Fox seed 43" src="../assets/minimax-h3/sheet_fox_turbo544_q8_seed43.jpg" /></p>
+<p><strong>Turbo versus base, seed 42</strong> (<a href="../assets/minimax-h3/fox_base544_q8_seed42.mp4">base clip</a>): the same
+prompt and seed through the 8-step 544p adapter (top, 17 min in a long-running process) and the
+50-step base schedule at the same canvas (bottom, 62 min). Both stage the prompt: the fox approaches
+down the forest path, pauses facing the camera, then bounds forward through the powder. The base
+schedule keeps the fox smaller and deeper in the birch shadows with steadier motion and a similarly
+quiet track (-44 dBFS RMS); the adapter frames it closer and brighter. The base entry remains the
+reference schedule for the 768p canvas it was released with; for 544p iteration the adapter is the
+faster choice at comparable fidelity.</p>
+<p><img alt="Turbo versus base" src="../assets/minimax-h3/sheet_fox_turbo_vs_base_544.jpg" /></p>
+<p><strong>Fox image-to-video, seed 42</strong> (<a href="../assets/minimax-h3/fox_i2v_turbo544_q8_seed42.mp4">clip</a>,
+<a href="../assets/minimax-h3/keyframe_fox.png">keyframe</a>, <a href="../assets/minimax-h3/prompt_fox_i2v.txt">prompt</a>):
+the first frame of the 768p fox clip as keyframe through <code>minimax-h3-turbo-544p</code>. Frame 0 reproduces
+the keyframe at PSNR 32.3 dB, the fox then looks at the camera and trots to the right with the camera
+following, and the quiet track (-26.9 dBFS RMS) carries the paw crunches under the sparse piano the
+prompt asks for; 14.8 min for 8 steps and both decodes in a long-running process, 86 GB MLX peak. The
+sheet's first tile is the keyframe.</p>
+<p><img alt="Fox image-to-video" src="../assets/minimax-h3/sheet_fox_i2v_turbo544_q8_seed42.jpg" /></p>
+<p><strong>Starship image-to-video, seed 42</strong> (<a href="../assets/minimax-h3/starship_i2v_turbo544_q8_seed42.mp4">clip</a>,
+<a href="../assets/examples/spaceship-snow/01_t2i_spaceship_snow.png">keyframe</a>,
+<a href="../assets/minimax-h3/prompt_starship_i2v.txt">prompt</a>): the repository's <code>768x432</code> spaceship-on-snow
+image on the 544p entry's native <code>960x544</code> canvas. Frame 0 reproduces the keyframe at PSNR 29.4 dB;
+the hull, the two side engine pods, the red antenna and the landing legs stay intact while the
+engines light up, a ring of ice dust spreads under the hull, the craft rises straight out of the top
+of the frame and the dust settles on the empty plain. The track is a continuous low engine roar
+(more than 80% of its energy below 200 Hz in every half second, -10.8 dBFS RMS) that builds with the
+liftoff and fades as the craft leaves. 15.5 min for 8 steps and both decodes in a long-running
+process (10.8 min in a fresh one).</p>
+<p><img alt="Starship image-to-video" src="../assets/minimax-h3/sheet_starship_i2v_turbo544_q8_seed42.jpg" /></p>
+<p><strong>Spaceship takeoff image-to-video, seed 42</strong> (<a href="../assets/minimax-h3/takeoff_i2v_turbo544_q8_seed42.mp4">clip</a>,
+<a href="../assets/i2v_takeoff_source.png">keyframe</a>, <a href="../assets/minimax-h3/prompt_takeoff_i2v.txt">prompt</a>): the
+repository's square <code>512x512</code> cargo-ship image gives a <code>544x544</code> canvas on the 544p entry. The ship
+keeps its shape and landing struts, lifts off in one continuous motion with a snow ring beneath it,
+leaves through the top of the frame and the blown snow settles on the empty field; the engine
+rumble builds from -21 to -14 dBFS RMS and fades with the climb, and the motion/audio-energy
+correlation peaks at 0.71. 5.8 min for 8 steps and both decodes. Frame 0 matches the stretched
+keyframe at PSNR 26.5 dB (the source carries film grain).</p>
+<p><img alt="Spaceship takeoff image-to-video" src="../assets/minimax-h3/sheet_takeoff_i2v_turbo544_q8_seed42.jpg" /></p>
+<p>The same keyframe, prompt and seed through <code>minimax-h3-turbo</code> (<a href="../assets/minimax-h3/takeoff_i2v_turbo768_q8_seed42.mp4">clip</a>)
+lands on a <code>768x768</code> canvas: the same continuous liftoff with sharper hull plating, portholes and
+struts (frame 0 at PSNR 29.3 dB), a -19 dBFS RMS engine track, 17.3 min for 8 steps and both
+decodes, 88 GB process footprint.</p>
+<p><img alt="Spaceship takeoff image-to-video at 768p" src="../assets/minimax-h3/sheet_takeoff_i2v_turbo768_q8_seed42.jpg" /></p>
+<p><strong>Room walkthrough image-to-video, seed 42</strong> (<a href="../assets/minimax-h3/room_i2v_turbo544_q8_seed42.mp4">clip</a>,
+<a href="../assets/minimax-h3/keyframe_room.png">keyframe</a>, <a href="../assets/minimax-h3/prompt_room_i2v.txt">prompt</a>): a
+first-person prompt on a <code>880x1168</code> watercolor painting of a living room, which the 544p entry maps to
+a portrait <code>544x736</code> canvas. The camera walks across the rug toward the leather couch, lowers as it
+sits, a hand reaches out and opens the nearest laptop until its screen faces us, and the view turns to
+the bay windows, the round table and the trees outside, all in the painting's style. The park track
+stays quiet until birdsong takes over in the second half (1 to 8 kHz carrying up to 75% of the energy)
+with a lid click on top; the motion/audio-energy correlation peaks at 0.42. Frame 0 matches the
+downscaled keyframe at PSNR 24.8 dB; 10.2 min for 8 steps and both decodes, 88 GB footprint. Fast
+object manipulation is where the 8-step adapter is weakest: a handled object can settle into a new
+orientation over a few frames instead of rotating continuously through them, so name the pivot and
+anchor the object as the prompt above does.</p>
+<p><img alt="Room walkthrough image-to-video" src="../assets/minimax-h3/sheet_room_i2v_turbo544_q8_seed42.jpg" /></p>
+<p><strong>Ocean waves, seed 42</strong> (<a href="../assets/minimax-h3/ocean_turbo544_q8_seed42.mp4">clip</a>,
+<a href="../assets/minimax-h3/prompt_ocean.txt">prompt</a>): waves break over basalt rocks with a large spray
+mid-clip while sea birds cross the sky; the broadband ocean track (-29.5 dBFS RMS) swells with the
+break.</p>
+<p><img alt="Ocean seed 42" src="../assets/minimax-h3/sheet_ocean_turbo544_q8_seed42.jpg" /></p>
+<p><strong>Spoken dialogue, seed 42</strong> (<a href="../assets/minimax-h3/speech_turbo544_q8_seed42.mp4">clip</a>,
+<a href="../assets/minimax-h3/prompt_speech.txt">prompt</a>): one speaker written as
+<code>The woman with a clear, warm mid-pitched voice (S1) says: &lt;d&gt;[English] ...&lt;/d&gt;</code> in the description,
+with the kitchen ambience in the soundscape and no score. The model animates her mouth through the
+line and generates the voice: the track is dominated by the 300 Hz to 3 kHz speech band in syllabic
+bursts, its voiced pitch sits at a 219 Hz median, and the mouth region's motion follows the audio
+envelope at a 0.54 correlation. Dialogue is generated speech, not a voice you supply; voice-timbre
+references belong to the unported reference-to-video route.</p>
+<p><img alt="Spoken dialogue" src="../assets/minimax-h3/sheet_speech_turbo544_q8_seed42.jpg" /></p>
+<p><strong>Fox at 768p, seed 42</strong> (<a href="../assets/minimax-h3/fox_turbo768_q8_seed42.mp4">clip</a>): the same prompt
+through <code>minimax-h3-turbo</code> on its native <code>1344x768</code> canvas (8 steps, 34 min). Denser fur and snow
+detail than the 544p clips, the same walk-then-look-at-camera staging, and a quiet stereo track with
+the paw crunches tracking the motion.</p>
+<p><img alt="Fox 768p seed 42" src="../assets/minimax-h3/sheet_fox_turbo768_q8_seed42.jpg" /></p>
+<p><strong>Wan2.2 TI2V-5B on the fox description</strong> (<a href="../assets/minimax-h3/fox_wan_ti2v5b_q8_seed42.mp4">clip</a>):
+the visual part of the same prompt through the silent Wan route (<code>832x480</code>, 121 frames, 50 steps,
+23 min). Included as a reference point for pacing and style, not as a like-for-like quality
+comparison: the two models have different canvases, schedules, and training data, and only MiniMax-H3
+generates the soundtrack.</p>
+<p><img alt="Wan TI2V-5B fox" src="../assets/minimax-h3/sheet_fox_wan_ti2v5b_q8_seed42.jpg" /></p>
+<p><strong>Street guitarist, seed 42</strong> (<a href="../assets/minimax-h3/guitar_turbo544_q8_seed42.mp4">clip</a>,
+<a href="../assets/minimax-h3/prompt_guitar.txt">prompt</a>): a slow dolly-in on a fingerpicking musician; the
+spectrogram shows the plucked-string harmonics and rhythm of the on-camera guitar (-14 dBFS RMS,
+stereo correlation 0.88).</p>
+<p><img alt="Guitar seed 42" src="../assets/minimax-h3/sheet_guitar_turbo544_q8_seed42.jpg" /></p>
+<p><strong>Community character adapter, with and without</strong> (<a href="../assets/minimax-h3/prompt_skeletor.txt">prompt</a>;
+clips <a href="../assets/minimax-h3/skeletor_off_turbo544_640x352_q8_seed42.mp4">without</a>,
+<a href="../assets/minimax-h3/skeletor_on_turbo544_640x352_q8_seed42.mp4">with, seed 42</a>,
+<a href="../assets/minimax-h3/skeletor_on_turbo544_640x352_q8_seed7.mp4">with, seed 7</a>, each with its
+<code>.metadata.json</code> beside it): the civitai
+"Skeletor" adapter (<code>H3_Skeletor_1.4.safetensors</code>, ai-toolkit 0.12.18, rank 8, original-checkpoint
+key layout, 416 keys) stacked at scale 1.0 on the 544p Turbo adapter, <code>640x352</code>, 124 frames, 8
+steps. Top: the same prompt and seed 42 through the Turbo adapter alone, which reads the name as a
+generic bone skeleton king with a golden horned crown. Middle: seed 42 with the adapter, the
+Masters of the Universe character (purple hood and collared cape, blue body, bare skull with red
+eyes, ram-skull staff with glowing green eyes), on the same push-in. Bottom: seed 7 with the
+adapter, the same character in a different pose and framing. Same-seed runs of this runtime are
+byte-identical, so the whole middle-versus-top difference (frame PSNR median 15.7 dB, audio
+correlation 0.04) is the adapter; the voice line changes with it. The adapter costs about 1% per
+linear layer (rank 8 next to Turbo's rank 128).</p>
+<p><img alt="Skeletor adapter with and without" src="../assets/minimax-h3/sheet_skeletor_lora_turbo544_640x352_q8.jpg" /></p>
+<p><strong>Turbo step counts</strong> (<a href="../assets/minimax-h3/turbo544_8step_adapter_4steps_640x352_q8_seed42.metadata.json">8-step adapter at 4 steps</a>,
+<a href="../assets/minimax-h3/turbo_4step_v1.2_adapter_4steps_640x352_q8_seed42.metadata.json">4-step v1.2 adapter at 4 steps</a>,
+<a href="../assets/minimax-h3/turbo_4step_v1.2_adapter_8steps_640x352_q8_seed42.metadata.json">4-step v1.2 adapter at 8 steps</a>):
+the Skeletor prompt above through the Turbo adapters alone, seed 42, <code>640x352</code>, 124 frames. Top to
+bottom: the 544p 8-step adapter at 8 steps (the with/without reference clip, 248 s), the same
+adapter at 4 steps (80 s; same staging, slightly higher contrast, the spoken line and laugh
+intact), the 4-step v1.2 768p adapter at 4 steps with <code>--video-shift 6</code> (133 s; brighter, more
+saturated, more armor detail), and that adapter at 8 steps (401 s on a warm machine; close to its
+4-step result). Every row speaks the line; the rows differ in look, not in coherence.</p>
+<p><img alt="Turbo step counts" src="../assets/minimax-h3/sheet_turbo_steps_544p_640x352_q8_seed42.jpg" /></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

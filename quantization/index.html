@@ -621,6 +621,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../minimax-h3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../upscaling/" class="md-nav__link">
         
   
@@ -1623,6 +1651,12 @@ Transformers <code>from_pretrained()</code> checkpoints.</p>
 <td>Supported with mixed q8/BF16</td>
 <td>Not published</td>
 <td>MLX-Gen keeps Wan conditioning/output projection linears BF16 and quantizes the bulky transformer block linears at q8.</td>
+</tr>
+<tr>
+<td>MiniMax-H3</td>
+<td>Supported with mixed q8/BF16 (load time or <code>mlxgen prepare</code>, 75 GB package)</td>
+<td>Not validated</td>
+<td><code>--quantize 8</code> quantizes the transformer attention/feed-forward linears and the Qwen3-VL conditioner (including its vision tower) shard by shard; the fp32 heads, timestep MLP and AdaLN modulation projections keep their source precision. Prepare from <code>minimax-h3</code> and select a Turbo schedule at run time with <code>--base-model</code>; a same-seed clip from the package is byte-identical to the load-time <code>--quantize 8</code> clip. No package is published.</td>
 </tr>
 <tr>
 <td>Bernini-R 1.3B</td>

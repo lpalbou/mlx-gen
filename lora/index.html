@@ -621,6 +621,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../minimax-h3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../upscaling/" class="md-nav__link">
         
   
@@ -846,6 +874,17 @@
     <span class="md-ellipsis">
       
         Lightning Caveat For Qwen
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minimax-h3-lora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MiniMax-H3 LoRA
       
     </span>
   </a>
@@ -1389,6 +1428,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#minimax-h3-lora" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MiniMax-H3 LoRA
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#wan-video-lora" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1690,6 +1740,15 @@ above lists that one row. Read both off the row you are about to use:</p>
 <ul>
 <li><a href="https://github.com/ModelTC/LightX2V-Qwen-Image-Lightning#-using-lightning-loras-with-fp8-models">https://github.com/ModelTC/LightX2V-Qwen-Image-Lightning#-using-lightning-loras-with-fp8-models</a></li>
 </ul>
+<h2 id="minimax-h3-lora">MiniMax-H3 LoRA<a class="headerlink" href="#minimax-h3-lora" title="Permanent link">&para;</a></h2>
+<p>MiniMax-H3 loads adapters in both published key layouts: the diffusers module names the lightx2v
+Turbo adapters use, and the original checkpoint's names that civitai / ai-toolkit / ComfyUI / kohya
+and musubi-tuner adapters are trained against (fused <code>attn.qkv_proj</code>, <code>mlp.fc1</code>, <code>blocks.N</code>), in
+PEFT or kohya naming. On a Turbo entry the adapters you pass replace the automatic one, so list the
+Turbo file alongside yours. The scale rule (metadata <code>alpha</code>, kohya <code>.alpha</code>, or <code>alpha == rank</code>
+when a PEFT file carries neither) and the one refused layout (DiffSynth-Studio's interleaved fused
+QKV) are documented in <a href="../minimax-h3/#adapters">MiniMax-H3: Adapters</a>, with the character-adapter
+evidence clips.</p>
 <h2 id="wan-video-lora">Wan Video LoRA<a class="headerlink" href="#wan-video-lora" title="Permanent link">&para;</a></h2>
 <p>Wan video LoRA is now exact-route validated on the current q8 public rows.</p>
 <p>TI2V-5B:</p>

@@ -615,6 +615,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../minimax-h3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../upscaling/" class="md-nav__link">
         
   
@@ -1214,10 +1242,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#planned-ledger" class="md-nav__link">
+  <a href="#proposed-ledger" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Planned ledger
+        Proposed ledger
       
     </span>
   </a>
@@ -1225,10 +1253,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#proposed-ledger" class="md-nav__link">
+  <a href="#completed-ledger" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Proposed ledger
+        Completed ledger
       
     </span>
   </a>
@@ -1320,15 +1348,15 @@ outside chat history.</p>
 </tr>
 <tr>
 <td>Proposed</td>
-<td style="text-align: right;">30</td>
+<td style="text-align: right;">40</td>
 </tr>
 <tr>
 <td>Completed</td>
-<td style="text-align: right;">64</td>
+<td style="text-align: right;">67</td>
 </tr>
 <tr>
 <td>Deprecated</td>
-<td style="text-align: right;">1</td>
+<td style="text-align: right;">2</td>
 </tr>
 <tr>
 <td>Recurrent</td>
@@ -1336,7 +1364,7 @@ outside chat history.</p>
 </tr>
 </tbody>
 </table>
-<p>Counts are item files (recounted 2026-08-04 after adding item 0106; the
+<p>Counts are item files (recounted 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
 2026-07-25 release hygiene had moved 0093-0095, 0097-0099, and release
 item 0101 to completed/), including topic-track items under
 <code>planned/memory/</code>; the completed <code>planned/runtime_contracts/</code> track holds only its index.
@@ -1663,25 +1691,14 @@ memory follow-up state.</p>
    Wan items. Proposed <a href="../proposed/0050_krea2_turbo_integration/">Krea 2 Turbo integration</a> is an
    adjacent low-priority watch item: technically credible, but held back mainly by its
    materially restrictive custom license.</li>
-<li>Keep <a href="../proposed/0104_minimax_h3_joint_audio_video_watch/">MiniMax H3 joint audio-video</a>
-   license-blocked. The published grant excludes the EU development territory even though the
-   repository is public. Do not fetch or execute the weights unless the public terms change or
-   written permission is obtained; only then consider a five-second FL2VA parity spike and a new
-   generated joint audio-video contract ADR.</li>
-<li>Continue ERNIE-Image/Turbo after completed
-   <a href="../completed/0037_ernie_image_turbo_lora_runtime_support/">ERNIE Image Turbo LoRA runtime support</a>:
-   the latent img2img proof is now accepted, so the remaining follow-up is stronger Diffusers
-   parity coverage and non-turbo validation.</li>
-<li>Continue Wan2.2 after the first TI2V-5B and A14B T2V/I2V milestones: add q8/q4 validation,
-   stronger quality/performance checks, and remaining cancel APIs. SeedVR2 has a validated
-   <code>mlxgen upscale</code> command, official 3B/7B source loading, and q8/q4 <code>mlxgen prepare</code> package
-   support.</li>
-<li>Keep Bonsai LoRA fail-closed and low priority; revisit it only through
-   <a href="../proposed/0038_bonsai_packed_lora_runtime_support/">proposed item 0038</a>. The current packed
-   runtime does not expose replaceable linear targets for standard LoRA injection, and the first
-   public “Bonsai LoRA” candidate inspected used unrelated SDXL UNet keys.</li>
+<li>MiniMax-H3 shipped as completed items <a href="../completed/0117_minimax_h3_text_to_video_audio_runtime/">0117</a>
+   (text-to-video with synchronized stereo audio, Turbo adapters) and
+   <a href="../completed/0118_minimax_h3_first_frame_conditioning_vision_tower/">0118</a> (first-frame
+   image-to-video through the Qwen3-VL vision tower). Next: the AdaLN precompute and long-sequence performance work
+   (<a href="../proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance/">0119</a>). The
+   joint audio-video contract ADR and the license policy decision recorded in deprecated item 0104
+   are still owed.</li>
 </ol>
-<h2 id="planned-ledger">Planned ledger<a class="headerlink" href="#planned-ledger" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -1956,12 +1973,6 @@ memory follow-up state.</p>
 <td>Implemented 2026-07-27 (EXPERIMENTAL, unreleased): <code>--svi-anchor-image</code>/<code>--svi-motion-latent</code>/<code>--svi-lora-high</code>/<code>--svi-lora-low</code> port Stable Video Infinity 2.0 Pro chain conditioning (<code>[anchor, motion latent, zero-latents]</code> + error-recycling LoRA pair under a strict <code>unmatched_key_count == 0</code> contract, 800/800 verified) to the A14B i2v route per the BlackPixel consistency-redo doctrine (mechanism 4, probe-gated); capabilities <code>schema_version</code> 7 adds <code>supports_svi</code>.</td>
 </tr>
 <tr>
-<td>0104</td>
-<td><a href="../proposed/0104_minimax_h3_joint_audio_video_watch/">MiniMax H3 joint audio-video license-blocked watch</a></td>
-<td>Joint audio-video generation, licensing, new artifact contract</td>
-<td>Promote only after the EU license gate clears, stable official upstream semantics exist, a target-Mac resource envelope is credible, and a generated joint audio-video contract ADR is accepted.</td>
-</tr>
-<tr>
 <td>0108</td>
 <td><a href="../proposed/0108_bernini_selective_8bit_package/">Bernini-R 1.3B selective 8-bit package</a></td>
 <td>Bernini, quantization, published packages</td>
@@ -2016,13 +2027,44 @@ memory follow-up state.</p>
 <td>Promote when developer-layout venvs matter: a stale in-repo venv reports the checkout's version instead of the installed one, observed masquerading as a broken 0.30.0 during the release audit.</td>
 </tr>
 <tr>
-<td>## Completed ledger</td>
-<td></td>
-<td></td>
-<td></td>
+<td>0119</td>
+<td><a href="../proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance/">MiniMax-H3 AdaLN precompute-and-drop and long-sequence attention performance</a></td>
+<td>MiniMax-H3 video, memory, step time</td>
+<td>Promote when 768p clips need to be practical: precomputing the per-schedule AdaLN tables frees ~26 GB and may allow a bf16 transformer; head-grouped attention and per-segment modulation are measured follow-ups.</td>
+</tr>
+<tr>
+<td>0121</td>
+<td><a href="../proposed/0121_minimax_h3_config_from_metadata_replay/"><code>--config-from-metadata</code> replay for MiniMax-H3</a></td>
+<td>MiniMax-H3 CLI, metadata replay</td>
+<td>Promote when a host or user needs to reproduce an H3 clip from its sidecar; H3 is the only video route without the flag.</td>
+</tr>
+<tr>
+<td>0122</td>
+<td><a href="../proposed/0122_declare_metadata_keys_in_metadata_schema/">Declare runtime metadata keys in <code>metadata_schema.py</code></a></td>
+<td>Metadata contract, host integration</td>
+<td>Promote when a consumer needs a declared metadata surface; the module is a stub today and every key lives only at its write site.</td>
+</tr>
+<tr>
+<td>0123</td>
+<td><a href="../proposed/0123_publish_duration_and_audio_fields_on_other_families/">Publish the duration and sampling fields on the other families</a></td>
+<td>Capability schema, Wan, Bernini</td>
+<td>Promote alongside the next Wan capability work; the fields exist as of schema 13 but only MiniMax-H3 fills them, so a null reads as unknown rather than as absent.</td>
+</tr>
+<tr>
+<td>0124</td>
+<td><a href="../proposed/0124_publish_accepted_options_per_route/">Publish each route's accepted options, derived from its parser</a></td>
+<td>Capability schema, CLI routing, host integration</td>
+<td>Promote when a host again needs per-family knowledge to withhold an option; adding one <code>supports_&lt;option&gt;</code> boolean per case does not scale and mis-declares routes nobody considered.</td>
+</tr>
+<tr>
+<td>0125</td>
+<td><a href="../proposed/0125_minimax_h3_lora_layouts_validation/">MiniMax-H3 adapter layouts, validated one real file per producer</a></td>
+<td>MiniMax-H3, LoRA</td>
+<td>Promote when a kohya / musubi-tuner or DiffSynth-Studio H3 adapter is at hand; the mapping ships for the original-checkpoint layout (validated with an ai-toolkit civitai file on 2026-09-09) and refuses DiffSynth's interleaved fused QKV until a real file proves the de-interleave.</td>
 </tr>
 </tbody>
 </table>
+<h2 id="completed-ledger">Completed ledger<a class="headerlink" href="#completed-ledger" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
 <tr>
@@ -2482,6 +2524,27 @@ memory follow-up state.</p>
 <td>2026-08-04</td>
 <td>Shipped the exact BF16 renderer-only R2V/RV2V/V2V runtime and factored-source contracts. Post-completion audit withdrew the quality claim: every required visual row fails, the registry is <code>FAIL</code>, and item 0106 owns the blocking trajectory/quality work.</td>
 </tr>
+<tr>
+<td>0117</td>
+<td><a href="../completed/0117_minimax_h3_text_to_video_audio_runtime/">MiniMax-H3 text-to-video-with-audio runtime and Turbo adapters</a></td>
+<td>Video with audio, MiniMax-H3, streaming q8 loading, generated-audio contract</td>
+<td>2026-09-04</td>
+<td>Ported the diffusers modular pipeline natively (layout, schedulers, transformer, Qwen3-VL conditioner, video and audio VAEs) with component parity at fp32 noise, shipped <code>minimax-h3</code>, <code>minimax-h3-turbo</code> and <code>minimax-h3-turbo-544p</code> with lightx2v adapters, generated stereo AAC audio in the MP4, and the first model-backed clips. First-frame conditioning is item 0118.</td>
+</tr>
+<tr>
+<td>0118</td>
+<td><a href="../completed/0118_minimax_h3_first_frame_conditioning_vision_tower/">MiniMax-H3 first-frame conditioning through the Qwen3-VL vision tower</a></td>
+<td>MiniMax-H3 image-to-video, Qwen3-VL vision tower, DeepStack</td>
+<td>2026-09-05</td>
+<td>Ported the vision tower, processor, rope index and DeepStack injection (exact vs transformers, real weights 1e-5), shipped <code>--image-path</code> first-frame conditioning with the reference's keyframe canvas, presentation and condition-latent recipe, and the <code>minimax-h3.first-frame</code> capability row.</td>
+</tr>
+<tr>
+<td>0120</td>
+<td><a href="../completed/0120_minimax_h3_embedding_host_contract/">MiniMax-H3 embedding-host contract</a></td>
+<td>Capability schema 13, progress events, duration bounds, host integration</td>
+<td>2026-09-06</td>
+<td>From a BlackPixel feature request, adversarially verified first. Fixed progress never reaching the callback registry, the <code>denoising</code>/duplicate-<code>complete</code> phase vocabulary, a documented maximum frame count (362) that always raised, duplicate prompt sections, the duplicate Turbo label, unvalidated Python-runtime keywords, health validation running before the audio mux, and a sidecar that could overwrite. Published the audio, duration, sampling and per-entry-default fields plus <code>prompt_sections</code> descriptors at <code>schema_version</code> 13. Follow-ups 0121-0123.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="deprecated-ledger">Deprecated ledger<a class="headerlink" href="#deprecated-ledger" title="Permanent link">&para;</a></h2>
@@ -2500,6 +2563,12 @@ memory follow-up state.</p>
 <td><a href="../deprecated/0047_seedvr2_7b_quality_and_safe_video_scale_revalidation/">SeedVR2 7B quality and safe video scale revalidation</a></td>
 <td>2026-06-21</td>
 <td>Release <code>0.18.20</code> closed the bounded 7B quality revalidation through completed item 0032; the only remaining question was split into proposed item 0048.</td>
+</tr>
+<tr>
+<td>0104</td>
+<td><a href="../deprecated/0104_minimax_h3_joint_audio_video_watch/">MiniMax H3 joint audio-video license-blocked watch</a></td>
+<td>2026-09-04</td>
+<td>Superseded by the owner's decision to port MiniMax-H3 (completed item 0117); the license analysis stays the reference for the policy decision still owed.</td>
 </tr>
 </tbody>
 </table>

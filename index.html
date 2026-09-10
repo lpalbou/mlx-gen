@@ -763,6 +763,34 @@
   
   
     <li class="md-nav__item">
+      <a href="minimax-h3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="upscaling/" class="md-nav__link">
         
   
@@ -1423,6 +1451,14 @@ long-running local jobs.</p>
   object into a new scene from one or more <code>--reference-image</code> inputs, or run learned masked
   source-video edits, verified stage-by-stage against the diffusers reference with an included
   proof bundle;</li>
+<li>MiniMax-H3 text-to-video and image-to-video <strong>with synchronized stereo audio</strong> (<code>minimax-h3</code>,
+  <code>minimax-h3-turbo</code>, <code>minimax-h3-turbo-544p</code>): one prompt, optionally with a <code>--image-path</code>
+  keyframe, produces a 24 fps clip and its soundtrack in a single MP4 (AAC track), 5 to 15 seconds
+  long, with the lightx2v 8-step Turbo adapters attached automatically and community LoRA adapters
+  (civitai, ai-toolkit, ComfyUI, kohya key layouts) stackable on them. The soundtrack covers ambient
+  sound, a score, and spoken dialogue with the speaker's mouth animated to match. Run it with
+  <code>--quantize 8</code> or from a prepared 75 GB q8 package (<code>mlxgen prepare</code>) on a 128 GB Mac (see
+  <code>docs/minimax-h3.md</code>);</li>
 <li>ByteDance Bernini-R 1.3B renderer support (<code>bernini-r-1.3b</code>): generate video from one to eight
   ordered ordinary reference images, edit one source video with those references, or run
   source-only prompt-guided video editing through the unified CLI and Python runtime. Download
