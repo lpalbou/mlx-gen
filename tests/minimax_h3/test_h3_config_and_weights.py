@@ -112,7 +112,7 @@ def test_turbo_lora_keys_map_onto_every_target_and_alpha_scale_is_read(tmp_path)
         },
         {"alpha": "8"},
     )
-    assert MiniMaxH3Initializer._peft_alpha_scale(str(path)) == pytest.approx(8 / 128)
+    assert MiniMaxH3Initializer.adapter_scale(str(path)) == pytest.approx(8 / 128)
 
 
 @pytest.mark.fast

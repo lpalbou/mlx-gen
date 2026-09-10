@@ -7,6 +7,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.37.0] - 2026-09-09
+
+Community MiniMax-H3 adapters load: civitai, ai-toolkit, ComfyUI, kohya and musubi-tuner files
+trained against the original checkpoint's module names, stacked on the lightx2v Turbo adapter.
+
+### Added
+
+- **MiniMax-H3 adapters over the original checkpoint's module names.** `blocks.N.attn.qkv_proj`,
+  `attn.out_proj`, `mlp.fc1` / `mlp.fc2`, `token_refiner.blocks.N`, the block and final AdaLN
+  projections and the patch / condition / timestep projections, with or without a `diffusion_model.`
+  prefix, in PEFT (`lora_A` / `lora_B`) or kohya (`lora_down` / `lora_up` + `.alpha`) naming, and in
+  musubi-tuner's flattened `lora_unet_` form. The translation follows the diffusers converter: the
+  fused QKV shares one `lora_A` and splits `lora_B` into `to_q` / `to_k` / `to_v` row thirds, and
+  `fc1`'s `[gate; value]` halves swap onto our SwiGLU's `[value; gate]`. Verified against the
+  reference fused projections on a tiny transformer, and end to end with the civitai "Skeletor"
+  adapter (ai-toolkit 0.12.18, rank 8) stacked on the 544p Turbo adapter.
+- **DiffSynth-Studio MiniMax-H3 adapters are refused with a reason.** Their fused QKV rows keep the raw
+  checkpoint's per-head interleaving, indistinguishable by shape from the reordered layout; loading
+  them would silently apply the rows in the wrong order.
+- **MiniMax-H3 metadata exports carry `lora_application_reports`** (file, scale, matched / unmatched
+  key counts, applied targets), as the other families already did.
+- **Step-count guidance for the Turbo adapters** in the MiniMax-H3 guide: which adapter runs at 8
+  and which at 4, the shift each needs, and a same-seed sheet of the 544p 8-step adapter at 8 and 4
+  steps next to the dedicated 4-step adapter at 4 and 8.
+
+### Fixed
+
+- **MiniMax-H3 adapter scale follows the file.** A PEFT adapter carrying `alpha` metadata runs at
+  `alpha / rank` (the Turbo adapters: 8 at rank 128); one without it runs at `alpha == rank`, as
+  ComfyUI and diffusers load such files (ai-toolkit exports drop alpha); a kohya file's per-module
+  `.alpha` tensors are applied once. Earlier releases scaled a metadata-less file by `8 / rank`.
+- **MiniMax-H3 adapters on the patch, timestep, AdaLN and output projections run.** Those layers
+  accept a LoRA-wrapped linear in the forward pass.
+
 ## [0.36.0] - 2026-09-06
 
 Peak memory on MiniMax-H3, measured rather than projected, plus a guard that reports a request too

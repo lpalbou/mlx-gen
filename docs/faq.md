@@ -217,6 +217,24 @@ Then use the paired T2V or I2V files from that repository as
 downloading them. For Wan A14B, pass each file as its own `--lora-paths` argument rather than one
 quoted combined string.
 
+## Does MiniMax-H3 Support LoRA?
+
+Yes. The Turbo entries load their lightx2v adapter automatically, and `--lora-paths` accepts
+adapters in both published key layouts: PEFT files over the diffusers module names (the lightx2v
+files) and community files trained against the original checkpoint's names (civitai, ai-toolkit,
+ComfyUI, kohya, musubi-tuner). On a Turbo entry the files you pass replace the automatic one, so
+list the Turbo file alongside yours with a scale for each:
+
+```sh
+mlxgen generate --model minimax-h3-turbo-544p --prompt "<prompt>" \
+  --lora-paths "hf:lightx2v/Minimax-h3-Turbo/minimax_h3_fl2v_turbo_8step_v1.0_bf16.safetensors" \
+               loras/<character>.safetensors \
+  --lora-scales 1.0 1.0 --quantize 8 --seed 42 --output clip.mp4
+```
+
+The scale rule, the one refused layout (DiffSynth-Studio) and the included with/without evidence
+clips are in [MiniMax-H3: Adapters](minimax-h3.md#adapters).
+
 ## Can I Treat MLX-Gen q8 Packages Like Third-Party FP8 Checkpoints For Lightning LoRAs?
 
 No.

@@ -250,6 +250,17 @@ Upstream reference:
 
 - <https://github.com/ModelTC/LightX2V-Qwen-Image-Lightning#-using-lightning-loras-with-fp8-models>
 
+## MiniMax-H3 LoRA
+
+MiniMax-H3 loads adapters in both published key layouts: the diffusers module names the lightx2v
+Turbo adapters use, and the original checkpoint's names that civitai / ai-toolkit / ComfyUI / kohya
+and musubi-tuner adapters are trained against (fused `attn.qkv_proj`, `mlp.fc1`, `blocks.N`), in
+PEFT or kohya naming. On a Turbo entry the adapters you pass replace the automatic one, so list the
+Turbo file alongside yours. The scale rule (metadata `alpha`, kohya `.alpha`, or `alpha == rank`
+when a PEFT file carries neither) and the one refused layout (DiffSynth-Studio's interleaved fused
+QKV) are documented in [MiniMax-H3: Adapters](minimax-h3.md#adapters), with the character-adapter
+evidence clips.
+
 ## Wan Video LoRA
 
 Wan video LoRA is now exact-route validated on the current q8 public rows.

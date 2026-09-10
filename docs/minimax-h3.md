@@ -310,10 +310,55 @@ and no `quantize` argument.
 
 The Turbo entries load their lightx2v adapter from `lightx2v/Minimax-h3-Turbo` with the effective
 scale the adapter was trained with (alpha 8 at rank 128). Pass your own `--lora-paths` to replace
-the automatic adapter; PEFT-format adapters that target the diffusers transformer module names
-(`transformer_blocks.N.attn.to_q`, `ff.net.0.proj`, `ff.net.2`, and the token refiner) load
-directly. The 4-step 768p Turbo adapter (`minimax_h3_fl2v_turbo_4step_v1.2_768p_bf16.safetensors`)
-works with `--steps 4 --video-shift 6`.
+the automatic adapter: the list you pass is the complete list, so a style or character adapter on a
+Turbo entry goes together with the Turbo file (the adapters stack on the same layers). The 4-step
+768p Turbo adapter (`minimax_h3_fl2v_turbo_4step_v1.2_768p_bf16.safetensors`) works with
+`--steps 4 --video-shift 6`.
+
+Steps per adapter, from the lightx2v model specifications: the 544p 8-step adapter (the
+`minimax-h3-turbo-544p` entry) is distilled at 8 evaluations and recommended at 8 or 4; the 768p
+8-step adapter (`minimax-h3-turbo`) at 8 only; the dedicated 4-step adapters (v0.1 at 544p, v1.0 to
+v1.2 at 768p) at 4. Eight evaluations is the setting every included clip uses and the one the
+lightx2v Studio runs; four halves the denoise time and is the draft setting, which community
+reports describe as softer on detail and weaker on fast motion. MLX-Gen steps the video and audio
+streams on their own shifts, as the reference does, so the soundtrack keeps its schedule at any
+step count. Measured on the same seed and prompt at `640x352` (the
+[step-count sheet](#contact-sheets) below): the 544p 8-step adapter at 4 steps keeps the staging of
+its 8-step clip and finishes in a third of the time, the 4-step v1.2 adapter at 4 steps renders a
+brighter, more saturated take of the same scene, and running that adapter at 8 steps changes little.
+The dedicated 4-step adapter needs `--video-shift 6`; the 8-step adapter keeps the entry's 12:
+
+```sh
+mlxgen generate --model minimax-h3-turbo-544p --steps 4 --prompt "..." --seed 42 --output draft.mp4
+mlxgen generate --model minimax-h3-turbo-544p --steps 4 --video-shift 6 \
+  --lora-paths "hf:lightx2v/Minimax-h3-Turbo/minimax_h3_fl2v_turbo_4step_v1.2_768p_bf16.safetensors" \
+  --prompt "..." --seed 42 --output draft.mp4
+```
+
+```sh
+mlxgen generate --model models/minimax-h3-8bit --base-model minimax-h3-turbo-544p \
+  --prompt "Skeletor stands in a torch-lit stone throne room and raises his staff." \
+  --lora-paths "hf:lightx2v/Minimax-h3-Turbo/minimax_h3_fl2v_turbo_8step_v1.0_bf16.safetensors" \
+               loras/H3_Skeletor_1.4.safetensors \
+  --lora-scales 1.0 1.0 --seed 42 --output skeletor.mp4
+```
+
+Two key layouts load. PEFT adapters over the diffusers module names (`transformer_blocks.N.attn.to_q`,
+`ff.net.0.proj`, `ff.net.2`, the token refiner) are what lightx2v publishes. Community adapters
+(civitai, ai-toolkit, the reference `generate.py`, ComfyUI, kohya and musubi-tuner) are trained
+against the original checkpoint's names (`blocks.N.attn.qkv_proj`, `attn.out_proj`, `mlp.fc1`,
+`mlp.fc2`, `token_refiner.blocks.N`, the `final_layer` and patch projections), with or without a
+`diffusion_model.` prefix, in PEFT (`lora_A`/`lora_B`) or kohya (`lora_down`/`lora_up` plus
+`.alpha`) naming, and in musubi-tuner's flattened `lora_unet_` form. The runtime maps them onto
+our modules the way the diffusers converter does: the fused QKV shares one `lora_A` and splits
+`lora_B` into `to_q`/`to_k`/`to_v` row thirds, and `fc1`'s `[gate; value]` halves swap to our
+SwiGLU's `[value; gate]`. Scale follows the file: PEFT metadata `alpha` gives `alpha / rank`,
+kohya `.alpha` tensors are folded per module, and a PEFT file with neither (how ai-toolkit exports)
+runs at `alpha == rank`, the same as ComfyUI and diffusers. The one layout refused is
+DiffSynth-Studio's (`.lora_A.default.` over `attn.qkv_proj`), whose fused QKV rows keep the raw
+checkpoint's per-head interleaving; loading it silently would apply the rows in the wrong order.
+Every metadata export lists the adapter files, their scales and the matched / unmatched key
+counts (`lora_application_reports`).
 
 ## Current Limits
 
@@ -466,3 +511,33 @@ spectrogram shows the plucked-string harmonics and rhythm of the on-camera guita
 stereo correlation 0.88).
 
 ![Guitar seed 42](assets/minimax-h3/sheet_guitar_turbo544_q8_seed42.jpg)
+
+**Community character adapter, with and without** ([prompt](assets/minimax-h3/prompt_skeletor.txt);
+clips [without](assets/minimax-h3/skeletor_off_turbo544_640x352_q8_seed42.mp4),
+[with, seed 42](assets/minimax-h3/skeletor_on_turbo544_640x352_q8_seed42.mp4),
+[with, seed 7](assets/minimax-h3/skeletor_on_turbo544_640x352_q8_seed7.mp4), each with its
+`.metadata.json` beside it): the civitai
+"Skeletor" adapter (`H3_Skeletor_1.4.safetensors`, ai-toolkit 0.12.18, rank 8, original-checkpoint
+key layout, 416 keys) stacked at scale 1.0 on the 544p Turbo adapter, `640x352`, 124 frames, 8
+steps. Top: the same prompt and seed 42 through the Turbo adapter alone, which reads the name as a
+generic bone skeleton king with a golden horned crown. Middle: seed 42 with the adapter, the
+Masters of the Universe character (purple hood and collared cape, blue body, bare skull with red
+eyes, ram-skull staff with glowing green eyes), on the same push-in. Bottom: seed 7 with the
+adapter, the same character in a different pose and framing. Same-seed runs of this runtime are
+byte-identical, so the whole middle-versus-top difference (frame PSNR median 15.7 dB, audio
+correlation 0.04) is the adapter; the voice line changes with it. The adapter costs about 1% per
+linear layer (rank 8 next to Turbo's rank 128).
+
+![Skeletor adapter with and without](assets/minimax-h3/sheet_skeletor_lora_turbo544_640x352_q8.jpg)
+
+**Turbo step counts** ([8-step adapter at 4 steps](assets/minimax-h3/turbo544_8step_adapter_4steps_640x352_q8_seed42.metadata.json),
+[4-step v1.2 adapter at 4 steps](assets/minimax-h3/turbo_4step_v1.2_adapter_4steps_640x352_q8_seed42.metadata.json),
+[4-step v1.2 adapter at 8 steps](assets/minimax-h3/turbo_4step_v1.2_adapter_8steps_640x352_q8_seed42.metadata.json)):
+the Skeletor prompt above through the Turbo adapters alone, seed 42, `640x352`, 124 frames. Top to
+bottom: the 544p 8-step adapter at 8 steps (the with/without reference clip, 248 s), the same
+adapter at 4 steps (80 s; same staging, slightly higher contrast, the spoken line and laugh
+intact), the 4-step v1.2 768p adapter at 4 steps with `--video-shift 6` (133 s; brighter, more
+saturated, more armor detail), and that adapter at 8 steps (401 s on a warm machine; close to its
+4-step result). Every row speaks the line; the rows differ in look, not in coherence.
+
+![Turbo step counts](assets/minimax-h3/sheet_turbo_steps_544p_640x352_q8_seed42.jpg)

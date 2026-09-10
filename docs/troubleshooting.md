@@ -383,6 +383,24 @@ Current FLUX.2 support in MLX-Gen is FLUX.2 Klein 4B/9B, so that adapter is not 
 `flux2-klein-*` or `AbstractFramework/flux.2-klein-*` models. Use an adapter trained for the exact
 model family, or wait for first-class FLUX.2-dev support.
 
+## MiniMax-H3 Adapter Is Refused Or Matches No Keys
+
+MiniMax-H3 loads adapters over the diffusers module names (`transformer_blocks.N.attn.to_q`) and
+over the original checkpoint's names (`blocks.N.attn.qkv_proj`, with or without a
+`diffusion_model.` prefix, PEFT or kohya naming, musubi-tuner's flattened `lora_unet_` keys). Two
+messages remain:
+
+- "did not match any known adapter keys": the file is not a MiniMax-H3 transformer adapter (for
+  example one trained for another model, or a text-encoder adapter). Check its model card.
+- "keeps the raw checkpoint's per-head interleaved fused QKV": a DiffSynth-Studio export. Its fused
+  QKV rows are ordered differently from every other producer's, and MLX-Gen refuses it rather than
+  apply the rows in the wrong order. Re-export the adapter with ai-toolkit, musubi-tuner or diffusers
+  module names.
+
+On a Turbo entry, `--lora-paths` replaces the automatic Turbo adapter. A character or style adapter
+passed alone therefore runs the 50-step base schedule under an 8-step configuration and produces a
+noisy clip; pass the Turbo file with it (see [MiniMax-H3: Adapters](minimax-h3.md#adapters)).
+
 ## hf_transfer Error
 
 `HF_HUB_ENABLE_HF_TRANSFER=1` is optional. It can make explicit Hugging Face downloads faster, but it is not required to authorize downloads.

@@ -91,8 +91,9 @@ class MiniMaxH3Transformer(nn.Module):
         sequence_length = position_ids.shape[0]
         rotary_emb = self.rope(position_ids)
 
-        video_embeds = self.proj_in(hidden_states.astype(self.proj_in.weight.dtype))
-        audio_embeds = self.audio_proj_in(audio_hidden_states.astype(self.audio_proj_in.weight.dtype))
+        # `linear_input_dtype`: a LoRA-wrapped or quantized linear has no `.weight` of its compute dtype.
+        video_embeds = self.proj_in(hidden_states.astype(linear_input_dtype(self.proj_in)))
+        audio_embeds = self.audio_proj_in(audio_hidden_states.astype(linear_input_dtype(self.audio_proj_in)))
         text_embeds = self.context_embedder(encoder_hidden_states.astype(linear_input_dtype(self.context_embedder)))
         text_embeds = self.token_refiner(text_embeds)
 
@@ -101,13 +102,13 @@ class MiniMaxH3Transformer(nn.Module):
         packed[:, video_indices, :] = video_embeds.astype(text_embeds.dtype)
         packed[:, audio_indices, :] = audio_embeds.astype(text_embeds.dtype)
 
-        temb = self.time_embedder(self.time_proj(timestep).astype(self.time_embedder.linear_1.weight.dtype))
+        temb = self.time_embedder(self.time_proj(timestep).astype(linear_input_dtype(self.time_embedder.linear_1)))
         adaln_indices = timestep_indices * MODALITY_NUM + token_tags
 
         for block in self.transformer_blocks:
             packed = block(packed, temb, adaln_indices, rotary_emb)
 
-        packed = self.norm_out(packed, temb, timestep_indices).astype(self.proj_out.weight.dtype)
+        packed = self.norm_out(packed, temb, timestep_indices).astype(linear_input_dtype(self.proj_out))
         video_output = mx.take(self.proj_out(packed), video_indices, axis=1)
         audio_output = mx.take(self.audio_proj_out(packed), audio_indices, axis=1)
         return video_output, audio_output
