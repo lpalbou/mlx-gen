@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.38.0] - 2026-09-21
+
+MLX 0.32.x is now supported: `mlx>=0.27.0,<0.33.0` on darwin and `mlx[cuda13]>=0.30.3,<0.33.0` on
+linux. The previous `<0.32.0` ceiling was not precautionary — SeedVR2 needed a fix to run on 0.32.
+
+### Fixed
+
+- **SeedVR2 window attention no longer repeats by an array.** `MMAttention` expanded its per-batch
+  window counts with `mx.repeat(x, mx.array(counts), axis=0)`. MLX only repeats by a scalar `int`;
+  up to 0.31.x a one-element array was implicitly converted to one, so the call happened to work for
+  the single-batch case and silently raised `TypeError` for any other. MLX 0.32 dropped that implicit
+  conversion, which broke SeedVR2 upscaling outright. The four call sites now gather explicit row
+  indices, which is correct for any batch size and behaves identically on 0.31.x and 0.32.x.
+
+### Changed
+
+- **The MLX ceiling admits 0.32.x.** Verified on 0.32.2 against a 0.31.0 baseline: the same 2883
+  tests pass and the same pre-existing failure set remains, and a SeedVR2 3B q8 upscale runs end to
+  end on both. The `dev` extra still pins MLX 0.31.0: the same seed and input produce a slightly
+  different image on 0.32.2 (max channel delta 8/255, mean 0.12), so the pinned version keeps the
+  image-comparison baselines deterministic.
+
 ## [0.37.0] - 2026-09-09
 
 Community MiniMax-H3 adapters load: civitai, ai-toolkit, ComfyUI, kohya and musubi-tuner files

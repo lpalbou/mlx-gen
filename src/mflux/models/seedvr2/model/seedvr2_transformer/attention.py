@@ -83,7 +83,7 @@ class MMAttention(nn.Module):
                 vid_shape=partitioner.window_shapes,
                 txt_q=q_txt_rep,
                 txt_k=k_txt_rep,
-                txt_shape=mx.repeat(txt_shape, mx.array(counts), axis=0),
+                txt_shape=txt_shape[MMAttention._window_batch_ids(counts)],
             )
         else:
             q_vid, k_vid = self.rope(
@@ -278,15 +278,17 @@ class MMAttention(nn.Module):
     def _repeat_text_for_windows(txt, txt_len, counts):
         B, L = len(counts), int(txt_len[0])
         txt = txt.reshape(B, L, *txt.shape[1:])
-        return mx.repeat(txt, mx.array(counts), axis=0).reshape(-1, *txt.shape[2:])
+        return txt[MMAttention._window_batch_ids(counts)].reshape(-1, *txt.shape[2:])
 
     @staticmethod
     def _window_text_lengths(txt_len: mx.array, counts: list[int]) -> mx.array:
-        return txt_len[mx.repeat(mx.arange(len(counts)), mx.array(counts))]
+        return txt_len[MMAttention._window_batch_ids(counts)]
 
     @staticmethod
     def _window_batch_ids(counts: list[int]) -> mx.array:
-        return mx.repeat(mx.arange(len(counts)), mx.array(counts))
+        # Gather rather than mx.repeat: MLX only repeats by a scalar, so a per-batch
+        # count list has to be expanded into explicit row indices.
+        return mx.array([b for b, count in enumerate(counts) for _ in range(count)], dtype=mx.int32)
 
     @staticmethod
     def _concat_tokens(left: mx.array, right: mx.array) -> mx.array:
