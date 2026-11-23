@@ -367,15 +367,18 @@ package at 32.5 GiB and 21.9 GiB with `--low-ram`. At `1344x768` the default mod
 
 - add `--low-ram` (a 1 GB MLX cache, and the transformer freed before the decode), then
   `--stream-blocks --low-ram` (each transformer block read from disk at every step). The clip is
-  the same file in every mode, and each option costs 3 to 10% of a clip's time;
+  the same file in every mode; `--stream-blocks` adds about 3% to a step on average and
+  `--low-ram` roughly 5 to 13%, and together they add both;
 - pick the mode by machine size from [Memory By Machine](minimax-h3.md#memory-by-machine): the
-  8-bit package completes on 48 GB by default, on 36 GB with `--low-ram` and on 24 GB with
-  `--stream-blocks --low-ram`; the 16-bit weights on 96 GB, 64 GB and 32 GB;
+  8-bit package completes a `960x544` clip within 48 GB by default, within 36 GB with `--low-ram`
+  and within 24 GB with `--stream-blocks --low-ram` (tested on a 128 GB Mac with the rest of its
+  memory locked); the 16-bit weights within 96 GB, 64 GB and 32 GB;
 - close other memory-heavy applications: their memory counts;
 - prefer `minimax-h3-turbo-544p` over the 768p entries while iterating; the 768p canvas costs about
-  five minutes per step.
+  5.5 to 6 minutes per step.
 
-The MLX free-buffer cache is capped at the process default (up to 8 GiB); `--mlx-cache-limit-gb`
+The MLX free-buffer cache is capped at the process default (an eighth of the machine's memory, up
+to 8 GiB); `--mlx-cache-limit-gb`
 lowers or lifts that cap, and what it allows adds to the footprint.
 
 If stderr says "the transformer blocks are not streamed from disk", `--stream-blocks` did not
@@ -385,10 +388,11 @@ an adapter that trains the per-block AdaLN projections.
 
 ## MiniMax-H3 Stops With "Changed On Disk After The Model Was Loaded"
 
-The conditioner, the AdaLN projections, the VAEs and streamed transformer blocks are read from the
-weight files after the model is loaded. When one of those files is replaced while the model is
-loaded, the weights not read yet would come from the new file, so the runtime checks the files
-before each of those reads and stops. Load the model again; do not rewrite or re-download a
+Streamed transformer blocks, the AdaLN projections and the VAEs are read from the weight files
+after the model is loaded. When one of those files is replaced while the model is loaded, the
+weights not read yet would come from the new file, so MLX-Gen checks the files before it reads
+streamed transformer blocks, the AdaLN projections and the VAEs, and stops with an error when one
+changed. The conditioner is read in full at each encode and is not part of that check. Load the model again; do not rewrite or re-download a
 package while a process is generating from it.
 
 If loading a package stops with "splits `<d>` ... into several tokens", its tokenizer does not carry

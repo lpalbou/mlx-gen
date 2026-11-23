@@ -19,31 +19,35 @@ runs through `mlxgen generate` as `text-to-video`, or `image-to-video` when `--i
 
 | Profile (124 frames, default mode) | Peak memory | Time per clip |
 | --- | ---: | --- |
-| 8-bit package, `minimax-h3-turbo-544p`, `960x544` | 37.0 GiB | 11 to 17 min |
-| 16-bit package, `minimax-h3-turbo-544p`, `960x544` | 54.4 GiB | 11 to 17 min |
-| 4-bit package, `minimax-h3-turbo-544p`, `960x544` | 32.5 GiB | 11 to 17 min |
-| 8-bit package, `minimax-h3-turbo`, `1344x768` | 38.3 GiB | about 34 min |
-| 16-bit package, `minimax-h3-turbo`, `1344x768` | 55.7 GiB | about 34 min |
+| 8-bit package, `minimax-h3-turbo-544p`, `960x544` | 37.0 GiB | 15 to 18 min (887 to 1096 s) |
+| 16-bit weights, `minimax-h3-turbo-544p`, `960x544` | 54.4 GiB | 16 to 21 min (967 to 1260 s) |
+| 4-bit weights, `minimax-h3-turbo-544p`, `960x544` | 32.5 GiB | about 17 min (one run, 1002 s) |
+| 8-bit package, `minimax-h3-turbo`, `1344x768` | 38.3 GiB | about 48 min (2860 s) |
+| 16-bit weights, `minimax-h3-turbo`, `1344x768` | 55.7 GiB | about 45 min (2679 s) |
 | 8-bit package, base schedule (50 steps), `960x544` | as the 8-bit `960x544` row | about 62 min |
 
-Peak memory is the whole-process footprint on an Apple M5 Max; times assume an otherwise idle
-machine. A longer clip costs more than the 124-frame figure.
+Peak memory is the whole-process footprint on an Apple M5 Max. Times are from the same machine in
+its Automatic power mode, otherwise idle; consecutive runs get slower as it warms up. The 16-bit
+rows ran from the source snapshot, whose weights the 16-bit package repacks unchanged, and the
+4-bit row from the source snapshot with `--quantize 4`, which gives the 4-bit package's clips. A
+longer clip costs more than the 124-frame figure.
 
 ## Memory modes
 
 A run holds the transformer in memory and reads the rest from disk when it is needed (the text
 conditioner during an encode, the AdaLN projections once per schedule, the VAEs at first use). Two
-options lower the peak further. All three modes write the same clip, and each option costs a few
-percent of a clip's time.
+options lower the peak further. All three modes write the same clip; `--stream-blocks` adds about 3%
+to a step on average and `--low-ram` roughly 5 to 13%, and together they add both.
 
 | Mode | What it does |
 | --- | --- |
-| default | Transformer in memory; MLX cache up to 8 GiB. |
+| default | Transformer in memory; MLX cache up to 8 GiB by default (an eighth of the machine's memory, at most 8 GiB). |
 | `--low-ram` | MLX cache 1 GB, and the transformer is freed before the decode (read again for each seed). |
-| `--stream-blocks --low-ram` | Each transformer block is read from disk for the length of its call, at every step (20 GiB per step at 8-bit, 36 GiB at 16-bit). Needs a prepared package, or the source snapshot without `--quantize`. |
+| `--stream-blocks --low-ram` | Each transformer block is read from disk for the length of its call, at every step (19 GiB per step at 8-bit, 36 GiB at 16-bit). Needs a prepared package, or the source snapshot without `--quantize`. |
 
 Pick the mode by the machine's unified memory. Each cell is the peak at `960x544`, 124 frames, and
-the smallest Mac memory that run completed on:
+the smallest memory that run completed within (tested on a 128 GB Mac with the rest of its memory
+locked):
 
 | Package | Default | `--low-ram` | `--stream-blocks --low-ram` |
 | --- | --- | --- | --- |
@@ -52,8 +56,9 @@ the smallest Mac memory that run completed on:
 | `AbstractFramework/minimax-h3-4bit` | 32.5 GiB, not tested | 21.9 GiB, 32 GB | not measured |
 
 - The machine sizes were tested on a 128 GB Mac with the difference in RAM locked, not on Macs of
-  those sizes. Close other memory-heavy applications near the low end of a range.
-- On 36 GB, `--low-ram` alone completes but takes 60% longer; use `--stream-blocks --low-ram` at
+  those sizes; a Mac of that size also sets its default MLX cache and its memory checks from its
+  own size, which the emulation does not reproduce. Close other memory-heavy applications near the low end of a range.
+- On 36 GB, `--low-ram` alone completes but takes about 55% longer; use `--stream-blocks --low-ram` at
   36 GB and below.
 - If stderr says "the transformer blocks are not streamed from disk", the option did not apply and
   the transformer stayed in memory; the message names the reason.
@@ -65,8 +70,8 @@ figures above.
 
 | Package | Contents | Disk |
 | --- | --- | ---: |
-| `AbstractFramework/minimax-h3-8bit` | 8-bit; recommended. Close to the 16-bit weights' own noise floor, same sharpness | 64.3 GiB |
-| `AbstractFramework/minimax-h3-bf16` | The released 16-bit weights, repacked | 115 GiB |
+| `AbstractFramework/minimax-h3-8bit` | 8-bit; recommended. Its video velocity differs from the 16-bit prediction 1.2 to 2.0 times as much as a 0.1% change of the prompt embedding does (audio: 1.3 to 3.0 times); same sharpness | 64.3 GiB |
+| `AbstractFramework/minimax-h3-bf16` | The released 16-bit weights, repacked; the video VAE stored in the BF16 it runs at (the release holds it in fp32) | 115 GiB |
 | `AbstractFramework/minimax-h3-4bit` | Mixed: 4-bit conditioner, 6-bit transformer; loses 12 to 20% of fine detail on text-to-video clips | 44.9 GiB |
 
 No package contains a speed adapter. `--base-model` chooses the schedule the package runs as:
@@ -251,7 +256,8 @@ cache part of `--low-ram`.
   frames; close other memory-heavy applications. Out of disk: the 4-bit package is the smallest;
   rerun an interrupted download (downloads resume).
 - "changed on disk after the model was loaded": a weight file was replaced while the model was
-  loaded. Load the model again, and do not rewrite a package while a process generates from it.
+  loaded (the engine checks the files before it reads streamed transformer blocks, the AdaLN
+  projections and the VAEs; the conditioner is read in full at each encode). Load the model again, and do not rewrite a package while a process generates from it.
 - An adapter that trains the per-block AdaLN projections keeps them in memory and disables
   `--stream-blocks`. The Turbo adapters do not.
 

@@ -1029,7 +1029,7 @@ Yes. MiniMax-H3 (`--model minimax-h3-turbo-544p`, `minimax-h3-turbo`, or `minima
 (`--image-path`), and saves both in one MP4 with an AAC track. Describe the picture with `--prompt`, the diegetic sound with `--soundscape`, and the score
 with `--music`; spoken lines go into the description as `The woman (S1) says: <d>[English] ...</d>`
 (see [Prompting](minimax-h3.md#prompting) for speaker ids, voice-over and the supported languages); run
-it from the 8-bit package (`AbstractFramework/minimax-h3-8bit`): a `960x544`, 124-frame clip completes on a 48 GB Mac with default settings, on 36 GB with `--low-ram`, and on 24 GB with `--stream-blocks --low-ram`. The released 16-bit weights (`AbstractFramework/minimax-h3-bf16`) complete it on 96 GB, 64 GB and 32 GB in the same three modes. See [MiniMax-H3 video with audio](minimax-h3.md) and [its memory page](minimax-h3-memory.md). Wan and Bernini clips stay silent; Wan
+it from the 8-bit package (`AbstractFramework/minimax-h3-8bit`): a `960x544`, 124-frame clip completes within 48 GB with default settings, within 36 GB with `--low-ram`, and within 24 GB with `--stream-blocks --low-ram` (tested on a 128 GB Mac with the rest of its memory locked). The released 16-bit weights (`AbstractFramework/minimax-h3-bf16`) complete it within 96 GB, 64 GB and 32 GB in the same three modes. See [MiniMax-H3 video with audio](minimax-h3.md) and [its memory page](minimax-h3-memory.md). Wan and Bernini clips stay silent; Wan
 video-to-video copies the source clip's audio through.
 
 ## Why Did MiniMax-H3 Give Me A Longer Clip Than I Asked For?

@@ -583,9 +583,10 @@ class MiniMaxH3(nn.Module):
         return track.trimmed(plan.duration_seconds)
 
     def _require_decoder_files(self) -> None:
-        # Until their first use the VAE weights are still on disk.
-        if self.deferred_weight_bytes:
-            StreamingWeightLoader.require_unchanged(self.decoder_signatures)
+        # Parts of the VAEs can stay unread for the life of the model: the video encoder until a keyframe is
+        # given, the audio decoder while clips are generated without sound. So their files are checked at
+        # every use, not only before the first.
+        StreamingWeightLoader.require_unchanged(self.decoder_signatures)
 
     @staticmethod
     def _component_dtype(module: nn.Module) -> mx.Dtype:

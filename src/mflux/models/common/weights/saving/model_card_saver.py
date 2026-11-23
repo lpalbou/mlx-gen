@@ -22,6 +22,11 @@ class ModelCardSaver:
     # The release that reads the conditioner for the length of an encode and can hold the 16-bit weights.
     MINIMAX_H3_MIN_VERSION = "0.40.0"
     # Section III.4 of the license: the text every distribution carries in a `NOTICE` file.
+    # What every MiniMax-H3 package changes in the released files, quantized or not.
+    MINIMAX_H3_CONVERSION = (
+        "converted to the MLX-Gen saved-weight layout: the Qwen3-VL conditioner is kept to the 50 decoder layers "
+        "the model reads, and the video VAE is stored in BF16 where the release holds it in fp32"
+    )
     MINIMAX_H3_NOTICE = (
         "MiniMax H3 is licensed under the MiniMax H3 Community License Agreement, "
         "Copyright © 2026 MiniMax. All Rights Reserved."
@@ -44,18 +49,20 @@ class ModelCardSaver:
         )
 
     @staticmethod
-    def render_minimax_h3_notice(model_name: str, bits: int | None) -> str:
-        change = (
-            "converted to the MLX-Gen saved-weight layout"
-            if bits is None
-            else f"converted to the MLX-Gen saved-weight layout and quantized ({bits}-bit package)"
+    def render_minimax_h3_notice(model_name: str, bits: int | None, base_path: str | None = None) -> str:
+        # `base_path` names an existing package: its notice states the release that wrote its weights.
+        version = (
+            VersionUtil.get_mflux_version() if base_path is None else ModelCardSaver._generated_with_version(base_path)
         )
+        change = ModelCardSaver.MINIMAX_H3_CONVERSION
+        if bits is not None:
+            change += f", and the transformer and the conditioner were quantized ({bits}-bit package)"
         return "\n".join(
             [
                 ModelCardSaver.MINIMAX_H3_NOTICE,
                 "",
                 f"Modification notice: the weight files in this distribution are modified from `{model_name}`. "
-                f"They were {change} with mlx-gen {VersionUtil.get_mflux_version()} "
+                f"They were {change}, with mlx-gen {version} "
                 f"({ModelCardSaver.PROJECT_URL}). The `LICENSE` file is the unmodified agreement.",
                 "",
             ]
@@ -138,6 +145,8 @@ class ModelCardSaver:
         if ModelCardSaver._is_minimax_h3(model_name, terms):
             derivative = "an unquantized derivative" if bits is None else "a quantized derivative"
             return [
+                # The Hub lists a quantized package under its source model's quantizations.
+                *(["base_model_relation: quantized"] if bits is not None else []),
                 "license: other",
                 f"license_name: {ModelCardSaver.MINIMAX_H3_LICENSE_NAME}",
                 f"license_link: {ModelCardSaver.MINIMAX_H3_LICENSE_LINK}",
@@ -232,9 +241,9 @@ class ModelCardSaver:
                     "and bind recipients to the same restrictions."
                 ),
                 (
-                    "- **Modified files.** The weight files here are not the original release: they were converted "
-                    "to the MLX-Gen saved-weight layout"
-                    + (" and quantized as described below." if bits is not None else ".")
+                    "- **Modified files.** The weight files here are not the original release: they were "
+                    f"{ModelCardSaver.MINIMAX_H3_CONVERSION}"
+                    + (", and quantized as described below." if bits is not None else ".")
                 ),
                 "",
                 "The Qwen3-VL-32B conditioner inside MiniMax-H3 is licensed under Apache 2.0. The lightx2v Turbo "
@@ -293,7 +302,8 @@ class ModelCardSaver:
             return (
                 "This checkpoint holds the MiniMax-H3 weights as released, in the MLX-Gen layout and without "
                 "quantization: the 16-bit transformer, the 50 Qwen3-VL conditioner layers the model conditions "
-                "on with their vision tower, the BF16 video VAE and the fp32 audio VAE. It is the reference the "
+                "on with their vision tower, the video VAE converted from the released fp32 to the BF16 it runs at, "
+                "and the fp32 audio VAE. It is the reference the "
                 "quantized packages are measured against.\n\n"
                 f"See the [MLX-Gen quantization docs]({ModelCardSaver.QUANTIZATION_DOC_URL}) for those measurements."
             )
@@ -304,8 +314,8 @@ class ModelCardSaver:
             "the token refiner and the per-block AdaLN projections (`adaln_proj`).",
             f"- q{conditioner_bits} for the Qwen3-VL conditioner's 50 decoder layers and token embeddings.",
             "- As released: the conditioner's vision tower, which image-to-video depends on, the transformer's "
-            "fp32 input and output heads, timestep MLP and final modulation (`norm_out`), the BF16 video VAE "
-            "and the fp32 audio VAE.",
+            "fp32 input and output heads, timestep MLP and final modulation (`norm_out`), and the fp32 audio VAE.",
+            "- The video VAE is stored in the BF16 it runs at; the release holds it in fp32.",
             "",
             f"See the [MLX-Gen quantization docs]({ModelCardSaver.QUANTIZATION_DOC_URL}) for the measurements "
             "behind this policy.",
@@ -316,10 +326,12 @@ class ModelCardSaver:
                 "components are quantized, the small precision-critical parts are not."
             )
             measured = (
-                "Measured against the released 16-bit weights, its predicted velocity is within 1.2 to 2.0 times "
-                "the 16-bit model's own numerical noise, and its clips keep the fine detail of the 16-bit clips "
+                "Measured against the released 16-bit weights on three clips, its predicted video velocity "
+                "differs from the 16-bit prediction 1.2 to 2.0 times as much as a 0.1% change of the prompt "
+                "embedding does (audio: 1.3 to 3.0 times), and its clips keep the fine detail of the 16-bit clips "
                 "(98 to 101%). Each 8-bit weight takes the nearest level of the grid that is stored, which "
-                "lowers a layer's weight error by about a quarter against MLX's default choice at the same size."
+                "lowers a layer's weight error by about a quarter against MLX's default choice at the same size; "
+                "on whole clips that difference is within the variation between runs."
             )
             return "\n".join([lead, "", *layers, "", measured])
         lead = (
@@ -330,11 +342,12 @@ class ModelCardSaver:
             f"The transformer is {transformer_bits}-bit, not {bits}-bit. No layer family in it tolerates 4-bit "
             "better than another, so a 4-bit/8-bit mix has no sensitive family to protect; the mix measured at "
             f"the same size is about twice as far from the released weights as uniform {transformer_bits}-bit. "
-            "Measured against the released 16-bit weights, this package's predicted velocity is 2.4 to 5.3 times "
-            "the 16-bit model's own numerical noise, and its text-to-video clips keep 80 to 88% of the fine "
-            "detail of the 16-bit clips. The 8-bit package ([`AbstractFramework/minimax-h3-8bit`]"
-            "(https://huggingface.co/AbstractFramework/minimax-h3-8bit)) stays within 1.2 to 2.0 times that noise "
-            "and keeps the detail; this one trades fidelity for memory and disk."
+            "Measured against the released 16-bit weights on three clips, this package's predicted video velocity "
+            "differs from the 16-bit prediction 2.4 to 5.3 times as much as a 0.1% change of the prompt embedding "
+            "does (audio: 3.3 to 6.0 times), and its text-to-video clips keep 80 to 88% of the fine detail of the "
+            "16-bit clips. The 8-bit package ([`AbstractFramework/minimax-h3-8bit`]"
+            "(https://huggingface.co/AbstractFramework/minimax-h3-8bit)) stays at 1.2 to 2.0 times and keeps the "
+            "detail; this one trades fidelity for memory and disk."
         )
         return "\n".join([lead, "", *layers, "", why])
 
@@ -391,11 +404,12 @@ class ModelCardSaver:
             *rows,
             "",
             "Peak memory is the whole-process footprint of one `960x544`, 124-frame, 8-step clip, measured on an "
-            "Apple M5 Max with 128 GB. The smaller machines were tested on that Mac with the difference in RAM "
-            "locked away for the whole run. `--low-ram` tightens the MLX cache and frees the transformer before "
-            "the decode. `--stream-blocks` reads each transformer block from disk for the length of its call "
-            "instead of holding the transformer in memory; every step then reads the blocks again, which added "
-            "about 3% to the step time from an internal SSD. The three modes produce the same clip. Close other "
+            "Apple M5 Max with 128 GB. The smaller sizes are emulations: the same weights at the same widths "
+            "ran on that Mac with the difference in RAM locked away for the whole run, not on Macs of those "
+            "sizes. `--low-ram` tightens the MLX cache to 1 GB and frees the transformer before the decode. "
+            "`--stream-blocks` reads each transformer block from disk for the length of its call instead of "
+            "holding the transformer in memory; every step then reads the blocks again, which added about 3% to "
+            "a step on average from an internal SSD. The three modes produce the same clip. Close other "
             "memory-heavy applications on a machine at the low end of a range; longer clips and larger canvases "
             "need more.",
             "",

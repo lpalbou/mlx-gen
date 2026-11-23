@@ -488,7 +488,7 @@ def test_minimax_h3_cards_show_every_width_with_its_modes_and_the_machines_they_
         for other, other_name in names.items():
             assert row(other, other_name, " (this package)" if other == bits else "") in card
         assert "| Package | Disk | Default | `--low-ram` | `--stream-blocks --low-ram` |" in card
-        assert "The smaller machines were tested on that Mac with the difference in RAM locked away" in card
+        assert "The smaller sizes are emulations" in card and "not on Macs of those sizes" in card
         assert "The three modes produce the same clip." in card
         assert "This repository is gated" in card and "hf auth login" in card
         # The command is the default mode; the two options are named for a Mac with less memory.
@@ -512,9 +512,18 @@ def test_the_16_bit_card_describes_the_released_weights(tmp_path):
     eight = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-8bit"), MiniMaxH3(), 8)
     four = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-4bit"), MiniMaxH3(), 4)
     assert "This repository is a quantized derivative of MiniMaxAI/MiniMax-H3" in eight
-    assert "within 1.2 to 2.0 times the 16-bit model's own numerical noise" in eight
+    assert "1.2 to 2.0 times as much as a 0.1% change of the prompt embedding does (audio: 1.3 to 3.0 times)" in eight
     assert "takes the nearest level of the grid that is stored" in eight
-    assert "2.4 to 5.3 times the 16-bit model's own numerical noise" in four and "80 to 88%" in four
+    assert "on whole clips that difference is within the variation between runs" in eight
+    assert "2.4 to 5.3 times as much as a 0.1% change" in four and "(audio: 3.3 to 6.0 times)" in four
+    assert "80 to 88%" in four
+    # The Hub lists the quantized packages under the source model; every card states each change to the release.
+    assert "base_model_relation: quantized" in eight and "base_model_relation: quantized" in four
+    assert "base_model_relation" not in card
+    for text in (card, eight, four):
+        assert "kept to the 50 decoder layers the model reads" in text
+        assert "the video VAE is stored in BF16 where the release holds it in fp32" in text
+        assert "BF16 video VAE and the fp32 audio VAE" not in text
 
 
 def test_card_version_lines_name_the_release_that_wrote_the_weights(tmp_path):
@@ -545,4 +554,23 @@ def test_minimax_h3_notice_carries_the_prescribed_text_and_the_modification():
     )
     assert "Modification notice" in notice and "quantized (4-bit package)" in notice
     assert f"mlx-gen {VersionUtil.get_mflux_version()}" in notice
-    assert "quantized" not in ModelCardSaver.render_minimax_h3_notice("MiniMaxAI/MiniMax-H3", None)
+    unquantized = ModelCardSaver.render_minimax_h3_notice("MiniMaxAI/MiniMax-H3", None)
+    assert "quantized" not in unquantized
+    # Both state what every package changes in the released files.
+    for text in (notice, unquantized):
+        assert "kept to the 50 decoder layers the model reads" in text
+        assert "stored in BF16 where the release holds it in fp32" in text
+
+
+def test_a_notice_rewritten_for_a_package_names_the_release_that_wrote_its_weights(tmp_path):
+    import mlx.core as mx
+
+    package = tmp_path / "minimax-h3-4bit"
+    (package / "transformer").mkdir(parents=True)
+    mx.save_safetensors(
+        str(package / "transformer" / "0.safetensors"), {"w": mx.zeros((2, 2))}, {"mflux_version": "0.39.0"}
+    )
+    notice = ModelCardSaver.render_minimax_h3_notice("MiniMaxAI/MiniMax-H3", 4, base_path=str(package))
+    assert "with mlx-gen 0.39.0 (" in notice
+    fresh = ModelCardSaver.render_minimax_h3_notice("MiniMaxAI/MiniMax-H3", 4)
+    assert f"with mlx-gen {VersionUtil.get_mflux_version()} (" in fresh

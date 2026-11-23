@@ -93,10 +93,11 @@ Notes:
   headroom) have no quantized package.
 - No Wan 4-bit package is published.
 - MiniMax-H3 at `960x544`, 124 frames, peaks at 54.4 GiB (`minimax-h3-bf16`), 37.0 GiB
-  (`minimax-h3-8bit`) or 32.5 GiB (`minimax-h3-4bit`) with default settings, and completes on
-  96 GB and 48 GB Macs for the first two. `--low-ram` lowers the peaks to 44.0, 26.3 and 21.9 GiB
-  (64, 36 and 32 GB Macs), and `--stream-blocks --low-ram` to 11.7 and 11.1 GiB for the 16-bit and
-  8-bit packages (32 and 24 GB Macs). The packages need mlx-gen 0.40.0 or newer for these
+  (`minimax-h3-8bit`) or 32.5 GiB (`minimax-h3-4bit`) with default settings, and completes within
+  96 GB and 48 GB for the first two (tested on a 128 GB Mac with the rest of its memory locked).
+  `--low-ram` lowers the peaks to 44.0, 26.3 and 21.9 GiB (within 64, 36 and 32 GB), and
+  `--stream-blocks --low-ram` to 11.7 and 11.1 GiB for the 16-bit and 8-bit packages (within 32 and
+  24 GB). The packages need mlx-gen 0.40.0 or newer for these
   figures; see [minimax-h3.md](minimax-h3.md).
 - Model weights keep their original licenses and access terms. FLUX.2 Klein 9B packages are gated
   and non-commercial; MiniMax-H3 packages carry a territory-restricted license.

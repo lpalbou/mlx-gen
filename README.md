@@ -76,11 +76,11 @@ The main capabilities are:
   sound, a score, and spoken dialogue with the speaker's mouth animated to match. A run holds the
   transformer in memory and reads the conditioner, the AdaLN projections and the VAEs from disk
   when they are needed, so a `960x544`, 124-frame clip from `AbstractFramework/minimax-h3-8bit`
-  (64 GiB on disk) peaks at 37.0 GiB and completes on a 48 GB Mac, at 26.3 GiB with `--low-ram`
-  (36 GB Macs), and at 11.1 GiB with `--stream-blocks --low-ram` (24 GB Macs), which reads each
-  transformer block from disk at every step. The released 16-bit weights run from
-  `AbstractFramework/minimax-h3-bf16` (115 GiB on disk; 54.4, 44.0 and 11.7 GiB peak in the same
-  three modes, on 96, 64 and 32 GB Macs), and the mixed-width `AbstractFramework/minimax-h3-4bit`
+  (64 GiB on disk) peaks at 37.0 GiB and completes within 48 GB (tested on a 128 GB Mac with the
+  rest of its memory locked), at 26.3 GiB with `--low-ram` (within 36 GB), and at 11.1 GiB with
+  `--stream-blocks --low-ram` (within 24 GB), which reads each transformer block from disk at every
+  step. The released 16-bit weights run from `AbstractFramework/minimax-h3-bf16` (115 GiB on disk;
+  54.4, 44.0 and 11.7 GiB peak in the same three modes, within 96, 64 and 32 GB), and the mixed-width `AbstractFramework/minimax-h3-4bit`
   (45 GiB on disk) is the smallest download. See `docs/minimax-h3.md` and
   `docs/minimax-h3-memory.md`;
 - ByteDance Bernini-R 1.3B renderer support (`bernini-r-1.3b`): generate video from one to eight
@@ -451,8 +451,8 @@ progress callbacks make long runs observable.
 
 ## Documentation
 
-Release notes are in the [changelog](CHANGELOG.md); release 0.40.0 lowers MiniMax-H3's peak memory
-to 37.0 GiB with the 8-bit package (11.1 GiB with `--stream-blocks --low-ram`), runs the released
+Release notes are in the [changelog](CHANGELOG.md); the 0.40 releases lower MiniMax-H3's peak
+memory to 37.0 GiB with the 8-bit package (11.1 GiB with `--stream-blocks --low-ram`), runs the released
 16-bit weights, and publishes them as `AbstractFramework/minimax-h3-bf16`.
 
 - [Getting started](docs/getting-started.md): installation, first runs, SeedVR2 upscaling, and Wan video.
