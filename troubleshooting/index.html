@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1602,15 +1602,44 @@ the matching Hugging Face handle. MLX-Gen checks the local MLX-Gen package only 
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>./models/wan2.2-i2v-a14b-diffusers-8bit<span class="w"> </span>...
 mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit<span class="w"> </span>...
 </code></pre></div>
+<p><code>mlxgen download</code> stops with <code>--model must resolve to a Hugging Face repo id for download</code> when
+<code>--model</code> is a local path or a name that is neither a model alias nor an <code>owner/repo</code> id. Pass the
+alias or the repository id.</p>
 <h2 id="local-path-cannot-be-classified">Local Path Cannot Be Classified<a class="headerlink" href="#local-path-cannot-be-classified" title="Permanent link">&para;</a></h2>
-<p>When using a local model path, MLX-Gen may not be able to infer the model family from the folder name. Add <code>--family</code>:</p>
+<p>A local folder or custom repository name that contains no catalog model name cannot be identified.
+<code>mlxgen generate</code> and <code>mlxgen capabilities</code> stop with one of these usage errors:</p>
+<table>
+<thead>
+<tr>
+<th>Message starts with</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Could not infer a supported backend from model '&lt;name&gt;'.</code></td>
+<td>Add <code>--base-model &lt;alias&gt;</code>. The message lists family names, but a family alone does not identify the model.</td>
+</tr>
+<tr>
+<td><code>family='&lt;family&gt;' is not enough to configure model '&lt;name&gt;'.</code></td>
+<td>Keep or drop <code>--family</code>, and add <code>--base-model &lt;alias&gt;</code>.</td>
+</tr>
+</tbody>
+</table>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--model<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--family<span class="w"> </span>qwen<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>./models/my-package<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--base-model<span class="w"> </span>qwen-image<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A clean studio product photo"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>image.png
 </code></pre></div>
-<p>Supported router families are <code>qwen</code>, <code>flux2</code>, <code>bonsai</code>, <code>fibo</code>, <code>z-image</code>, <code>ernie-image</code>, and <code>wan</code>.</p>
+<p>A folder whose name does contain a catalog model name loads, but can publish fewer routes than the
+model supports until <code>--base-model</code> is passed; see
+<a href="../model-management/#prepare-a-local-mlx-gen-package">Prepare A Local MLX-Gen Package</a>.</p>
+<p>FLUX.1 aliases and repositories (<code>dev</code>, <code>schnell</code>, <code>krea-dev</code>) produce the same <code>Could not infer a
+supported backend</code> error because <code>mlxgen generate</code> and <code>mlxgen capabilities</code> do not route FLUX.1.
+<code>mlxgen download</code> and <code>mlxgen prepare</code> accept those aliases, and FLUX.1 generation runs through the
+<code>mflux-generate</code> compatibility entry point. For new work in the unified CLI, use a FLUX.2 Klein
+model such as <code>flux2-klein-4b</code>.</p>
 <h2 id="a-package-calls-mflux-generate-flux2-directly-and-fails">A Package Calls <code>mflux-generate-flux2*</code> Directly And Fails<a class="headerlink" href="#a-package-calls-mflux-generate-flux2-directly-and-fails" title="Permanent link">&para;</a></h2>
 <p>If another package shells out to <code>mflux-generate-flux2</code> or <code>mflux-generate-flux2-edit</code>, treat that
 as a legacy integration path. New integrations should call <code>mlxgen generate</code> instead.</p>
@@ -1809,10 +1838,11 @@ edit.</p>
 <p>For a memory-constrained host, keep <code>--low-ram</code> enabled. The bounded model-backed proof peaked at
 9.45 GB whole-process physical footprint on the 128 GB validation host, which predicts a useful
 margin on an 18 GB Mac but is not a direct 18 GB-host proof. That does not mean 18 GB of fresh disk
-is sufficient: the pinned factored selective download is about 16.36 GiB and requires 2 GiB
-headroom, for 18.36 GiB free. Run:</p>
-<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b
+is sufficient: the pinned BF16 package is about 15.60 GiB and requires 2 GiB headroom, for
+17.60 GiB free, and the FP32 source alias <code>bernini-r-1.3b</code> needs 28.94 GiB free. Run:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b-bf16
 </code></pre></div>
+<p>Then generate with the same alias, <code>--model bernini-r-1.3b-bf16</code>.</p>
 <p>If R2V is coherent but misses requested accessories, check these before treating it as a runtime
 bug:</p>
 <ul>
@@ -1834,17 +1864,27 @@ process partway through. Pass <code>--quantize 8</code>, or load a prepared q8 p
 memory the same load proceeds: the check compares against your own hardware, and the capability row
 publishes <code>unquantized_weights_bytes</code> so an application can make the same decision in advance.</p>
 <h2 id="minimax-h3-runs-out-of-memory-or-disk">MiniMax-H3 Runs Out Of Memory Or Disk<a class="headerlink" href="#minimax-h3-runs-out-of-memory-or-disk" title="Permanent link">&para;</a></h2>
-<p>MiniMax-H3 needs about 140 GB of disk for its snapshot and, with <code>--quantize 8</code>, peaks at about
-80 GB of MLX memory (88 GB process footprint) on a <code>960x544</code> clip and 93 GB at <code>1344x768</code>. Run it on a 128 GB Mac with
-<code>--quantize 8</code>, close other GPU-heavy applications, and prefer <code>minimax-h3-turbo-544p</code> over the
+<p>MiniMax-H3 needs about 140 GB of disk for its source snapshot, or 64.3 GiB for the 8-bit package
+and 44.9 GiB for the mixed 4-bit one. On a <code>960x544</code>, 124-frame clip the 8-bit package peaks at a
+77.0 GiB process footprint (65.0 GiB with <code>--low-ram</code>) and the 4-bit package at 57.6 GiB (45.6 GiB
+with <code>--low-ram</code>); at <code>1344x768</code> the 8-bit package peaks at 82.0 GiB. Use the 8-bit package on 96 GB or more and the 4-bit package with <code>--low-ram</code> on
+64 GB; <a href="../minimax-h3/#memory-by-machine">Memory By Machine</a> has the table. Close other memory-heavy
+applications, and prefer <code>minimax-h3-turbo-544p</code> over the
 768p entries while iterating; the 768p canvas costs about five minutes per step. The MLX
 free-buffer cache is capped at the process default (up to 8 GiB); <code>--mlx-cache-limit-gb</code> lowers or
 lifts that cap. If <code>mlxgen download</code> stops early, check free disk space and rerun it (downloads
-resume). The first load after a download reads 133 GB of shards from disk and takes a few minutes;
-later loads are fast, and a prepared package (<code>mlxgen prepare --model minimax-h3 --quantize 8
---path ...</code>, 75 GB) skips the quantization pass on every load.</p>
+resume). The first source load after a download reads 134 GB of shards from disk and takes a few
+minutes; later loads are fast, and a package (<code>AbstractFramework/minimax-h3-8bit</code>,
+<code>AbstractFramework/minimax-h3-4bit</code>, or your own from <code>mlxgen prepare</code>) skips the quantization pass
+on every load.</p>
+<p>If loading a package stops with "splits <code>&lt;d&gt;</code> ... into several tokens", its tokenizer does not carry
+the model's dialogue markers. Prepare the package again; the message names the command.</p>
+<p>A repository id such as <code>AbstractFramework/minimax-h3-8bit</code> resolves to a complete
+<code>./models/minimax-h3-8bit</code> or <code>~/models/minimax-h3-8bit</code> folder before the Hugging Face cache.
+<code>mlxgen generate</code> prints <code>Loaded weights from &lt;folder&gt;</code>; rename or remove a local folder of that
+name when you mean the downloaded package.</p>
 <h2 id="generate-path-fails"><code>generate --path</code> Fails<a class="headerlink" href="#generate-path-fails" title="Permanent link">&para;</a></h2>
-<p><code>--path</code> belongs to <code>mlxgen prepare</code>, where it names the local MLX-Gen package to create. It is not a generation option.</p>
+<p><code>--path</code> belongs to <code>mlxgen prepare</code>, where it names the local MLX-Gen package to create. It is not a generation option. <code>mlxgen generate --path ...</code> stops with <code>--path prepares a local model folder and is not a generation option.</code> and prints the equivalent <code>mlxgen prepare</code> command.</p>
 <p>To create a quantized MLX-Gen package:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>black-forest-labs/FLUX.2-klein-4B<span class="w"> </span>--path<span class="w"> </span>models/flux.2-klein-4b-4bit<span class="w"> </span>--quantize<span class="w"> </span><span class="m">4</span>
 </code></pre></div>
@@ -1948,10 +1988,10 @@ noisy clip; pass the Turbo file with it (see <a href="../minimax-h3/#adapters">M
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

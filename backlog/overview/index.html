@@ -19,7 +19,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1344,15 +1344,15 @@ outside chat history.</p>
 <tbody>
 <tr>
 <td>Planned</td>
-<td style="text-align: right;">15</td>
+<td style="text-align: right;">17</td>
 </tr>
 <tr>
 <td>Proposed</td>
-<td style="text-align: right;">40</td>
+<td style="text-align: right;">41</td>
 </tr>
 <tr>
 <td>Completed</td>
-<td style="text-align: right;">67</td>
+<td style="text-align: right;">68</td>
 </tr>
 <tr>
 <td>Deprecated</td>
@@ -1364,7 +1364,7 @@ outside chat history.</p>
 </tr>
 </tbody>
 </table>
-<p>Counts are item files (recounted 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
+<p>Counts are item files (recounted 2026-11-23 after item 0128 completed and follow-up 0129 was filed; 2026-10-04 after planned items 0126 and 0127 were filed; 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
 2026-07-25 release hygiene had moved 0093-0095, 0097-0099, and release
 item 0101 to completed/), including topic-track items under
 <code>planned/memory/</code>; the completed <code>planned/runtime_contracts/</code> track holds only its index.
@@ -1696,8 +1696,14 @@ memory follow-up state.</p>
    <a href="../completed/0118_minimax_h3_first_frame_conditioning_vision_tower/">0118</a> (first-frame
    image-to-video through the Qwen3-VL vision tower). Next: the AdaLN precompute and long-sequence performance work
    (<a href="../proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance/">0119</a>). The
-   joint audio-video contract ADR and the license policy decision recorded in deprecated item 0104
-   are still owed.</li>
+   quantized packages shipped with 0.39.0 as completed item
+   <a href="../completed/0128_minimax_h3_quantized_packages/">0128</a>, published as gated repositories by the
+   owner's decision on the license. The joint audio-video contract ADR is still owed.</li>
+<li>Run <a href="../planned/0126_wan_q8_keep_8bit_at_runtime/">item 0126</a> before the full-size Wan q8 work in
+   item 0013. Wan q8 packages are converted to BF16 at load since 2026-06-12 and use BF16-class
+   memory; the failure behind that conversion was the MLX <code>quantized_matmul</code> fault above 32,767
+   rows (MLX before 0.32.0), which item 0117 already repairs for MiniMax-H3 with row chunks.
+   Validate Wan with its block linears kept 8-bit, starting with the 1280x720, 41-frame case.</li>
 </ol>
 <table>
 <thead>
@@ -1813,6 +1819,20 @@ memory follow-up state.</p>
 <td><a href="../planned/0106_bernini_full_trajectory_parity_and_release_quality/">Bernini-R 1.3B full-trajectory parity and release quality</a></td>
 <td>Bernini video, exact-input parity, cadence, visual release proof</td>
 <td>P0 release blocker</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0126</td>
+<td><a href="../planned/0126_wan_q8_keep_8bit_at_runtime/">Keep Wan q8 packages 8-bit in memory</a></td>
+<td>Video, Wan, quantization, memory, MLX kernel fault</td>
+<td>P1</td>
+<td>Planned</td>
+</tr>
+<tr>
+<td>0127</td>
+<td><a href="../planned/0127_recommend_4step_adapters_for_wan_and_qwen/">Recommend the 4-step adapters with each Wan and Qwen model</a></td>
+<td>LoRA, Wan, Qwen, docs, download</td>
+<td>P2</td>
 <td>Planned</td>
 </tr>
 </tbody>
@@ -2061,6 +2081,12 @@ memory follow-up state.</p>
 <td><a href="../proposed/0125_minimax_h3_lora_layouts_validation/">MiniMax-H3 adapter layouts, validated one real file per producer</a></td>
 <td>MiniMax-H3, LoRA</td>
 <td>Promote when a kohya / musubi-tuner or DiffSynth-Studio H3 adapter is at hand; the mapping ships for the original-checkpoint layout (validated with an ai-toolkit civitai file on 2026-09-09) and refuses DiffSynth's interleaved fused QKV until a real file proves the de-interleave.</td>
+</tr>
+<tr>
+<td>0129</td>
+<td><a href="../proposed/0129_router_and_docs_followups_from_the_0_39_0_documentation_pass/">Router and docs follow-ups from the 0.39.0 documentation pass</a></td>
+<td>Router messages, local-folder routing, docs</td>
+<td>Promote the message and routing items when the router is next touched; the documentation items can ride with any docs pass. Eleven findings from checking the agent skill against the code, none of which blocks a documented workflow.</td>
 </tr>
 </tbody>
 </table>
@@ -2545,6 +2571,13 @@ memory follow-up state.</p>
 <td>2026-09-06</td>
 <td>From a BlackPixel feature request, adversarially verified first. Fixed progress never reaching the callback registry, the <code>denoising</code>/duplicate-<code>complete</code> phase vocabulary, a documented maximum frame count (362) that always raised, duplicate prompt sections, the duplicate Turbo label, unvalidated Python-runtime keywords, health validation running before the audio mux, and a sidecar that could overwrite. Published the audio, duration, sampling and per-entry-default fields plus <code>prompt_sections</code> descriptors at <code>schema_version</code> 13. Follow-ups 0121-0123.</td>
 </tr>
+<tr>
+<td>0128</td>
+<td><a href="../completed/0128_minimax_h3_quantized_packages/">MiniMax-H3 quantized packages on Hugging Face</a></td>
+<td>MiniMax-H3, quantization policy, packaging, Hugging Face, release 0.39.0</td>
+<td>2026-11-23</td>
+<td>Published <code>minimax-h3-8bit</code> (64.3 GiB) and the mixed-width <code>minimax-h3-4bit</code> (44.9 GiB: 4-bit conditioner, 6-bit transformer) as gated repositories. The policy is measured: no transformer family tolerates 4-bit better than another, the AdaLN projections quantize like any linear (the earlier failure was an input cast), and the vision tower stays unquantized. Fixed cache resolution of downloaded packages, package tokenizers, the model card, and the loader's refusal of mismatched packages. The 8-bit package runs on 96 GB and the 4-bit one on 64 GB with <code>--low-ram</code>, both tested with RAM locked away.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="deprecated-ledger">Deprecated ledger<a class="headerlink" href="#deprecated-ledger" title="Permanent link">&para;</a></h2>
@@ -2962,10 +2995,10 @@ memory follow-up state.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

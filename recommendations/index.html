@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1334,14 +1334,14 @@ more memory than the example profile shown here.</p>
 <td><code>64 GB</code></td>
 <td>All image families above are practical.</td>
 <td>Add <code>AbstractFramework/qwen-image-edit-2511-8bit</code> for strong layout-preserving edit/reference work, plus <code>AbstractFramework/qwen-image-8bit</code> control and control-inpaint.</td>
-<td>Wan A14B (q8 storage or BF16; both run at BF16-class memory, ~33 GiB physical peak in the small low-RAM profile) is the first conservative tier for A14B video.</td>
+<td>Wan A14B (q8 storage or BF16; both run at BF16-class memory, ~33 GiB physical peak in the small low-RAM profile) is the first conservative tier for A14B video. Video with a synchronized stereo soundtrack runs here with <code>AbstractFramework/minimax-h3-4bit</code> and <code>--low-ram</code> (45.6 GiB peak at <code>960x544</code>, 124 frames; close other memory-heavy applications, see <a href="../minimax-h3/#memory-by-machine">MiniMax-H3</a>).</td>
 <td><code>seedvr2-7b</code> image upscaling is easy. For published video-restore proofs, keep using <code>seedvr2-3b</code> unless you have more than 64 GB free.</td>
 </tr>
 <tr>
 <td><code>128+ GB</code></td>
 <td>Everything above.</td>
 <td>Everything above, plus room for larger or more exploratory runs.</td>
-<td>Add native <code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code> high-resolution video profiles such as <code>1280x704, 17 frames, 20 steps</code>, and <code>minimax-h3-turbo-544p</code> for video with a synchronized stereo soundtrack (<code>--quantize 8</code>, 80 GB MLX peak at <code>960x544</code>, see <a href="../minimax-h3/">MiniMax-H3</a>).</td>
+<td>Add native <code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code> high-resolution video profiles such as <code>1280x704, 17 frames, 20 steps</code>, and <code>AbstractFramework/minimax-h3-8bit</code> for video with a synchronized stereo soundtrack at the width closest to the released weights (77.0 GiB peak at <code>960x544</code>, 124 frames; it fits from 96 GB, see <a href="../minimax-h3/#memory-by-machine">MiniMax-H3</a>).</td>
 <td>Add published <code>seedvr2-7b</code> five-second <code>29/8</code> video restore and larger Wan experimentation with real headroom.</td>
 </tr>
 </tbody>
@@ -1485,7 +1485,8 @@ more memory than the example profile shown here.</p>
   fits the tested shapes (9.45 GB maximum bounded-matrix peak; 8.17 GB for the 33-frame,
   eight-reference 848-condition structural probe), but it is not recommended for production:
   its visual release gate fails. The official 81-frame profile remains unmeasured, and a fresh
-  selective download separately needs 18.36 GiB free disk including headroom.</li>
+  download separately needs 17.60 GiB free disk including headroom for <code>bernini-r-1.3b-bf16</code>, or
+  28.94 GiB for the FP32 source <code>bernini-r-1.3b</code>.</li>
 <li><code>64 GB</code> is the first conservative tier for Wan A14B video: since the 2026-06-12 q8
   runtime-precision fix, A14B runs at BF16-class memory (~33 GiB physical peak even at the small
   low-RAM benchmark profile).</li>
@@ -1555,10 +1556,10 @@ q4/q8 route combinations outside the measured rows above.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

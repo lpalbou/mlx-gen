@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1410,7 +1410,8 @@
 <p>Check the command surface:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>--help
 </code></pre></div>
-<p>The top-level command shows the public workflows:</p>
+<p>The help text shows the installed release as <code>MLX-Gen &lt;version&gt; (&lt;release date&gt;)</code>, followed by the
+public workflows:</p>
 <ul>
 <li><code>mlxgen generate</code> for image generation and supported video generation.</li>
 <li><code>mlxgen upscale</code> for SeedVR2 image restoration/upscaling and video restoration.</li>
@@ -1504,11 +1505,14 @@ a reusable local MLX-Gen package. Generation uses those local files and does not
 <p>Run generation from a local MLX-Gen model package:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--family<span class="w"> </span>qwen<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--base-model<span class="w"> </span>qwen-image<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A clean studio product photo"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>image.png
 </code></pre></div>
-<p><code>--family</code> is useful when a local path or custom repository name does not contain a recognizable model-family name.</p>
+<p><code>--base-model</code> names the catalog model that a local folder or custom repository contains. Pass it
+whenever <code>--model</code> is not a catalog alias or a published repository id; <code>--family</code> does not replace
+it. See <a href="../model-management/#prepare-a-local-mlx-gen-package">Model Management</a> for how <code>--model</code>
+values are identified.</p>
 <p>Run Bonsai Image from its pre-packed ternary checkpoint:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>prism-ml/bonsai-image-ternary-4B-mlx-2bit
 
@@ -1835,8 +1839,8 @@ aspect ratio to the source.</p>
 <p>To keep the background locked to the source while editing only one region, add
 <code>--video-mask-path mask.png</code>: white marks the region the model may change, black regions are
 preserved exactly. See <a href="../wan-video/#masked-video-to-video">Wan Video</a>.</p>
-<p>Bernini-R 1.3B is the smaller renderer path for ordinary reference images. Download its pinned,
-factored components, then repeat <code>--reference-image</code> in the same order used by <code>image0</code>, <code>image1</code>,
+<p>Bernini-R 1.3B is the smaller renderer path for ordinary reference images. Download its pinned
+source repository, then repeat <code>--reference-image</code> in the same order used by <code>image0</code>, <code>image1</code>,
 and so on in the prompt:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b
 
@@ -1855,7 +1859,9 @@ references for prompt-guided V2V. Bernini is BF16-only: omit <code>--quantize</c
 the tested shapes peaked at 9.45 GB on the 128 GB validation host. Seven official public 1.3B rows
 plus <code>ads2v</code> at mid profile are qualitatively accepted with committed proof (full prompts and
 contact sheets). The historical schema-v3 bundle still fails at the bounded 17-frame profile. A
-completely cold selective download needs 18.36 GiB free including headroom. See
+cold <code>bernini-r-1.3b</code> download is about 26.94 GiB and needs 28.94 GiB free including headroom; the
+BF16 package <code>bernini-r-1.3b-bf16</code> produces identical output from a 15.60 GiB download (17.60 GiB
+free). Use the same alias for <code>mlxgen download</code> and <code>mlxgen generate</code>. See
 <a href="../bernini/">Bernini-R 1.3B</a> for exact role, memory, failure, and proof boundaries.
 For Bernini source-video modes, <code>--width</code>/<code>--height</code> are a source-aspect area target and
 <code>--frames</code> is a maximum; inspect output metadata for the resolved canvas and actual frame count.</p>
@@ -1918,8 +1924,12 @@ minutes. See <a href="../wan-video/">Wan Video</a> for MP4 examples and frame st
 <p><img alt="Wan2.2 TI2V 1280x704 text-to-video contact sheet" src="../assets/generation/wan2.2-ti2v-5b-t2v-1280x704-17f-20steps-contact-sheet.png" /></p>
 <p><img alt="Wan2.2 TI2V first-frame image-to-video contact sheet" src="../assets/generation/wan2.2-ti2v-5b-i2v-bateau-1280x704-17f-20steps-contact-sheet.png" /></p>
 <h3 id="generate-a-video-with-sound-minimax-h3">Generate A Video With Sound (MiniMax-H3)<a class="headerlink" href="#generate-a-video-with-sound-minimax-h3" title="Permanent link">&para;</a></h3>
-<p>MiniMax-H3 generates the clip and a synchronized stereo soundtrack together. It needs about 140 GB
-of disk and a 128 GB Mac with <code>--quantize 8</code>:</p>
+<p>MiniMax-H3 generates the clip and a synchronized stereo soundtrack together. The published
+packages are the practical way to run it: <code>AbstractFramework/minimax-h3-8bit</code> (64.3 GiB, for 96 GB
+Macs and up) and the mixed-width <code>AbstractFramework/minimax-h3-4bit</code> (44.9 GiB, for 64 GB Macs with
+<code>--low-ram</code>); see <a href="../minimax-h3/#published-packages">MiniMax-H3 video with audio</a> for their
+commands. The example below runs the same weights from the source snapshot, which needs about
+140 GB of disk and quantizes at load time.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>minimax-h3-turbo-544p
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
@@ -2001,10 +2011,10 @@ clip from a keyframe. See
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

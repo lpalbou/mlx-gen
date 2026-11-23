@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1698,8 +1698,11 @@ the FP32 source package at the same settings and seed (verified on image and vid
 27 GiB cold, since the upstream checkpoint ships in FP32). The main <code>ByteDance/Bernini-R</code> A14B
 repository and similarly named third-party repositories intentionally fail closed; MLX-Gen never
 rewrites them to the 1.3B renderer.</p>
-<p>Both packages preflight with 2 GiB of free-space headroom, skip sources already present at their
-pinned revisions, and execute identically at run time: text encoder and transformer in BF16 (with
+<p>Each alias is its own model id: generate with the alias you downloaded (<code>--model
+bernini-r-1.3b-bf16</code> after the BF16 download). Both packages preflight with 2 GiB of free-space
+headroom (17.60 GiB free for the 15.60 GiB BF16 package, 28.94 GiB free for the 26.94 GiB FP32
+source), skip sources already present at their pinned revisions, and execute identically at run
+time: text encoder and transformer in BF16 (with
 small FP32 keep-sets), VAE in FP32, so resident memory is far below the download size.</p>
 <p>On the 128 GB validation host, the bounded low-RAM profiles peaked at 9.45 GB whole-process
 physical footprint. A separate 33-frame, eight-reference 848-condition structural probe peaked at
@@ -1940,10 +1943,10 @@ route-scoped notes, upstream input references, and direct artifact paths.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

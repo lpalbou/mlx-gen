@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1048,6 +1048,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#default-image-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default Image Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#image-metadata-and-finalization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1451,6 +1462,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#default-image-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Default Image Steps
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#image-metadata-and-finalization" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1678,6 +1700,11 @@
 </table>
 <p>The package also installs compatibility entry points from the mflux codebase. New workflows should
 prefer the <code>mlxgen</code> commands above when a matching command exists.</p>
+<p><code>mlxgen</code> exits with status <code>0</code> on success and non-zero on failure. Usage errors exit with <code>2</code>: an
+invalid or conflicting option, a <code>--model</code> that cannot be resolved to a backend, an unknown
+validation profile, or a download that fails the disk-space preflight. Runtime failures in <code>mlxgen
+generate</code>, such as model files that are not available locally, exit with <code>1</code>. <code>mlxgen upscale</code>
+reports missing model files with <code>2</code>, or with <code>1</code> under <code>--json-events</code>.</p>
 <p>Reader-first workflow split:</p>
 <table>
 <thead>
@@ -1729,7 +1756,7 @@ and I2V A14B, see <a href="../examples/spaceship-snow/">Spaceship Snow Workflow<
 and runtime examples, see <a href="../wan-video/">Wan Video</a>. For role-aware reference video, see
 <a href="../bernini/">Bernini-R 1.3B</a>.</p>
 <h2 id="generation-router">Generation Router<a class="headerlink" href="#generation-router" title="Permanent link">&para;</a></h2>
-<p><code>mlxgen generate</code> chooses the backend from <code>--model</code>, optional <code>--family</code>, and image or video
+<p><code>mlxgen generate</code> chooses the backend from <code>--model</code>, optional <code>--base-model</code>, and image or video
 inputs. Public tasks are media directions: <code>text-to-image</code>, <code>image-to-image</code>, <code>text-to-video</code>,
 <code>image-to-video</code>, and <code>video-to-video</code>. Edit/reference behavior is an internal image-to-image mode,
 not a separate public task.</p>
@@ -1820,6 +1847,36 @@ when you want the accepted proof row for that route:</p>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/qwen-image-edit-8bit<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--profile<span class="w"> </span>lora_qwen_edit_q8_ghibli_edit_2026_06_11
 </code></pre></div>
+<p><code>mlxgen validation</code> prints one JSON object in one of three shapes:</p>
+<table>
+<thead>
+<tr>
+<th>Invocation</th>
+<th>Top-level keys</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--model &lt;model&gt;</code> (optional <code>--profile &lt;id&gt;</code>)</td>
+<td><code>profile_id</code>, <code>model</code>, <code>status</code>, <code>records</code></td>
+</tr>
+<tr>
+<td><code>--profile &lt;id&gt;</code>, or no option</td>
+<td><code>id</code>, <code>title</code>, <code>canonical_source</code>, <code>description</code>, <code>records</code></td>
+</tr>
+<tr>
+<td><code>--list</code></td>
+<td><code>profiles</code>, each with <code>id</code>, <code>title</code>, <code>canonical_source</code>, <code>description</code>, <code>record_count</code></td>
+</tr>
+</tbody>
+</table>
+<p>Each record carries <code>profile_id</code>, <code>model</code>, <code>family</code>, <code>package_variant</code>, <code>step</code>, <code>step_label</code>,
+<code>public_task</code>, <code>mode</code>, <code>status</code>, <code>artifact_path</code>, <code>source_images</code>, <code>prompt</code>, <code>reviewer_notes</code>,
+<code>evidence_date</code>, and <code>evidence_type</code>. Record statuses are <code>PASS</code>, <code>PARTIAL</code>, <code>FAIL</code>, <code>STALE</code>,
+<code>UNREVIEWED</code>, and <code>N/A</code>; the model-level <code>status</code> is the weakest status among its records. A model
+with no record in the profile returns <code>"status": "NOT_AVAILABLE"</code> with an empty <code>records</code> array and
+exit status <code>0</code>: it means no evidence is recorded, not that the model failed. An unknown <code>--profile</code>
+is a usage error.</p>
 <h3 id="runtime-memory-defaults">Runtime Memory Defaults<a class="headerlink" href="#runtime-memory-defaults" title="Permanent link">&para;</a></h3>
 <p>MLX-Gen applies two machine-derived runtime-memory behaviors by default. Both are visible,
 bounded, and overridable.</p>
@@ -1863,6 +1920,66 @@ Terminal events also include saved-artifact paths, and failure events include
 next steps, failed events also include a nested <code>remediation</code> object. <code>DownloadRequiredError</code>
 emits <code>kind=download-required</code> with <code>download_command</code> and optional <code>prepare_command</code>; CLI usage
 failures under <code>--json-events</code> emit <code>kind=cli-usage</code> with the relevant usage string.</p>
+<p>Each line is one JSON object. A field whose value is null is omitted, so test for a key's presence
+before reading it.</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>type</code></td>
+<td>Always <code>"runtime"</code>.</td>
+</tr>
+<tr>
+<td><code>command</code>, <code>model</code>, <code>seed</code></td>
+<td>The routed command (<code>mlxgen generate</code> or <code>mlxgen upscale</code>), the model, and the seed of the current output.</td>
+</tr>
+<tr>
+<td><code>phase</code></td>
+<td><code>start</code>, <code>denoise</code>, <code>decode</code>, <code>convert</code>, <code>generated</code>, <code>save</code>, <code>complete</code>, <code>failed</code>, or <code>interrupted</code>, depending on the route.</td>
+</tr>
+<tr>
+<td><code>task</code>, <code>step</code>, <code>total_steps</code>, <code>progress</code></td>
+<td>Public task and step-based progress (<code>progress</code> is <code>0.0</code>-<code>1.0</code>).</td>
+</tr>
+<tr>
+<td><code>frame</code>, <code>total_frames</code>, <code>frame_progress</code>, <code>timestep</code>, <code>fps</code>, <code>width</code>, <code>height</code>, <code>health_check</code></td>
+<td>Present when the route reports them.</td>
+</tr>
+<tr>
+<td><code>output_path</code></td>
+<td>On <code>save</code>, <code>complete</code>, and <code>failed</code> events.</td>
+</tr>
+<tr>
+<td><code>error</code>, <code>error_type</code></td>
+<td>On <code>failed</code> events: the message and the exception class name, such as <code>DownloadRequiredError</code> or <code>CliArgumentError</code>.</td>
+</tr>
+<tr>
+<td><code>diagnostics_path</code></td>
+<td>On <code>failed</code> events when a failure manifest was written.</td>
+</tr>
+<tr>
+<td><code>remediation.kind</code></td>
+<td><code>download-required</code> or <code>cli-usage</code>.</td>
+</tr>
+<tr>
+<td><code>remediation.repo_id</code>, <code>remediation.artifact</code>, <code>remediation.download_command</code></td>
+<td>With <code>download-required</code>: the missing repository, what is missing (for example <code>model</code> or <code>LoRA</code>), and the command to run.</td>
+</tr>
+<tr>
+<td><code>remediation.prepare_command</code></td>
+<td>With <code>download-required</code>, only when preparing a local package applies.</td>
+</tr>
+<tr>
+<td><code>remediation.usage</code></td>
+<td>With <code>cli-usage</code>: the usage string of the command.</td>
+</tr>
+</tbody>
+</table>
 <p>For image routes, model progress <code>complete</code> means the in-memory image object is ready. The CLI
 maps that to <code>generated</code>, then emits <code>save</code> and reserves terminal <code>complete</code> for the point where
 the output file has actually been written. Wan video routes also accept <code>--failure-diagnostics</code>;
@@ -1876,6 +1993,9 @@ non-Wan <code>mlxgen generate</code> routes do not advertise or accept that flag
 <li>Each seed produces one saved image or one saved video.</li>
 <li>Duplicate explicit seeds are rejected because they would target the same artifact path.</li>
 <li><code>--auto-seeds</code> must be greater than zero.</li>
+<li>With neither <code>--seed</code> nor <code>--auto-seeds</code>, the run uses one seed taken from the clock (the current
+  Unix time in seconds), so repeated runs produce different outputs. Pass <code>--seed</code> to reproduce a
+  result; <code>--metadata</code> records the seed that was used.</li>
 </ul>
 <p>When one invocation processes several seeds, MLX-Gen appends <code>_seed_&lt;seed&gt;</code> to the output stem
 automatically unless your <code>--output</code> pattern already contains <code>{seed}</code>.</p>
@@ -1917,6 +2037,60 @@ rejected when <code>--replace true</code>.</p>
 <p>For Python integrations on the unified <code>mlxgen generate</code> families, use
 <code>load_generation_model(...).generate_outputs(...)</code> for the same serial multi-output reuse
 contract. SeedVR2/upscale remains outside that wrapper and stays on direct <code>SeedVR2</code> methods.</p>
+<h3 id="default-image-steps">Default Image Steps<a class="headerlink" href="#default-image-steps" title="Permanent link">&para;</a></h3>
+<p>When <code>--steps</code> is omitted, image routes use the default of the resolved model. Prepared packages
+of a model share its default.</p>
+<table>
+<thead>
+<tr>
+<th>Model alias</th>
+<th style="text-align: right;">Default <code>--steps</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>qwen-image</code>, <code>qwen-image-edit</code></td>
+<td style="text-align: right;">20</td>
+</tr>
+<tr>
+<td><code>qwen-image-edit-2509</code>, <code>qwen-image-edit-2511</code></td>
+<td style="text-align: right;">40</td>
+</tr>
+<tr>
+<td><code>flux2-klein-4b</code>, <code>flux2-klein-9b</code></td>
+<td style="text-align: right;">4</td>
+</tr>
+<tr>
+<td><code>flux2-klein-base-4b</code>, <code>flux2-klein-base-9b</code></td>
+<td style="text-align: right;">50</td>
+</tr>
+<tr>
+<td><code>z-image</code></td>
+<td style="text-align: right;">50</td>
+</tr>
+<tr>
+<td><code>z-image-turbo</code></td>
+<td style="text-align: right;">9</td>
+</tr>
+<tr>
+<td><code>ernie-image-turbo</code></td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td><code>fibo</code></td>
+<td style="text-align: right;">50</td>
+</tr>
+<tr>
+<td><code>fibo-lite</code></td>
+<td style="text-align: right;">8</td>
+</tr>
+<tr>
+<td><code>bonsai-image-ternary</code></td>
+<td style="text-align: right;">4</td>
+</tr>
+</tbody>
+</table>
+<p>Video defaults are listed with each video route below.</p>
 <h3 id="image-metadata-and-finalization">Image Metadata And Finalization<a class="headerlink" href="#image-metadata-and-finalization" title="Permanent link">&para;</a></h3>
 <p>The default image save path is intentionally lightweight: MLX-Gen writes the image once and does
 not embed runtime-memory diagnostics into the image file by default.</p>
@@ -2364,12 +2538,23 @@ models reject it; see <a href="#negative-prompts">Negative Prompts</a> and the <
 capability field.</p>
 <p>For Wan, omitting the option uses the model's official default negative prompt. Pass
 <code>--negative ""</code> or <code>--negative-prompt ""</code> to intentionally run without a negative prompt.</p>
-<p>Supported router families are <code>qwen</code>, <code>flux2</code>, <code>bonsai</code>, <code>fibo</code>, <code>z-image</code>, <code>ernie-image</code>, <code>wan</code>, and <code>minimax-h3</code>:</p>
+<p><code>--family</code> checks the model family; it does not identify a model. <code>mlxgen generate --family</code>
+accepts <code>qwen</code>, <code>flux2</code>, <code>fibo</code>, <code>z-image</code>, <code>ernie-image</code>, <code>wan</code>, and <code>bonsai</code>. <code>mlxgen
+capabilities --family</code> accepts those values plus <code>minimax-h3</code>, <code>seedvr2</code>, and <code>swiftvr</code>. A value
+that differs from the family resolved from <code>--model</code> is a usage error. For a local folder or custom
+repository name, state the model with <code>--base-model</code>:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--model<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--family<span class="w"> </span>qwen<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A clean studio product photo"</span>
+<span class="w">  </span>--model<span class="w"> </span>./models/my-qwen-edit-package<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--base-model<span class="w"> </span>qwen-image-edit-2511<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>input.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Turn the room into a pencil sketch"</span>
 </code></pre></div>
+<p>See <a href="../model-management/#prepare-a-local-mlx-gen-package">Prepare A Local MLX-Gen Package</a> for how
+<code>--model</code> values are identified.</p>
+<p><code>--battery-percentage-stop-limit</code> / <code>-B</code> (default <code>5</code>, range <code>1</code>-<code>99</code>) applies to image routes on a
+MacBook running on battery: when the charge is at or below the limit, the run prints <code>Battery below
+5% threshold: &lt;charge&gt;%</code> before denoising, writes no image, and exits with status <code>0</code>. Wan video
+routes accept the option and do not act on it.</p>
 <p>Use <code>--config-from-metadata</code> / <code>-C</code> when you want the router to read fields such as <code>model</code>, <code>image_path</code>, or <code>image_paths</code> from an existing metadata file.</p>
 <p>Bonsai Image routes through the same text-to-image command surface. The supported ternary
 checkpoint is already low-bit packed, so omit <code>--quantize</code>:</p>
@@ -2663,7 +2848,7 @@ and the source duration plus requested fps may resolve fewer <code>4n+1</code> f
 </tr>
 <tr>
 <td><code>--frames</code></td>
-<td>Requested output frames. Wan requires <code>4n + 1</code>; other values are adjusted to <code>4 * floor(frames / 4) + 1</code>. On Bernini source-video routes this is a maximum and may resolve lower from source duration/fps; metadata <code>output_frames</code> is authoritative. TI2V-5B default: <code>121</code>; A14B and Bernini default: <code>81</code>.</td>
+<td>Requested output frames. Wan requires <code>4n + 1</code>; other values are adjusted to <code>4 * floor(frames / 4) + 1</code>. On Bernini source-video routes this is a maximum and may resolve lower from source duration/fps; metadata <code>output_frames</code> is authoritative. Default: <code>81</code> on TI2V-5B, A14B, and Bernini. TI2V-5B supports up to <code>121</code> frames; pass <code>--frames 121</code> for its full-length shots.</td>
 </tr>
 <tr>
 <td><code>--fps</code></td>
@@ -3262,10 +3447,10 @@ written.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

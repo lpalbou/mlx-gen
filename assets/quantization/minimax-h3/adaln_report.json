@@ -1,0 +1,602 @@
+{
+  "capture_fox_step3/block0/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.635548,
+    "scale_msa": 0.658405,
+    "gate_msa": 0.646995,
+    "shift_mlp": 0.666188,
+    "scale_mlp": 0.657275,
+    "gate_mlp": 0.681002
+  },
+  "capture_fox_step3/block0/q8g64": {
+    "shift_msa": 0.001186,
+    "scale_msa": 0.000463,
+    "gate_msa": 0.001798,
+    "shift_mlp": 0.002622,
+    "scale_mlp": 0.000458,
+    "gate_mlp": 0.001119
+  },
+  "capture_fox_step3/block0/q8g32": {
+    "shift_msa": 0.001065,
+    "scale_msa": 0.00043,
+    "gate_msa": 0.00158,
+    "shift_mlp": 0.002306,
+    "scale_mlp": 0.000429,
+    "gate_mlp": 0.000996
+  },
+  "capture_fox_step3/block0/q6g64": {
+    "shift_msa": 0.004797,
+    "scale_msa": 0.001868,
+    "gate_msa": 0.007174,
+    "shift_mlp": 0.010563,
+    "scale_mlp": 0.001855,
+    "gate_mlp": 0.004528
+  },
+  "capture_fox_step3/block0/q4g64": {
+    "shift_msa": 0.020159,
+    "scale_msa": 0.008005,
+    "gate_msa": 0.030258,
+    "shift_mlp": 0.043707,
+    "scale_mlp": 0.007782,
+    "gate_mlp": 0.018981
+  },
+  "capture_fox_step3/block24/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.648373,
+    "scale_msa": 0.66079,
+    "gate_msa": 0.652232,
+    "shift_mlp": 0.646174,
+    "scale_mlp": 0.655975,
+    "gate_mlp": 0.669433
+  },
+  "capture_fox_step3/block24/q8g64": {
+    "shift_msa": 0.001274,
+    "scale_msa": 0.000509,
+    "gate_msa": 0.000802,
+    "shift_mlp": 0.002045,
+    "scale_mlp": 0.000651,
+    "gate_mlp": 0.001326
+  },
+  "capture_fox_step3/block24/q8g32": {
+    "shift_msa": 0.00113,
+    "scale_msa": 0.000465,
+    "gate_msa": 0.000716,
+    "shift_mlp": 0.00182,
+    "scale_mlp": 0.000591,
+    "gate_mlp": 0.001184
+  },
+  "capture_fox_step3/block24/q6g64": {
+    "shift_msa": 0.005121,
+    "scale_msa": 0.002078,
+    "gate_msa": 0.003225,
+    "shift_mlp": 0.008313,
+    "scale_mlp": 0.002611,
+    "gate_mlp": 0.005379
+  },
+  "capture_fox_step3/block24/q4g64": {
+    "shift_msa": 0.021641,
+    "scale_msa": 0.008725,
+    "gate_msa": 0.013454,
+    "shift_mlp": 0.034671,
+    "scale_mlp": 0.011013,
+    "gate_mlp": 0.022402
+  },
+  "capture_fox_step3/block49/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.631721,
+    "scale_msa": 0.652183,
+    "gate_msa": 0.651553,
+    "shift_mlp": 0.611096,
+    "scale_mlp": 0.656402,
+    "gate_mlp": 0.657047
+  },
+  "capture_fox_step3/block49/q8g64": {
+    "shift_msa": 0.000265,
+    "scale_msa": 0.000205,
+    "gate_msa": 0.000208,
+    "shift_mlp": 0.00026,
+    "scale_mlp": 0.000383,
+    "gate_mlp": 0.00033
+  },
+  "capture_fox_step3/block49/q8g32": {
+    "shift_msa": 0.000248,
+    "scale_msa": 0.0002,
+    "gate_msa": 0.00021,
+    "shift_mlp": 0.000255,
+    "scale_mlp": 0.000335,
+    "gate_mlp": 0.000293
+  },
+  "capture_fox_step3/block49/q6g64": {
+    "shift_msa": 0.001091,
+    "scale_msa": 0.000844,
+    "gate_msa": 0.000852,
+    "shift_mlp": 0.001077,
+    "scale_mlp": 0.001638,
+    "gate_mlp": 0.001308
+  },
+  "capture_fox_step3/block49/q4g64": {
+    "shift_msa": 0.004771,
+    "scale_msa": 0.003868,
+    "gate_msa": 0.003747,
+    "shift_mlp": 0.004784,
+    "scale_mlp": 0.007041,
+    "gate_mlp": 0.005984
+  },
+  "capture_image_step3/block0/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.660572,
+    "scale_msa": 0.666022,
+    "gate_msa": 0.678724,
+    "shift_mlp": 0.727365,
+    "scale_mlp": 0.659118,
+    "gate_mlp": 0.709909
+  },
+  "capture_image_step3/block0/q8g64": {
+    "shift_msa": 0.001935,
+    "scale_msa": 0.000745,
+    "gate_msa": 0.002977,
+    "shift_mlp": 0.004007,
+    "scale_mlp": 0.000751,
+    "gate_mlp": 0.001733
+  },
+  "capture_image_step3/block0/q8g32": {
+    "shift_msa": 0.001727,
+    "scale_msa": 0.000684,
+    "gate_msa": 0.002623,
+    "shift_mlp": 0.003526,
+    "scale_mlp": 0.000696,
+    "gate_mlp": 0.00154
+  },
+  "capture_image_step3/block0/q6g64": {
+    "shift_msa": 0.007849,
+    "scale_msa": 0.003003,
+    "gate_msa": 0.011958,
+    "shift_mlp": 0.016221,
+    "scale_mlp": 0.00304,
+    "gate_mlp": 0.007018
+  },
+  "capture_image_step3/block0/q4g64": {
+    "shift_msa": 0.032989,
+    "scale_msa": 0.012757,
+    "gate_msa": 0.049943,
+    "shift_mlp": 0.066736,
+    "scale_mlp": 0.012732,
+    "gate_mlp": 0.029404
+  },
+  "capture_image_step3/block24/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.670367,
+    "scale_msa": 0.673103,
+    "gate_msa": 0.668077,
+    "shift_mlp": 0.684599,
+    "scale_mlp": 0.670439,
+    "gate_mlp": 0.690858
+  },
+  "capture_image_step3/block24/q8g64": {
+    "shift_msa": 0.00202,
+    "scale_msa": 0.000816,
+    "gate_msa": 0.001296,
+    "shift_mlp": 0.003234,
+    "scale_mlp": 0.001042,
+    "gate_mlp": 0.002182
+  },
+  "capture_image_step3/block24/q8g32": {
+    "shift_msa": 0.001792,
+    "scale_msa": 0.000736,
+    "gate_msa": 0.001156,
+    "shift_mlp": 0.002882,
+    "scale_mlp": 0.000938,
+    "gate_mlp": 0.001936
+  },
+  "capture_image_step3/block24/q6g64": {
+    "shift_msa": 0.008135,
+    "scale_msa": 0.003309,
+    "gate_msa": 0.005213,
+    "shift_mlp": 0.013127,
+    "scale_mlp": 0.004189,
+    "gate_mlp": 0.008794
+  },
+  "capture_image_step3/block24/q4g64": {
+    "shift_msa": 0.034218,
+    "scale_msa": 0.01383,
+    "gate_msa": 0.021751,
+    "shift_mlp": 0.054532,
+    "scale_mlp": 0.017575,
+    "gate_mlp": 0.036614
+  },
+  "capture_image_step3/block49/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.654866,
+    "scale_msa": 0.672041,
+    "gate_msa": 0.656986,
+    "shift_mlp": 0.635051,
+    "scale_mlp": 0.725996,
+    "gate_mlp": 0.689828
+  },
+  "capture_image_step3/block49/q8g64": {
+    "shift_msa": 0.000406,
+    "scale_msa": 0.000317,
+    "gate_msa": 0.000352,
+    "shift_mlp": 0.00042,
+    "scale_mlp": 0.000554,
+    "gate_mlp": 0.000504
+  },
+  "capture_image_step3/block49/q8g32": {
+    "shift_msa": 0.000378,
+    "scale_msa": 0.000303,
+    "gate_msa": 0.000345,
+    "shift_mlp": 0.000409,
+    "scale_mlp": 0.000488,
+    "gate_mlp": 0.000449
+  },
+  "capture_image_step3/block49/q6g64": {
+    "shift_msa": 0.001673,
+    "scale_msa": 0.001298,
+    "gate_msa": 0.00144,
+    "shift_mlp": 0.001736,
+    "scale_mlp": 0.002383,
+    "gate_mlp": 0.002019
+  },
+  "capture_image_step3/block49/q4g64": {
+    "shift_msa": 0.00722,
+    "scale_msa": 0.005748,
+    "gate_msa": 0.006182,
+    "shift_mlp": 0.007599,
+    "scale_mlp": 0.010296,
+    "gate_mlp": 0.009249
+  },
+  "capture_speech_step0/block0/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.632232,
+    "scale_msa": 0.635667,
+    "gate_msa": 0.648275,
+    "shift_mlp": 0.660248,
+    "scale_mlp": 0.645813,
+    "gate_mlp": 0.641378
+  },
+  "capture_speech_step0/block0/q8g64": {
+    "shift_msa": 0.000792,
+    "scale_msa": 0.000324,
+    "gate_msa": 0.00117,
+    "shift_mlp": 0.001792,
+    "scale_mlp": 0.000308,
+    "gate_mlp": 0.000818
+  },
+  "capture_speech_step0/block0/q8g32": {
+    "shift_msa": 0.000711,
+    "scale_msa": 0.000305,
+    "gate_msa": 0.001038,
+    "shift_mlp": 0.001581,
+    "scale_mlp": 0.000298,
+    "gate_mlp": 0.000733
+  },
+  "capture_speech_step0/block0/q6g64": {
+    "shift_msa": 0.003176,
+    "scale_msa": 0.001305,
+    "gate_msa": 0.004694,
+    "shift_mlp": 0.007238,
+    "scale_mlp": 0.00126,
+    "gate_mlp": 0.003343
+  },
+  "capture_speech_step0/block0/q4g64": {
+    "shift_msa": 0.013399,
+    "scale_msa": 0.005624,
+    "gate_msa": 0.019684,
+    "shift_mlp": 0.029695,
+    "scale_mlp": 0.005379,
+    "gate_mlp": 0.013846
+  },
+  "capture_speech_step0/block24/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.623314,
+    "scale_msa": 0.635453,
+    "gate_msa": 0.634665,
+    "shift_mlp": 0.626864,
+    "scale_mlp": 0.633598,
+    "gate_mlp": 0.659227
+  },
+  "capture_speech_step0/block24/q8g64": {
+    "shift_msa": 0.000897,
+    "scale_msa": 0.000355,
+    "gate_msa": 0.00055,
+    "shift_mlp": 0.001416,
+    "scale_mlp": 0.000451,
+    "gate_mlp": 0.000892
+  },
+  "capture_speech_step0/block24/q8g32": {
+    "shift_msa": 0.000802,
+    "scale_msa": 0.000331,
+    "gate_msa": 0.000495,
+    "shift_mlp": 0.001256,
+    "scale_mlp": 0.000416,
+    "gate_mlp": 0.000797
+  },
+  "capture_speech_step0/block24/q6g64": {
+    "shift_msa": 0.003618,
+    "scale_msa": 0.001445,
+    "gate_msa": 0.002205,
+    "shift_mlp": 0.005772,
+    "scale_mlp": 0.001824,
+    "gate_mlp": 0.003612
+  },
+  "capture_speech_step0/block24/q4g64": {
+    "shift_msa": 0.015221,
+    "scale_msa": 0.006151,
+    "gate_msa": 0.009228,
+    "shift_mlp": 0.024103,
+    "scale_mlp": 0.007742,
+    "gate_mlp": 0.01509
+  },
+  "capture_speech_step0/block49/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.595851,
+    "scale_msa": 0.617341,
+    "gate_msa": 0.618129,
+    "shift_mlp": 0.571671,
+    "scale_mlp": 0.614648,
+    "gate_mlp": 0.61113
+  },
+  "capture_speech_step0/block49/q8g64": {
+    "shift_msa": 0.000176,
+    "scale_msa": 0.000128,
+    "gate_msa": 0.000114,
+    "shift_mlp": 0.000156,
+    "scale_mlp": 0.000271,
+    "gate_mlp": 0.000226
+  },
+  "capture_speech_step0/block49/q8g32": {
+    "shift_msa": 0.000165,
+    "scale_msa": 0.000126,
+    "gate_msa": 0.000129,
+    "shift_mlp": 0.000157,
+    "scale_mlp": 0.000217,
+    "gate_mlp": 0.000204
+  },
+  "capture_speech_step0/block49/q6g64": {
+    "shift_msa": 0.000711,
+    "scale_msa": 0.000526,
+    "gate_msa": 0.000475,
+    "shift_mlp": 0.000657,
+    "scale_mlp": 0.001137,
+    "gate_mlp": 0.000919
+  },
+  "capture_speech_step0/block49/q4g64": {
+    "shift_msa": 0.003203,
+    "scale_msa": 0.002549,
+    "gate_msa": 0.00235,
+    "shift_mlp": 0.003057,
+    "scale_mlp": 0.004796,
+    "gate_mlp": 0.004047
+  },
+  "capture_speech_step3/block0/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.635548,
+    "scale_msa": 0.658405,
+    "gate_msa": 0.646995,
+    "shift_mlp": 0.666188,
+    "scale_mlp": 0.657275,
+    "gate_mlp": 0.681002
+  },
+  "capture_speech_step3/block0/q8g64": {
+    "shift_msa": 0.001186,
+    "scale_msa": 0.000463,
+    "gate_msa": 0.001798,
+    "shift_mlp": 0.002622,
+    "scale_mlp": 0.000458,
+    "gate_mlp": 0.001119
+  },
+  "capture_speech_step3/block0/q8g32": {
+    "shift_msa": 0.001065,
+    "scale_msa": 0.00043,
+    "gate_msa": 0.00158,
+    "shift_mlp": 0.002306,
+    "scale_mlp": 0.000429,
+    "gate_mlp": 0.000996
+  },
+  "capture_speech_step3/block0/q6g64": {
+    "shift_msa": 0.004797,
+    "scale_msa": 0.001868,
+    "gate_msa": 0.007174,
+    "shift_mlp": 0.010563,
+    "scale_mlp": 0.001855,
+    "gate_mlp": 0.004528
+  },
+  "capture_speech_step3/block0/q4g64": {
+    "shift_msa": 0.020159,
+    "scale_msa": 0.008005,
+    "gate_msa": 0.030258,
+    "shift_mlp": 0.043707,
+    "scale_mlp": 0.007782,
+    "gate_mlp": 0.018981
+  },
+  "capture_speech_step3/block24/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.648373,
+    "scale_msa": 0.66079,
+    "gate_msa": 0.652232,
+    "shift_mlp": 0.646174,
+    "scale_mlp": 0.655975,
+    "gate_mlp": 0.669433
+  },
+  "capture_speech_step3/block24/q8g64": {
+    "shift_msa": 0.001274,
+    "scale_msa": 0.000509,
+    "gate_msa": 0.000802,
+    "shift_mlp": 0.002045,
+    "scale_mlp": 0.000651,
+    "gate_mlp": 0.001326
+  },
+  "capture_speech_step3/block24/q8g32": {
+    "shift_msa": 0.00113,
+    "scale_msa": 0.000465,
+    "gate_msa": 0.000716,
+    "shift_mlp": 0.00182,
+    "scale_mlp": 0.000591,
+    "gate_mlp": 0.001184
+  },
+  "capture_speech_step3/block24/q6g64": {
+    "shift_msa": 0.005121,
+    "scale_msa": 0.002078,
+    "gate_msa": 0.003225,
+    "shift_mlp": 0.008313,
+    "scale_mlp": 0.002611,
+    "gate_mlp": 0.005379
+  },
+  "capture_speech_step3/block24/q4g64": {
+    "shift_msa": 0.021641,
+    "scale_msa": 0.008725,
+    "gate_msa": 0.013454,
+    "shift_mlp": 0.034671,
+    "scale_mlp": 0.011013,
+    "gate_mlp": 0.022402
+  },
+  "capture_speech_step3/block49/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.631721,
+    "scale_msa": 0.652183,
+    "gate_msa": 0.651553,
+    "shift_mlp": 0.611096,
+    "scale_mlp": 0.656402,
+    "gate_mlp": 0.657047
+  },
+  "capture_speech_step3/block49/q8g64": {
+    "shift_msa": 0.000265,
+    "scale_msa": 0.000205,
+    "gate_msa": 0.000208,
+    "shift_mlp": 0.00026,
+    "scale_mlp": 0.000383,
+    "gate_mlp": 0.00033
+  },
+  "capture_speech_step3/block49/q8g32": {
+    "shift_msa": 0.000248,
+    "scale_msa": 0.0002,
+    "gate_msa": 0.00021,
+    "shift_mlp": 0.000255,
+    "scale_mlp": 0.000335,
+    "gate_mlp": 0.000293
+  },
+  "capture_speech_step3/block49/q6g64": {
+    "shift_msa": 0.001091,
+    "scale_msa": 0.000844,
+    "gate_msa": 0.000852,
+    "shift_mlp": 0.001077,
+    "scale_mlp": 0.001638,
+    "gate_mlp": 0.001308
+  },
+  "capture_speech_step3/block49/q4g64": {
+    "shift_msa": 0.004771,
+    "scale_msa": 0.003868,
+    "gate_msa": 0.003747,
+    "shift_mlp": 0.004784,
+    "scale_mlp": 0.007041,
+    "gate_mlp": 0.005984
+  },
+  "capture_speech_step6/block0/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.649257,
+    "scale_msa": 0.672561,
+    "gate_msa": 0.662867,
+    "shift_mlp": 0.714879,
+    "scale_mlp": 0.663602,
+    "gate_mlp": 0.711011
+  },
+  "capture_speech_step6/block0/q8g64": {
+    "shift_msa": 0.001657,
+    "scale_msa": 0.000628,
+    "gate_msa": 0.002562,
+    "shift_mlp": 0.003466,
+    "scale_mlp": 0.000635,
+    "gate_mlp": 0.001458
+  },
+  "capture_speech_step6/block0/q8g32": {
+    "shift_msa": 0.001483,
+    "scale_msa": 0.000578,
+    "gate_msa": 0.002256,
+    "shift_mlp": 0.003051,
+    "scale_mlp": 0.000588,
+    "gate_mlp": 0.001297
+  },
+  "capture_speech_step6/block0/q6g64": {
+    "shift_msa": 0.00671,
+    "scale_msa": 0.002531,
+    "gate_msa": 0.010258,
+    "shift_mlp": 0.013962,
+    "scale_mlp": 0.002569,
+    "gate_mlp": 0.005894
+  },
+  "capture_speech_step6/block0/q4g64": {
+    "shift_msa": 0.028177,
+    "scale_msa": 0.010765,
+    "gate_msa": 0.043039,
+    "shift_mlp": 0.05779,
+    "scale_mlp": 0.01073,
+    "gate_mlp": 0.024755
+  },
+  "capture_speech_step6/block24/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.669523,
+    "scale_msa": 0.677187,
+    "gate_msa": 0.664982,
+    "shift_mlp": 0.672736,
+    "scale_mlp": 0.672426,
+    "gate_mlp": 0.681808
+  },
+  "capture_speech_step6/block24/q8g64": {
+    "shift_msa": 0.001709,
+    "scale_msa": 0.000688,
+    "gate_msa": 0.0011,
+    "shift_mlp": 0.002755,
+    "scale_mlp": 0.00088,
+    "gate_mlp": 0.001853
+  },
+  "capture_speech_step6/block24/q8g32": {
+    "shift_msa": 0.001513,
+    "scale_msa": 0.000621,
+    "gate_msa": 0.000981,
+    "shift_mlp": 0.002455,
+    "scale_mlp": 0.000793,
+    "gate_mlp": 0.00165
+  },
+  "capture_speech_step6/block24/q6g64": {
+    "shift_msa": 0.00687,
+    "scale_msa": 0.002801,
+    "gate_msa": 0.004426,
+    "shift_mlp": 0.011207,
+    "scale_mlp": 0.003531,
+    "gate_mlp": 0.007507
+  },
+  "capture_speech_step6/block24/q4g64": {
+    "shift_msa": 0.028956,
+    "scale_msa": 0.011698,
+    "gate_msa": 0.018484,
+    "shift_mlp": 0.046557,
+    "scale_mlp": 0.014846,
+    "gate_mlp": 0.031229
+  },
+  "capture_speech_step6/block49/q8g64_input_cast_to_uint32": {
+    "shift_msa": 0.657469,
+    "scale_msa": 0.674968,
+    "gate_msa": 0.668877,
+    "shift_mlp": 0.639091,
+    "scale_mlp": 0.691046,
+    "gate_mlp": 0.686238
+  },
+  "capture_speech_step6/block49/q8g64": {
+    "shift_msa": 0.000353,
+    "scale_msa": 0.000279,
+    "gate_msa": 0.000311,
+    "shift_mlp": 0.000368,
+    "scale_mlp": 0.000495,
+    "gate_mlp": 0.000436
+  },
+  "capture_speech_step6/block49/q8g32": {
+    "shift_msa": 0.000331,
+    "scale_msa": 0.000271,
+    "gate_msa": 0.000307,
+    "shift_mlp": 0.00036,
+    "scale_mlp": 0.000448,
+    "gate_mlp": 0.000389
+  },
+  "capture_speech_step6/block49/q6g64": {
+    "shift_msa": 0.001458,
+    "scale_msa": 0.001145,
+    "gate_msa": 0.00127,
+    "shift_mlp": 0.001517,
+    "scale_mlp": 0.002135,
+    "gate_mlp": 0.001736
+  },
+  "capture_speech_step6/block49/q4g64": {
+    "shift_msa": 0.006294,
+    "scale_msa": 0.005115,
+    "gate_msa": 0.005449,
+    "shift_mlp": 0.00663,
+    "scale_mlp": 0.009223,
+    "gate_mlp": 0.007873
+  }
+}

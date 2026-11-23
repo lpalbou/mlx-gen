@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -29,10 +29,10 @@
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -401,6 +401,17 @@
     <span class="md-ellipsis">
       
         Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#for-ai-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For AI agents
       
     </span>
   </a>
@@ -1357,6 +1368,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#for-ai-agents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        For AI agents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#license" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1456,8 +1478,10 @@ long-running local jobs.</p>
   keyframe, produces a 24 fps clip and its soundtrack in a single MP4 (AAC track), 5 to 15 seconds
   long, with the lightx2v 8-step Turbo adapters attached automatically and community LoRA adapters
   (civitai, ai-toolkit, ComfyUI, kohya key layouts) stackable on them. The soundtrack covers ambient
-  sound, a score, and spoken dialogue with the speaker's mouth animated to match. Run it with
-  <code>--quantize 8</code> or from a prepared 75 GB q8 package (<code>mlxgen prepare</code>) on a 128 GB Mac (see
+  sound, a score, and spoken dialogue with the speaker's mouth animated to match. Run it from
+  <code>AbstractFramework/minimax-h3-8bit</code> (64 GiB on disk, 77 GiB peak, for 96 GB Macs and up) or the
+  mixed-width <code>AbstractFramework/minimax-h3-4bit</code> (45 GiB on disk, 46 GiB peak with <code>--low-ram</code>, for
+  64 GB Macs), or quantize the source at load time with <code>--quantize 8</code> or <code>--quantize 4</code> (see
   <code>docs/minimax-h3.md</code>);</li>
 <li>ByteDance Bernini-R 1.3B renderer support (<code>bernini-r-1.3b</code>): generate video from one to eight
   ordered ordinary reference images, edit one source video with those references, or run
@@ -1708,10 +1732,16 @@ validated 7B source/q8/q4 profile.</p>
 <li><code>AbstractFramework/wan2.2-i2v-a14b-diffusers-bf16</code></li>
 <li><code>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit</code></li>
 </ul>
-<p>Bernini-R uses the official <code>ByteDance/Bernini-R-1.3B-Diffusers</code> renderer together with pinned
-Wan2.1 base components. It currently has no published MLX-Gen quantized package: use
-<code>mlxgen download --model bernini-r-1.3b</code>, omit <code>--quantize</code>, and see
-<a href="bernini/">Bernini-R 1.3B</a>.</p>
+<p>MiniMax-H3 video with audio (gated, MiniMax H3 Community License, mlx-gen 0.39.0 or later):</p>
+<ul>
+<li><code>AbstractFramework/minimax-h3-8bit</code></li>
+<li><code>AbstractFramework/minimax-h3-4bit</code></li>
+</ul>
+<p>Bernini-R runs from a pinned revision of the official <code>ByteDance/Bernini-R-1.3B-Diffusers</code>
+repository (<code>bernini-r-1.3b</code>) or of its BF16 package <code>AbstractFramework/bernini-r-1.3B-diffusers-bf16</code>
+(<code>bernini-r-1.3b-bf16</code>). It has no published MLX-Gen quantized package: download one of the two
+aliases with <code>mlxgen download --model &lt;alias&gt;</code>, generate with the same alias, omit <code>--quantize</code>,
+and see <a href="bernini/">Bernini-R 1.3B</a>.</p>
 <p>Use <code>mlxgen download --model &lt;repo-id&gt;</code> to cache a published model, then pass the repository id to
 the relevant command: <code>mlxgen generate</code> for image/video generation or <code>mlxgen upscale</code> for SeedVR2
 upscaling. See
@@ -1811,12 +1841,14 @@ The 0.18.11 release also validates the published A14B q8 T2V/I2V handles on a 41
 run from model files already on disk, apps can inspect supported modes before loading weights, and
 progress callbacks make long runs observable.</p>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
+<p>Release notes are in the <a href="CHANGELOG.md">changelog</a>; the latest release adds the published MiniMax-H3
+packages.</p>
 <ul>
 <li><a href="getting-started/">Getting started</a>: installation, first runs, SeedVR2 upscaling, and Wan video.</li>
 <li><a href="api/">API and CLI</a>: command surface, router behavior, image-to-image modes, generative reframe, backend-specific outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.</li>
 <li><a href="image-edit-modes/">Image edit modes</a>: what latent img2img, edit-reference, multi-reference, generative reframe, and outpaint mean in practice, with examples.</li>
 <li><a href="wan-video/">Wan video</a>: practical Wan2.2 T2V/I2V sizing, plain and masked prompt-guided A14B video-to-video with included proof artifacts, the natively ported Wan2.1-VACE-1.3B route (reference-image object injection and learned mask conditioning), a measured motion-fidelity ladder (strength vs gesture preservation), broader A14B target size families, and 5-second M5 Max comparison clips.</li>
-<li><a href="bernini/">Bernini-R 1.3B</a>: ordered reference-to-video, reference-guided/source-only video editing, factored downloads, BF16-only memory guidance, and playable proof artifacts.</li>
+<li><a href="bernini/">Bernini-R 1.3B</a>: ordered reference-to-video, reference-guided/source-only video editing, pinned downloads, BF16-only memory guidance, and playable proof artifacts.</li>
 <li><a href="examples/spaceship-snow/">Example workflow</a>: reproducible image and video commands.</li>
 <li><a href="upscaling/">Image upscaling</a>: SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, published five-second Eiffel <code>1x</code> and <code>2x</code> 3B/7B validation bundles, readable tone-correction labels, and 5x source/output comparisons.</li>
 <li><a href="edit-capabilities/">Image edit capabilities</a>: image-edit contact sheets, exact model/package status, and command logs.</li>
@@ -1828,6 +1860,12 @@ progress callbacks make long runs observable.</p>
 <li><a href="troubleshooting/">Troubleshooting</a>: common setup and runtime failures.</li>
 <li><a href="acknowledgements/">Acknowledgements</a>: upstream mflux and model-community credits.</li>
 </ul>
+<h2 id="for-ai-agents">For AI agents<a class="headerlink" href="#for-ai-agents" title="Permanent link">&para;</a></h2>
+<p>If you are an AI agent that will run <code>mlxgen</code> or call MLX-Gen from Python, load the package agent
+skill at <a href="skills/mlx-gen/SKILL.md"><code>skills/mlx-gen/SKILL.md</code></a> first. It covers what to check before
+an expensive run, the download-first contract, how model ids resolve, recipes per task, and the
+common failures with their fixes. To register it, copy the <code>skills/mlx-gen/</code> folder into your
+agent's skills directory.</p>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
 <p>MLX-Gen is MIT licensed. Model weights remain governed by their original licenses and access terms.</p>
 
@@ -1885,10 +1923,10 @@ progress callbacks make long runs observable.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

@@ -19,7 +19,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -27,10 +27,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1154,6 +1154,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#update-2026-11-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Update - 2026-11-22
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#proposed-direction" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1214,6 +1225,12 @@ embedding, so for a known schedule every table can be precomputed (50 blocks x 9
 hundred KB) and the projection weights dropped from memory. Separately, a 768p clip packs 37.8k
 rows and the fused attention kernel falls from ~48 TFLOPS at 15.5k rows to ~17 TFLOPS there,
 making a 768p step ~5 minutes (8-step Turbo ~40 minutes).</p>
+<h2 id="update-2026-11-22">Update - 2026-11-22<a class="headerlink" href="#update-2026-11-22" title="Permanent link">&para;</a></h2>
+<p>Since 0.39.0 the AdaLN projections are quantized with the other linears
+(<a href="../../completed/0128_minimax_h3_quantized_packages/">item 0128</a>): 12.9 GiB at 8-bit and 9.8 GiB in
+the 4-bit package, instead of the 24 GiB of BF16 described above. Precomputing the tables would free
+that smaller amount; it would matter most for the 4-bit package on 64 GB machines, where the load
+peak is the limit.</p>
 <h2 id="proposed-direction">Proposed direction<a class="headerlink" href="#proposed-direction" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Precompute the AdaLN tables per generation and release the projection weights (reload from the
@@ -1282,10 +1299,10 @@ and <code>1344x768</code>; peak memory.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

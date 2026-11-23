@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -844,10 +844,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#bernini-r-factored-download" class="md-nav__link">
+  <a href="#bernini-r-pinned-download" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bernini-R factored download
+        Bernini-R pinned download
       
     </span>
   </a>
@@ -1280,10 +1280,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#bernini-r-factored-download" class="md-nav__link">
+  <a href="#bernini-r-pinned-download" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Bernini-R factored download
+        Bernini-R pinned download
       
     </span>
   </a>
@@ -1410,25 +1410,52 @@ package to reuse from another project or upload to Hugging Face.</p>
 <code>owner/repo:filename.safetensors</code>. The adapter must be trained for the selected model family; see
 <a href="../lora/">LoRA</a> for compatibility checks and the source/no-LoRA/with-LoRA validation method.</p>
 <p><code>mlxgen download</code> is already an explicit network operation. <code>HF_HUB_ENABLE_HF_TRANSFER=1</code> is optional and only enables Hugging Face's accelerated transfer backend when that backend is available.</p>
+<p>Gated repositories need a Hugging Face sign-in before <code>mlxgen download</code>: accept the model's terms on its Hugging Face page, then set <code>HF_TOKEN</code> or run <code>hf auth login</code>.</p>
+<p><code>--model</code> must be a model alias or an <code>owner/repo</code> Hugging Face id; a local path is not a download source.</p>
+<p>For a model whose catalog entry declares a download size (Bernini-R and SwiftVR), <code>mlxgen download</code> checks free space at the Hugging Face cache before transferring anything and stops with <code>Insufficient free space for the missing model sources</code> when the missing files plus 2 GiB of headroom do not fit. Sources that are already complete in the cache are not counted. Other models, and any <code>--all-files</code> download, are not checked.</p>
 <p>Use <code>download</code> when you want to run from the source model name or alias and do not need a separate
 local MLX-Gen package.</p>
-<h3 id="bernini-r-factored-download">Bernini-R factored download<a class="headerlink" href="#bernini-r-factored-download" title="Permanent link">&para;</a></h3>
-<p>Bernini-R 1.3B uses a pinned, factored BF16 source set: shared Wan2.1 tokenizer, UMT5, VAE, and
-scheduler files come from <code>Wan-AI/Wan2.1-VACE-1.3B-diffusers</code>, while the dedicated renderer comes
-from <code>ByteDance/Bernini-R-1.3B-Diffusers</code>. Download the complete runnable set with the alias:</p>
-<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b
+<h3 id="bernini-r-pinned-download">Bernini-R pinned download<a class="headerlink" href="#bernini-r-pinned-download" title="Permanent link">&para;</a></h3>
+<p>Bernini-R 1.3B downloads a selected set of files (tokenizer, UMT5 text encoder, VAE, and renderer
+transformer) from one repository at a pinned revision. Two aliases are available, and each one is
+its own model id for <code>mlxgen download</code> and <code>mlxgen generate</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Alias</th>
+<th>Repository</th>
+<th style="text-align: right;">Cold download</th>
+<th style="text-align: right;">Free space required</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>bernini-r-1.3b-bf16</code></td>
+<td><code>AbstractFramework/bernini-r-1.3B-diffusers-bf16</code></td>
+<td style="text-align: right;">15.60 GiB</td>
+<td style="text-align: right;">17.60 GiB</td>
+</tr>
+<tr>
+<td><code>bernini-r-1.3b</code></td>
+<td><code>ByteDance/Bernini-R-1.3B-Diffusers</code> (FP32 source)</td>
+<td style="text-align: right;">26.94 GiB</td>
+<td style="text-align: right;">28.94 GiB</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>bernini-r-1.3b-bf16
 </code></pre></div>
-<p>For a cold cache, the selected files total about <code>16.36 GiB</code>. The command requires <code>18.36 GiB</code>
-free, including <code>2 GiB</code> of download headroom, and does not count an already-complete pinned source
-twice. The bounded low-RAM profiles documented in <a href="../bernini/">Bernini-R 1.3B</a> peaked at 9.45 GB
-on the 128 GB validation host, so the tested shapes fit an 18 GB-class memory envelope, but still
-need an actual 18 GB-host run. This is capacity evidence only: the Bernini visual release gate
-fails. Separately, <code>18 GB</code> of free disk is slightly below the cold-download gate.</p>
-<p>Do not pass <code>--all-files</code> for Bernini. The option is rejected because this route needs selected
-files from two repositories, not one complete repository. Bernini also rejects <code>mlxgen prepare</code>
-and runtime <code>--quantize</code>: the only numerically supported route is the factored BF16 source set,
-and q4/q8 Bernini packages are not supported. The BF16 route remains experimental after failed
-visual validation.</p>
+<p>The free-space figure includes <code>2 GiB</code> of download headroom, and a source that is already complete
+at its pinned revision is not counted. Both aliases run at the same precision and produce the same
+output; see <a href="../bernini/#download-and-capacity">Bernini-R 1.3B</a>. The bounded low-RAM profiles
+documented there peaked at 9.45 GB on the 128 GB validation host, so the tested shapes fit an
+18 GB-class memory envelope, but still need an actual 18 GB-host run. This is capacity evidence
+only: the Bernini visual release gate fails. Memory and disk are separate budgets: <code>18 GB</code> of free
+disk is enough for neither cold download.</p>
+<p>Do not pass <code>--all-files</code> for Bernini. The option is rejected because the route uses a pinned
+subset of the repository. Bernini also rejects <code>mlxgen prepare</code> and runtime <code>--quantize</code>: the route
+runs at BF16 only, and q4/q8 Bernini packages are not supported. It remains experimental after
+failed visual validation.</p>
 <h2 id="prepare-a-local-mlx-gen-package">Prepare A Local MLX-Gen Package<a class="headerlink" href="#prepare-a-local-mlx-gen-package" title="Permanent link">&para;</a></h2>
 <p>Use <code>mlxgen prepare</code> when you want a reusable local MLX-Gen package, usually with quantized weights:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span><span class="se">\</span>
@@ -1442,11 +1469,33 @@ card into that package. The card records the <code>mlx-gen</code> version that g
 <p>Then generate from the local package:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>./models/qwen-image-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--family<span class="w"> </span>qwen<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--base-model<span class="w"> </span>qwen-image<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A product photo of a ceramic teapot"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>image.png
 </code></pre></div>
-<p>If the local package path does not clearly identify the model family, add <code>--family</code> during generation. The supported router families are <code>qwen</code>, <code>flux2</code>, <code>bonsai</code>, <code>fibo</code>, <code>z-image</code>, <code>ernie-image</code>, and <code>wan</code>.</p>
+<p><code>--model</code> values are identified in two ways:</p>
+<ul>
+<li>A catalog alias (<code>qwen-image</code>), a source repository id (<code>Qwen/Qwen-Image</code>), and a published
+  <code>AbstractFramework/&lt;name&gt;</code> package id are identified exactly.</li>
+<li>Any other local folder or custom repository name is identified loosely from the catalog model
+  name it contains. MLX-Gen trusts only the model family from such a name, so the routes it
+  publishes can be narrower than the model's own. A folder named <code>qwen-image-edit-2511-8bit</code>
+  resolves to the Qwen family with the text-to-image and latent image-to-image routes only.</li>
+</ul>
+<p>Pass <code>--base-model &lt;alias&gt;</code> to state the model exactly. It is accepted by <code>mlxgen generate</code>,
+<code>mlxgen capabilities</code>, and <code>mlxgen prepare</code>, and it is required when the name contains no catalog
+model name:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>./models/qwen-image-edit-2511-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--base-model<span class="w"> </span>qwen-image-edit-2511
+</code></pre></div>
+<p>With the hint, that folder reports the Qwen edit, masked edit, reframe, outpaint, and
+multi-reference routes. <code>--family</code> only checks the family: it is rejected when it differs from the
+resolved family, and it cannot identify a model on its own. Wan video routes load a local folder by its
+name and do not apply <code>--base-model</code>; name a local Wan folder after its model, for example
+<code>./models/wan2.2-i2v-a14b-diffusers-8bit</code>. See
+<a href="../troubleshooting/#local-path-cannot-be-classified">Local Path Cannot Be Classified</a> for the
+related error messages.</p>
 <p>SeedVR2 packages use <code>mlxgen upscale</code> instead of <code>mlxgen generate</code>:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>ByteDance-Seed/SeedVR2-3B<span class="w"> </span><span class="se">\</span>
@@ -1463,7 +1512,11 @@ mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\<
 <p>Use <code>ByteDance-Seed/SeedVR2-7B</code>, <code>AbstractFramework/seedvr2-7b-8bit</code>, or a path such as
 <code>./models/seedvr2-7b-8bit</code> for 7B packages.</p>
 <p>When a local MLX-Gen package name matches a Hugging Face repository basename, MLX-Gen can also resolve
-the repository handle to that complete local package. For example, if
+the repository handle to that complete local package. For a repository id such as <code>owner/&lt;repo-name&gt;</code>,
+MLX-Gen looks for a complete package at <code>./models/&lt;repo-name&gt;</code> (relative to the working directory),
+then at <code>~/models/&lt;repo-name&gt;</code>, and only then in the Hugging Face cache. A complete local folder with
+that name therefore takes precedence over a cached snapshot of the repository, even when it holds
+different weights; rename or move the folder to run from the cache. For example, if
 <code>./models/wan2.2-i2v-a14b-diffusers-8bit</code> exists and contains all required indexes and shard files,
 then this command can run from local files without a Hugging Face cache snapshot:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
@@ -1487,8 +1540,9 @@ then this command can run from local files without a Hugging Face cache snapshot
 <li>you want a generated Hugging Face model card;</li>
 <li>you want a package that another application, such as AbstractVision, can reference without depending on the original repository name.</li>
 </ul>
-<p>Bernini-R is an exception: use <code>mlxgen download --model bernini-r-1.3b</code>. Its runtime is factored
-across two pinned repositories and intentionally has no <code>prepare</code>, q4, or q8 package route.</p>
+<p>Bernini-R is an exception: use <code>mlxgen download --model bernini-r-1.3b-bf16</code> or
+<code>mlxgen download --model bernini-r-1.3b</code>. Its runtime loads a pinned revision of one repository and
+intentionally has no <code>prepare</code>, q4, or q8 package route.</p>
 <p>Bonsai Image is an exception to the ordinary prepare flow. The Prism Bonsai repositories are
 already packed MLX artifacts, so cache them with <code>download</code> and generate directly:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>prism-ml/bonsai-image-ternary-4B-mlx-2bit
@@ -1547,9 +1601,19 @@ clips.</p>
 <li><code>repo_id</code></li>
 <li><code>artifact</code></li>
 <li><code>download_command</code></li>
-<li><code>prepare_command</code> when a local MLX-Gen package is applicable</li>
+<li><code>prepare_command</code> when a local MLX-Gen package is applicable; it is <code>None</code> for LoRA files, Bonsai
+  checkpoints, Depth Pro weights, and repositories in the <code>AbstractFramework/</code> namespace, which are
+  already MLX-Gen packages</li>
 </ul>
-<p>The human-readable message is designed for non-expert users and includes the exact command to run.</p>
+<p>The human-readable message is designed for non-expert users and includes the exact command to run.
+For a missing model its first line is:</p>
+<div class="highlight"><pre><span></span><code>MLX-Gen will not download model files during generation.
+</code></pre></div>
+<p>For other artifacts, <code>model files</code> reads <code>tokenizer files</code>, <code>LoRA files</code>, <code>preview decoder files</code>,
+or <code>Depth Pro weights</code>. The lines that follow give the <code>mlxgen download --model &lt;repo-id&gt;</code> command
+to run, with <code>--all-files</code> for a LoRA repository. The CLI prints the message and exits non-zero
+(see <a href="../api/#command-line-surface">exit statuses</a>); with <code>--json-events</code> the same fields appear
+under <code>remediation</code> (see <a href="../api/#cli-runtime-events">CLI Runtime Events</a>).</p>
 
 
 
@@ -1605,10 +1669,10 @@ clips.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

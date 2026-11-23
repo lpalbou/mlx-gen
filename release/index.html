@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1147,6 +1147,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#context7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context7
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1261,6 +1272,17 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#context7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context7
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1305,6 +1327,7 @@ if releases should require manual approval.</p>
 <li>uploads build artifacts;</li>
 <li>publishes the built artifacts to PyPI through trusted publishing;</li>
 <li>creates a GitHub Release with the same wheel and source distribution only after PyPI succeeds.</li>
+<li>asks Context7 to re-index the user docs after PyPI succeeds (see <a href="#context7">Context7</a>).</li>
 </ul>
 <h2 id="rehearsal">Rehearsal<a class="headerlink" href="#rehearsal" title="Permanent link">&para;</a></h2>
 <p>Run a non-publishing rehearsal from GitHub Actions:</p>
@@ -1325,6 +1348,28 @@ git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </
 <span class="w">  </span>-f<span class="w"> </span><span class="nv">publish_confirmation</span><span class="o">=</span>publish-mlx-gen-&lt;version&gt;
 </code></pre></div>
 <p>For manual publishing, the confirmation string must match <code>publish-mlx-gen-&lt;version&gt;</code>.</p>
+<h2 id="context7">Context7<a class="headerlink" href="#context7" title="Permanent link">&para;</a></h2>
+<p><a href="https://context7.com">Context7</a> serves library documentation to coding agents. After a release
+reaches PyPI, the <code>context7-refresh</code> job of <code>release.yml</code> asks it to re-index this repository, so
+agents read the docs of the version just published. <code>context7.json</code> at the repository root names
+what is indexed: <code>docs/</code> without the backlog, ADRs and assets, plus the root <code>README.md</code>, <code>llms.txt</code>
+and <code>llms-full.txt</code>.</p>
+<ul>
+<li>The job runs <code>tools/context7_refresh.py</code>. It refreshes the library <code>/lpalbou/mlx-gen</code>, and submits
+  the repository the first time, when Context7 does not know it yet.</li>
+<li>The credential <code>CONTEXT7_API_KEY</code> lives in the GitHub environment <code>context7</code>. Without it the job
+  warns and passes; it never blocks a release.</li>
+<li>Context7 re-indexes a project at most once every 10 days. A release inside that window ends with a
+  notice and Context7 keeps the previous index until its own schedule or the next refresh. Any other
+  refusal fails the job, after PyPI and the GitHub Release are already done.</li>
+<li>The refresh reads the default branch, not the tag, so the release commit must be on <code>main</code> when
+  the tag is pushed.</li>
+</ul>
+<p>For a docs-only change, run the same step by hand once the docs are final:</p>
+<div class="highlight"><pre><span></span><code>gh<span class="w"> </span>workflow<span class="w"> </span>run<span class="w"> </span>context7-refresh.yml
+</code></pre></div>
+<p>Because of the 10-day window, a manual refresh shortly before a release leaves that release
+unindexed. Refresh once, with the content you want agents to read.</p>
 
 
 
@@ -1380,10 +1425,10 @@ git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

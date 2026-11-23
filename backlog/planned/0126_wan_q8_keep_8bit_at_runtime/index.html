@@ -1,0 +1,1934 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/backlog/planned/0126_wan_q8_keep_8bit_at_runtime/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Planned: Keep Wan q8 packages 8-bit in memory - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#planned-keep-wan-q8-packages-8-bit-in-memory" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../../.." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Planned: Keep Wan q8 packages 8-bit in memory
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../../.." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../previews/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generation Previews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../wan-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../minimax-h3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../upscaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metadata
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#adr-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ADR status
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#context" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Context
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-code-reality" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current code reality
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#evidence-so-far" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Evidence so far
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Problem
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-we-want-to-do" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What we want to do
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-implementation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested implementation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-goals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#dependencies-and-related-tasks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Dependencies and related tasks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expected-outcomes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expected outcomes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#progress-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progress checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Guidance for the implementing agent
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="planned-keep-wan-q8-packages-8-bit-in-memory">Planned: Keep Wan q8 packages 8-bit in memory<a class="headerlink" href="#planned-keep-wan-q8-packages-8-bit-in-memory" title="Permanent link">&para;</a></h1>
+<h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Created: 2026-10-04</li>
+<li>Status: Planned</li>
+<li>Completed: N/A</li>
+</ul>
+<h2 id="adr-status">ADR status<a class="headerlink" href="#adr-status" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Governing ADRs:
+  <a href="../../../adr/0001_runtime_smoke_validation_for_model_routes/">0001</a> (model-backed proof before
+  a route is described as working),
+  <a href="../../../adr/0002_no_silent_automatic_fallbacks/">0002</a> (no silent change of the requested
+  quantization policy),
+  <a href="../../../adr/0003_runtime_truth_vs_consumer_convenience/">0003</a> (MLX-Gen reports runtime truth;
+  consumers own convenience).</li>
+<li>ADR impact: None expected. If this work ends in a durable rule such as "a quantized package runs
+  at its stored precision, and any runtime precision change is named in the metadata", record it
+  as an ADR before closing the item.</li>
+</ul>
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>Since commit <code>fd88c84</code> (2026-06-12, "Fix Wan q8 Lightning FFN runtime precision") a Wan q8 package
+is 8-bit on disk only. At load, MLX-Gen converts every attention and feed-forward linear of the
+transformer blocks back to BF16, which is nearly all of the model. An "8-bit" Wan2.2 A14B run
+therefore needs BF16-class memory: about 28 GiB MLX peak and 33 GiB physical at the small
+384x224 benchmark profile instead of 15.5 GiB and 20.7 GiB before the change
+(<code>docs/quantization.md</code>, corrections dated 2026-07-05). <code>docs/recommendations.md</code> names 64 GB as
+the first conservative tier for A14B for that reason.</p>
+<p>The conversion was the closing repair of
+<a href="../../completed/0040_lightx2v_wan_4step_acceleration_profiles/">item 0040</a>: a q8 T2V-A14B run at
+1280x720, 41 frames, 4 LightX2V steps produced corrupted output while BF16 stayed clean. The item
+recorded it as "a real runtime precision bug" and kept the attention and FFN families at BF16.</p>
+<p>It was not a precision problem. On MLX before 0.32.0, <code>mx.quantized_matmul</code> on the GPU returns
+wrong values when its input has 32,768 rows or more. A 1280x720, 41-frame clip is 39,600 rows.
+MLX-Gen found this kernel fault three months later, for MiniMax-H3
+(<a href="../../completed/0117_minimax_h3_text_to_video_audio_runtime/">item 0117</a>: "any other q8 route
+that crosses 32768 tokens needs the same"), and fixed that route by applying quantized linears in
+row chunks. The link back to the Wan conversion was never made, so Wan still pays double memory
+for a fault that has an exact, cheap repair.</p>
+<h2 id="current-code-reality">Current code reality<a class="headerlink" href="#current-code-reality" title="Permanent link">&para;</a></h2>
+<p>Audited 2026-10-04 against <code>99fb94d</code> (0.38.0).</p>
+<p>The conversion:</p>
+<ul>
+<li><code>WanInitializer._normalize_runtime_sensitive_q8_paths</code>
+  (<code>src/mflux/models/wan/wan_initializer.py:631</code>) dequantizes, for <code>transformer</code> and
+  <code>transformer_2</code> at q8, every linear whose path ends in <code>.attn1.to_q/.to_k/.to_v/.to_out.0</code>,
+  <code>.attn2.to_q/.to_k/.to_v/.to_out.0</code>, <code>.attn2.add_k_proj/.add_v_proj</code>, <code>.ffn.net.0</code>,
+  <code>.ffn.net.1</code>, to <code>ModelConfig.precision</code> (BF16). It runs at first load (<code>:242</code>) and again
+  whenever the high-noise transformer is reloaded (<code>:121</code>). It prints
+  <code>Normalizing Wan q8 runtime-sensitive paths to BF16 at load</code>.</li>
+<li><code>WanWeightDefinition.quantization_predicate</code>
+  (<code>src/mflux/models/wan/weights/wan_weight_definition.py:183</code>) builds those same paths, plus
+  <code>proj_out</code> and <code>condition_embedder.*</code>, as plain linears at <code>bits == 8</code> through
+  <code>_is_q8_sensitive_transformer_path</code> (<code>:191</code>).</li>
+<li><code>WanInitializer._validate_component_quantization_layout</code> (<code>:610</code>) rejects weights that still
+  carry <code>scales</code>/<code>biases</code> on any of those paths.</li>
+<li><code>tests/wan/test_wan_quantization.py</code> pins this:
+  <code>test_wan_initializer_accepts_current_q8_sensitive_bf16_layout</code> and
+  <code>test_wan_initializer_rejects_old_q8_ffn_layout</code>.</li>
+<li>There is no flag, parameter or environment variable. The conversion is unconditional.</li>
+<li>The published q8 packages store the block linears 8-bit and were not rebuilt for the June
+  change, so no package needs republishing whichever way this item ends.</li>
+<li>Before <code>fd88c84</code> the sensitive list was only <code>proj_out</code> and <code>condition_embedder.*</code>. That
+  earlier rule has its own evidence and is not in question here:
+  <a href="../0002_wan_quantization_motion_parity/">item 0002</a> measured fully-quantized Wan at 384x224,
+  17 frames as static and far from BF16 (sampled MAE 99.95, temporal change 2.03 versus 16.61).
+  That clip is 1,680 rows, so it is unrelated to the row limit.</li>
+</ul>
+<p>The MLX fault, measured 2026-10-04 on an M5 Max with a bare <code>nn.QuantizedLinear</code> (no model):</p>
+<table>
+<thead>
+<tr>
+<th>MLX</th>
+<th style="text-align: right;">32,767 rows</th>
+<th style="text-align: right;">32,768 rows</th>
+<th style="text-align: right;">39,600 rows</th>
+<th style="text-align: right;">75,600 rows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.31.0 (the <code>dev</code> pin)</td>
+<td style="text-align: right;">0 wrong</td>
+<td style="text-align: right;">32 wrong</td>
+<td style="text-align: right;">6,848 wrong</td>
+<td style="text-align: right;">32,784 wrong</td>
+</tr>
+<tr>
+<td>0.31.2</td>
+<td style="text-align: right;">0 wrong</td>
+<td style="text-align: right;">32 wrong</td>
+<td style="text-align: right;">6,848 wrong</td>
+<td style="text-align: right;">32,784 wrong</td>
+</tr>
+<tr>
+<td>0.32.0, 0.32.1, 0.32.2, 0.32.3</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+<td style="text-align: right;">0</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>"Wrong" rows hold the bias alone in the bare-layer test: the matmul never wrote them. Inside a
+  real run that unwritten memory is whatever the allocator recycled, which is how the June runs
+  reached NaN and values at the BF16 maximum.</li>
+<li>GPU only; the CPU is right. Independent of layer width (256 and 5120), of 8-bit versus 4-bit, of
+  FP32 versus BF16 input, and of FP32 versus BF16 scales (item 0117 recorded FP32 scales as exact;
+  on 0.31.2 they were not).</li>
+<li>The limit counts rows across the whole batch: <code>(2, 16384, C)</code> fails, <code>(2, 16383, C)</code> does not.</li>
+<li>The same layer called on slices below the limit equals a plain matmul on the dequantized
+  weights exactly.</li>
+<li><code>pyproject.toml</code> admits <code>mlx&gt;=0.27.0,&lt;0.33.0</code> and the <code>dev</code> extra pins <code>mlx==0.31.0</code>, so
+  affected MLX versions stay supported. Versions before 0.31.0 were not measured.</li>
+</ul>
+<p>The existing repair, used by one family only:</p>
+<ul>
+<li><code>src/mflux/models/minimax_h3/model/h3_precision.py</code> defines <code>QUANTIZED_MATMUL_MAX_ROWS = 32767</code>
+  and <code>rowwise(layer, x)</code>, used by <code>h3_attention.py</code> for <code>to_q</code>, <code>to_k</code>, <code>to_v</code>, <code>to_out[0]</code> and
+  the feed-forward linears; <code>tests/minimax_h3/test_h3_precision.py</code> covers it.</li>
+<li><code>rowwise</code> chunks axis 1 and checks <code>x.shape[1]</code> only, so a batch whose total row count crosses
+  the limit while each item stays below it is not protected.</li>
+</ul>
+<p>Where Wan calls the affected linears:</p>
+<ul>
+<li><code>src/mflux/models/wan/model/wan_transformer/wan_attention.py</code>: <code>to_q</code> (<code>:78</code>), <code>to_k</code>, <code>to_v</code>
+  (<code>:79-80</code>), <code>to_out[0]</code> (<code>:169</code>), <code>add_k_proj</code>, <code>add_v_proj</code> (<code>:190-191</code>).</li>
+<li><code>src/mflux/models/wan/model/wan_transformer/wan_transformer_block.py</code>: <code>net[0]</code>, <code>net[1]</code>
+  (<code>:22-24</code>).</li>
+<li>Only calls whose input is the video token sequence can cross the limit. For A14B the row count
+  is <code>((frames - 1) / 4 + 1) * (height / 16) * (width / 16)</code>, which matches the recorded failure
+  shape <code>(1, 39600, 5120)</code> for 1280x720, 41 frames:</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>A14B clip</th>
+<th style="text-align: right;">Rows</th>
+<th>Side of the limit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>832x480, 41 frames</td>
+<td style="text-align: right;">17,160</td>
+<td>below</td>
+</tr>
+<tr>
+<td>832x480, 81 frames</td>
+<td style="text-align: right;">32,760</td>
+<td>below, by 8 rows</td>
+</tr>
+<tr>
+<td>832x480, 85 frames</td>
+<td style="text-align: right;">34,320</td>
+<td>above</td>
+</tr>
+<tr>
+<td>1280x720, 33 frames</td>
+<td style="text-align: right;">32,400</td>
+<td>below</td>
+</tr>
+<tr>
+<td>1280x720, 41 frames</td>
+<td style="text-align: right;">39,600</td>
+<td>above</td>
+</tr>
+<tr>
+<td>1280x720, 81 frames</td>
+<td style="text-align: right;">75,600</td>
+<td>above</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>TI2V-5B packs <code>(height / 32) * (width / 32)</code> rows per latent frame, so its largest documented
+  clip, 1280x704 at 121 frames, is 27,280 rows and never crosses the limit. Confirm this from a
+  tensor shape before relying on it.</li>
+</ul>
+<p>Other facts that constrain the change:</p>
+<ul>
+<li>The metadata sidecar does not say which precision the block linears ran at. A q8 package run
+  writes <code>quantize: 8</code> and <code>precision: mlx.core.bfloat16</code> whether the blocks were converted or
+  not.</li>
+<li><code>SwiftVR._assert_quantization_supported</code>
+  (<code>src/mflux/models/swiftvr/variants/upscale/swiftvr.py:398</code>) and the Bernini q8 rejection
+  (<code>docs/quantization.md</code>, "Generic Wan q8 skipped every Bernini transformer linear") both reason
+  from the current sensitive list. Narrowing the list changes what a nominal q8 would do on those
+  routes; their rejections must stay.</li>
+<li><code>docs/faq.md</code> ("Why Can q8 Show The Same Physical Peak As BF16?"), <code>docs/quantization.md</code>
+  ("Wan q8", both corrections dated 2026-07-05) and <code>docs/recommendations.md</code> (A14B rows and the
+  64 GB tier) describe Wan q8 as BF16-class at runtime.</li>
+<li>BlackPixel 0.9.3 keeps the three Wan2.2 q8 packages 8-bit on every run that goes through its
+  Low RAM mode, by replacing <code>_normalize_runtime_sensitive_q8_paths</code> and
+  <code>_is_q8_sensitive_transformer_path</code> in its generation process, and slices large quantized calls
+  itself on MLX before 0.32.0 (<code>runtime_entry.py</code>). It ships MLX 0.31.2. Renaming or removing
+  either function silently returns that host to the BF16-class path. A public behaviour here
+  retires that dependency.</li>
+</ul>
+<h2 id="evidence-so-far">Evidence so far<a class="headerlink" href="#evidence-so-far" title="Permanent link">&para;</a></h2>
+<p>All of it is local and uncommitted. The June runs are under
+<code>validation_outputs/lightx2v_wan_4step_2026_06_12_postrevert/</code>; the 2026-10-04 runs, logs and
+probe scripts are under <code>validation_outputs/wan_q8_runtime_8bit/2026-10-04_probe/</code>.</p>
+<p>The June 2026 failure, re-read:</p>
+<ul>
+<li><code>a14b_t2v_41f_4step_lightning_q8_1280x720_euler_seed42_health.failure.json</code>: non-finite values
+  first appear at the output of <code>blocks.0.attn2.to_q</code>, shape <code>(1, 39600, 5120)</code>, step 1 of 4,
+  68,035 values, finite range at the BF16 maximum.</li>
+<li><code>a14b_t2v_41f_4step_no_lora_q8_1280x720_euler_seed42_health.failure.json</code>: the same tensor fails
+  with no LoRA loaded. The fault is not a LoRA interaction, although item 0040 describes it as
+  one.</li>
+<li><code>..._health_patch_attn2family.failure.json</code>: with the <code>attn2</code> family moved to BF16 the failure
+  moves to <code>blocks.0.attn1.to_q</code> at step 2. Each family moved to BF16 removed one set of
+  quantized calls above the limit, until none were left.</li>
+<li><code>a14b_t2v_41f_4step_lightning_q8_832x480_euler_seed42.mp4</code>: the same recipe at 832x480,
+  17,160 rows, completed cleanly in the same session. Which linears were 8-bit in that exact run
+  is not recorded; the 2026-10-04 runs below are the firm evidence below the limit.</li>
+<li><code>frame_compare_attn_ffn/q8_old_vs_new_vs_bf16_contact_sheet.png</code>: in the row made before the
+  FFN family was moved to BF16, frame 0 is noise, frame 5 is partly noise and later frames are
+  clean. At 39,600 rows the kernel skips rows 0 to 6,847, which are the first 1.9 latent frames
+  of 3,600 rows each: the start of the clip, and nothing else.</li>
+<li>Three runs of the same 720p case named <code>_lowram</code> completed without a health error on
+  2026-06-12, hours before the conversion was committed (their exact code state is not recorded).
+  A skipped row holds whatever the buffer held; with the cache cleared between blocks that can be
+  finite, so a run can pass the non-finite check and the clip still be wrong.</li>
+<li>Across the 114 A14B q8-package runs under <code>validation_outputs/</code> that record their size, every
+  failure is at or above 32,768 rows (39,600 or 75,600) and none is below.</li>
+<li><code>wan_a14b_fullsize_q8_2026_06_06/</code>: 1280x720, 81 frames (75,600 rows) fails the same way at
+  <code>blocks.0.attn2.to_q</code> even in a 1-step run. The 13h15m all-black run recorded in item 0002 is
+  that size on the same MLX line and is very likely the same fault. It was not repeated.</li>
+</ul>
+<p>Runs on 2026-10-04 (M5 Max 128 GB, MLX 0.31.2, MLX-Gen 0.37.0, q8 packages, LightX2V 4-step
+pairs, guidance 1/1, flow shift 5, low-RAM, cache limit 3 GB), with the block linears kept 8-bit
+by replacing the two functions above for the process:</p>
+<table>
+<thead>
+<tr>
+<th>Run</th>
+<th style="text-align: right;">Rows</th>
+<th>Block linears</th>
+<th style="text-align: right;">MLX peak</th>
+<th style="text-align: right;">Physical peak</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>I2V-A14B 832x480, 33 frames, unipc, seed 11</td>
+<td style="text-align: right;">14,040</td>
+<td>BF16 (default)</td>
+<td style="text-align: right;">31.7 GiB</td>
+<td style="text-align: right;">34.9 GiB</td>
+</tr>
+<tr>
+<td>I2V-A14B 832x480, 33 frames, unipc, seed 11</td>
+<td style="text-align: right;">14,040</td>
+<td>8-bit</td>
+<td style="text-align: right;">18.9 GiB</td>
+<td style="text-align: right;">21.9 GiB</td>
+</tr>
+<tr>
+<td>T2V-A14B 832x480, 33 frames, unipc, seed 11</td>
+<td style="text-align: right;">14,040</td>
+<td>8-bit</td>
+<td style="text-align: right;">18.8 GiB</td>
+<td style="text-align: right;">22.2 GiB</td>
+</tr>
+<tr>
+<td>I2V-A14B 832x480, 81 frames, unipc, seed 11</td>
+<td style="text-align: right;">32,760</td>
+<td>8-bit</td>
+<td style="text-align: right;">23.3 GiB</td>
+<td style="text-align: right;">26.2 GiB</td>
+</tr>
+<tr>
+<td>T2V-A14B 1280x720, 41 frames, euler, seed 42 (the June case)</td>
+<td style="text-align: right;">39,600</td>
+<td>BF16 (default)</td>
+<td style="text-align: right;">37.6 GiB</td>
+<td style="text-align: right;">40.3 GiB</td>
+</tr>
+<tr>
+<td>T2V-A14B 1280x720, 41 frames, euler, seed 42 (the June case)</td>
+<td style="text-align: right;">39,600</td>
+<td>8-bit, calls sliced</td>
+<td style="text-align: right;">34.1 GiB</td>
+<td style="text-align: right;">37.3 GiB</td>
+</tr>
+<tr>
+<td>TI2V-5B 480x480, 49 frames, FastWan (earlier run, other source and seed)</td>
+<td style="text-align: right;">2,925</td>
+<td>BF16 (default)</td>
+<td style="text-align: right;">11.6 GiB</td>
+<td style="text-align: right;">13.5 GiB</td>
+</tr>
+<tr>
+<td>TI2V-5B 480x480, 49 frames, FastWan, seed 11</td>
+<td style="text-align: right;">2,925</td>
+<td>8-bit</td>
+<td style="text-align: right;">8.8 GiB</td>
+<td style="text-align: right;">12.5 GiB</td>
+</tr>
+<tr>
+<td>TI2V-5B 832x480, 25 frames, FastWan, seed 11</td>
+<td style="text-align: right;">2,730</td>
+<td>BF16 (default)</td>
+<td style="text-align: right;">14.3 GiB</td>
+<td style="text-align: right;">17.8 GiB</td>
+</tr>
+<tr>
+<td>TI2V-5B 832x480, 25 frames, FastWan, seed 11</td>
+<td style="text-align: right;">2,730</td>
+<td>8-bit</td>
+<td style="text-align: right;">14.3 GiB</td>
+<td style="text-align: right;">18.0 GiB</td>
+</tr>
+<tr>
+<td>TI2V-5B 832x480, 81 frames, FastWan, seed 11</td>
+<td style="text-align: right;">8,190</td>
+<td>8-bit</td>
+<td style="text-align: right;">14.3 GiB</td>
+<td style="text-align: right;">17.8 GiB</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>The 33-frame I2V pair, compared on all 33 decoded frames: mean absolute difference 1.09 to 3.03
+  on the 0-255 scale (mean 2.40), PSNR 33.1 dB at worst, frame-to-frame change 6.14 versus 6.15.
+  Side by side the two clips are indistinguishable at normal viewing
+  (<code>i2v_a14b_832x480_33f_side_by_side_8bit_left_bf16_right.mp4</code>,
+  <code>i2v_a14b_832x480_33f_frame_comparison.json</code>).</li>
+<li>The June failure case, repeated both ways on the same day (MLX 0.31.2, low-RAM,
+  <code>--tensor-health-check-interval 1</code>, the June prompt and negative prompt). With the block
+  linears 8-bit and quantized calls sliced below the row limit it completed with no health error,
+  and the clip is clean from frame 0 with the same scene and composition as its BF16 twin and as
+  both June clips (<code>t2v_a14b_1280x720_41f_early_frames_sheet.png</code>,
+  <code>t2v_a14b_1280x720_41f_side_by_side_8bit_left_bf16_right.mp4</code>,
+  <code>t2v_a14b_1280x720_41f_frame_comparison.json</code>).</li>
+<li>8-bit against its same-day BF16 twin: mean absolute difference 13.6 (10.0 to 18.0),
+    frame-to-frame change 13.07 against 13.01.</li>
+<li>For scale, the June q8 run converted to BF16 against the June BF16 package: 12.8 (9.2 to
+    17.0). At this size and with this fine snow texture, two 16-bit-class runs already differ by
+    about that much, so the 8-bit run sits at the noise floor of this clip, not above it.</li>
+<li>Both of today's clips are equally far from the June BF16-package clip (18.4 and 17.9): that
+    distance is the engine version and low-RAM mode (0.18.16 without it, 0.37.0 with it), not the
+    weights.</li>
+<li>At this size the 8-bit runtime saves about 3 GiB, not 13: the peak is no longer set by the
+    weights.</li>
+<li>TI2V-5B runs with its block linears 8-bit and the FastWan adapter. At 832x480, 25 frames the
+  two clips differ by 0.9 to 2.0 on the 0-255 scale with identical motion
+  (<code>ti2v_5b_832x480_25f_side_by_side_8bit_left_bf16_right.mp4</code>). Its peak drops at 480x480 and
+  does not move at 832x480, so at that canvas something other than the transformer sets the peak.
+  The two 832x480, 25-frame physical peaks (17.8 and 18.0 GiB) are within run-to-run variation.</li>
+<li>Both LoRA files applied fully in both modes (<code>Applied to 400 layers (1200/1200 keys matched)</code>).</li>
+<li>Limits of this evidence: one seed, one prompt per route, 4-step adapters only, and the
+  comparisons are against the same q8 package converted at load, not against the BF16 package.
+  Several runs shared the GPU, so timings are not evidence of speed. The 720p run sliced its
+  quantized calls in the host process, not through MLX-Gen code.</li>
+</ul>
+<h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h2>
+<p>A Wan q8 package uses twice the memory it needs. The conversion that causes it works around an
+MLX kernel fault that MLX-Gen already knows how to avoid exactly, and that MLX itself fixed in
+0.32.0. The metadata hides the conversion, so a host cannot tell which run it got.</p>
+<h2 id="what-we-want-to-do">What we want to do<a class="headerlink" href="#what-we-want-to-do" title="Permanent link">&para;</a></h2>
+<p>Run Wan q8 packages with their block linears 8-bit in memory, at every clip size, on every
+supported MLX version, with quality proven against the BF16 package; then retire the load-time
+conversion as the default and correct the published memory numbers.</p>
+<h2 id="why">Why<a class="headerlink" href="#why" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Wan2.2 A14B comes within reach of 32 GB to 48 GB Macs. 832x480 at 33 frames measured 18.9 GiB
+  MLX peak and 21.9 GiB physical, which on paper fits a 24 GB Mac with a 20 GB GPU limit; it has
+  not been run on such a Mac. Today the docs name 64 GB as the first tier for the same package.</li>
+<li>A package named <code>-8bit</code> running at 16-bit is a runtime-truth gap under ADR 0003.</li>
+<li>One MLX fault should have one repair, shared by every family that can cross the row limit.</li>
+</ul>
+<h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
+<ul>
+<li>No quantized linear call in a Wan run may reach <code>mx.quantized_matmul</code> with 32,768 rows or more
+  on an MLX version that has the fault. Count rows across the whole batch.</li>
+<li>Results below the limit must be bit-identical to today's direct call.</li>
+<li><code>proj_out</code> and <code>condition_embedder.*</code> stay BF16 (item 0002's evidence).</li>
+<li>Published q8 packages keep loading unchanged.</li>
+<li>The sidecar records the runtime precision of the block linears.</li>
+<li>If a BF16 runtime for the block linears remains available, it is a named option the caller asks
+  for. No automatic choice by available memory inside MLX-Gen (ADR 0002, ADR 0003): a host that
+  wants one implements it.</li>
+<li>SwiftVR and Bernini keep rejecting the quantization levels they reject today, with reasons that
+  remain true.</li>
+<li>No public claim changes before the validation below passes.</li>
+</ul>
+<h2 id="suggested-implementation">Suggested implementation<a class="headerlink" href="#suggested-implementation" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Move <code>QUANTIZED_MATMUL_MAX_ROWS</code> and <code>rowwise</code> out of <code>minimax_h3</code> into a shared module, make
+   the row count the product of all leading dimensions, and keep MiniMax-H3 importing it. Port
+   <code>tests/minimax_h3/test_h3_precision.py</code> with a batched case such as <code>(2, 16384, C)</code>.</li>
+<li>Route the Wan calls listed above through it. Decide whether to chunk only when
+   <code>mx.__version__ &lt; 0.32.0</code>; chunking always is right on every version, so only skip it if a
+   measurement shows a cost.</li>
+<li>Build a validation switch first, without changing the default: one process-level way to run a
+   q8 package with block linears 8-bit, with them BF16, and with the attention and FFN families
+   toggled separately. The replacement used for the 2026-10-04 runs is enough to start:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.wan.wan_initializer</span><span class="w"> </span><span class="kn">import</span> <span class="n">WanInitializer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.wan.weights.wan_weight_definition</span><span class="w"> </span><span class="kn">import</span> <span class="n">WanWeightDefinition</span>
+
+<span class="n">WanInitializer</span><span class="o">.</span><span class="n">_normalize_runtime_sensitive_q8_paths</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span><span class="k">lambda</span> <span class="o">*</span><span class="n">a</span><span class="p">,</span> <span class="o">**</span><span class="n">k</span><span class="p">:</span> <span class="kc">None</span><span class="p">)</span>
+<span class="n">WanWeightDefinition</span><span class="o">.</span><span class="n">_is_q8_sensitive_transformer_path</span> <span class="o">=</span> <span class="nb">staticmethod</span><span class="p">(</span>
+    <span class="k">lambda</span> <span class="n">path</span><span class="p">:</span> <span class="n">path</span> <span class="o">==</span> <span class="s2">"proj_out"</span> <span class="ow">or</span> <span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">"condition_embedder."</span><span class="p">)</span>
+<span class="p">)</span>
+</code></pre></div>
+<p>Both are needed: without the second, the modules are built as plain linears and LoRA loading
+   fails on the packed weight shape.
+4. Run the validation matrix. If it passes, narrow <code>_is_q8_sensitive_transformer_path</code> to
+   <code>proj_out</code> and <code>condition_embedder.*</code>, remove or gate the load-time conversion, and update
+   <code>_validate_component_quantization_layout</code> and the two layout tests.
+5. Add the block-linear runtime precision to the sidecar and to the metadata schema work in
+   <a href="../../proposed/0122_declare_metadata_keys_in_metadata_schema/">item 0122</a>.
+6. Update <code>docs/quantization.md</code>, <code>docs/faq.md</code>, <code>docs/recommendations.md</code>, the package cards if
+   they quote runtime memory, <code>CHANGELOG.md</code> and the <code>llms</code> files with the re-measured numbers.
+7. Tell the BlackPixel host which release makes its process-level replacement unnecessary.</p>
+<h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Wan2.2 T2V-A14B, I2V-A14B and TI2V-5B q8 packages, and every route that loads them through
+  <code>WanInitializer</code> (text-to-video, image-to-video, video-to-video, VACE where it uses a q8
+  package).</li>
+<li>The shared row-chunk helper and its use by MiniMax-H3.</li>
+<li>Metadata, tests and docs that describe Wan q8 runtime memory.</li>
+</ul>
+<h2 id="non-goals">Non-goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Quantizing <code>condition_embedder.*</code> or <code>proj_out</code>.</li>
+<li>A Wan q4 package.</li>
+<li>Raising the MLX floor to 0.32.0. It would also remove the fault, but it moves the <code>dev</code> pin and
+  the image-comparison baselines (0.38.0 changelog); treat it as a separate decision.</li>
+<li>Auditing every other quantized family for calls above the row limit. Images above roughly
+  2896x2896 at 16 px per token, and SeedVR2 video windows, may cross it. File that audit as its
+  own item once the shared helper exists.</li>
+<li>An automatic memory-based precision switch inside MLX-Gen.</li>
+<li>Speed claims. <a href="../0005_wan_q8_performance_investigation/">Item 0005</a> owns q8 speed; record
+  timings here only as input to it.</li>
+</ul>
+<h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../0002_wan_quantization_motion_parity/">0002 Wan quantization and motion parity</a>: the mixed
+  q8/BF16 policy and the 2026-06-03 all-black full-size run.</li>
+<li><a href="../0005_wan_q8_performance_investigation/">0005 Wan q8 performance investigation</a>.</li>
+<li><a href="../0013_wan_a14b_boundary_memory_recovery/">0013 Wan A14B boundary memory recovery and full-size validation</a>:
+  its full-size q8 validation should run after this item, on the 8-bit runtime.</li>
+<li><a href="../../completed/0016_wan_video_integrity_release_gate/">0016 Wan video integrity release gate</a>:
+  the health gates to reuse.</li>
+<li><a href="../../completed/0040_lightx2v_wan_4step_acceleration_profiles/">0040 LightX2V Wan 4-step acceleration profiles</a>:
+  the completion report that introduced the conversion. Append a dated note there when this item
+  closes; do not rewrite it.</li>
+<li><a href="../../proposed/0089_wan_memory_defaults/">0089 Wan memory defaults</a>.</li>
+<li><a href="../../completed/0117_minimax_h3_text_to_video_audio_runtime/">0117 MiniMax-H3 runtime</a>: where
+  the MLX fault and the row-chunk repair were first recorded.</li>
+</ul>
+<h2 id="expected-outcomes">Expected outcomes<a class="headerlink" href="#expected-outcomes" title="Permanent link">&para;</a></h2>
+<ul>
+<li>A14B q8 at 832x480, 33 frames, low-RAM: about 19 GiB MLX peak and 22 GiB physical, instead of
+  about 32 GiB and 35 GiB. The gain shrinks as the clip grows: at 1280x720, 41 frames it measured
+  34.1 against 37.6 GiB MLX peak, so the memory tiers must be re-measured per size, not scaled.</li>
+<li>Wan q8 runs at 1280x720 and at 81 frames complete with healthy tensors and track the BF16
+  package.</li>
+<li>The docs' memory tables and Mac tiers describe the 8-bit runtime.</li>
+<li>BlackPixel drops its replacement of private functions.</li>
+</ul>
+<h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
+<p>Unit level:</p>
+<ul>
+<li>The shared helper is exact above the limit, bit-identical below it, and handles a batched input.</li>
+<li>A Wan attention block and feed-forward block with q8 linears match their dequantized reference
+  at 39,600 rows.</li>
+</ul>
+<p>Model-backed, on the 128 GB M5 Max, each as a same-seed set of three: BF16 package (reference),
+q8 package converted at load (today's default, which sets the noise floor), q8 package with block
+linears 8-bit (candidate). Run with <code>--tensor-health-check-interval 1</code> and <code>--metadata</code>.</p>
+<ol>
+<li>T2V-A14B, 1280x720, 41 frames, 4 LightX2V steps, euler, seed 42, the prompt and negative
+   prompt recorded in the June failure files, plus two more seeds. This is the case that caused
+   the conversion. Seed 42 was run on 2026-10-04 as a q8 pair (see Evidence so far), with the
+   slicing done by the host process; still owed are the BF16-package reference, the two other
+   seeds, and the run through MLX-Gen's own helper.</li>
+<li>T2V-A14B, 832x480 at 81 frames and at 85 frames: one clip on each side of the limit.</li>
+<li>T2V-A14B, 1280x720, 81 frames, 4 LightX2V steps: 75,600 rows.</li>
+<li>I2V-A14B, 1280x720, 41 frames, 4 LightX2V steps.</li>
+<li>T2V-A14B without LoRA, 20 steps, guidance 4/3: 832x480 at 41 frames, and one 1280x720 clip.</li>
+<li>TI2V-5B, 1280x704, with and without the FastWan adapter, to confirm no regression where the
+   limit is never crossed.</li>
+<li>One video-to-video route on the A14B q8 package at its documented size.</li>
+<li>Cases 1 and 2 on both MLX 0.31.0 and the newest admitted 0.32.x.</li>
+</ol>
+<p>Accept the 8-bit runtime as the default only if, for every case:</p>
+<ul>
+<li>no <code>TensorHealthError</code>, and the video-integrity gate of item 0016 passes;</li>
+<li>per-frame error against the BF16 package is within the range the converted-at-load run shows
+  against the same reference, with no early-frame spike (the June symptom);</li>
+<li>frame-to-frame change stays within 10% of the BF16 run;</li>
+<li>every clip is watched in full at native size next to its reference, not only sampled;</li>
+<li>MLX peak and physical peak are recorded for all three runs.</li>
+</ul>
+<p>If any case fails, keep the conversion for that envelope only, name the envelope in the docs, and
+record what failed here.</p>
+<h2 id="progress-checklist">Progress checklist<a class="headerlink" href="#progress-checklist" title="Permanent link">&para;</a></h2>
+<ul>
+<li>[ ] Shared row-chunk helper with batched row count; MiniMax-H3 moved onto it.</li>
+<li>[ ] Wan block linears routed through the helper.</li>
+<li>[ ] Validation switch for 8-bit, BF16 and per-family runs.</li>
+<li>[ ] Validation matrix run; artifacts under <code>docs/assets/validation/</code> with a report.</li>
+<li>[ ] Default decided from the matrix and recorded here.</li>
+<li>[ ] Sensitive list, load-time conversion, layout validator and tests updated.</li>
+<li>[ ] Runtime precision of block linears in the sidecar.</li>
+<li>[ ] SwiftVR and Bernini rejections re-checked.</li>
+<li>[ ] <code>docs/quantization.md</code>, <code>docs/faq.md</code>, <code>docs/recommendations.md</code>, <code>CHANGELOG.md</code>, <code>llms</code>
+      files updated with re-measured numbers.</li>
+<li>[ ] Dated note appended to item 0040; follow-up audit item filed for other quantized families.</li>
+<li>[ ] BlackPixel told which release retires its replacement.</li>
+</ul>
+<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Reproduce the fault with a bare layer before touching Wan. It takes seconds and needs no model:</li>
+</ul>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">mlx.core</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">mx</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mlx</span><span class="w"> </span><span class="kn">import</span> <span class="n">nn</span>
+
+<span class="n">layer</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">QuantizedLinear</span><span class="o">.</span><span class="n">from_linear</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span> <span class="n">group_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span> <span class="n">bits</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">mx</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">39600</span><span class="p">,</span> <span class="mi">256</span><span class="p">))</span>
+<span class="n">whole</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">sliced</span> <span class="o">=</span> <span class="n">mx</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="n">i</span> <span class="p">:</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">8192</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">39600</span><span class="p">,</span> <span class="mi">8192</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">mx</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">mx</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">whole</span> <span class="o">-</span> <span class="n">sliced</span><span class="p">)</span><span class="o">.</span><span class="n">max</span><span class="p">()))</span>  <span class="c1"># about 3 before MLX 0.32.0, 0 after</span>
+</code></pre></div>
+<ul>
+<li>The tensor-health check only catches non-finite values. Rows the kernel skipped can hold finite
+  garbage, so a run can pass the check and still be wrong. Compare against the reference clip.</li>
+<li>Only one clean 8-bit run above the row limit exists so far (1280x720, 41 frames, seed 42). Do
+  not generalise from it, or from the 480p runs, to other seeds, lengths or routes.</li>
+<li>Do not change the default before the matrix passes, and do not describe the 8-bit runtime in
+  public docs before then.</li>
+<li>The June investigation's intermediate clips and failure files are still on disk in
+  <code>validation_outputs/</code>; they are local and ignored by git, so copy what the report needs into
+  <code>docs/assets/validation/</code>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

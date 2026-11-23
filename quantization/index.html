@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -931,6 +931,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#minimax-h3-q8-and-mixed-q4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MiniMax-H3 q8 And Mixed q4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MiniMax-H3 q8 And Mixed q4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#measured-error-by-width" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured Error By Width
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#same-seed-clips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Same-Seed Clips
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#wan-q8" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1505,6 +1555,56 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#minimax-h3-q8-and-mixed-q4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MiniMax-H3 q8 And Mixed q4
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="MiniMax-H3 q8 And Mixed q4">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#measured-error-by-width" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured Error By Width
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#same-seed-clips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Same-Seed Clips
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#wan-q8" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1654,9 +1754,9 @@ Transformers <code>from_pretrained()</code> checkpoints.</p>
 </tr>
 <tr>
 <td>MiniMax-H3</td>
-<td>Supported with mixed q8/BF16 (load time or <code>mlxgen prepare</code>, 75 GB package)</td>
-<td>Not validated</td>
-<td><code>--quantize 8</code> quantizes the transformer attention/feed-forward linears and the Qwen3-VL conditioner (including its vision tower) shard by shard; the fp32 heads, timestep MLP and AdaLN modulation projections keep their source precision. Prepare from <code>minimax-h3</code> and select a Turbo schedule at run time with <code>--base-model</code>; a same-seed clip from the package is byte-identical to the load-time <code>--quantize 8</code> clip. No package is published.</td>
+<td>Supported: <code>minimax-h3-8bit</code>, 64.3 GiB</td>
+<td>Supported as a mixed-width package: <code>minimax-h3-4bit</code>, 44.9 GiB</td>
+<td><code>--quantize 8</code> is 8-bit for the transformer and the Qwen3-VL conditioner. <code>--quantize 4</code> is a 4-bit conditioner with a 6-bit transformer. The conditioner's vision tower, the transformer's fp32 heads and both VAEs are stored as released. Other widths are not accepted. Prepare from <code>minimax-h3</code> and select a Turbo schedule at run time with <code>--base-model</code>. See <a href="#minimax-h3-q8-and-mixed-q4">MiniMax-H3 q8 And Mixed q4</a>.</td>
 </tr>
 <tr>
 <td>Bernini-R 1.3B</td>
@@ -1923,12 +2023,20 @@ package size is the published AbstractFramework repository total.</p>
 <td>BF16 package plus mixed q8/BF16 package. Runtime measurements are below.</td>
 </tr>
 <tr>
+<td>MiniMax-H3</td>
+<td>T2V and first-frame I2V with a generated stereo soundtrack</td>
+<td style="text-align: right;">125.0 GiB generation files</td>
+<td><code>minimax-h3-8bit</code><br><code>minimax-h3-4bit</code></td>
+<td style="text-align: right;">64.3 GiB<br>44.9 GiB</td>
+<td>8-bit package plus a mixed-width package with a 4-bit conditioner and a 6-bit transformer. Both hold the base weights; <code>--base-model</code> attaches a lightx2v Turbo adapter at run time. Distributed under the MiniMax H3 Community License, whose grant excludes the EU, the UK, the Republic of Korea and the USA; the repositories are gated.</td>
+</tr>
+<tr>
 <td>Bernini-R 1.3B</td>
 <td>R2V, RV2V, V2V renderer</td>
-<td style="text-align: right;">16.36 GiB selective pinned files</td>
-<td>None</td>
-<td style="text-align: right;">None</td>
-<td>BF16-only factored source route. <code>mlxgen download --model bernini-r-1.3b</code> fetches the Wan base subset plus renderer transformer; no quantized package is published.</td>
+<td style="text-align: right;">26.94 GiB selected pinned files (FP32)</td>
+<td><code>bernini-r-1.3B-diffusers-bf16</code></td>
+<td style="text-align: right;">15.60 GiB</td>
+<td>BF16-only route. <code>mlxgen download --model bernini-r-1.3b-bf16</code> fetches the BF16 package and <code>mlxgen download --model bernini-r-1.3b</code> the FP32 source; both run at the same precision. No quantized package is published.</td>
 </tr>
 </tbody>
 </table>
@@ -2150,6 +2258,486 @@ absence of low-memory testing: the BF16 low-RAM media matrix peaked at 9.45 GB w
 physical footprint. That matrix fails its visual-quality gate, so BF16 is the only numerically
 credible implementation path, not a production-quality endorsement. See the
 <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-04/README.md#quantization-diagnosis">quantization comparison and playable clips</a>.</p>
+<h2 id="minimax-h3-q8-and-mixed-q4">MiniMax-H3 q8 And Mixed q4<a class="headerlink" href="#minimax-h3-q8-and-mixed-q4" title="Permanent link">&para;</a></h2>
+<p>MiniMax-H3 is two large components: a 33B-parameter transformer and the first 50 layers of
+Qwen3-VL-32B (25.7B parameters) as conditioner. Unquantized they are 115 GiB resident, so a width is
+part of running the model on a Mac. Two packages are published, and <code>mlxgen prepare</code> writes the same
+ones from the source snapshot:</p>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: right;"><code>--quantize</code></th>
+<th>Conditioner</th>
+<th>Transformer</th>
+<th style="text-align: right;">Disk</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>AbstractFramework/minimax-h3-8bit</code></td>
+<td style="text-align: right;">8</td>
+<td>8-bit</td>
+<td>8-bit</td>
+<td style="text-align: right;">64.3 GiB</td>
+</tr>
+<tr>
+<td><code>AbstractFramework/minimax-h3-4bit</code></td>
+<td style="text-align: right;">4</td>
+<td>4-bit</td>
+<td>6-bit</td>
+<td style="text-align: right;">44.9 GiB</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>minimax-h3<span class="w"> </span>--quantize<span class="w"> </span><span class="m">8</span><span class="w"> </span>--path<span class="w"> </span>models/minimax-h3-8bit
+mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class="w"> </span>minimax-h3<span class="w"> </span>--quantize<span class="w"> </span><span class="m">4</span><span class="w"> </span>--path<span class="w"> </span>models/minimax-h3-4bit
+</code></pre></div>
+<p>The widths apply to the conditioner's 50 decoder layers and token embeddings, and to the
+transformer's attention and feed-forward linears, text projection, token refiner and per-block
+AdaLN projections. Both packages store the rest as released: the conditioner's vision tower, the
+transformer's fp32 input and output heads, timestep MLP and final modulation, the BF16 video VAE and
+the fp32 audio VAE. MiniMax-H3 accepts <code>--quantize 8</code> and <code>--quantize 4</code> only.</p>
+<p>The 4-bit package is a mixed-width package. Its transformer is 6-bit because no part of the
+transformer tolerates 4-bit better than another; the measurements are below.</p>
+<h3 id="memory">Memory<a class="headerlink" href="#memory" title="Permanent link">&para;</a></h3>
+<p>Measured with <code>mlxgen generate</code> at the reference profile: <code>minimax-h3-turbo-544p</code>, <code>960x544</code>,
+124 frames, 8 steps, on an Apple M5 Max with 128 GB, MLX 0.31.0. <code>MLX peak</code> is the allocator
+high-water mark and <code>Process footprint</code> the Darwin peak physical footprint of the whole process,
+load included, both from the run's metadata sidecar.</p>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th>Options</th>
+<th style="text-align: right;">MLX peak</th>
+<th style="text-align: right;">Process footprint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>minimax-h3-8bit</code></td>
+<td>default</td>
+<td style="text-align: right;">69.4 GiB</td>
+<td style="text-align: right;">77.0 GiB</td>
+</tr>
+<tr>
+<td><code>minimax-h3-8bit</code></td>
+<td><code>--low-ram</code></td>
+<td style="text-align: right;">64.4 GiB</td>
+<td style="text-align: right;">65.0 GiB</td>
+</tr>
+<tr>
+<td><code>minimax-h3-4bit</code></td>
+<td>default</td>
+<td style="text-align: right;">49.9 GiB</td>
+<td style="text-align: right;">57.6 GiB</td>
+</tr>
+<tr>
+<td><code>minimax-h3-4bit</code></td>
+<td><code>--low-ram</code></td>
+<td style="text-align: right;">45.1 GiB</td>
+<td style="text-align: right;">45.6 GiB</td>
+</tr>
+</tbody>
+</table>
+<p><code>--low-ram</code> releases the conditioner once the prompt is encoded and tightens the MLX cache from
+8 GiB to 1 GB. The peak is then the load itself, when every weight is resident: the package size
+plus under 1 GiB.</p>
+<p>Smaller machines were tested on the same Mac by locking the difference in RAM in a second process
+for the whole run (<code>tools/minimax_h3_quant_probe.py ballast</code>), with about 23 GiB of other
+applications also resident:</p>
+<table>
+<thead>
+<tr>
+<th>Machine memory</th>
+<th><code>minimax-h3-8bit</code></th>
+<th><code>minimax-h3-4bit</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>128 GB</td>
+<td>Runs with default settings</td>
+<td>Runs with default settings</td>
+</tr>
+<tr>
+<td>96 GB</td>
+<td>Runs with default settings: completed with 32 GiB locked, 76.8 GiB footprint</td>
+<td>Runs with default settings</td>
+</tr>
+<tr>
+<td>64 GB</td>
+<td>Does not fit: the weights alone are 64.3 GiB</td>
+<td>Runs with <code>--low-ram</code>: completed with 64 GiB locked, 45.6 GiB footprint. Default settings peak at 57.6 GiB, which leaves too little for the system</td>
+</tr>
+<tr>
+<td>48 GB or less</td>
+<td>Does not fit</td>
+<td>Does not fit: the weights alone are 44.9 GiB</td>
+</tr>
+</tbody>
+</table>
+<p>Longer clips and larger canvases need more: the footprint grows with the packed sequence, about
+0.25 GiB per thousand rows. <code>960x544</code> at 124 frames is 19,484 rows and <code>1344x768</code> at 124 frames is
+37,910, where the 8-bit package measured 82.0 GiB. Step time does not depend on the width; see
+<a href="../minimax-h3/#measured-runtime">MiniMax-H3</a> for timings.</p>
+<h3 id="measured-error-by-width">Measured Error By Width<a class="headerlink" href="#measured-error-by-width" title="Permanent link">&para;</a></h3>
+<p>Each number is the relative RMS error of the predicted velocity against the BF16 weights, video rows
+then audio rows, in percent. The inputs are real transformer inputs captured from the 8-bit package
+at <code>640x352</code>, 124 frames, with the 544p Turbo adapter attached: a dialogue clip at steps 1, 4 and 7
+of 8, a fox clip at step 4, and an image-to-video clip at step 4. The full 50-block transformer runs
+each one.</p>
+<table>
+<thead>
+<tr>
+<th>Transformer widths</th>
+<th style="text-align: right;">Transformer size</th>
+<th>dialogue, step 1</th>
+<th>dialogue, step 4</th>
+<th>dialogue, step 7</th>
+<th>fox, step 4</th>
+<th>image-to-video, step 4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>8-bit</strong> (<code>--quantize 8</code>)</td>
+<td style="text-align: right;">32.9 GiB</td>
+<td>10.7 / 1.6</td>
+<td>8.9 / 2.5</td>
+<td>4.1 / 2.0</td>
+<td>6.4 / 3.6</td>
+<td>4.8 / 3.5</td>
+</tr>
+<tr>
+<td><strong>6-bit</strong> (<code>--quantize 4</code>)</td>
+<td style="text-align: right;">25.1 GiB</td>
+<td>11.1 / 6.2</td>
+<td>15.2 / 6.2</td>
+<td>6.4 / 4.3</td>
+<td>11.7 / 10.4</td>
+<td>10.0 / 11.5</td>
+</tr>
+<tr>
+<td>5-bit</td>
+<td style="text-align: right;">21.3 GiB</td>
+<td>20.8 / 10.1</td>
+<td>18.9 / 12.9</td>
+<td>10.1 / 7.9</td>
+<td>19.6 / 15.0</td>
+<td>16.0 / 16.7</td>
+</tr>
+<tr>
+<td>4-bit, AdaLN projections 6-bit</td>
+<td style="text-align: right;">20.5 GiB</td>
+<td>49.4 / 18.7</td>
+<td>29.9 / 18.1</td>
+<td>16.6 / 15.6</td>
+<td>29.5 / 32.8</td>
+<td>24.7 / 37.8</td>
+</tr>
+<tr>
+<td>4-bit/8-bit mix: feed-forward input and attention output at 4-bit</td>
+<td style="text-align: right;">25.2 GiB</td>
+<td>23.3 / 8.8</td>
+<td>22.5 / 10.3</td>
+<td>12.7 / 12.4</td>
+<td>24.8 / 23.1</td>
+<td>18.1 / 24.0</td>
+</tr>
+<tr>
+<td>4-bit/8-bit mix: feed-forward and query/key at 4-bit</td>
+<td style="text-align: right;">22.4 GiB</td>
+<td>39.5 / 14.9</td>
+<td>24.5 / 15.4</td>
+<td>13.6 / 12.1</td>
+<td>25.8 / 26.7</td>
+<td>18.8 / 25.7</td>
+</tr>
+<tr>
+<td>4-bit with the first and last 10 blocks at 8-bit</td>
+<td style="text-align: right;">24.1 GiB</td>
+<td>30.2 / 15.7</td>
+<td>27.0 / 15.5</td>
+<td>14.1 / 10.8</td>
+<td>27.5 / 24.7</td>
+<td>21.9 / 27.3</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>6-bit stays within about twice the 8-bit video error.</li>
+<li>A 4-bit/8-bit mix of the same size as uniform 6-bit has about twice its error, and uniform 5-bit,
+  which is smaller, is also ahead of the mixes: no family is cheap to take to 4-bit.</li>
+<li>Keeping the first and last ten blocks at 8-bit recovers little of what 4-bit loses.</li>
+</ul>
+<p>One family at a time at 4-bit shows why. Each of the five costs about the same:</p>
+<table>
+<thead>
+<tr>
+<th>One family at 4-bit, the rest 8-bit</th>
+<th style="text-align: right;">Share of block parameters</th>
+<th>dialogue, step 1</th>
+<th>dialogue, step 4</th>
+<th>dialogue, step 7</th>
+<th>fox, step 4</th>
+<th>image-to-video, step 4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Query and key projections</td>
+<td style="text-align: right;">20%</td>
+<td>18.0 / 6.5</td>
+<td>18.4 / 8.1</td>
+<td>8.4 / 5.4</td>
+<td>14.1 / 16.0</td>
+<td>12.5 / 12.3</td>
+</tr>
+<tr>
+<td>Value projection</td>
+<td style="text-align: right;">10%</td>
+<td>18.8 / 8.8</td>
+<td>24.0 / 13.1</td>
+<td>10.6 / 9.1</td>
+<td>20.7 / 21.0</td>
+<td>16.9 / 25.6</td>
+</tr>
+<tr>
+<td>Attention output</td>
+<td style="text-align: right;">10%</td>
+<td>15.3 / 6.2</td>
+<td>18.1 / 7.7</td>
+<td>8.9 / 6.9</td>
+<td>16.2 / 13.8</td>
+<td>14.0 / 15.4</td>
+</tr>
+<tr>
+<td>Feed-forward input</td>
+<td style="text-align: right;">40%</td>
+<td>23.7 / 7.4</td>
+<td>19.0 / 10.0</td>
+<td>10.8 / 9.5</td>
+<td>20.6 / 19.9</td>
+<td>15.1 / 16.0</td>
+</tr>
+<tr>
+<td>Feed-forward output</td>
+<td style="text-align: right;">20%</td>
+<td>21.1 / 6.0</td>
+<td>16.4 / 10.4</td>
+<td>8.7 / 5.8</td>
+<td>15.9 / 11.0</td>
+<td>13.7 / 10.0</td>
+</tr>
+</tbody>
+</table>
+<p>The per-block AdaLN projections are 13B of the transformer's 33B parameters. Their width matters
+little above 4-bit: at 8-bit the modulation tables they produce move by 0.01% to 0.40%, and
+quantizing them adds at most 2.1 points to the 8-bit video error for 11.3 GiB.</p>
+<table>
+<thead>
+<tr>
+<th>AdaLN projection width</th>
+<th style="text-align: right;">Transformer size</th>
+<th>dialogue, step 1</th>
+<th>dialogue, step 4</th>
+<th>dialogue, step 7</th>
+<th>fox, step 4</th>
+<th>image-to-video, step 4</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8-bit blocks, AdaLN projections unquantized</td>
+<td style="text-align: right;">44.2 GiB</td>
+<td>8.6 / 1.9</td>
+<td>7.6 / 2.6</td>
+<td>3.8 / 1.8</td>
+<td>6.2 / 3.0</td>
+<td>4.5 / 3.7</td>
+</tr>
+<tr>
+<td>8-bit blocks, AdaLN projections 8-bit</td>
+<td style="text-align: right;">32.9 GiB</td>
+<td>10.7 / 1.6</td>
+<td>8.9 / 2.5</td>
+<td>4.1 / 2.0</td>
+<td>6.4 / 3.6</td>
+<td>4.8 / 3.5</td>
+</tr>
+<tr>
+<td>8-bit blocks, AdaLN projections 6-bit</td>
+<td style="text-align: right;">29.8 GiB</td>
+<td>11.4 / 2.0</td>
+<td>8.4 / 2.4</td>
+<td>4.3 / 2.0</td>
+<td>6.6 / 3.4</td>
+<td>4.8 / 3.7</td>
+</tr>
+<tr>
+<td>8-bit blocks, AdaLN projections 4-bit</td>
+<td style="text-align: right;">26.8 GiB</td>
+<td>9.7 / 2.2</td>
+<td>13.6 / 3.4</td>
+<td>5.7 / 3.2</td>
+<td>7.5 / 4.1</td>
+<td>6.2 / 4.5</td>
+</tr>
+<tr>
+<td>4-bit blocks, AdaLN projections unquantized</td>
+<td style="text-align: right;">34.9 GiB</td>
+<td>50.9 / 18.3</td>
+<td>29.8 / 18.0</td>
+<td>16.5 / 15.9</td>
+<td>29.4 / 33.0</td>
+<td>24.5 / 37.5</td>
+</tr>
+<tr>
+<td>4-bit blocks, AdaLN projections 6-bit</td>
+<td style="text-align: right;">20.5 GiB</td>
+<td>49.4 / 18.7</td>
+<td>29.9 / 18.1</td>
+<td>16.6 / 15.6</td>
+<td>29.5 / 32.8</td>
+<td>24.7 / 37.8</td>
+</tr>
+</tbody>
+</table>
+<p>The conditioner is measured twice: the per-token error of its output against BF16 (median, and the
+90th percentile), and the velocity error that output causes through the BF16 transformer.</p>
+<table>
+<thead>
+<tr>
+<th>Conditioner language layers</th>
+<th style="text-align: right;">Size</th>
+<th>Embedding error, dialogue</th>
+<th>Embedding error, fox</th>
+<th>Embedding error, keyframe + prompt</th>
+<th>Velocity error through the BF16 transformer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>8-bit</strong> (<code>--quantize 8</code>)</td>
+<td style="text-align: right;">26.0 GiB</td>
+<td>1.2% (p90 1.6%)</td>
+<td>1.1% (p90 1.5%)</td>
+<td>1.3% (p90 2.1%)</td>
+<td>3.3% to 7.4% text, 3.5% keyframe</td>
+</tr>
+<tr>
+<td>6-bit</td>
+<td style="text-align: right;">20.1 GiB</td>
+<td>2.5% (p90 3.3%)</td>
+<td>2.3% (p90 3.2%)</td>
+<td>2.7% (p90 4.3%)</td>
+<td>3.5% to 8.7% text, 3.9% keyframe</td>
+</tr>
+<tr>
+<td>5-bit</td>
+<td style="text-align: right;">17.2 GiB</td>
+<td>4.4% (p90 5.8%)</td>
+<td>4.2% (p90 5.4%)</td>
+<td>4.7% (p90 7.2%)</td>
+<td>3.7% to 11.1% text, 5.2% keyframe</td>
+</tr>
+<tr>
+<td><strong>4-bit</strong> (<code>--quantize 4</code>)</td>
+<td style="text-align: right;">14.3 GiB</td>
+<td>8.6% (p90 11.3%)</td>
+<td>7.9% (p90 10.0%)</td>
+<td>9.0% (p90 14.3%)</td>
+<td>5.0% to 12.4% text, 8.7% keyframe</td>
+</tr>
+<tr>
+<td>8-bit with an 8-bit vision tower</td>
+<td style="text-align: right;">25.6 GiB</td>
+<td>1.2% (p90 1.6%)</td>
+<td>1.1% (p90 1.5%)</td>
+<td>2.9% (p90 26.6%)</td>
+<td>3.3% to 7.4% text, 6.2% keyframe</td>
+</tr>
+<tr>
+<td>4-bit with an 8-bit vision tower</td>
+<td style="text-align: right;">13.9 GiB</td>
+<td>8.6% (p90 11.3%)</td>
+<td>7.9% (p90 10.0%)</td>
+<td>9.9% (p90 27.7%)</td>
+<td>5.0% to 12.4% text, 8.4% keyframe</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>4-bit language layers cost 5.0% to 12.4% of velocity error against 3.3% to 7.4% at 8-bit, for
+  11.7 GiB.</li>
+<li>The vision tower is 0.6B parameters and is left unquantized. Quantizing it raises the
+  90th-percentile error of an image-conditioned sequence from 2.1% to 26.6% at 8-bit, and the
+  image-to-video velocity error from 3.5% to 6.2%.</li>
+</ul>
+<h3 id="same-seed-clips">Same-Seed Clips<a class="headerlink" href="#same-seed-clips" title="Permanent link">&para;</a></h3>
+<p>The same seed, prompt and <code>640x352</code> canvas through four policies, with the 544p Turbo adapter and
+8 steps. Top to bottom: the 8-bit package, the 4-bit package (6-bit transformer, 4-bit
+conditioner), a 4-bit/8-bit transformer mix of the same size with the same conditioner, and a 4-bit
+transformer with the same conditioner.</p>
+<p><img alt="MiniMax-H3 dialogue clip across quantization policies" src="../assets/quantization/minimax-h3/sheet_speech_candidates.jpg" /></p>
+<p><img alt="MiniMax-H3 fox clip across quantization policies" src="../assets/quantization/minimax-h3/sheet_fox_candidates.jpg" /></p>
+<p>Frame 53 of the dialogue clip and frame 62 of the fox clip at full size, in the same order:</p>
+<p><img alt="MiniMax-H3 full-size frames across quantization policies" src="../assets/quantization/minimax-h3/fullres_frames_candidates.jpg" /></p>
+<p>Every row is a coherent, sharp clip at this canvas, and a speech-to-text transcription of each
+soundtrack returns the scripted line word for word. What separates the rows is how far each strays
+from the 8-bit clip at the same seed, which follows the measured error:</p>
+<table>
+<thead>
+<tr>
+<th>Policy</th>
+<th style="text-align: right;">Transformer size</th>
+<th style="text-align: right;">Fox, median frame PSNR against 8-bit</th>
+<th style="text-align: right;">Dialogue, median frame PSNR against 8-bit</th>
+<th style="text-align: right;">MLX peak at <code>640x352</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8-bit package</td>
+<td style="text-align: right;">32.9 GiB</td>
+<td style="text-align: right;">reference</td>
+<td style="text-align: right;">reference</td>
+<td style="text-align: right;">68.3 GiB</td>
+</tr>
+<tr>
+<td><strong>4-bit package</strong>: 6-bit transformer</td>
+<td style="text-align: right;">25.1 GiB</td>
+<td style="text-align: right;">23.9 dB</td>
+<td style="text-align: right;">18.1 dB</td>
+<td style="text-align: right;">48.9 GiB</td>
+</tr>
+<tr>
+<td>4-bit/8-bit transformer mix of the same size</td>
+<td style="text-align: right;">25.2 GiB</td>
+<td style="text-align: right;">18.3 dB</td>
+<td style="text-align: right;">17.1 dB</td>
+<td style="text-align: right;">48.9 GiB</td>
+</tr>
+<tr>
+<td>4-bit transformer</td>
+<td style="text-align: right;">20.5 GiB</td>
+<td style="text-align: right;">16.7 dB</td>
+<td style="text-align: right;">11.0 dB</td>
+<td style="text-align: right;">44.2 GiB</td>
+</tr>
+</tbody>
+</table>
+<p>The dialogue shot is the stricter of the two: a face and a kitchen leave more room to drift than a
+fox on snow. A first-frame image-to-video clip keeps its keyframe equally well in both packages:
+frame 0 is at 29.7 dB against the keyframe with the 8-bit package and 29.6 dB with the 4-bit one.</p>
+<p><img alt="MiniMax-H3 image-to-video with the 8-bit and 4-bit packages" src="../assets/quantization/minimax-h3/sheet_image_q8_vs_q4.jpg" /></p>
+<p>The comparison covers two prompts and one keyframe at one seed. The clips, the image-to-video
+clips and the measurement reports (<code>transformer_report.json</code>, <code>text_encoder_report.json</code>,
+<code>conditioning_report.json</code>, <code>adaln_report.json</code>, <code>fidelity_report.json</code>) are in
+<code>docs/assets/quantization/minimax-h3/</code>. <code>tools/minimax_h3_quant_probe.py</code> produces the reports and
+the clips; the contact sheets and the transcription are made from the clips.</p>
 <h2 id="wan-q8">Wan q8<a class="headerlink" href="#wan-q8" title="Permanent link">&para;</a></h2>
 <p>Wan q8 uses a mixed q8/BF16 policy. MLX-Gen quantizes the bulky transformer block linears and keeps
 sensitive paths at BF16:</p>
@@ -2605,10 +3193,10 @@ prompt has identical visual behavior across quantization levels.</p>
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

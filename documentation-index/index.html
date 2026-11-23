@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1247,7 +1247,7 @@
 <li><a href="../qwen-route-matrix/">Qwen route matrix</a>: current MLX-Gen route truth for Qwen Image and Qwen Image Edit, mapping public <code>mlxgen</code> capability ids to the upstream Diffusers Qwen pipelines and the exact proof surfaces that already exist.</li>
 <li><a href="../qwen-localized-editing/">Qwen localized editing</a>: plain-language explanation of Qwen masked edit, Qwen structured control, and shipped base-Qwen control-inpaint, including definitions of ControlNet and “sidecar”, the exact proof rows, and when each route is the right tool.</li>
 <li><a href="../wan-video/">Wan video</a>: practical Wan2.2 T2V/I2V sizing, plain and masked prompt-guided A14B video-to-video, the natively ported Wan2.1-VACE-1.3B route (<code>wan-vace</code>: reference-image object injection and learned mask conditioning with <code>--vace-masked-region</code>), the measured motion-fidelity ladder (strength vs gesture preservation, with a motion-preserving restyle recipe), the fps-resampling and audio copy-through contract with a playable proof, broader A14B target size families, full example commands, and included MP4/frame-strip assets.</li>
-<li><a href="../minimax-h3/">MiniMax-H3 video with audio</a>: native MiniMax-H3 text-to-video with a synchronized stereo AAC soundtrack in one MP4, the <code>minimax-h3</code>, <code>minimax-h3-turbo</code> and <code>minimax-h3-turbo-544p</code> catalog entries with lightx2v 8-step Turbo adapters, community LoRA adapters in either key layout stacked on them, the structured prompt format (<code>--soundscape</code>, <code>--music</code>), frame/canvas rules, measured M5 Max runtime and memory at 544p and 768p, the prepared-package workflow (<code>mlxgen prepare</code>, <code>--base-model</code>), the generated-audio metadata contract, Python usage, first-frame image-to-video (<code>--image-path</code>) with motion-prompt guidance, current limits, and the included contact sheets and clips.</li>
+<li><a href="../minimax-h3/">MiniMax-H3 video with audio</a>: native MiniMax-H3 text-to-video and first-frame image-to-video (<code>--image-path</code>) with a synchronized stereo AAC soundtrack in one MP4, the published <code>AbstractFramework/minimax-h3-8bit</code> and <code>AbstractFramework/minimax-h3-4bit</code> packages with memory by machine size, the <code>minimax-h3</code>, <code>minimax-h3-turbo</code> and <code>minimax-h3-turbo-544p</code> catalog entries with lightx2v 8-step Turbo adapters, community LoRA adapters in either key layout stacked on them, the structured prompt format (<code>--soundscape</code>, <code>--music</code>), frame/canvas rules, measured M5 Max runtime, <code>mlxgen prepare</code>, the generated-audio metadata contract, Python usage, motion-prompt guidance, current limits, and the included contact sheets and clips.</li>
 <li><a href="../bernini/">Bernini-R 1.3B</a>: experimental reference-to-video and video-edit routes, pinned BF16 runtime setup, measured memory, the committed official public parity bundle (full prompts and contact sheets per upstream example row), and task-specific recipes for many-reference binding and structure-changing edits.</li>
 <li><a href="../examples/spaceship-snow/">Spaceship snow workflow</a>: reproducible model-backed T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B commands with included assets.</li>
 <li><a href="../previews/">Generation previews</a>: step-wise previews rendered with published tiny autoencoders (<code>taef1</code>, <code>taef2</code>), the <code>--preview-decoder auto|tiny|full</code> contract, the per-latent-space availability table, measured agreement against the full VAE, and the guarantee that final outputs are always full-VAE decoded.</li>
@@ -1257,7 +1257,7 @@
 <li><a href="../lora/">LoRA</a>: route-specific capability fields, explicit adapter download, strict scale matching, model-card base-model compatibility, source/no-LoRA/with-LoRA validation, exact public proof rows for the current Qwen, Z-Image, FLUX.2, ERNIE, and Wan routes, MiniMax-H3 adapters in the diffusers and original-checkpoint key layouts, and the current guidance that MLX-Gen q8 packages are the validated Lightning target rather than arbitrary external FP8 checkpoints.</li>
 <li><a href="../model-management/">Model management</a>: explicit download and prepare workflows, generation from local files, Bernini's pinned factored download and disk preflight, local package resolution, and Depth Pro downloads.</li>
 <li><a href="../recommendations/">Model recommendations</a>: conservative starting picks for <code>18 GB</code>, <code>24 GB</code>, <code>32 GB</code>, <code>64 GB</code>, and <code>128+ GB</code> Macs, using published MLX-Gen memory measurements rather than package size alone.</li>
-<li><a href="../quantization/">Quantization</a>: current low-bit compatibility by model family, including the published package matrix, Bernini's BF16-only boundary, Bonsai ternary 2-bit support, SeedVR2 packages, Qwen/ERNIE policies, and Wan storage/runtime behavior.</li>
+<li><a href="../quantization/">Quantization</a>: current low-bit compatibility by model family, including the published package matrix, the measured MiniMax-H3 8-bit and mixed 4-bit policies with memory by machine size, Bernini's BF16-only boundary, Bonsai ternary 2-bit support, SeedVR2 packages, Qwen/ERNIE policies, and Wan storage/runtime behavior.</li>
 <li><a href="../huggingface-publishing/">Hugging Face publishing</a>: generated model cards, source license/access wording, default <code>AbstractFramework/&lt;repo-name&gt;</code> usage, upload flow, and optional collection membership.</li>
 <li><a href="../python-integration/">Python integration</a>: route-resolved runtime planning/loading, Bernini's typed reference inputs, serial multi-output reuse, the model-agnostic outpaint and reframe pipeline (<code>run_outpaint</code>, <code>prepare_outpaint</code>, <code>prepare_reframe</code>) and the <code>post_process</code> before-save hook, SeedVR2's direct-model boundary, and shared progress callbacks.</li>
 <li><a href="../release/">Release</a>: GitHub Release and PyPI trusted publishing workflow.</li>
@@ -1267,6 +1267,7 @@
 <p>The top-level <a href="../">README</a> remains the starting point for installation, model families, and project relationship details.</p>
 <h2 id="project-documents">Project Documents<a class="headerlink" href="#project-documents" title="Permanent link">&para;</a></h2>
 <ul>
+<li><a href="../skills/mlx-gen/SKILL.md">Agent skill</a>: the package skill that teaches AI agents to use <code>mlxgen</code> and the Python runtime.</li>
 <li><a href="../acknowledgements/">Acknowledgements</a>: upstream mflux credit, post-fork maintainership, and model/community acknowledgements.</li>
 <li><a href="../changelog/">Changelog</a>: release history and migration notes.</li>
 <li><a href="https://github.com/lpalbou/mlx-gen/blob/main/CONTRIBUTING.md">Contributing</a>: local development, checks, and pull-request expectations.</li>
@@ -1329,10 +1330,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>

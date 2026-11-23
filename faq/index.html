@@ -23,7 +23,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
     
     
       
@@ -31,10 +31,10 @@
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -2141,9 +2141,10 @@ promote model families whose public memory evidence is still too thin.</p>
 BF16 R2V/RV2V/V2V matrix peaked at 9.45 GB whole-process physical footprint on the 128 GB
 validation host. That is not a production recommendation. Every required visual-quality row
 failed because of weak motion, missed reference fidelity, cadence seams, or corrupted frames, and
-the official 81-frame profile is unmeasured. Do not confuse memory with storage: a cold selective
-Bernini download needs 18.36 GiB free including headroom, so an 18 GB fresh disk budget is also
-slightly too small.</p>
+the official 81-frame profile is unmeasured. Do not confuse memory with storage: a cold
+Bernini download needs 17.60 GiB free including headroom for the BF16 package
+(<code>bernini-r-1.3b-bf16</code>) and 28.94 GiB for the FP32 source (<code>bernini-r-1.3b</code>), so an 18 GB fresh
+disk budget is too small for either.</p>
 <h2 id="can-mlx-gen-packages-load-in-diffusers-or-transformers">Can MLX-Gen Packages Load In Diffusers Or Transformers?<a class="headerlink" href="#can-mlx-gen-packages-load-in-diffusers-or-transformers" title="Permanent link">&para;</a></h2>
 <p>No. MLX-Gen packages use the MLX/mflux saved-weight layout and MLX quantization tensors. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers <code>from_pretrained()</code> loading.</p>
 <h2 id="can-i-use-the-official-bfl-flux2-fp8-or-nvfp4-repos-directly">Can I Use The Official BFL FLUX.2 FP8 Or NVFP4 Repos Directly?<a class="headerlink" href="#can-i-use-the-official-bfl-flux2-fp8-or-nvfp4-repos-directly" title="Permanent link">&para;</a></h2>
@@ -3048,7 +3049,7 @@ sheets rather than relying only on MP4 existence.</p>
 (<code>--image-path</code>), and saves both in one MP4 with an AAC track. Describe the picture with <code>--prompt</code>, the diegetic sound with <code>--soundscape</code>, and the score
 with <code>--music</code>; spoken lines go into the description as <code>The woman (S1) says: &lt;d&gt;[English] ...&lt;/d&gt;</code>
 (see <a href="../minimax-h3/#prompting">Prompting</a> for speaker ids, voice-over and the supported languages); run
-it with <code>--quantize 8</code> on a 128 GB Mac. See <a href="../minimax-h3/">MiniMax-H3 video with audio</a>. Wan and Bernini clips stay silent; Wan
+it from the 8-bit package on a 96 GB or larger Mac, or from the mixed 4-bit package with <code>--low-ram</code> on 64 GB. See <a href="../minimax-h3/">MiniMax-H3 video with audio</a>. Wan and Bernini clips stay silent; Wan
 video-to-video copies the source clip's audio through.</p>
 <h2 id="why-did-minimax-h3-give-me-a-longer-clip-than-i-asked-for">Why Did MiniMax-H3 Give Me A Longer Clip Than I Asked For?<a class="headerlink" href="#why-did-minimax-h3-give-me-a-longer-clip-than-i-asked-for" title="Permanent link">&para;</a></h2>
 <p>Its video autoencoder decodes frame counts of the form <code>17n + 5</code>, so <code>--frames</code> rounds up to the
@@ -3135,10 +3136,10 @@ capabilities in visual workflows alongside other media, text, and agent tasks.</
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
       
     
   </body>
