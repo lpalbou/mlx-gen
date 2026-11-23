@@ -505,6 +505,16 @@ def test_the_16_bit_card_describes_the_released_weights(tmp_path):
     assert "holds the MiniMax-H3 weights as released" in card and "without quantization" in card
     assert "mlxgen download --model AbstractFramework/minimax-h3-bf16 --base-model minimax-h3-turbo-544p" in card
     assert "prepared derivative" in card
+    assert "This repository is an unquantized derivative of MiniMaxAI/MiniMax-H3" in card
+    assert "docs/minimax-h3-memory.md" in card
+
+    # The quantized cards say how far each width is from these weights.
+    eight = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-8bit"), MiniMaxH3(), 8)
+    four = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-4bit"), MiniMaxH3(), 4)
+    assert "This repository is a quantized derivative of MiniMaxAI/MiniMax-H3" in eight
+    assert "within 1.2 to 2.0 times the 16-bit model's own numerical noise" in eight
+    assert "takes the nearest level of the grid that is stored" in eight
+    assert "2.4 to 5.3 times the 16-bit model's own numerical noise" in four and "80 to 88%" in four
 
 
 def test_card_version_lines_name_the_release_that_wrote_the_weights(tmp_path):

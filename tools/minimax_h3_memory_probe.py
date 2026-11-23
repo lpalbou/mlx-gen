@@ -401,6 +401,9 @@ class H3MemoryProbe:
         ):
             if name in args.candidates:
                 candidates[name] = H3MemoryProbe._load_denoiser(argparse.Namespace(**{**vars(args), **overrides}))
+        # The same transformer under the 1 GB MLX cache of `--low-ram`, to time the cache alone.
+        for name in [name for name in args.candidates if name.endswith("_lowcache")]:
+            candidates[name] = candidates[name[: -len("_lowcache")]]
         print(f"loaded {list(candidates)}: MLX active {mx.get_active_memory() / GIB:.1f} GiB", flush=True)
         report = {}
         for width, height in ((640, 352), (960, 544), (1344, 768))[: args.canvases]:
@@ -417,10 +420,16 @@ class H3MemoryProbe:
             outputs = {}
             for _ in range(args.rounds):
                 for name, (model, _, _) in candidates.items():
+                    low_cache = name.endswith("_lowcache")
+                    if low_cache:
+                        mx.set_cache_limit(1_000_000_000)
+                        mx.clear_cache()
                     started = time.perf_counter()
                     video, audio = model.transformer(**inputs)
                     mx.eval(video, audio)
                     timings[name].append(round(time.perf_counter() - started, 2))
+                    if low_cache:
+                        mx.set_cache_limit(8 * GIB)
                     outputs[name] = video.astype(mx.float32)
                     del video, audio
             entry = {"rows": rows, "seconds": timings}

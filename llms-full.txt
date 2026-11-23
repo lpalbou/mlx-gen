@@ -700,7 +700,7 @@ transformer before the decode. `--stream-blocks` reads each transformer block fr
 length of its call, at every step; it works from a prepared package or from the source snapshot
 without `--quantize`, and a request that cannot be met is reported on stderr.
 `--release-text-encoder` is accepted and has no effect. The three modes write the same clip, and
-each option costs a few percent of a clip's time. Smallest Mac memory each combination completed a
+each option costs 3 to 10% of a clip's time. Smallest Mac memory each combination completed a
 clip on, tested on the 128 GB machine with the difference in RAM locked away: 8-bit 48 GB default,
 36 GB with `--low-ram` (60% slower there), 24 GB with `--stream-blocks --low-ram`; 16-bit 96 GB,
 64 GB and 32 GB in the same three modes; mixed 4-bit 32 GB with `--low-ram`.
@@ -791,7 +791,7 @@ its conditioner, and a run holds a fraction of them.
   second process): 16-bit 96 / 64 / 32 GB; 8-bit 48 / 36 / 24 GB; mixed 4-bit 32 GB with
   `--low-ram`. The 8-bit `--low-ram` run at 36 GB took 60% longer; at 36 GB and below
   `--stream-blocks --low-ram` is the faster choice.
-- Speed: `--low-ram` and `--stream-blocks` each cost a few percent of a clip's time. Streaming added
+- Speed: `--low-ram` and `--stream-blocks` each cost 3 to 10% of a clip's time. Streaming added
   3 to 4 seconds per step at 16-bit and 1.5 to 3 seconds at 8-bit on steps of about 120 seconds at
   `960x544`, measured from an internal SSD. The 16-bit and 8-bit transformers take the same time
   per step at `960x544`.

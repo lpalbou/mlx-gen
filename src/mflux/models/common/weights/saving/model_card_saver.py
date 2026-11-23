@@ -17,6 +17,7 @@ class ModelCardSaver:
     MINIMAX_H3_LICENSE_DISPLAY_NAME = "MiniMax H3 Community License Agreement"
     MINIMAX_H3_LICENSE_LINK = "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE"
     MINIMAX_H3_DOC_URL = "https://github.com/lpalbou/mlx-gen/blob/main/docs/minimax-h3.md"
+    MINIMAX_H3_MEMORY_DOC_URL = "https://github.com/lpalbou/mlx-gen/blob/main/docs/minimax-h3-memory.md"
     # The first release that both loads the published packages and saves their output on a fresh install.
     # The release that reads the conditioner for the length of an encode and can hold the 16-bit weights.
     MINIMAX_H3_MIN_VERSION = "0.40.0"
@@ -68,7 +69,7 @@ class ModelCardSaver:
         repo_id = f"{ModelCardSaver.DEFAULT_NAMESPACE}/{repo_name}"
         pipeline_tag = ModelCardSaver._pipeline_tag(terms)
         tags = ModelCardSaver._tags(terms, bits, pipeline_tag)
-        frontmatter = ModelCardSaver._frontmatter(model_name, terms, pipeline_tag, tags)
+        frontmatter = ModelCardSaver._frontmatter(model_name, terms, pipeline_tag, tags, bits)
 
         sections = [
             frontmatter,
@@ -115,11 +116,11 @@ class ModelCardSaver:
         return "\n".join(sections)
 
     @staticmethod
-    def _frontmatter(model_name: str, terms: str, pipeline_tag: str, tags: list[str]) -> str:
+    def _frontmatter(model_name: str, terms: str, pipeline_tag: str, tags: list[str], bits: int | None = None) -> str:
         lines = [
             "---",
         ]
-        lines.extend(ModelCardSaver._license_frontmatter(model_name, terms))
+        lines.extend(ModelCardSaver._license_frontmatter(model_name, terms, bits))
         lines.extend(
             [
                 f"base_model: {model_name}",
@@ -133,14 +134,15 @@ class ModelCardSaver:
         return "\n".join(lines)
 
     @staticmethod
-    def _license_frontmatter(model_name: str, terms: str) -> list[str]:
+    def _license_frontmatter(model_name: str, terms: str, bits: int | None = None) -> list[str]:
         if ModelCardSaver._is_minimax_h3(model_name, terms):
+            derivative = "an unquantized derivative" if bits is None else "a quantized derivative"
             return [
                 "license: other",
                 f"license_name: {ModelCardSaver.MINIMAX_H3_LICENSE_NAME}",
                 f"license_link: {ModelCardSaver.MINIMAX_H3_LICENSE_LINK}",
                 (
-                    'extra_gated_prompt: "This repository is a quantized derivative of MiniMaxAI/MiniMax-H3, '
+                    f'extra_gated_prompt: "This repository is {derivative} of MiniMaxAI/MiniMax-H3, '
                     f"distributed under the {ModelCardSaver.MINIMAX_H3_LICENSE_DISPLAY_NAME}. That license applies "
                     f"only within its Applicable Territory, which excludes {ModelCardSaver.MINIMAX_H3_EXCLUDED_TERRITORIES}, "
                     'and it includes use restrictions and an Acceptable Use Policy."'
@@ -313,7 +315,13 @@ class ModelCardSaver:
                 f"This is an MLX {bits}-bit checkpoint for MiniMax-H3 video generation with audio: the two large "
                 "components are quantized, the small precision-critical parts are not."
             )
-            return "\n".join([lead, "", *layers])
+            measured = (
+                "Measured against the released 16-bit weights, its predicted velocity is within 1.2 to 2.0 times "
+                "the 16-bit model's own numerical noise, and its clips keep the fine detail of the 16-bit clips "
+                "(98 to 101%). Each 8-bit weight takes the nearest level of the grid that is stored, which "
+                "lowers a layer's weight error by about a quarter against MLX's default choice at the same size."
+            )
+            return "\n".join([lead, "", *layers, "", measured])
         lead = (
             "This is the low-memory MLX checkpoint for MiniMax-H3 video generation with audio. It is a "
             f"mixed-width package: a {conditioner_bits}-bit conditioner and a {transformer_bits}-bit transformer."
@@ -322,9 +330,11 @@ class ModelCardSaver:
             f"The transformer is {transformer_bits}-bit, not {bits}-bit. No layer family in it tolerates 4-bit "
             "better than another, so a 4-bit/8-bit mix has no sensitive family to protect; the mix measured at "
             f"the same size is about twice as far from the released weights as uniform {transformer_bits}-bit. "
-            "The 8-bit package ([`AbstractFramework/minimax-h3-8bit`]"
-            "(https://huggingface.co/AbstractFramework/minimax-h3-8bit)) is the closest to the released weights; "
-            "this one trades some fidelity for memory."
+            "Measured against the released 16-bit weights, this package's predicted velocity is 2.4 to 5.3 times "
+            "the 16-bit model's own numerical noise, and its text-to-video clips keep 80 to 88% of the fine "
+            "detail of the 16-bit clips. The 8-bit package ([`AbstractFramework/minimax-h3-8bit`]"
+            "(https://huggingface.co/AbstractFramework/minimax-h3-8bit)) stays within 1.2 to 2.0 times that noise "
+            "and keeps the detail; this one trades fidelity for memory and disk."
         )
         return "\n".join([lead, "", *layers, "", why])
 
@@ -388,6 +398,10 @@ class ModelCardSaver:
             "about 3% to the step time from an internal SSD. The three modes produce the same clip. Close other "
             "memory-heavy applications on a machine at the low end of a range; longer clips and larger canvases "
             "need more.",
+            "",
+            f"[MiniMax-H3 memory, speed and quantization]({ModelCardSaver.MINIMAX_H3_MEMORY_DOC_URL}) explains "
+            "what a run holds in memory, lists every tested machine size, and compares each width with the "
+            "16-bit weights.",
             "",
         ]
 

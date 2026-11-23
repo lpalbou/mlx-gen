@@ -2200,7 +2200,7 @@ MINIMAX_H3_MEASURED_RUNS: tuple[MemoryMeasurement, ...] = (
 # released files that `mlxgen download --model minimax-h3` fetches from `MiniMaxAI/MiniMax-H3` are larger:
 # they hold all 64 layers of Qwen3-VL-32B and the video VAE in fp32.
 MINIMAX_H3_PACKAGE_WEIGHT_BYTES: dict[int | None, int] = {
-    None: 123_596_000_000,
+    None: 123_599_877_029,
     8: 69_010_605_065,
     4: 48_164_094_121,
 }

@@ -100,7 +100,7 @@ files inside. Read [Current Limits](#current-limits) before downloading.
 
 ### Memory By Machine
 
-Three modes trade memory for a few percent of a clip's time, and write the same clip:
+Three modes trade memory for 3 to 10% of a clip's time, and write the same clip:
 
 | Mode | What it does |
 | --- | --- |
@@ -313,7 +313,7 @@ Apple M5 Max, 128 GB, 8-bit weights, 124 frames, MLX 0.31:
 Step time is set by attention over the packed sequence, not by the weight width: a 6-bit
 projection costs no more than an 8-bit one, so the 4-bit package runs at the speed of the 8-bit
 one, and the 16-bit transformer takes the same time per step as the 8-bit one at `960x544`.
-`--low-ram` and `--stream-blocks` each cost a few percent of a clip's time; see
+`--low-ram` and `--stream-blocks` each cost 3 to 10% of a clip's time; see
 [Speed](minimax-h3-memory.md#speed). Times assume the machine is otherwise idle; a clip takes about
 twice as long while another process shares the CPU. The 768p step is dominated by attention over a
 37,900-row packed sequence;

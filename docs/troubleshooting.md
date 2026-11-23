@@ -367,7 +367,7 @@ package at 32.5 GiB and 21.9 GiB with `--low-ram`. At `1344x768` the default mod
 
 - add `--low-ram` (a 1 GB MLX cache, and the transformer freed before the decode), then
   `--stream-blocks --low-ram` (each transformer block read from disk at every step). The clip is
-  the same file in every mode, and each option costs a few percent of a clip's time;
+  the same file in every mode, and each option costs 3 to 10% of a clip's time;
 - pick the mode by machine size from [Memory By Machine](minimax-h3.md#memory-by-machine): the
   8-bit package completes on 48 GB by default, on 36 GB with `--low-ram` and on 24 GB with
   `--stream-blocks --low-ram`; the 16-bit weights on 96 GB, 64 GB and 32 GB;

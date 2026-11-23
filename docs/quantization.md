@@ -319,7 +319,7 @@ metadata sidecar.
 `--stream-blocks` reads each transformer block from disk for the length of its call, so the
 transformer costs one block of memory; it works from a prepared package, or from the source
 snapshot without `--quantize`. The three modes write the same clip for the same weights, prompt and
-seed, and each option costs a few percent of a clip's time
+seed, and each option costs 3 to 10% of a clip's time
 ([Speed](minimax-h3-memory.md#speed)).
 
 Smaller machines were tested on the same Mac by locking the difference in RAM in a second process

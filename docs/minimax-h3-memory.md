@@ -20,7 +20,7 @@ whole-process physical footprint on an Apple M5 Max with 128 GB:
 
 - **Same clip in every mode.** The three modes write byte-identical MP4 files for the same weights,
   prompt and seed. The modes change where weights wait between uses, not what is computed.
-- **Speed.** `--low-ram` and `--stream-blocks` each cost a few percent of a clip's time; see
+- **Speed.** `--stream-blocks` adds about 3% to a step and `--low-ram` 8 to 10%; see
   [Speed](#speed).
 - **Quality.** The 8-bit package is within the 16-bit model's own numerical noise by a factor of
   1.2 to 2.0 and keeps the sharpness of the 16-bit clips. The mixed 4-bit package is further away
@@ -182,27 +182,40 @@ transformer before the decode. The metadata sidecar records what a run used: `mo
 
 ## Speed
 
-Wall time of one `960x544`, 124-frame, 8-step clip, each in a fresh process on the 128 GB test
-machine in High Power mode:
+The cost of each mode is measured on one transformer call with identical inputs, alternating the
+candidates in one process so that the state of the machine affects them equally (seconds per call,
+mean of three or four calls).
 
-<!-- speed-table -->
-
-One transformer call on identical inputs, alternating the candidates in one process so that
-machine state affects them equally (seconds, mean of three or four calls):
+Blocks in memory against blocks read from disk:
 
 | Canvas | 16-bit in memory | 16-bit streamed | 8-bit in memory | 8-bit streamed |
 | --- | ---: | ---: | ---: | ---: |
 | `640x352` | 37.5 s | 40.7 s | 40.7 s | 42.1 s |
 | `960x544` | 116.6 s | 120.6 s | 120.1 s | 123.1 s |
 
-- Streaming added 3 to 4 seconds per step at 16-bit and 1.5 to 3 seconds at 8-bit, with the weight
-  files in the system file cache.
-- The 16-bit and 8-bit transformers take the same time per step at `960x544`; at `640x352` the
-  16-bit one was about 10% faster.
+The default 8 GiB MLX cache against the 1 GB cache of `--low-ram`, 8-bit package:
+
+| Canvas | Default cache | 1 GB cache |
+| --- | ---: | ---: |
+| `640x352` | 41.0 s | 45.2 s |
+| `960x544` | 106.4 s | 115.3 s |
+
+- `--stream-blocks` adds about 3% to a step at `960x544`: 3 to 4 seconds at 16-bit and 1.5 to 3
+  seconds at 8-bit, with the weight files in the system file cache.
+- `--low-ram` adds 8 to 10% to a step through its smaller cache. Freeing the transformer before the
+  decode costs one more read of the transformer for the next clip of the same process, a few
+  seconds.
+- The 16-bit and 8-bit transformers take the same time per step at `960x544`.
 - With 96 GiB of RAM locked away, which leaves no room for the system to cache the weight files, a
   16-bit streamed clip took 1026 s against 1034 s without the lock.
 - A new prompt costs one read of the conditioner (about 3 seconds from the file cache); a new
   schedule costs one pass over the AdaLN projections (about 3 seconds).
+
+Whole clips at `960x544`, 124 frames and 8 steps took 887 to 1100 seconds from the 8-bit package
+and 967 to 1260 seconds from the 16-bit weights on the test machine, in its Automatic power mode
+on mains power. Consecutive runs get slower as the machine warms up: the same 16-bit run took 967
+seconds early in a session and 1260 seconds as the fifth run in a row. Whole-clip times therefore
+do not separate the modes on that machine; the per-call figures above do.
 
 ## Tested Machine Sizes
 
@@ -243,20 +256,36 @@ inputs, with its own conditioner's embedding of the prompt, and the result is co
 prompt embedding perturbed by 0.1%: it shows how much the prediction moves for a change far smaller
 than any quantization.
 
-<!-- quality-table -->
+Video error / audio error at each recorded step:
+
+| Clip and step | Noise floor | 8-bit package | Mixed 4-bit package |
+| --- | --- | --- | --- |
+| Dialogue, step 1 | 5.9% / 1.1% | 8.9% / 2.4% | 15.9% / 6.2% |
+| Dialogue, step 4 | 6.8% / 2.0% | 9.0% / 2.8% | 16.0% / 6.5% |
+| Dialogue, step 7 | 3.0% / 1.1% | 3.8% / 1.9% | 7.4% / 4.8% |
+| Fox, step 1 | 4.2% / 1.4% | 6.0% / 1.9% | 12.4% / 6.5% |
+| Fox, step 4 | 4.3% / 2.4% | 6.2% / 7.2% | 13.3% / 10.7% |
+| Fox, step 7 | 2.9% / 1.0% | 3.5% / 2.0% | 7.1% / 3.6% |
+| Fox, image-to-video, step 1 | 5.7% / 1.5% | 11.3% / 2.0% | 30.4% / 5.6% |
+| Fox, image-to-video, step 4 | 3.3% / 1.7% | 4.8% / 3.6% | 11.2% / 10.0% |
+| Fox, image-to-video, step 7 | 2.0% / 1.1% | 2.6% / 1.5% | 5.0% / 4.0% |
 
 **Same-seed clips.** Median frame PSNR of each candidate's clip against the 16-bit clip, and the
 fine detail of the frames (variance of the Laplacian, as a percentage of the 16-bit clip's):
 
-<!-- clip-table -->
+| Clip | 8-bit package | Mixed 4-bit package |
+| --- | --- | --- |
+| Dialogue | 22.8 dB, 98% | 18.1 dB, 88% |
+| Fox | 28.2 dB, 101% | 24.2 dB, 80% |
+| Fox, image-to-video | 21.0 dB, 98% | 16.0 dB, 109% |
 
 - The noise floor is 3 to 7% of video velocity: the model amplifies any small change, so two runs
   that differ slightly drift apart over the steps. Same-seed PSNR therefore measures how far two
   clips diverge, not which one is better.
 - The 8-bit package is 1.2 to 2.0 times the noise floor and keeps the fine detail of the 16-bit
-  clips.
-- The mixed 4-bit package diverges further and loses 12 to 20% of the fine detail on the two
-  text-to-video clips.
+  clips (98 to 101%).
+- The mixed 4-bit package is 2.4 to 5.3 times the noise floor, diverges further at clip level, and
+  loses 12 to 20% of the fine detail on the two text-to-video clips.
 - The measurements cover three clips at one seed and one canvas.
 
 ### How The 8-bit Weights Are Chosen
@@ -291,7 +320,8 @@ a weight file that changed after the model was loaded, and the 8-bit level choic
 
 `tools/minimax_h3_memory_probe.py` produces the reference clips, the recorded inputs, the velocity
 errors and the alternating timings; `tools/minimax_h3_quant_probe.py ballast --gib N` locks RAM for
-the machine-size runs. The reports are in `docs/assets/quantization/minimax-h3/`.
+the machine-size runs. `docs/assets/quantization/minimax-h3/reference_report.json` holds every
+velocity error, per-call timing and `mlxgen generate` run behind this page.
 
 ## Limits
 

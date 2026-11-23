@@ -21,7 +21,7 @@ and the tests are in [MiniMax-H3 memory, speed and quantization](docs/minimax-h3
   package and 11.7 GiB from the 16-bit weights, and completed on 24 GB and 32 GB of memory. It
   works from a prepared package, or from the source snapshot without `--quantize`; a request that
   cannot be met is reported on stderr and the transformer stays in memory. Every step reads the
-  blocks again (20 GiB at 8-bit, 36 GiB at 16-bit), which costs a few percent of a clip's time from
+  blocks again (20 GiB at 8-bit, 36 GiB at 16-bit), which adds about 3% to a step from
   an internal SSD; see [Speed](docs/minimax-h3-memory.md#speed).
 - **The released 16-bit MiniMax-H3 weights run.** `mlxgen generate --model minimax-h3-turbo-544p`
   without `--quantize` runs the source snapshot (134 GiB of weight files) at a 54.4 GiB peak,
