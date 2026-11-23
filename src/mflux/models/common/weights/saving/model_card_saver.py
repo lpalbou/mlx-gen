@@ -17,6 +17,8 @@ class ModelCardSaver:
     MINIMAX_H3_LICENSE_DISPLAY_NAME = "MiniMax H3 Community License Agreement"
     MINIMAX_H3_LICENSE_LINK = "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE"
     MINIMAX_H3_DOC_URL = "https://github.com/lpalbou/mlx-gen/blob/main/docs/minimax-h3.md"
+    # The first release that both loads the published packages and saves their output on a fresh install.
+    MINIMAX_H3_MIN_VERSION = "0.39.1"
     # Section III.4 of the license: the text every distribution carries in a `NOTICE` file.
     MINIMAX_H3_NOTICE = (
         "MiniMax H3 is licensed under the MiniMax H3 Community License Agreement, "
@@ -91,15 +93,13 @@ class ModelCardSaver:
             "",
             "## Compatibility",
             "",
-            f"Requires `mlx-gen >= {VersionUtil.get_mflux_version()}`.",
-            "",
-            f"Generated with `mlx-gen {VersionUtil.get_mflux_version()}`.",
+            *ModelCardSaver._compatibility_lines(base_path, model_name, terms),
             "",
             ModelCardSaver._command_surface_line(terms),
             "",
             "## Usage",
             "",
-            *ModelCardSaver._usage_note(terms, bits, base_path),
+            *ModelCardSaver._usage_note(terms, bits),
             *ModelCardSaver._usage_block(repo_id, pipeline_tag, terms, bits),
             "",
             "## Attribution",
@@ -322,37 +322,88 @@ class ModelCardSaver:
         return "\n".join([lead, "", *layers, "", why])
 
     @staticmethod
-    def _minimax_h3_memory_note(base_path: str | None, bits: int | None) -> list[str]:
-        from mflux.task_inference import MINIMAX_H3_MEASURED_RUNS
-
-        # The reference profile of the published measurements; a width without one gets no memory sentence.
-        runs = [
-            run
-            for run in MINIMAX_H3_MEASURED_RUNS
-            if run.outcome == "completed"
-            and run.quantize == bits
-            and (run.width, run.height, run.frames, run.steps) == (960, 544, 124, 8)
-        ]
-        default = next((run for run in runs if not run.release_text_encoder), None)
-        if default is None or default.mlx_peak_bytes is None:
-            return []
-        gib = 1024**3
-        package_bytes = sum(file.stat().st_size for file in Path(base_path or "").rglob("*.safetensors"))
-        size = f" ({package_bytes / gib:.1f} GiB of weights)" if base_path and package_bytes else ""
-        low_ram = next((run for run in runs if run.release_text_encoder), None)
-        low_ram_sentence = (
-            f"With `--low-ram`, which releases the conditioner once the prompt is encoded, the footprint peaks at "
-            f"{low_ram.footprint_bytes / gib:.1f} GiB. "
-            if low_ram is not None
-            else ""
+    def _minimax_h3_memory_note(bits: int | None) -> list[str]:
+        from mflux.task_inference import (
+            MINIMAX_H3_MEASURED_RUNS,
+            MINIMAX_H3_PACKAGE_WEIGHT_BYTES,
+            MINIMAX_H3_SMALLEST_TESTED_MACHINE,
         )
+
+        gib = 1024**3
+
+        def footprint(width: int, low_ram: bool) -> str:
+            # The reference profile of the published measurements.
+            run = next(
+                (
+                    run
+                    for run in MINIMAX_H3_MEASURED_RUNS
+                    if run.outcome == "completed"
+                    and run.quantize == width
+                    and run.release_text_encoder == low_ram
+                    and (run.width, run.height, run.frames, run.steps) == (960, 544, 124, 8)
+                ),
+                None,
+            )
+            return f"{run.footprint_bytes / gib:.1f} GiB" if run else "not measured"
+
+        rows = []
+        for width in sorted(MINIMAX_H3_SMALLEST_TESTED_MACHINE, reverse=True):
+            machine_gb, needs_low_ram = MINIMAX_H3_SMALLEST_TESTED_MACHINE[width]
+            machines = f"{machine_gb} GB Macs and up" + (
+                f"; add `--low-ram` at {machine_gb} GB" if needs_low_ram else ""
+            )
+            name = f"`{ModelCardSaver.DEFAULT_NAMESPACE}/minimax-h3-{width}bit`"
+            rows.append(
+                f"| {name}{' (this package)' if width == bits else ''} "
+                f"| {MINIMAX_H3_PACKAGE_WEIGHT_BYTES[width] / gib:.1f} GiB | {machines} "
+                f"| {footprint(width, False)} | {footprint(width, True)} |"
+            )
+        if bits not in MINIMAX_H3_SMALLEST_TESTED_MACHINE:
+            return []
         return [
-            f"Measured on an Apple M5 Max with 128 GB, `960x544`, 124 frames, 8 Turbo steps: this package{size} "
-            f"peaks at {default.mlx_peak_bytes / gib:.1f} GiB of MLX memory inside a "
-            f"{default.footprint_bytes / gib:.1f} GiB process footprint. {low_ram_sentence}Leave room for the "
-            "system and other applications, and expect more for longer clips and larger canvases.",
+            "Choose the package by the unified memory of the Mac:",
+            "",
+            "| Package | Disk | Runs on | Peak memory | Peak memory with `--low-ram` |",
+            "| --- | ---: | --- | ---: | ---: |",
+            *rows,
+            "",
+            "Peak memory is the whole-process footprint of one `960x544`, 124-frame, 8-step clip, measured on an "
+            "Apple M5 Max with 128 GB. The smaller machines were tested on that Mac with the difference in RAM "
+            "locked away for the whole run. `--low-ram` releases the conditioner once the prompt is encoded. On a "
+            "machine at the low end of a package's range, close other memory-heavy applications first; longer "
+            "clips and larger canvases need more.",
             "",
         ]
+
+    @staticmethod
+    def _minimax_h3_needs_low_ram(bits: int | None) -> bool:
+        from mflux.task_inference import MINIMAX_H3_SMALLEST_TESTED_MACHINE
+
+        return MINIMAX_H3_SMALLEST_TESTED_MACHINE.get(bits, (0, False))[1]
+
+    @staticmethod
+    def _generated_with_version(base_path: str) -> str:
+        # A card rewritten for an existing package names the version that wrote its weights.
+        from safetensors import safe_open
+
+        for shard in sorted(Path(base_path).glob("*/0.safetensors")):
+            with safe_open(str(shard), framework="numpy") as handle:
+                stored = (handle.metadata() or {}).get("mflux_version")
+            if stored:
+                return stored
+        return VersionUtil.get_mflux_version()
+
+    @staticmethod
+    def _compatibility_lines(base_path: str, model_name: str, terms: str) -> list[str]:
+        generated_with = ModelCardSaver._generated_with_version(base_path)
+        if ModelCardSaver._is_minimax_h3(model_name, terms):
+            required = (
+                f"Requires `mlx-gen >= {ModelCardSaver.MINIMAX_H3_MIN_VERSION}`. The package loads from 0.39.0, but "
+                "0.39.0 cannot save its output when installed with Pillow 13."
+            )
+        else:
+            required = f"Requires `mlx-gen >= {generated_with}`."
+        return [required, "", f"Generated with `mlx-gen {generated_with}`."]
 
     @staticmethod
     def _quantization_section(terms: str, bits: int | None) -> str:
@@ -564,7 +615,7 @@ class ModelCardSaver:
         return f"Original model reference: `{model_name}`."
 
     @staticmethod
-    def _usage_note(terms: str, bits: int | None, base_path: str | None = None) -> list[str]:
+    def _usage_note(terms: str, bits: int | None) -> list[str]:
         if "minimax-h3" in terms:
             return [
                 "The package holds the base MiniMax-H3 weights and no adapter. `--base-model` selects the schedule "
@@ -579,9 +630,10 @@ class ModelCardSaver:
                 "Pass the same `--base-model` to `mlxgen download` so the matching Turbo adapter is cached; "
                 "generation never downloads. Do not pass `--quantize` when loading this package. Add "
                 "`--image-path keyframe.png` for first-frame image-to-video. Each run writes one MP4 with 24 fps "
-                "video and a synchronized stereo AAC track.",
+                "video and a synchronized stereo AAC track. This repository is gated: accept the license terms on "
+                "its Hugging Face page, then sign in with `hf auth login` before `mlxgen download`.",
                 "",
-                *ModelCardSaver._minimax_h3_memory_note(base_path, bits),
+                *ModelCardSaver._minimax_h3_memory_note(bits),
                 f"See the [MiniMax-H3 guide]({ModelCardSaver.MINIMAX_H3_DOC_URL}) for prompting, sizing, "
                 "measured runtime and limits.",
                 "",
@@ -633,9 +685,15 @@ class ModelCardSaver:
                 '  --soundscape "Soft crunch of paws in dry snow, a faint wind, two distant crow caws." \\',
                 '  --music "Sparse, gentle piano notes, slow tempo." \\',
                 "  --seed 42 \\",
+                *(["  --low-ram \\"] if ModelCardSaver._minimax_h3_needs_low_ram(bits) else []),
                 "  --metadata \\",
                 "  --output fox.mp4",
                 "```",
+                *(
+                    ["", "`--low-ram` is what fits this package in 64 GB; you can omit it on a 96 GB or larger Mac."]
+                    if ModelCardSaver._minimax_h3_needs_low_ram(bits)
+                    else []
+                ),
             ]
         if "seedvr2" in terms:
             return [

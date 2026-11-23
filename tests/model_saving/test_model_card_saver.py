@@ -452,46 +452,55 @@ def test_minimax_h3_card_states_the_widths_the_policy_assigns(tmp_path):
     assert "mlxgen download --model AbstractFramework/minimax-h3-4bit --base-model minimax-h3-turbo-544p" in mixed
 
 
-def test_minimax_h3_card_takes_its_memory_sentence_from_the_published_measurements(tmp_path, monkeypatch):
+def test_minimax_h3_cards_show_both_packages_with_the_machines_they_run_on(tmp_path):
+    from mflux.task_inference import MINIMAX_H3_MEASURED_RUNS, MINIMAX_H3_SMALLEST_TESTED_MACHINE
+
+    assert MINIMAX_H3_SMALLEST_TESTED_MACHINE == {8: (96, False), 4: (64, True)}
+    gib = 1024**3
+    footprints = {
+        (run.quantize, run.release_text_encoder): f"{run.footprint_bytes / gib:.1f} GiB"
+        for run in MINIMAX_H3_MEASURED_RUNS
+        if (run.width, run.height) == (960, 544)
+    }
+    eight = (
+        f"`AbstractFramework/minimax-h3-8bit`{{}} | 64.3 GiB | 96 GB Macs and up "
+        f"| {footprints[(8, False)]} | {footprints[(8, True)]} |"
+    )
+    four = (
+        f"`AbstractFramework/minimax-h3-4bit`{{}} | 44.9 GiB | 64 GB Macs and up; add `--low-ram` at 64 GB "
+        f"| {footprints[(4, False)]} | {footprints[(4, True)]} |"
+    )
+    card8 = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-8bit"), MiniMaxH3(), 8)
+    card4 = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-4bit"), MiniMaxH3(), 4)
+    # Each card shows both packages, so a reader on the wrong one for their Mac sees the other.
+    assert eight.format(" (this package)") in card8 and four.format("") in card8
+    assert eight.format("") in card4 and four.format(" (this package)") in card4
+    for card in (card8, card4):
+        assert "The smaller machines were tested on that Mac with the difference in RAM locked away" in card
+        assert "This repository is gated" in card and "hf auth login" in card
+    # The command of the 64 GB package carries the option that makes it fit there.
+    assert "  --low-ram \\" in card4 and "you can omit it on a 96 GB or larger Mac" in card4
+    assert "--low-ram \\" not in card8
+
+
+def test_card_version_lines_name_the_release_that_wrote_the_weights(tmp_path):
     import mlx.core as mx
 
-    from mflux import task_inference
-    from mflux.task_inference import MemoryMeasurement
-
-    gib = 1024**3
-    runs = (
-        MemoryMeasurement(
-            footprint_bytes=70 * gib, outcome="completed", quantize=8, width=960, height=544, frames=124, steps=8,
-            mlx_peak_bytes=62 * gib,
-        ),
-        # Not the reference profile, and a run that did not complete: neither may feed the card.
-        MemoryMeasurement(
-            footprint_bytes=90 * gib, outcome="completed", quantize=4, width=1344, height=768, frames=124, steps=8,
-            mlx_peak_bytes=80 * gib,
-        ),
-        MemoryMeasurement(
-            footprint_bytes=95 * gib, outcome="killed", quantize=4, width=960, height=544, frames=124, steps=8,
-            mlx_peak_bytes=85 * gib,
-        ),
-        MemoryMeasurement(
-            footprint_bytes=58 * gib, outcome="completed", quantize=8, width=960, height=544, frames=124, steps=8,
-            mlx_peak_bytes=57 * gib, release_text_encoder=True,
-        ),
-    )  # fmt: skip
-    monkeypatch.setattr(task_inference, "MINIMAX_H3_MEASURED_RUNS", runs)
     package = tmp_path / "minimax-h3-8bit"
     (package / "transformer").mkdir(parents=True)
-    mx.save_safetensors(str(package / "transformer" / "0.safetensors"), {"w": mx.zeros((1024, 1024), dtype=mx.float32)})
-
-    measured = ModelCardSaver.render_model_card(str(package), MiniMaxH3(), 8)
-    assert "peaks at 62.0 GiB of MLX memory inside a 70.0 GiB process footprint" in measured
-    assert "this package (0.0 GiB of weights)" in measured
-    assert (
-        "With `--low-ram`, which releases the conditioner once the prompt is encoded, the footprint peaks at 58.0 GiB"
-        in measured
+    mx.save_safetensors(
+        str(package / "transformer" / "0.safetensors"), {"w": mx.zeros((2, 2))}, {"mflux_version": "0.39.0"}
     )
+    card = ModelCardSaver.render_model_card(str(package), MiniMaxH3(), 8)
+    # The floor is the first release that loads the packages and saves their output, whatever wrote the card.
+    assert "Requires `mlx-gen >= 0.39.1`." in card and "Generated with `mlx-gen 0.39.0`." in card
 
-    assert "peaks at" not in ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-4bit"), MiniMaxH3(), 4)
+    current = VersionUtil.get_mflux_version()
+    fresh = ModelCardSaver.render_model_card(str(tmp_path / "not-written-yet"), MiniMaxH3(), 8)
+    assert f"Generated with `mlx-gen {current}`." in fresh
+
+    other = ModelCardSaver.render_model_card(str(package), QwenImageEdit(), 4)
+    assert "Requires `mlx-gen >= 0.39.0`." in other and "Generated with `mlx-gen 0.39.0`." in other
 
 
 def test_minimax_h3_notice_carries_the_prescribed_text_and_the_modification():

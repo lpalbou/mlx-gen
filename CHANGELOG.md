@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.39.2] - 2026-11-23
+
+### Changed
+
+- **MiniMax-H3 model cards say which Macs each package runs on.** The card `mlxgen prepare` writes
+  for a MiniMax-H3 package shows both packages side by side with disk size, the smallest tested
+  machine and measured peak memory: `minimax-h3-8bit` runs on 96 GB Macs and up (77.0 GiB peak,
+  65.0 GiB with `--low-ram`), `minimax-h3-4bit` on 64 GB Macs and up with `--low-ram` at 64 GB
+  (57.6 GiB peak, 45.6 GiB with `--low-ram`). The 4-bit card's command includes `--low-ram`. The
+  cards of `AbstractFramework/minimax-h3-8bit` and `AbstractFramework/minimax-h3-4bit` carry the
+  same table, as does [Published Packages](docs/minimax-h3.md#published-packages) in the guide.
+- **Model cards name the release that wrote the weights.** "Generated with" reads the version
+  recorded in the package's weight files, so a card rewritten later still names the right release.
+  MiniMax-H3 cards state the minimum version separately (`mlx-gen >= 0.39.1`).
+
 ## [0.39.1] - 2026-11-23
 
 ### Fixed

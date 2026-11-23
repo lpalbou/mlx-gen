@@ -680,8 +680,10 @@ load-time `--quantize 8` or `--quantize 4`, the only two widths this model accep
 `mlxgen prepare --model minimax-h3 --quantize <8|4> --path <folder>` writes the same packages
 locally. Measured on an Apple M5 Max at `960x544`, 124 frames, 8 Turbo steps, as whole-process
 footprint: the 8-bit package peaks at 77.0 GiB (65.0 GiB with `--low-ram`) and the 4-bit package at
-57.6 GiB (45.6 GiB with `--low-ram`); the 8-bit package at `1344x768` peaks at 82.0 GiB. The 8-bit package runs on 96 GB and the 4-bit package on 64 GB
-with `--low-ram`; both were tested on the 128 GB machine with the difference in RAM locked away.
+57.6 GiB (45.6 GiB with `--low-ram`); the 8-bit package at `1344x768` peaks at 82.0 GiB. Choose by
+machine memory: the 8-bit package runs on 96 GB Macs and up, the 4-bit package on 64 GB Macs and up
+(add `--low-ram` at 64 GB), and neither fits below 64 GB. Both tiers were tested on the 128 GB
+machine with the difference in RAM locked away.
 The MLX free-buffer cache follows the process default (up to 8 GiB), adjustable with
 `--mlx-cache-limit-gb`. A clip takes 11 to 17 minutes at `960x544` and about 34 minutes at
 `1344x768` on an otherwise idle machine, at either width. The first source load reads 134 GB of
@@ -728,7 +730,7 @@ keyframe work best as one continuous action with its end state ("lifts straight 
 motion and leaves through the top of the frame"), naming what must stay unchanged, with a continuous
 soundscape and explicit exclusions; the starship and takeoff sheets in `docs/assets/minimax-h3/`
 carry the complete prompts. Limits: reference-to-video and the closing keyframe are not available
-yet; no published package (prepare one locally); the 768p canvas is slow on Apple Silicon. MiniMax-H3 is released under the MiniMax H3 Community License, which restricts use
+yet; the 768p canvas is slow on Apple Silicon. MiniMax-H3 is released under the MiniMax H3 Community License, which restricts use
 in some territories; read it on the model card before downloading or distributing weights or
 outputs. Every component was verified against the diffusers 0.40 reference (layouts and schedules
 bit-exact, transformer / conditioner / VAEs at fp32 rounding noise on real weights).
