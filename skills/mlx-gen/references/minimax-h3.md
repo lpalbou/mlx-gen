@@ -32,7 +32,7 @@ is 19,484 rows; `1344x768` at 124 frames and `960x544` at 243 frames are about 3
 
 ## Packages and schedules
 
-Two published packages hold the base weights already quantized. They need mlx-gen 0.39.0 or newer.
+Two published packages hold the base weights already quantized. They need mlx-gen 0.39.1 or newer.
 
 | Package | Contents | Disk |
 | --- | --- | ---: |

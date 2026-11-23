@@ -377,7 +377,7 @@ Wan2.2 video:
 - `AbstractFramework/wan2.2-i2v-a14b-diffusers-bf16`
 - `AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit`
 
-MiniMax-H3 video with audio (gated, MiniMax H3 Community License, mlx-gen 0.39.0 or later):
+MiniMax-H3 video with audio (gated, MiniMax H3 Community License, mlx-gen 0.39.1 or later):
 
 - `AbstractFramework/minimax-h3-8bit`
 - `AbstractFramework/minimax-h3-4bit`

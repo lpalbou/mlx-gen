@@ -674,7 +674,7 @@ and the two VAEs as released. Download with
 `mlxgen download --model AbstractFramework/minimax-h3-8bit --base-model minimax-h3-turbo-544p` and
 run with `--model AbstractFramework/minimax-h3-8bit --base-model minimax-h3-turbo-544p` (or
 `minimax-h3-turbo`; omit `--base-model` for the base 50-step schedule); never pass `--quantize` to a
-package. Both need mlx-gen 0.39.0 or later and a Hugging Face sign-in with the license accepted on
+package. Both need mlx-gen 0.39.1 or later and a Hugging Face sign-in with the license accepted on
 the model page. The source snapshot (about 140 GB of disk plus 1.4 GB per adapter) runs with
 load-time `--quantize 8` or `--quantize 4`, the only two widths this model accepts, and
 `mlxgen prepare --model minimax-h3 --quantize <8|4> --path <folder>` writes the same packages
