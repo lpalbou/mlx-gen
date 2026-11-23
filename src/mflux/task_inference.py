@@ -2104,6 +2104,18 @@ MINIMAX_H3_MEASURED_RUNS: tuple[MemoryMeasurement, ...] = (
         release_text_encoder=True,
         machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
     ),
+    MemoryMeasurement(
+        footprint_bytes=87_990_995_560,
+        outcome="completed",
+        quantize=8,
+        width=1344,
+        height=768,
+        frames=124,
+        steps=8,
+        mlx_peak_bytes=79_342_938_190,
+        cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
+        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
+    ),
 )
 
 
@@ -2145,8 +2157,9 @@ def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
         "measured_runs": MINIMAX_H3_MEASURED_RUNS,
         # Every measurement is at 124 frames; `max_frames` is the decode grid, not evidence.
         "max_validated_frames": 124,
-        # The line through the default 8-bit run: footprint = fixed + per_row * packed rows. The slope is
-        # activations, so it does not depend on the weight width; the 4-bit policy sits 20.8 GB lower.
+        # The line through the default 8-bit `960x544` run: footprint = fixed + per_row * packed rows. It
+        # predicts the measured `1344x768` run within 0.4 GB. The slope is activations, so it does not depend
+        # on the weight width; the 4-bit policy sits 20.8 GB lower.
         "peak_bytes_fixed": 77_350_000_000,
         "peak_bytes_per_packed_row": 271_356,
     }

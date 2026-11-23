@@ -318,7 +318,7 @@ applications also resident:
 
 Longer clips and larger canvases need more: the footprint grows with the packed sequence, about
 0.25 GiB per thousand rows. `960x544` at 124 frames is 19,484 rows and `1344x768` at 124 frames is
-37,910. Step time does not depend on the width; see
+37,910, where the 8-bit package measured 82.0 GiB. Step time does not depend on the width; see
 [MiniMax-H3](minimax-h3.md#measured-runtime) for timings.
 
 

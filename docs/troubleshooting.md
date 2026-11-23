@@ -350,7 +350,7 @@ publishes `unquantized_weights_bytes` so an application can make the same decisi
 MiniMax-H3 needs about 140 GB of disk for its source snapshot, or 64.3 GiB for the 8-bit package
 and 44.9 GiB for the mixed 4-bit one. On a `960x544`, 124-frame clip the 8-bit package peaks at a
 77.0 GiB process footprint (65.0 GiB with `--low-ram`) and the 4-bit package at 57.6 GiB (45.6 GiB
-with `--low-ram`). Use the 8-bit package on 96 GB or more and the 4-bit package with `--low-ram` on
+with `--low-ram`); at `1344x768` the 8-bit package peaks at 82.0 GiB. Use the 8-bit package on 96 GB or more and the 4-bit package with `--low-ram` on
 64 GB; [Memory By Machine](minimax-h3.md#memory-by-machine) has the table. Close other memory-heavy
 applications, and prefer `minimax-h3-turbo-544p` over the
 768p entries while iterating; the 768p canvas costs about five minutes per step. The MLX

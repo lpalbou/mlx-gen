@@ -43,7 +43,7 @@ jobs:
 
   fast-tests:
     name: Tests (no-weights band)
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 45
     env:
       MFLUX_PRESERVE_TEST_OUTPUT: "1"
@@ -60,7 +60,7 @@ jobs:
         run: python -m pip install --upgrade uv
 
       - name: Install ffmpeg
-        # Absent on macos-14 runners; without it the audio copy-through contract silently skips.
+        # Absent on the macOS runners; without it the audio copy-through contract silently skips.
         run: brew install ffmpeg
 
       - name: Run no-weights test band

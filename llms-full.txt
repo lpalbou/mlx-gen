@@ -680,7 +680,7 @@ load-time `--quantize 8` or `--quantize 4`, the only two widths this model accep
 `mlxgen prepare --model minimax-h3 --quantize <8|4> --path <folder>` writes the same packages
 locally. Measured on an Apple M5 Max at `960x544`, 124 frames, 8 Turbo steps, as whole-process
 footprint: the 8-bit package peaks at 77.0 GiB (65.0 GiB with `--low-ram`) and the 4-bit package at
-57.6 GiB (45.6 GiB with `--low-ram`). The 8-bit package runs on 96 GB and the 4-bit package on 64 GB
+57.6 GiB (45.6 GiB with `--low-ram`); the 8-bit package at `1344x768` peaks at 82.0 GiB. The 8-bit package runs on 96 GB and the 4-bit package on 64 GB
 with `--low-ram`; both were tested on the 128 GB machine with the difference in RAM locked away.
 The MLX free-buffer cache follows the process default (up to 8 GiB), adjustable with
 `--mlx-cache-limit-gb`. A clip takes 11 to 17 minutes at `960x544` and about 34 minutes at

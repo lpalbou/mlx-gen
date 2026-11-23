@@ -21,7 +21,7 @@ runs through `mlxgen generate` as `text-to-video`, or `image-to-video` when `--i
 | --- | ---: | ---: | --- |
 | 8-bit package, `minimax-h3-turbo-544p`, `960x544` | 77.0 GiB | 65.0 GiB | 11 to 17 min |
 | 4-bit package, `minimax-h3-turbo-544p`, `960x544` | 57.6 GiB | 45.6 GiB | 11 to 17 min |
-| 8-bit package, `minimax-h3-turbo`, `1344x768` | about 82 GiB (estimate) | not measured | about 34 min |
+| 8-bit package, `minimax-h3-turbo`, `1344x768` | 82.0 GiB | not measured | about 34 min |
 | 8-bit package, base schedule (50 steps), `960x544` | as the 8-bit `960x544` row | | about 62 min |
 
 Peak memory is the whole-process footprint on an Apple M5 Max; times assume an otherwise idle

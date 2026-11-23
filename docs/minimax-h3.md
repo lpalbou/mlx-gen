@@ -288,8 +288,8 @@ controls for this model without hardcoding its name. Both rows, `minimax-h3.text
 | `supports_flow_shift`, `supports_audio_shift`, `supports_text_encoder_release` | `true` |
 | `flow_shift_option`, `flow_shift_parameter` | `"--video-shift"`, `"video_shift"` — the same control Wan spells `--flow-shift`, so read the spelling off the row rather than keeping a per-family table |
 | `weight_precision`, `unquantized_weights_bytes`, `recommended_quantize`, `validated_quantization_bits` | `"bf16"`, `123600000000`, `8`, `[4, 8]` |
-| `measured_runs` | Four measured runs at `960x544`, 124 frames, with their conditions: both widths, with default settings and with `--low-ram` |
-| `max_validated_frames`, `peak_bytes_fixed`, `peak_bytes_per_packed_row` | `124`, and the line through the default 8-bit run with the per-row slope |
+| `measured_runs` | Five measured runs at 124 frames with their conditions: both widths at `960x544` with default settings and with `--low-ram`, and 8-bit at `1344x768` |
+| `max_validated_frames`, `peak_bytes_fixed`, `peak_bytes_per_packed_row` | `124`, and the measured line through the 8-bit runs |
 | `supports_guidance`, `supports_negative_prompt` | `false`, `false` — published separately because they are independent properties |
 
 Each catalog entry publishes its own label and defaults, so `minimax-h3-turbo` (`1344x768`) and
@@ -312,7 +312,7 @@ about 0.25 GiB per thousand rows on top of the loaded weights.
 | Request | Packed rows | 8-bit package, process footprint |
 | --- | ---: | ---: |
 | `960x544`, 124 frames | 19,484 | 77.0 GiB |
-| `1344x768`, 124 frames | 37,910 | about 82 GiB (estimate from the row above) |
+| `1344x768`, 124 frames | 37,910 | 82.0 GiB |
 
 That is an estimate of bytes, not a promise that a run fits: other processes' memory counts.
 `max_frames` is the decode grid, which holds anywhere; `max_validated_frames` says how far the
