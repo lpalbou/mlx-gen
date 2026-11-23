@@ -445,8 +445,8 @@ progress callbacks make long runs observable.
 
 ## Documentation
 
-Release notes are in the [changelog](CHANGELOG.md); the latest release adds the published MiniMax-H3
-packages.
+Release notes are in the [changelog](CHANGELOG.md); the 0.39 releases add the published MiniMax-H3
+packages and the Macs each one runs on.
 
 - [Getting started](docs/getting-started.md): installation, first runs, SeedVR2 upscaling, and Wan video.
 - [API and CLI](docs/api.md): command surface, router behavior, image-to-image modes, generative reframe, backend-specific outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.

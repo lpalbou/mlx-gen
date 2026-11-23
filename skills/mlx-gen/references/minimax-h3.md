@@ -34,10 +34,10 @@ is 19,484 rows; `1344x768` at 124 frames and `960x544` at 243 frames are about 3
 
 Two published packages hold the base weights already quantized. They need mlx-gen 0.39.1 or newer.
 
-| Package | Contents | Disk |
-| --- | --- | ---: |
-| `AbstractFramework/minimax-h3-8bit` | 8-bit; the closest to the released weights | about 64 GiB |
-| `AbstractFramework/minimax-h3-4bit` | Mixed: 4-bit conditioner, 6-bit transformer; for less memory | about 45 GiB |
+| Package | Contents | Disk | Runs on |
+| --- | --- | ---: | --- |
+| `AbstractFramework/minimax-h3-8bit` | 8-bit; the closest to the released weights | about 64 GiB | 96 GB Macs and up |
+| `AbstractFramework/minimax-h3-4bit` | Mixed: 4-bit conditioner, 6-bit transformer; for less memory | about 45 GiB | 64 GB Macs and up; add `--low-ram` at 64 GB |
 
 Neither package contains a speed adapter. `--base-model` chooses the schedule the package runs as:
 

@@ -2119,6 +2119,13 @@ MINIMAX_H3_MEASURED_RUNS: tuple[MemoryMeasurement, ...] = (
 )
 
 
+# The published packages by `--quantize` width: weight bytes on disk, and the smallest machine each was run
+# on (GB of unified memory, and whether that run needed `--low-ram`). The smaller machines were tested on
+# the 128 GiB Mac with the difference in RAM locked by a second process for the whole run.
+MINIMAX_H3_PACKAGE_WEIGHT_BYTES: dict[int, int] = {8: 69_010_605_065, 4: 48_164_094_121}
+MINIMAX_H3_SMALLEST_TESTED_MACHINE: dict[int, tuple[int, bool]] = {8: (96, False), 4: (64, True)}
+
+
 def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
     """Facts both H3 rows publish: the soundtrack, the frame grid, and the entry's own defaults."""
     from mflux.models.minimax_h3.latent_creator.h3_layout import (

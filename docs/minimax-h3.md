@@ -47,10 +47,14 @@ package, or quantize the source snapshot at load time.
 
 Two packages hold the base weights already quantized:
 
-| Package | Widths | Disk |
-| --- | --- | ---: |
-| [`AbstractFramework/minimax-h3-8bit`](https://huggingface.co/AbstractFramework/minimax-h3-8bit) | 8-bit transformer and conditioner | 64.3 GiB |
-| [`AbstractFramework/minimax-h3-4bit`](https://huggingface.co/AbstractFramework/minimax-h3-4bit) | Mixed: 4-bit conditioner, 6-bit transformer | 44.9 GiB |
+| Package | Widths | Disk | Runs on | Peak memory | Peak memory with `--low-ram` |
+| --- | --- | ---: | --- | ---: | ---: |
+| [`AbstractFramework/minimax-h3-8bit`](https://huggingface.co/AbstractFramework/minimax-h3-8bit) | 8-bit transformer and conditioner | 64.3 GiB | 96 GB Macs and up | 77.0 GiB | 65.0 GiB |
+| [`AbstractFramework/minimax-h3-4bit`](https://huggingface.co/AbstractFramework/minimax-h3-4bit) | Mixed: 4-bit conditioner, 6-bit transformer | 44.9 GiB | 64 GB Macs and up; add `--low-ram` at 64 GB | 57.6 GiB | 45.6 GiB |
+
+Choose by the memory of your Mac: the 8-bit package on 96 GB or more, the 4-bit package on 64 GB.
+Peak memory is the whole-process footprint of one `960x544`, 124-frame, 8-step clip;
+[Memory By Machine](#memory-by-machine) has the test conditions.
 
 The 8-bit package is the closest to the released weights. The 4-bit package gives the same scene
 and staging at about twice the 8-bit package's distance from the BF16 weights, in 19 GiB less
