@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.39.1] - 2026-11-23
+
+### Fixed
+
+- **Saving images and videos with Pillow 13.** MLX-Gen imported a type alias from Pillow's private
+  `PIL._typing` module, which does not import in Pillow 13.0.0. A fresh install on Python 3.11 or
+  later resolves that Pillow version, and every run on it generated its output and then failed to
+  save it with `ImportError: cannot import name '_IntegralLike' from 'numbers'`. The alias is defined
+  locally. Affected: mlx-gen 0.39.0 and earlier with Pillow 13; installs with Pillow 12 (including
+  every Python 3.10 install) were not affected.
+
 ## [0.39.0] - 2026-11-23
 
 MiniMax-H3 has published packages: `AbstractFramework/minimax-h3-8bit` (64.3 GiB) and the
