@@ -7,9 +7,11 @@ visual VAE decode in ImageNet pixel space and the fp32 audio VAE decode at 32 kH
 """
 
 import hashlib
+import shutil
 import sys
 import time
 from dataclasses import dataclass
+from pathlib import Path
 
 import mlx.core as mx
 import numpy as np
@@ -312,36 +314,61 @@ class MiniMaxH3(nn.Module):
         mx.clear_cache()
 
     def save_model(self, base_path: str) -> None:
+        from mflux.models.common.weights.saving.model_card_saver import ModelCardSaver
         from mflux.models.common.weights.saving.model_saver import ModelSaver
 
-        ModelSaver.save_model(
-            model=self,
-            bits=self.bits,
-            base_path=base_path,
-            weight_definition=getattr(
-                self, "weight_definition", MiniMaxH3WeightDefinition.for_config(self.model_config)
-            ),
-        )
-        self._copy_runtime_assets(base_path)
+        self._require_packageable_source()
+        ModelSaver.save_model(model=self, bits=self.bits, base_path=base_path, weight_definition=self.weight_definition)
+        self._copy_source_files(base_path)
+        notice = ModelCardSaver.render_minimax_h3_notice(self.model_config.model_name, self.bits)
+        (Path(base_path) / "NOTICE").write_text(notice, encoding="utf-8")
 
-    def _copy_runtime_assets(self, base_path: str) -> None:
-        """Component configs travel with a prepared package so a reload rebuilds the exact released shapes."""
-        import shutil
-        from pathlib import Path
+    # Copied from the source as they are. The license is section III.1 of the MiniMax H3 Community License; the
+    # configs are the released model definition (the scheduler ones are not read at run time).
+    PACKAGED_SOURCE_FILES = (
+        "LICENSE",
+        "model_index.json",
+        "modular_model_index.json",
+        "scheduler/scheduler_config.json",
+        "audio_scheduler/scheduler_config.json",
+        "vae/config.json",
+        "audio_vae/config.json",
+        "transformer/config.json",
+        "text_encoder/config.json",
+    )
 
-        root = Path(getattr(self, "root_path", ""))
-        for relative in (
-            "model_index.json",
-            "vae/config.json",
-            "audio_vae/config.json",
-            "transformer/config.json",
-            "text_encoder/config.json",
-        ):
-            source = root / relative
-            if source.exists():
-                target = Path(base_path) / relative
-                target.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(source, target)
+    def _require_packageable_source(self) -> None:
+        if getattr(self, "lora_paths", None):
+            # A Turbo entry attaches its adapter at load; saving would bake it into weights described as base.
+            raise ValueError(
+                "A MiniMax-H3 package holds the base weights. Prepare from `minimax-h3` and choose the Turbo "
+                "schedule at run time with --base-model."
+            )
+        if not (Path(self.root_path) / "LICENSE").is_file():
+            raise FileNotFoundError(
+                f"{str(self.root_path)!r} has no LICENSE file, and a MiniMax-H3 package must carry the MiniMax H3 "
+                "Community License Agreement. Run `mlxgen download --model minimax-h3` to fetch it, then prepare again."
+            )
+
+    def _copy_source_files(self, base_path: str) -> None:
+        root, package = Path(self.root_path), Path(base_path)
+        if root.resolve() == package.resolve():
+            return
+        for relative in self.PACKAGED_SOURCE_FILES:
+            if (root / relative).is_file():
+                (package / relative).parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(root / relative, package / relative)
+        # The tokenizer travels as the source files, not as the re-serialized copy the saver wrote: MiniMax-H3
+        # declares its dialogue, lyric and caption markers in tokenizer_config.json only.
+        source, target = root / "tokenizer", package / "tokenizer"
+        if not source.is_dir():
+            return
+        if target.exists():
+            shutil.rmtree(target)
+        target.mkdir(parents=True)
+        for file in sorted(source.iterdir()):
+            if file.is_file():
+                shutil.copyfile(file, target / file.name)
 
     # ------------------------------------------------------------------ planning
 

@@ -43,31 +43,42 @@ If a LoRA repository contains more than one `.safetensors` file, pass the file n
 
 `mlxgen download` is already an explicit network operation. `HF_HUB_ENABLE_HF_TRANSFER=1` is optional and only enables Hugging Face's accelerated transfer backend when that backend is available.
 
+Gated repositories need a Hugging Face sign-in before `mlxgen download`: accept the model's terms on its Hugging Face page, then set `HF_TOKEN` or run `hf auth login`.
+
+`--model` must be a model alias or an `owner/repo` Hugging Face id; a local path is not a download source.
+
+For a model whose catalog entry declares a download size (Bernini-R and SwiftVR), `mlxgen download` checks free space at the Hugging Face cache before transferring anything and stops with `Insufficient free space for the missing model sources` when the missing files plus 2 GiB of headroom do not fit. Sources that are already complete in the cache are not counted. Other models, and any `--all-files` download, are not checked.
+
 Use `download` when you want to run from the source model name or alias and do not need a separate
 local MLX-Gen package.
 
-### Bernini-R factored download
+### Bernini-R pinned download
 
-Bernini-R 1.3B uses a pinned, factored BF16 source set: shared Wan2.1 tokenizer, UMT5, VAE, and
-scheduler files come from `Wan-AI/Wan2.1-VACE-1.3B-diffusers`, while the dedicated renderer comes
-from `ByteDance/Bernini-R-1.3B-Diffusers`. Download the complete runnable set with the alias:
+Bernini-R 1.3B downloads a selected set of files (tokenizer, UMT5 text encoder, VAE, and renderer
+transformer) from one repository at a pinned revision. Two aliases are available, and each one is
+its own model id for `mlxgen download` and `mlxgen generate`:
+
+| Alias | Repository | Cold download | Free space required |
+| --- | --- | ---: | ---: |
+| `bernini-r-1.3b-bf16` | `AbstractFramework/bernini-r-1.3B-diffusers-bf16` | 15.60 GiB | 17.60 GiB |
+| `bernini-r-1.3b` | `ByteDance/Bernini-R-1.3B-Diffusers` (FP32 source) | 26.94 GiB | 28.94 GiB |
 
 ```sh
-mlxgen download --model bernini-r-1.3b
+mlxgen download --model bernini-r-1.3b-bf16
 ```
 
-For a cold cache, the selected files total about `16.36 GiB`. The command requires `18.36 GiB`
-free, including `2 GiB` of download headroom, and does not count an already-complete pinned source
-twice. The bounded low-RAM profiles documented in [Bernini-R 1.3B](bernini.md) peaked at 9.45 GB
-on the 128 GB validation host, so the tested shapes fit an 18 GB-class memory envelope, but still
-need an actual 18 GB-host run. This is capacity evidence only: the Bernini visual release gate
-fails. Separately, `18 GB` of free disk is slightly below the cold-download gate.
+The free-space figure includes `2 GiB` of download headroom, and a source that is already complete
+at its pinned revision is not counted. Both aliases run at the same precision and produce the same
+output; see [Bernini-R 1.3B](bernini.md#download-and-capacity). The bounded low-RAM profiles
+documented there peaked at 9.45 GB on the 128 GB validation host, so the tested shapes fit an
+18 GB-class memory envelope, but still need an actual 18 GB-host run. This is capacity evidence
+only: the Bernini visual release gate fails. Memory and disk are separate budgets: `18 GB` of free
+disk is enough for neither cold download.
 
-Do not pass `--all-files` for Bernini. The option is rejected because this route needs selected
-files from two repositories, not one complete repository. Bernini also rejects `mlxgen prepare`
-and runtime `--quantize`: the only numerically supported route is the factored BF16 source set,
-and q4/q8 Bernini packages are not supported. The BF16 route remains experimental after failed
-visual validation.
+Do not pass `--all-files` for Bernini. The option is rejected because the route uses a pinned
+subset of the repository. Bernini also rejects `mlxgen prepare` and runtime `--quantize`: the route
+runs at BF16 only, and q4/q8 Bernini packages are not supported. It remains experimental after
+failed visual validation.
 
 ## Prepare A Local MLX-Gen Package
 
@@ -89,12 +100,37 @@ Then generate from the local package:
 ```sh
 mlxgen generate \
   --model ./models/qwen-image-8bit \
-  --family qwen \
+  --base-model qwen-image \
   --prompt "A product photo of a ceramic teapot" \
   --output image.png
 ```
 
-If the local package path does not clearly identify the model family, add `--family` during generation. The supported router families are `qwen`, `flux2`, `bonsai`, `fibo`, `z-image`, `ernie-image`, and `wan`.
+`--model` values are identified in two ways:
+
+- A catalog alias (`qwen-image`), a source repository id (`Qwen/Qwen-Image`), and a published
+  `AbstractFramework/<name>` package id are identified exactly.
+- Any other local folder or custom repository name is identified loosely from the catalog model
+  name it contains. MLX-Gen trusts only the model family from such a name, so the routes it
+  publishes can be narrower than the model's own. A folder named `qwen-image-edit-2511-8bit`
+  resolves to the Qwen family with the text-to-image and latent image-to-image routes only.
+
+Pass `--base-model <alias>` to state the model exactly. It is accepted by `mlxgen generate`,
+`mlxgen capabilities`, and `mlxgen prepare`, and it is required when the name contains no catalog
+model name:
+
+```sh
+mlxgen capabilities \
+  --model ./models/qwen-image-edit-2511-8bit \
+  --base-model qwen-image-edit-2511
+```
+
+With the hint, that folder reports the Qwen edit, masked edit, reframe, outpaint, and
+multi-reference routes. `--family` only checks the family: it is rejected when it differs from the
+resolved family, and it cannot identify a model on its own. Wan video routes load a local folder by its
+name and do not apply `--base-model`; name a local Wan folder after its model, for example
+`./models/wan2.2-i2v-a14b-diffusers-8bit`. See
+[Local Path Cannot Be Classified](troubleshooting.md#local-path-cannot-be-classified) for the
+related error messages.
 
 SeedVR2 packages use `mlxgen upscale` instead of `mlxgen generate`:
 
@@ -116,7 +152,11 @@ Use `ByteDance-Seed/SeedVR2-7B`, `AbstractFramework/seedvr2-7b-8bit`, or a path 
 `./models/seedvr2-7b-8bit` for 7B packages.
 
 When a local MLX-Gen package name matches a Hugging Face repository basename, MLX-Gen can also resolve
-the repository handle to that complete local package. For example, if
+the repository handle to that complete local package. For a repository id such as `owner/<repo-name>`,
+MLX-Gen looks for a complete package at `./models/<repo-name>` (relative to the working directory),
+then at `~/models/<repo-name>`, and only then in the Hugging Face cache. A complete local folder with
+that name therefore takes precedence over a cached snapshot of the repository, even when it holds
+different weights; rename or move the folder to run from the cache. For example, if
 `./models/wan2.2-i2v-a14b-diffusers-8bit` exists and contains all required indexes and shard files,
 then this command can run from local files without a Hugging Face cache snapshot:
 
@@ -145,8 +185,9 @@ Use `mlxgen prepare` when:
 - you want a generated Hugging Face model card;
 - you want a package that another application, such as AbstractVision, can reference without depending on the original repository name.
 
-Bernini-R is an exception: use `mlxgen download --model bernini-r-1.3b`. Its runtime is factored
-across two pinned repositories and intentionally has no `prepare`, q4, or q8 package route.
+Bernini-R is an exception: use `mlxgen download --model bernini-r-1.3b-bf16` or
+`mlxgen download --model bernini-r-1.3b`. Its runtime loads a pinned revision of one repository and
+intentionally has no `prepare`, q4, or q8 package route.
 
 Bonsai Image is an exception to the ordinary prepare flow. The Prism Bonsai repositories are
 already packed MLX artifacts, so cache them with `download` and generate directly:
@@ -227,6 +268,19 @@ When files are missing, MLX-Gen raises `DownloadRequiredError`. The exception is
 - `repo_id`
 - `artifact`
 - `download_command`
-- `prepare_command` when a local MLX-Gen package is applicable
+- `prepare_command` when a local MLX-Gen package is applicable; it is `None` for LoRA files, Bonsai
+  checkpoints, Depth Pro weights, and repositories in the `AbstractFramework/` namespace, which are
+  already MLX-Gen packages
 
 The human-readable message is designed for non-expert users and includes the exact command to run.
+For a missing model its first line is:
+
+```text
+MLX-Gen will not download model files during generation.
+```
+
+For other artifacts, `model files` reads `tokenizer files`, `LoRA files`, `preview decoder files`,
+or `Depth Pro weights`. The lines that follow give the `mlxgen download --model <repo-id>` command
+to run, with `--all-files` for a LoRA repository. The CLI prints the message and exits non-zero
+(see [exit statuses](api.md#command-line-surface)); with `--json-events` the same fields appear
+under `remediation` (see [CLI Runtime Events](api.md#cli-runtime-events)).

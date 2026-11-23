@@ -70,9 +70,10 @@ Bernini-R 1.3B fits the tested 18 GB-class memory shapes when `--low-ram` is ena
 BF16 R2V/RV2V/V2V matrix peaked at 9.45 GB whole-process physical footprint on the 128 GB
 validation host. That is not a production recommendation. Every required visual-quality row
 failed because of weak motion, missed reference fidelity, cadence seams, or corrupted frames, and
-the official 81-frame profile is unmeasured. Do not confuse memory with storage: a cold selective
-Bernini download needs 18.36 GiB free including headroom, so an 18 GB fresh disk budget is also
-slightly too small.
+the official 81-frame profile is unmeasured. Do not confuse memory with storage: a cold
+Bernini download needs 17.60 GiB free including headroom for the BF16 package
+(`bernini-r-1.3b-bf16`) and 28.94 GiB for the FP32 source (`bernini-r-1.3b`), so an 18 GB fresh
+disk budget is too small for either.
 
 ## Can MLX-Gen Packages Load In Diffusers Or Transformers?
 
@@ -1028,7 +1029,7 @@ Yes. MiniMax-H3 (`--model minimax-h3-turbo-544p`, `minimax-h3-turbo`, or `minima
 (`--image-path`), and saves both in one MP4 with an AAC track. Describe the picture with `--prompt`, the diegetic sound with `--soundscape`, and the score
 with `--music`; spoken lines go into the description as `The woman (S1) says: <d>[English] ...</d>`
 (see [Prompting](minimax-h3.md#prompting) for speaker ids, voice-over and the supported languages); run
-it with `--quantize 8` on a 128 GB Mac. See [MiniMax-H3 video with audio](minimax-h3.md). Wan and Bernini clips stay silent; Wan
+it from the 8-bit package on a 96 GB or larger Mac, or from the mixed 4-bit package with `--low-ram` on 64 GB. See [MiniMax-H3 video with audio](minimax-h3.md). Wan and Bernini clips stay silent; Wan
 video-to-video copies the source clip's audio through.
 
 ## Why Did MiniMax-H3 Give Me A Longer Clip Than I Asked For?

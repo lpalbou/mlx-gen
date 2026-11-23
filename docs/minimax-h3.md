@@ -31,80 +31,130 @@ entries add their adapter automatically.
 
 ## Requirements
 
-MiniMax-H3 is large: a 27B-parameter transformer, a 32B-parameter Qwen3-VL conditioner (of which
-MLX-Gen loads the 50 layers the model conditions on), a 2.4B-parameter video VAE and an audio VAE.
+MiniMax-H3 is large: a 33B-parameter transformer, a 32B-parameter Qwen3-VL conditioner (of which
+MLX-Gen loads the 50 layers the model conditions on, 25.7B parameters), a 2.4B-parameter video VAE
+and an audio VAE. Unquantized the weights are 115 GiB resident, so you run it from a quantized
+package, or quantize the source snapshot at load time.
 
 | Resource | Requirement |
 | --- | --- |
-| Disk | About 140 GB for the model snapshot (`transformer/`, `text_encoder/`, `vae/`, `audio_vae/`, tokenizer and configs) plus 1.4 GB per Turbo adapter. |
-| Memory | `--quantize 8` is required on a 128 GB Mac, not an optional saving: unquantized the weights are 125 GiB resident, which is 97% of the machine before a single activation. The runtime refuses such a load with an explanatory error rather than letting the OS kill it. At q8 the measured `960x544`, 124-frame Turbo run peaks at 80.5 GiB of MLX memory inside an 88.2 GiB process footprint on an Apple M5 Max, and `1344x768` at 84.8 GiB inside 92.9 GiB. The MLX free-buffer cache is capped at the process default of up to 8 GiB; `--mlx-cache-limit-gb` changes it. |
-| Download | `mlxgen download --model minimax-h3-turbo-544p` fetches the snapshot subset MLX-Gen needs and the matching Turbo adapter. Generation never downloads. |
+| Memory | 96 GB or more for the 8-bit package; 64 GB for the 4-bit package with `--low-ram`. See [Memory By Machine](#memory-by-machine). |
+| Disk | 64.3 GiB for the 8-bit package or 44.9 GiB for the 4-bit package, plus 1.4 GB per Turbo adapter. The source snapshot is about 140 GB. |
+| Download | `mlxgen download` fetches a package or the source snapshot together with the Turbo adapter of the `--base-model` you name. Generation never downloads. |
+| mlx-gen | 0.39.0 or later for the published packages. |
 
-`--quantize 8` quantizes the transformer and conditioner at load time, one shard at a time, so
-the load never holds a full BF16 copy next to the q8 copy. The first load reads 133 GB of shards
-from disk (about 4.5 minutes on the reference machine); repeated loads from the OS page cache
-take about 16 seconds.
+### Published Packages
 
-### Prepared Package
+Two packages hold the base weights already quantized:
 
-`mlxgen prepare` writes the quantized model once so later runs skip the 133 GB read and the
-quantization pass:
+| Package | Widths | Disk |
+| --- | --- | ---: |
+| [`AbstractFramework/minimax-h3-8bit`](https://huggingface.co/AbstractFramework/minimax-h3-8bit) | 8-bit transformer and conditioner | 64.3 GiB |
+| [`AbstractFramework/minimax-h3-4bit`](https://huggingface.co/AbstractFramework/minimax-h3-4bit) | Mixed: 4-bit conditioner, 6-bit transformer | 44.9 GiB |
+
+The 8-bit package is the closest to the released weights. The 4-bit package gives the same scene
+and staging at about twice the 8-bit package's distance from the BF16 weights, in 19 GiB less
+memory. Its transformer is 6-bit because no part of the transformer tolerates 4-bit better than
+another; [Quantization](quantization.md#minimax-h3-q8-and-mixed-q4) has the measurements and
+side-by-side clips.
+
+Each package holds the base weights and no adapter. Pick the schedule with `--base-model`, and pass
+the same option to `mlxgen download` so the matching Turbo adapter is cached:
 
 ```sh
-mlxgen prepare --model minimax-h3 --quantize 8 --path models/minimax-h3-8bit
-```
+mlxgen download --model AbstractFramework/minimax-h3-8bit --base-model minimax-h3-turbo-544p
 
-The package is 75 GB (44 GB transformer, 26 GB conditioner including the vision tower, 5.5 GB for
-the two VAEs, plus tokenizer and configs). It stores the mixed policy MLX-Gen uses for this model:
-the attention and feed-forward linears of the transformer and the conditioner at q8, the fp32 heads,
-timestep MLP and AdaLN modulation projections at their source precision. Prepare from the base entry
-so the package carries no adapter, then pick the schedule with `--base-model`:
-
-```sh
-mlxgen generate --model models/minimax-h3-8bit --base-model minimax-h3-turbo-544p \
+mlxgen generate --model AbstractFramework/minimax-h3-8bit --base-model minimax-h3-turbo-544p \
   --prompt "..." --seed 42 --output fox.mp4
 ```
 
 `--base-model minimax-h3-turbo-544p` (or `minimax-h3-turbo`) applies that entry's defaults and
 attaches its Turbo adapter on top of the stored weights; omit it for the base 50-step schedule. Do
-not pass `--quantize` when loading a prepared package. The package loads shard by shard like the
-Hugging Face snapshot, so its load-time memory is the 75 GB of stored weights, not a second copy, and
-a page-cached package loads in seconds. The stored weights are the load-time quantization: the fox
-clip below generated from the package with the same seed is byte-identical to the `--quantize 8` clip
-from the snapshot (all 124 frames and the soundtrack), at the same 80 GB MLX peak and an 88 GB
-process footprint.
+not pass `--quantize` when loading a package. The repositories are gated: sign in with
+`hf auth login` and accept the license terms on the model page once before downloading. A package
+loads shard by shard, so its load-time memory is its stored weights, and a page-cached package
+loads in seconds. The stored weights are the load-time quantization: same-seed clips from a package
+and from `--quantize` on the source snapshot are byte-identical files, frames and soundtrack.
+
+The packages are distributed under the MiniMax H3 Community License, with its `LICENSE` and `NOTICE`
+files inside. Read [Current Limits](#current-limits) before downloading.
+
+### Memory By Machine
+
+Peak memory of one `960x544`, 124-frame, 8-step `minimax-h3-turbo-544p` clip on an Apple M5 Max
+with 128 GB, as the whole-process physical footprint (MLX allocator peak in brackets):
+
+| Package | Default | `--low-ram` |
+| --- | ---: | ---: |
+| `minimax-h3-8bit` | 77.0 GiB (69.4 GiB) | 65.0 GiB (64.4 GiB) |
+| `minimax-h3-4bit` | 57.6 GiB (49.9 GiB) | 45.6 GiB (45.1 GiB) |
+
+| Machine memory | `minimax-h3-8bit` | `minimax-h3-4bit` |
+| --- | --- | --- |
+| 128 GB | Runs with default settings | Runs with default settings |
+| 96 GB | Runs with default settings | Runs with default settings |
+| 64 GB | Does not fit | Runs with `--low-ram` |
+| 48 GB or less | Does not fit | Does not fit |
+
+The 96 GB and 64 GB rows were tested on the 128 GB machine with the difference in RAM locked by a
+second process for the whole run; both clips completed. `--low-ram` releases the conditioner once
+the prompt is encoded and tightens the MLX cache, so the peak becomes the load itself. Close other
+memory-heavy applications before a run on a 64 GB machine: other processes' memory counts.
+`1344x768` and longer clips need more; see
+[How much memory a length needs](#how-much-memory-a-length-needs).
+
+### Preparing A Package Yourself
+
+`mlxgen prepare` writes the same packages from the source snapshot, and `--quantize 8` or
+`--quantize 4` on the source quantizes at load time, one shard at a time:
+
+```sh
+mlxgen download --model minimax-h3
+mlxgen prepare --model minimax-h3 --quantize 8 --path models/minimax-h3-8bit
+mlxgen prepare --model minimax-h3 --quantize 4 --path models/minimax-h3-4bit
+```
+
+Prepare from `minimax-h3` so the package carries no adapter; a Turbo entry is refused. The package
+gets the source tokenizer files, the `LICENSE` and `NOTICE` files and each layer at the width the
+policy assigns it; loading reads those widths back from the files. MiniMax-H3 accepts
+`--quantize 8` and `--quantize 4` only. The first source load after a download reads 134 GB of
+shards from disk (about 4.5 minutes on the reference machine); later loads from the OS page cache
+take seconds.
 
 ## Quick Start
 
 ```sh
-mlxgen download --model minimax-h3-turbo-544p
+mlxgen download --model AbstractFramework/minimax-h3-8bit --base-model minimax-h3-turbo-544p
 
 mlxgen generate \
-  --model minimax-h3-turbo-544p \
+  --model AbstractFramework/minimax-h3-8bit \
+  --base-model minimax-h3-turbo-544p \
   --prompt "[Shot 1] Cinematic medium shot, static camera, shallow depth of field. A red fox trots through fresh powder snow in a quiet birch forest at dawn; its breath steams in the cold blue light. Halfway through the clip it stops, ears twitching toward the camera, then bounds forward, kicking up a spray of snow that catches the low sun." \
   --soundscape "Soft rhythmic crunch of paws in dry snow, a faint steady wind through bare branches, and two distant crow caws near the end." \
   --music "Sparse, gentle piano notes with long reverb, slow tempo, contemplative and cold." \
   --seed 42 \
-  --quantize 8 \
   --output fox.mp4 \
   --metadata
 ```
 
 The command writes `fox.mp4` (124 frames, `960x544`, 24 fps, stereo AAC) and `fox.metadata.json`.
-Switch to `--model minimax-h3-turbo` for the 768p adapter and canvas, or to `--model minimax-h3`
-with `--steps 50` for the base schedule.
+On a 64 GB Mac use `AbstractFramework/minimax-h3-4bit` and add `--low-ram`. Switch to
+`--base-model minimax-h3-turbo` for the 768p adapter and canvas, or omit `--base-model` for the base
+50-step schedule. The source snapshot runs the same way with `--model minimax-h3-turbo-544p
+--quantize 8` (or `--quantize 4`) after `mlxgen download --model minimax-h3-turbo-544p`.
 
 To start from an image, add `--image-path` and describe what happens next; the first frame reproduces
 the picture and the motion follows the prompt:
 
 ```sh
 mlxgen generate \
-  --model minimax-h3-turbo-544p \
+  --model AbstractFramework/minimax-h3-8bit \
+  --base-model minimax-h3-turbo-544p \
   --image-path keyframe.png \
   --prompt "Starting from the pictured red fox in the snow, the fox turns its head toward the camera, then trots forward through the powder." \
   --soundscape "Soft crunch of paws in dry snow, faint wind." \
   --music "Sparse piano, slow tempo." \
-  --seed 42 --quantize 8 --output fox_i2v.mp4 --metadata
+  --seed 42 --output fox_i2v.mp4 --metadata
 ```
 
 ## Prompting
@@ -191,18 +241,20 @@ prompts.
 
 ## Measured Runtime
 
-Apple M5 Max, 128 GB, `--quantize 8`, 124 frames, MLX 0.31:
+Apple M5 Max, 128 GB, 8-bit weights, 124 frames, MLX 0.31:
 
-| Route | Canvas | Steps | `generate_video` wall time (denoise + both decodes) | Peak MLX memory |
-| --- | --- | --- | --- | --- |
-| `minimax-h3-turbo-544p` | `960x544` | 8 | 11 to 17 min per clip (650 to 1011 s over eight clips; a fresh process is fastest, later clips in one process run slower as the machine warms up) | 80 GB |
-| `minimax-h3` (base) | `960x544` | 50 | 62 min (3741 s) | 79 GB |
-| `minimax-h3-turbo` | `1344x768` | 8 | 34 min (2035 s; about 4.2 min per transformer evaluation) | 85 GB |
+| Route | Canvas | Steps | `generate_video` wall time (denoise + both decodes) |
+| --- | --- | --- | --- |
+| `minimax-h3-turbo-544p` | `960x544` | 8 | 11 to 17 min per clip (650 to 1011 s over eight clips; a fresh process is fastest, later clips in one process run slower as the machine warms up) |
+| `minimax-h3` (base) | `960x544` | 50 | 62 min (3741 s) |
+| `minimax-h3-turbo` | `1344x768` | 8 | 34 min (2035 s; about 4.2 min per transformer evaluation) |
 
-Loading is separate: the first load after a download reads 133 GB of shards (about 4.5 min), and
-a warm page cache brings that down to about 16 s. The 768p step is dominated by attention over a
-37,800-row packed sequence; the 544p canvas is the practical iteration setting on Apple Silicon
-today, and the 768p canvas is the quality setting for a final render.
+Step time is set by attention over the packed sequence, not by the weight width: a 6-bit
+projection costs no more than an 8-bit one, so the 4-bit package runs at the speed of the 8-bit
+one. Times assume the machine is otherwise idle; a clip takes about twice as long while another
+process shares the CPU. The 768p step is dominated by attention over a 37,900-row packed sequence;
+the 544p canvas is the practical iteration setting on Apple Silicon, and the 768p canvas is the
+quality setting for a final render.
 
 For scale, the same fox description through Wan2.2 TI2V-5B (q8, `832x480`, 121 frames at 24 fps,
 50 steps, silent) took 23 min on the same machine at a 25 GB MLX peak; its sheet is included below.
@@ -235,9 +287,9 @@ controls for this model without hardcoding its name. Both rows, `minimax-h3.text
 | `default_flow_shift`, `default_audio_shift` | `12.0`, `3.0` |
 | `supports_flow_shift`, `supports_audio_shift`, `supports_text_encoder_release` | `true` |
 | `flow_shift_option`, `flow_shift_parameter` | `"--video-shift"`, `"video_shift"` — the same control Wan spells `--flow-shift`, so read the spelling off the row rather than keeping a per-family table |
-| `weight_precision`, `unquantized_weights_bytes`, `recommended_quantize`, `validated_quantization_bits` | `"bf16"`, `134200000000`, `8`, `[8]` |
-| `measured_runs` | Three measured runs with their outcomes and conditions, including one the OS killed |
-| `max_validated_frames`, `peak_bytes_fixed`, `peak_bytes_per_packed_row` | `124`, and the measured line through those runs |
+| `weight_precision`, `unquantized_weights_bytes`, `recommended_quantize`, `validated_quantization_bits` | `"bf16"`, `123600000000`, `8`, `[4, 8]` |
+| `measured_runs` | Four measured runs at `960x544`, 124 frames, with their conditions: both widths, with default settings and with `--low-ram` |
+| `max_validated_frames`, `peak_bytes_fixed`, `peak_bytes_per_packed_row` | `124`, and the line through the default 8-bit run with the per-row slope |
 | `supports_guidance`, `supports_negative_prompt` | `false`, `false` — published separately because they are independent properties |
 
 Each catalog entry publishes its own label and defaults, so `minimax-h3-turbo` (`1344x768`) and
@@ -252,32 +304,35 @@ section.
 ### How much memory a length needs
 
 Peak memory follows the packed sequence length, which is a deterministic function of canvas and frame
-count. It is not two separate axes: a 243-frame `960x544` request and a 124-frame `1344x768` request
-differ by 0.5% in packed rows and were measured at the same MLX peak. Expected footprint is roughly what is already
-resident, plus the MLX cache as it fills, plus `peak_bytes_per_packed_row x rows`.
+count. It is not two separate axes: a 243-frame `960x544` request (37,730 packed rows) and a
+124-frame `1344x768` request (37,910 rows) cost about the same. Expected footprint is roughly what
+is already resident, plus the MLX cache as it fills, plus `peak_bytes_per_packed_row x rows`:
+about 0.25 GiB per thousand rows on top of the loaded weights.
 
-That is an estimate of bytes, not a promise that a run fits. The 243-frame request above was killed
-by the OS at a footprint of at least 92.7 GiB, four denoise steps in, on a 128 GiB machine at
-recommended settings, because another application held 7.5 GiB. The same request on an otherwise idle
-machine has room. `max_frames` is the decode grid, which holds anywhere; `max_validated_frames` says
-how far the measurements go. Before a long run the runtime estimates the peak, refuses what cannot fit
-at all, and warns when a request is close enough that other resident processes decide the outcome.
+| Request | Packed rows | 8-bit package, process footprint |
+| --- | ---: | ---: |
+| `960x544`, 124 frames | 19,484 | 77.0 GiB |
+| `1344x768`, 124 frames | 37,910 | about 82 GiB (estimate from the row above) |
 
-The largest lever is the cache limit, not the canvas: the same configuration measured under a raised
-`--mlx-cache-limit-gb` came out 16.8 GB higher, over three times the difference between `960x544` and
-`1344x768`. Low-RAM mode tightens that cache, and an explicit `--mlx-cache-limit-gb` overrides the
-tightening; the runtime says so on stderr when it happens.
+That is an estimate of bytes, not a promise that a run fits: other processes' memory counts.
+`max_frames` is the decode grid, which holds anywhere; `max_validated_frames` says how far the
+measurements go. Before a long run the runtime estimates the peak, refuses what cannot fit at all,
+and warns when a request is close enough that other resident processes decide the outcome.
 
-Sizes are bytes rather than GB so that no consumer has to guess which unit is meant; the weight
-figure is 134.2 GB, which is 125 GiB, and on a 128 GiB machine that difference decides whether a run
-starts. Compare `unquantized_weights_bytes` against your own memory to decide whether you can skip
-quantization: a larger machine runs this model unquantized. `measured_peak` carries the conditions it
-was measured under because the peak scales with the canvas and the frame count; a longer clip on the
-same entry costs more than the published figure.
+The cache limit is a large lever: a raised `--mlx-cache-limit-gb` adds what it allows to the
+footprint, and `--low-ram` tightens the cache to 1 GB and releases the conditioner once the prompt
+is encoded. An explicit `--mlx-cache-limit-gb` overrides the tightening; the runtime says so on
+stderr when it happens.
 
-`supports_text_encoder_release` lowers the peak during denoising, not during loading. The conditioner
-loads first and stays resident while the transformer loads, so it cannot reduce the load-time peak,
-which is the larger of the two on this model.
+Sizes are published in bytes so that no consumer has to guess which unit is meant. Compare
+`unquantized_weights_bytes` (115 GiB) against your own memory to decide whether you can run the
+source weights without `--quantize`. Each entry of `measured_runs` carries the conditions it was
+measured under: the width, the canvas and frame count, the cache limit and whether the conditioner
+was released.
+
+`supports_text_encoder_release` lowers the peak during denoising, not during loading. The
+conditioner loads first and stays resident while the transformer loads, so with it the peak is the
+load itself: the package size plus under 1 GiB.
 
 ## Python
 
@@ -303,7 +358,7 @@ transformer evaluation, `decode`, and `generated`; the CLI adds `save` and a fin
 the file is written and the soundtrack muxed. Every event also reaches the model's registry, so
 `model.callbacks.subscribe_progress(...)` sees the whole run. The unified runtime resolves
 `--model minimax-h3*` to this class through `load_generation_model(...)`. A prepared package loads with
-`MiniMaxH3(model_config=ModelConfig.from_name("models/minimax-h3-8bit", base_model="minimax-h3-turbo-544p"), model_path="models/minimax-h3-8bit")`
+`MiniMaxH3(model_config=ModelConfig.from_name("AbstractFramework/minimax-h3-8bit", base_model="minimax-h3-turbo-544p"), model_path="AbstractFramework/minimax-h3-8bit")`
 and no `quantize` argument.
 
 ## Adapters
@@ -336,7 +391,7 @@ mlxgen generate --model minimax-h3-turbo-544p --steps 4 --video-shift 6 \
 ```
 
 ```sh
-mlxgen generate --model models/minimax-h3-8bit --base-model minimax-h3-turbo-544p \
+mlxgen generate --model AbstractFramework/minimax-h3-8bit --base-model minimax-h3-turbo-544p \
   --prompt "Skeletor stands in a torch-lit stone throne room and raises his staff." \
   --lora-paths "hf:lightx2v/Minimax-h3-Turbo/minimax_h3_fl2v_turbo_8step_v1.0_bf16.safetensors" \
                loras/H3_Skeletor_1.4.safetensors \
@@ -364,13 +419,16 @@ counts (`lora_application_reports`).
 
 - **Reference-to-video (Ref2VA) and the closing keyframe (`last_image`) are not available yet.**
   Text-to-video and first-frame image-to-video are.
-- No published MLX-Gen package yet: `--quantize 8` quantizes at load time, or `mlxgen prepare` writes a
-  local 75 GB package (see [Prepared Package](#prepared-package)).
 - The 768p canvas is slow on Apple Silicon (about 5 minutes per step); use the 544p adapter to
   iterate.
-- MiniMax-H3 is released under the MiniMax H3 Community License, which restricts use in some
-  territories. Read the license on the model card before you download or distribute weights or
-  outputs.
+- `--quantize` accepts 8 and 4 for this model. Clips longer than 124 frames and canvases above
+  `960x544` need more memory than the measured profile; the runtime estimates the peak before a run
+  and refuses what cannot fit.
+- MiniMax-H3 and the packages derived from it are under the MiniMax H3 Community License. Its grant
+  covers the whole world except the European Union, the United Kingdom, the Republic of Korea and the
+  United States of America, and its use restrictions follow the weights and the outputs. The package
+  repositories are gated on accepting it. Read the `LICENSE` file in the package before you
+  download, use or redistribute weights or outputs.
 
 ## Verification
 
@@ -380,8 +438,11 @@ rectified-flow schedules match `torch.linspace` bit-for-bit on 600 grids, the tr
 (one real block), the Qwen3-VL conditioner (text and image-conditioned: vision tower, image
 processor, 3-axis rope index and DeepStack injection), the video VAE encoder/decoder and the audio
 VAE encoder/decoder all match at fp32 rounding noise, and the q8 transformer block stays within
-1.3e-2 relative RMS of the fp32 reference. The included contact sheets below are the model-backed
-proof for the shipped routes.
+1.3e-2 relative RMS of the fp32 reference. Over the full 50-block stack the 8-bit transformer is
+4% to 11% from the BF16 weights per denoise step on video and the 6-bit transformer of the 4-bit
+package 6% to 15% ([measurements](quantization.md#minimax-h3-q8-and-mixed-q4)). Each package
+reproduces the clips of its load-time `--quantize` policy byte for byte. The included contact sheets
+below are the model-backed proof for the shipped routes.
 
 ## Contact Sheets
 
@@ -389,7 +450,9 @@ Each sheet shows eight evenly spaced frames of one clip with the generated track
 spectrogram on the right; the MP4 next to each sheet in `docs/assets/minimax-h3/` is the playable
 proof, and the `prompt_*.txt` files hold the complete structured prompts. Unless a row says
 otherwise: `minimax-h3-turbo-544p`, `960x544`, 124 frames, 8 steps, `--quantize 8`, seed 42, Apple
-M5 Max.
+M5 Max. The clips were rendered with mlx-gen 0.34 to 0.37; mlx-gen 0.39.0 gives the same scenes with
+small frame-level differences, and [Quantization](quantization.md#same-seed-clips) compares the
+8-bit and 4-bit packages on the same seed.
 
 **Fox, seed 42** ([clip](assets/minimax-h3/fox_turbo544_q8_seed42.mp4),
 [prompt](assets/minimax-h3/prompt_fox.txt)): the backlit fox walks straight toward the camera down

@@ -20,10 +20,14 @@ class MiniMaxH3WeightDefinition:
 
     # `_keep_in_fp32_modules` of the diffusers transformer: the input/output heads and the timestep MLP.
     TRANSFORMER_FP32_PREFIXES = ("proj_in.", "audio_proj_in.", "time_embedder.", "proj_out.", "audio_proj_out.")
-    # Quantization-sensitive paths that stay bf16 in a q8/q4 package: q8 on the AdaLN table projections turns the
-    # real one-block output into noise (relative RMS error 1.17 for `adaln_proj`, 0.23 for `norm_out`), while every
-    # other module family quantizes to ~7e-3. Measured 2026-09-04 against the diffusers fp32 reference.
-    TRANSFORMER_QUANTIZATION_SENSITIVE_FRAGMENTS = (".adaln_proj.", "norm_out.")
+    # Left as released at every width. The final modulation is 29M parameters and scales the whole output; the
+    # Qwen3-VL vision tower is 0.6B, and quantizing it at any width flips a few very-high-norm image tokens.
+    UNQUANTIZED_PREFIXES = ("norm_out.", "visual.")
+    # The two policies with measurements behind them (docs/quantization.md, "MiniMax-H3 q8 And Mixed q4").
+    # 8 is 8-bit throughout. 4 is the low-memory mix: a 4-bit conditioner and a 6-bit transformer, because no
+    # transformer family tolerates 4-bit better than another, so there is nothing a 4/8 mix could protect.
+    QUANTIZATION_BITS = (4, 8)
+    TRANSFORMER_MIN_BITS = 6
     TOKENIZER_NAME = "minimax_h3"
 
     def __init__(self, model_config: ModelConfig | None = None):
@@ -92,16 +96,34 @@ class MiniMaxH3WeightDefinition:
         # trailing dot (`proj_out`), parameter keys do (`proj_out.weight`).
         if MiniMaxH3WeightDefinition.is_transformer_fp32_path(path):
             return False
-        if MiniMaxH3WeightDefinition.is_transformer_quantization_sensitive_path(path):
+        if f"{path}.".startswith(MiniMaxH3WeightDefinition.UNQUANTIZED_PREFIXES):
             return False
-        return True
+        if bits is None:
+            return True
+        return {"bits": MiniMaxH3WeightDefinition.module_bits(path, bits)}
 
     @staticmethod
-    def is_transformer_quantization_sensitive_path(path: str) -> bool:
-        dotted = f"{path}."
-        return any(
-            fragment in dotted for fragment in MiniMaxH3WeightDefinition.TRANSFORMER_QUANTIZATION_SENSITIVE_FRAGMENTS
+    def module_bits(path: str, bits: int) -> int:
+        # `path` is a module path inside its component: `language_model...` in the conditioner, anything else
+        # in the transformer (AdaLN projections, text projection and token refiner included).
+        if path.startswith("language_model"):
+            return bits
+        return max(bits, MiniMaxH3WeightDefinition.TRANSFORMER_MIN_BITS)
+
+    @staticmethod
+    def component_bits(component_name: str, bits: int) -> int:
+        return MiniMaxH3WeightDefinition.module_bits(
+            "language_model" if component_name == "text_encoder" else "transformer_blocks", bits
         )
+
+    @staticmethod
+    def require_supported_bits(bits: int | None) -> None:
+        if bits is not None and bits not in MiniMaxH3WeightDefinition.QUANTIZATION_BITS:
+            raise ValueError(
+                f"MiniMax-H3 has two quantization policies, 8 and 4 (a 4-bit conditioner with a "
+                f"{MiniMaxH3WeightDefinition.TRANSFORMER_MIN_BITS}-bit transformer); --quantize {bits} is not one "
+                "of them."
+            )
 
     @staticmethod
     def is_transformer_fp32_path(path: str) -> bool:
@@ -127,11 +149,10 @@ class MiniMaxH3WeightDefinition:
         ]
 
     def get_download_patterns(self=None) -> List[str]:
+        # What a run reads. Path resolution treats every entry as required, so only files that both the source
+        # snapshot and every prepared package carry belong here.
         return [
             "model_index.json",
-            "modular_model_index.json",
-            "scheduler/*.json",
-            "audio_scheduler/*.json",
             "text_encoder/*.safetensors",
             "text_encoder/*.json",
             "transformer/*.safetensors",
@@ -140,4 +161,17 @@ class MiniMaxH3WeightDefinition:
             "vae/*.json",
             "audio_vae/*.safetensors",
             "audio_vae/*.json",
+        ]
+
+    @staticmethod
+    def get_optional_download_patterns() -> List[str]:
+        # Fetched when present, never required: the license and its notice travel with the weights
+        # (sections III.1 and III.4 of the MiniMax H3 Community License), the rest documents the release.
+        return [
+            "LICENSE",
+            "NOTICE",
+            "README.md",
+            "modular_model_index.json",
+            "scheduler/*.json",
+            "audio_scheduler/*.json",
         ]

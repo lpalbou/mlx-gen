@@ -46,6 +46,9 @@ def main() -> None:
             lora_paths=args.lora_paths,
             lora_scales=args.lora_scales,
         )
+        if model_path is not None:
+            # A repo id resolves to `./models/<name>` before the Hugging Face cache; name what was read.
+            cli_print(f"Loaded weights from {model.root_path}.", json_events=bool(args.json_events))
         for seed in args.seed:
             progress = _CliProgress(enabled=args.progress and not args.json_events)
             output_path = resolve_output_path(args.output, overwrite=args.replace, seed=seed)

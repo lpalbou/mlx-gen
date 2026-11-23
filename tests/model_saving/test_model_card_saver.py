@@ -400,3 +400,106 @@ def test_model_card_for_flux2_base_9b_links_base_license(tmp_path):
 
     assert "license_name: flux-non-commercial-license" in card
     assert "license_link: https://huggingface.co/black-forest-labs/FLUX.2-klein-base-9B/blob/main/LICENSE.md" in card
+
+
+class MiniMaxH3:
+    model_config = SimpleNamespace(
+        model_name="MiniMaxAI/MiniMax-H3",
+        base_model=None,
+        aliases=["minimax-h3", "minimaxai/minimax-h3", "h3"],
+    )
+
+
+def test_model_card_for_minimax_h3_q8_is_a_video_card_under_the_community_license(tmp_path):
+    card = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-8bit"), MiniMaxH3(), 8)
+
+    assert "base_model: MiniMaxAI/MiniMax-H3" in card
+    assert "pipeline_tag: text-to-video" in card
+    assert "license: other" in card and "license: apache-2.0" not in card
+    assert "license_name: minimax-h3-community-license-agreement" in card
+    assert "license_link: https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE" in card
+    assert "extra_gated_prompt:" in card
+    for tag in ("- 8-bit", "- mixed-q8-bf16", "- minimax-h3", "- image-to-video", "- audio-video-generation"):
+        assert tag in card
+    assert "- mixed-precision" not in card
+    # The territory exclusion and the files the license requires are stated, not left to the link.
+    assert "the European Union, the United Kingdom, the Republic of Korea and the United States of America" in card
+    assert "`LICENSE`" in card and "`NOTICE`" in card
+    assert "The weight files here are not the original release" in card
+    assert "mlxgen download --model AbstractFramework/minimax-h3-8bit --base-model minimax-h3-turbo-544p" in card
+    assert "  --base-model minimax-h3-turbo-544p \\" in card
+    assert "--soundscape" in card and "--output fox.mp4" in card
+    assert "Do not pass `--quantize`" in card
+    assert "--steps 20" not in card and "image.png" not in card
+
+
+def test_minimax_h3_card_states_the_widths_the_policy_assigns(tmp_path):
+    from mflux.models.minimax_h3.weights.h3_weight_definition import MiniMaxH3WeightDefinition as Definition
+
+    for bits in Definition.QUANTIZATION_BITS:
+        card = ModelCardSaver.render_model_card(str(tmp_path / f"minimax-h3-{bits}bit"), MiniMaxH3(), bits)
+        transformer_bits = Definition.component_bits("transformer", bits)
+        conditioner_bits = Definition.component_bits("text_encoder", bits)
+        assert f"- q{transformer_bits} for the transformer attention and feed-forward linears" in card
+        assert f"- q{conditioner_bits} for the Qwen3-VL conditioner's 50 decoder layers" in card
+        assert "As released: the conditioner's vision tower" in card and "`adaln_proj`" in card
+
+    # The package is named 4-bit and its transformer is not: the card has to say so.
+    mixed = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-4bit"), MiniMaxH3(), 4)
+    assert "- 4-bit" in mixed and "- mixed-precision" in mixed and "- mixed-q8-bf16" not in mixed
+    assert "a 4-bit conditioner and a 6-bit transformer" in mixed
+    assert "The transformer is 6-bit, not 4-bit." in mixed
+    assert "mlxgen download --model AbstractFramework/minimax-h3-4bit --base-model minimax-h3-turbo-544p" in mixed
+
+
+def test_minimax_h3_card_takes_its_memory_sentence_from_the_published_measurements(tmp_path, monkeypatch):
+    import mlx.core as mx
+
+    from mflux import task_inference
+    from mflux.task_inference import MemoryMeasurement
+
+    gib = 1024**3
+    runs = (
+        MemoryMeasurement(
+            footprint_bytes=70 * gib, outcome="completed", quantize=8, width=960, height=544, frames=124, steps=8,
+            mlx_peak_bytes=62 * gib,
+        ),
+        # Not the reference profile, and a run that did not complete: neither may feed the card.
+        MemoryMeasurement(
+            footprint_bytes=90 * gib, outcome="completed", quantize=4, width=1344, height=768, frames=124, steps=8,
+            mlx_peak_bytes=80 * gib,
+        ),
+        MemoryMeasurement(
+            footprint_bytes=95 * gib, outcome="killed", quantize=4, width=960, height=544, frames=124, steps=8,
+            mlx_peak_bytes=85 * gib,
+        ),
+        MemoryMeasurement(
+            footprint_bytes=58 * gib, outcome="completed", quantize=8, width=960, height=544, frames=124, steps=8,
+            mlx_peak_bytes=57 * gib, release_text_encoder=True,
+        ),
+    )  # fmt: skip
+    monkeypatch.setattr(task_inference, "MINIMAX_H3_MEASURED_RUNS", runs)
+    package = tmp_path / "minimax-h3-8bit"
+    (package / "transformer").mkdir(parents=True)
+    mx.save_safetensors(str(package / "transformer" / "0.safetensors"), {"w": mx.zeros((1024, 1024), dtype=mx.float32)})
+
+    measured = ModelCardSaver.render_model_card(str(package), MiniMaxH3(), 8)
+    assert "peaks at 62.0 GiB of MLX memory inside a 70.0 GiB process footprint" in measured
+    assert "this package (0.0 GiB of weights)" in measured
+    assert (
+        "With `--low-ram`, which releases the conditioner once the prompt is encoded, the footprint peaks at 58.0 GiB"
+        in measured
+    )
+
+    assert "peaks at" not in ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-4bit"), MiniMaxH3(), 4)
+
+
+def test_minimax_h3_notice_carries_the_prescribed_text_and_the_modification():
+    notice = ModelCardSaver.render_minimax_h3_notice("MiniMaxAI/MiniMax-H3", 4)
+    assert notice.startswith(
+        "MiniMax H3 is licensed under the MiniMax H3 Community License Agreement, "
+        "Copyright © 2026 MiniMax. All Rights Reserved."
+    )
+    assert "Modification notice" in notice and "quantized (4-bit package)" in notice
+    assert f"mlx-gen {VersionUtil.get_mflux_version()}" in notice
+    assert "quantized" not in ModelCardSaver.render_minimax_h3_notice("MiniMaxAI/MiniMax-H3", None)

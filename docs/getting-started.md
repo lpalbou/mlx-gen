@@ -16,7 +16,8 @@ Check the command surface:
 mlxgen --help
 ```
 
-The top-level command shows the public workflows:
+The help text shows the installed release as `MLX-Gen <version> (<release date>)`, followed by the
+public workflows:
 
 - `mlxgen generate` for image generation and supported video generation.
 - `mlxgen upscale` for SeedVR2 image restoration/upscaling and video restoration.
@@ -89,12 +90,15 @@ Run generation from a local MLX-Gen model package:
 ```sh
 mlxgen generate \
   --model ./models/qwen-image-8bit \
-  --family qwen \
+  --base-model qwen-image \
   --prompt "A clean studio product photo" \
   --output image.png
 ```
 
-`--family` is useful when a local path or custom repository name does not contain a recognizable model-family name.
+`--base-model` names the catalog model that a local folder or custom repository contains. Pass it
+whenever `--model` is not a catalog alias or a published repository id; `--family` does not replace
+it. See [Model Management](model-management.md#prepare-a-local-mlx-gen-package) for how `--model`
+values are identified.
 
 Run Bonsai Image from its pre-packed ternary checkpoint:
 
@@ -509,8 +513,8 @@ To keep the background locked to the source while editing only one region, add
 `--video-mask-path mask.png`: white marks the region the model may change, black regions are
 preserved exactly. See [Wan Video](wan-video.md#masked-video-to-video).
 
-Bernini-R 1.3B is the smaller renderer path for ordinary reference images. Download its pinned,
-factored components, then repeat `--reference-image` in the same order used by `image0`, `image1`,
+Bernini-R 1.3B is the smaller renderer path for ordinary reference images. Download its pinned
+source repository, then repeat `--reference-image` in the same order used by `image0`, `image1`,
 and so on in the prompt:
 
 ```sh
@@ -532,7 +536,9 @@ references for prompt-guided V2V. Bernini is BF16-only: omit `--quantize`. It is
 the tested shapes peaked at 9.45 GB on the 128 GB validation host. Seven official public 1.3B rows
 plus `ads2v` at mid profile are qualitatively accepted with committed proof (full prompts and
 contact sheets). The historical schema-v3 bundle still fails at the bounded 17-frame profile. A
-completely cold selective download needs 18.36 GiB free including headroom. See
+cold `bernini-r-1.3b` download is about 26.94 GiB and needs 28.94 GiB free including headroom; the
+BF16 package `bernini-r-1.3b-bf16` produces identical output from a 15.60 GiB download (17.60 GiB
+free). Use the same alias for `mlxgen download` and `mlxgen generate`. See
 [Bernini-R 1.3B](bernini.md) for exact role, memory, failure, and proof boundaries.
 For Bernini source-video modes, `--width`/`--height` are a source-aspect area target and
 `--frames` is a maximum; inspect output metadata for the resolved canvas and actual frame count.
@@ -583,8 +589,12 @@ Spatial-scale sanity outputs at 1280x704, 17 frames, and 20 steps:
 
 ### Generate A Video With Sound (MiniMax-H3)
 
-MiniMax-H3 generates the clip and a synchronized stereo soundtrack together. It needs about 140 GB
-of disk and a 128 GB Mac with `--quantize 8`:
+MiniMax-H3 generates the clip and a synchronized stereo soundtrack together. The published
+packages are the practical way to run it: `AbstractFramework/minimax-h3-8bit` (64.3 GiB, for 96 GB
+Macs and up) and the mixed-width `AbstractFramework/minimax-h3-4bit` (44.9 GiB, for 64 GB Macs with
+`--low-ram`); see [MiniMax-H3 video with audio](minimax-h3.md#published-packages) for their
+commands. The example below runs the same weights from the source snapshot, which needs about
+140 GB of disk and quantizes at load time.
 
 ```sh
 mlxgen download --model minimax-h3-turbo-544p

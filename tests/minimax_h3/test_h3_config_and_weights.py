@@ -56,7 +56,9 @@ def test_weight_definition_components_and_quantization_predicate():
         and predicate("audio_proj_out", nn.Linear(5376, 32)) is False
     )
     assert predicate("layers.0.self_attn.q_norm", nn.RMSNorm(128)) is False
-    assert predicate("transformer_blocks.7.adaln_proj.linear", nn.Linear(2688, 6 * 5376 * 3)) is False
+    # The AdaLN table projections are 13B parameters and quantize like any other linear; only the final
+    # modulation, which is tiny and scales the whole output, stays as released.
+    assert predicate("transformer_blocks.7.adaln_proj.linear", nn.Linear(2688, 6 * 5376 * 3)) is True
     assert predicate("norm_out.linear", nn.Linear(2688, 2 * 5376)) is False
     assert predicate("transformer_blocks.7.ff.net.2", nn.Linear(14336, 5376, bias=False)) is True
     assert MiniMaxH3WeightDefinition.transformer_precision_override("audio_proj_out.weight") == mx.float32
@@ -289,17 +291,16 @@ def test_rows_publish_the_precision_and_memory_contract():
         for row in get_model_capabilities(model=alias).to_dict()["capabilities"]:
             assert row["weight_precision"] == "bf16"
             assert row["recommended_quantize"] == 8
-            assert row["validated_quantization_bits"] == [8]
-            # Unquantized the weights take 97% of a 128 GiB machine, leaving nothing for the run,
-            # which is why q8 is validated rather than optional. Published in bytes so a host never
-            # has to guess GB versus GiB: 134.2 GB is 125 GiB, and the difference decides the run.
-            assert row["unquantized_weights_bytes"] / 1024**3 > 0.95 * 128
-            assert row["unquantized_weights_bytes"] / 1024**3 < 128
-            completed = [run for run in row["measured_runs"] if run["outcome"] == "completed"]
-            assert {(run["width"], run["height"]) for run in completed} == {(960, 544), (1344, 768)}
-            for run in completed:
-                assert run["quantize"] == 8 and run["frames"] == 124
-                assert 80 * 1024**3 < run["footprint_bytes"] < 128 * 1024**3
+            assert row["validated_quantization_bits"] == [4, 8]
+            # Unquantized the weights are 115 GiB resident, more than a 128 GiB machine can run, which is
+            # why a width is part of running the model. Published in bytes so a host never has to guess
+            # GB versus GiB.
+            assert 0.85 * 128 < row["unquantized_weights_bytes"] / 1024**3 < 128
+            runs = row["measured_runs"]
+            assert {run["quantize"] for run in runs} == {4, 8}
+            for run in runs:
+                assert run["outcome"] == "completed" and run["frames"] == 124 and run["steps"] == 8
+                assert 40 * 1024**3 < run["footprint_bytes"] < 128 * 1024**3
 
 
 @pytest.mark.fast
@@ -572,24 +573,262 @@ def test_request_preflight_warns_near_the_limit_and_refuses_the_impossible(capsy
 
 
 @pytest.mark.fast
-def test_measured_runs_publish_outcomes_and_their_conditions():
-    """A killed run is evidence a host needs; its number is a lower bound and must not be called a peak."""
-    from mflux.task_inference import CAPABILITIES_SCHEMA_VERSION, get_model_capabilities
+def test_measured_runs_publish_their_conditions_and_order_as_the_policy_predicts():
+    """Conditions travel with every number, because the cache limit and the conditioner move it."""
+    from mflux.models.minimax_h3.latent_creator.h3_layout import packed_sequence_length
+    from mflux.task_inference import get_model_capabilities
 
-    assert CAPABILITIES_SCHEMA_VERSION == 16
     for row in get_model_capabilities(model="minimax-h3-turbo-544p").to_dict()["capabilities"]:
         runs = row["measured_runs"]
-        assert len(runs) == 3
-        outcomes = [run["outcome"] for run in runs]
-        assert outcomes == ["completed", "completed", "killed"]
-        for run in runs:
-            # Conditions travel with every number, because they move it more than the canvas does.
-            assert run["cache_limit_bytes"] == 8 * 1024**3
+        reference = {
+            (run["quantize"], run["release_text_encoder"]): run
+            for run in runs
+            if (run["width"], run["height"]) == (960, 544)
+        }
+        assert set(reference) == {(8, False), (8, True), (4, False), (4, True)}
+        for (_, low_ram), run in reference.items():
             assert run["machine_total_ram_bytes"] == 128 * 1024**3
-            assert run["quantize"] == 8 and run["steps"] == 8
-            assert "peak_bytes" not in run, "a killed run has no peak, only a highest observed value"
-        killed = runs[-1]
-        assert killed["frames"] == 243 and killed["terminated_at"]
+            # `--low-ram` tightens the cache to 1 GB; the default is 8 GiB.
+            assert run["cache_limit_bytes"] == (1_000_000_000 if low_ram else 8 * 1024**3)
+            assert run["mlx_peak_bytes"] < run["footprint_bytes"]
+        for bits in (4, 8):
+            assert reference[(bits, True)]["footprint_bytes"] < reference[(bits, False)]["footprint_bytes"]
+        assert reference[(4, False)]["footprint_bytes"] < reference[(8, False)]["footprint_bytes"]
         # The grid bound and the evidence bound are different questions.
         assert row["max_frames"] == 345 and row["max_validated_frames"] == 124
-        assert row["peak_bytes_per_packed_row"] == 271_356 and row["peak_bytes_fixed"] == 89_410_000_000
+        # The published line passes through the default 8-bit run.
+        rows = packed_sequence_length(960, 544, 124)
+        line = row["peak_bytes_fixed"] + row["peak_bytes_per_packed_row"] * rows
+        assert abs(line - reference[(8, False)]["footprint_bytes"]) < 0.01 * line
+
+
+def _write_h3_package_layout(root: Path) -> None:
+    for subdir in ("text_encoder", "transformer", "vae", "audio_vae"):
+        (root / subdir).mkdir(parents=True)
+        (root / subdir / "0.safetensors").write_bytes(b"0")
+        (root / subdir / "model.safetensors.index.json").write_text('{"weight_map": {"w": "0.safetensors"}}')
+        (root / subdir / "config.json").write_text("{}")
+    (root / "tokenizer").mkdir()
+    (root / "tokenizer" / "tokenizer.json").write_text("{}")
+    (root / "model_index.json").write_text("{}")
+
+
+@pytest.mark.fast
+def test_a_downloaded_package_resolves_from_the_hugging_face_cache(tmp_path, monkeypatch):
+    """A prepared package has no scheduler configs; requiring them made a downloaded package unusable."""
+    from unittest.mock import patch
+
+    from mflux.models.common.resolution.path_resolution import PathResolution
+
+    snapshot = tmp_path / "hub" / "models--AbstractFramework--minimax-h3-4bit" / "snapshots" / "abc"
+    _write_h3_package_layout(snapshot)
+    monkeypatch.chdir(tmp_path)  # away from any ./models/<repo-name> folder, which would resolve first
+    required = MiniMaxH3WeightDefinition().get_download_patterns()
+    with patch("huggingface_hub.constants.HF_HUB_CACHE", str(tmp_path / "hub")):
+        assert PathResolution.resolve("AbstractFramework/minimax-h3-4bit", patterns=required) == snapshot
+
+    optional = MiniMaxH3WeightDefinition.get_optional_download_patterns()
+    assert {"LICENSE", "NOTICE", "scheduler/*.json", "audio_scheduler/*.json"}.issubset(optional)
+    assert not set(optional) & set(required)
+
+
+class _PackagedModel:
+    """Only what `MiniMaxH3.save_model` touches, so packaging is testable without 60 GiB of weights."""
+
+    from mflux.models.minimax_h3.variants.minimax_h3 import MiniMaxH3 as _H3
+
+    save_model = _H3.save_model
+    _require_packageable_source = _H3._require_packageable_source
+    _copy_source_files = _H3._copy_source_files
+    PACKAGED_SOURCE_FILES = _H3.PACKAGED_SOURCE_FILES
+    model_config = ModelConfig.minimax_h3()
+    weight_definition = MiniMaxH3WeightDefinition()
+    bits = 4
+
+    def __init__(self, root_path: Path, lora_paths: list[str] | None = None):
+        self.root_path = root_path
+        self.lora_paths = lora_paths or []
+
+
+def _write_h3_source(root: Path, with_license: bool = True) -> None:
+    files = ["model_index.json", "modular_model_index.json", "scheduler/scheduler_config.json", "vae/config.json"]
+    files += ["tokenizer/vocab.json", "tokenizer/merges.txt", "tokenizer/tokenizer_config.json"]
+    for relative in files + (["LICENSE"] if with_license else []):
+        (root / relative).parent.mkdir(parents=True, exist_ok=True)
+        (root / relative).write_text(f"source {relative}")
+
+
+def _stub_model_saver(monkeypatch) -> list[str]:
+    from mflux.models.common.weights.saving.model_saver import ModelSaver
+
+    saved: list[str] = []
+
+    def save_model(model, bits, base_path, weight_definition):
+        # What the shared saver leaves behind: a re-serialized tokenizer without the vocabulary files.
+        saved.append(base_path)
+        (Path(base_path) / "tokenizer").mkdir(parents=True)
+        (Path(base_path) / "tokenizer" / "tokenizer.json").write_text("re-saved")
+        (Path(base_path) / "tokenizer" / "chat_template.jinja").write_text("re-saved")
+
+    monkeypatch.setattr(ModelSaver, "save_model", staticmethod(save_model))
+    return saved
+
+
+@pytest.mark.fast
+def test_save_model_packages_the_license_the_notice_and_the_source_tokenizer(tmp_path, monkeypatch):
+    saved = _stub_model_saver(monkeypatch)
+    _write_h3_source(tmp_path / "source")
+    package = tmp_path / "minimax-h3-4bit"
+
+    _PackagedModel(tmp_path / "source").save_model(str(package))
+
+    assert saved == [str(package)]
+    for relative in ("LICENSE", "modular_model_index.json", "scheduler/scheduler_config.json", "vae/config.json"):
+        assert (package / relative).read_text() == f"source {relative}"
+    # The tokenizer is the source's files, not the re-serialized copy the saver wrote.
+    assert sorted(file.name for file in (package / "tokenizer").iterdir()) == [
+        "merges.txt",
+        "tokenizer_config.json",
+        "vocab.json",
+    ]
+    notice = (package / "NOTICE").read_text(encoding="utf-8")
+    assert notice.startswith(
+        "MiniMax H3 is licensed under the MiniMax H3 Community License Agreement, "
+        "Copyright © 2026 MiniMax. All Rights Reserved."
+    )
+    assert "Modification notice" in notice and "quantized (4-bit package)" in notice
+
+
+@pytest.mark.fast
+def test_save_model_refuses_a_source_it_cannot_describe(tmp_path, monkeypatch):
+    saved = _stub_model_saver(monkeypatch)
+    _write_h3_source(tmp_path / "unlicensed", with_license=False)
+    with pytest.raises(FileNotFoundError, match="mlxgen download --model minimax-h3"):
+        _PackagedModel(tmp_path / "unlicensed").save_model(str(tmp_path / "a"))
+
+    # A Turbo entry has its adapter attached; saving would bake it into weights the card calls base.
+    _write_h3_source(tmp_path / "source")
+    with pytest.raises(ValueError, match="Prepare from `minimax-h3`"):
+        _PackagedModel(tmp_path / "source", lora_paths=["turbo.safetensors"]).save_model(str(tmp_path / "b"))
+    assert saved == [] and not (tmp_path / "a").exists() and not (tmp_path / "b").exists()
+
+
+@pytest.mark.fast
+def test_copying_source_files_onto_the_source_keeps_its_tokenizer(tmp_path):
+    _write_h3_source(tmp_path / "source")
+    _PackagedModel(tmp_path / "source")._copy_source_files(str(tmp_path / "source"))
+    assert (tmp_path / "source" / "tokenizer" / "vocab.json").read_text() == "source tokenizer/vocab.json"
+
+
+@pytest.mark.fast
+def test_quantization_widths_follow_the_measured_policy():
+    predicate = MiniMaxH3WeightDefinition.quantization_predicate
+    paths = {
+        "block": ("transformer_blocks.7.attn.to_v", nn.Linear(5376, 7168, bias=False)),
+        "refiner": ("token_refiner.refiner_blocks.0.ff.net.2", nn.Linear(14336, 5376, bias=False)),
+        "context": ("context_embedder", nn.Linear(5120, 5376)),
+        "adaln": ("transformer_blocks.7.adaln_proj.linear", nn.Linear(2688, 6 * 5376 * 3)),
+        "language": ("language_model.layers.3.mlp.down_proj", nn.Linear(5120, 5120, bias=False)),
+        "embed": ("language_model.embed_tokens", nn.Embedding(8, 5120)),
+    }
+
+    def widths(bits: int) -> dict[str, int]:
+        return {name: predicate(path, module, bits)["bits"] for name, (path, module) in paths.items()}
+
+    assert set(widths(8).values()) == {8}
+    # `--quantize 4` is the mixed low-memory policy: a 4-bit conditioner and a transformer that stops at
+    # 6-bit, AdaLN projections included.
+    assert widths(4) == {"block": 6, "refiner": 6, "context": 6, "adaln": 6, "language": 4, "embed": 4}
+    assert MiniMaxH3WeightDefinition.component_bits("transformer", 4) == 6
+    assert MiniMaxH3WeightDefinition.component_bits("text_encoder", 4) == 4
+    # Left as released at every width: the vision tower, the final modulation, the fp32 heads and timestep MLP.
+    for bits in (4, 8):
+        assert predicate("visual.blocks.0.attn.proj", nn.Linear(1152, 1152), bits) is False
+        assert predicate("visual.pos_embed", nn.Embedding(8, 1152), bits) is False
+        assert predicate("norm_out.linear", nn.Linear(2688, 2 * 5376), bits) is False
+        assert predicate("proj_out", nn.Linear(5376, 96), bits) is False
+        assert predicate("time_embedder.linear_1", nn.Linear(256, 5376), bits) is False
+
+
+@pytest.mark.fast
+def test_only_the_two_measured_widths_are_accepted():
+    for bits in (None, 4, 8):
+        MiniMaxH3WeightDefinition.require_supported_bits(bits)
+    for bits in (3, 5, 6):
+        with pytest.raises(ValueError, match=f"--quantize {bits} is not one of them"):
+            MiniMaxH3WeightDefinition.require_supported_bits(bits)
+
+
+class _CountingTokenizer:
+    def __init__(self, pieces: dict[str, int]):
+        self.pieces = pieces
+
+    def __call__(self, text: str, add_special_tokens: bool = False):
+        return {"input_ids": list(range(self.pieces.get(text, 1)))}
+
+
+@pytest.mark.fast
+def test_a_tokenizer_that_splits_the_markers_is_refused(tmp_path):
+    from types import SimpleNamespace
+
+    name = MiniMaxH3WeightDefinition.TOKENIZER_NAME
+    intact = {name: SimpleNamespace(tokenizer=_CountingTokenizer({}))}
+    MiniMaxH3Initializer._require_marker_tokens(intact, tmp_path)
+
+    split = {name: SimpleNamespace(tokenizer=_CountingTokenizer({"<d>": 3, "<|caption_end|>": 4}))}
+    with pytest.raises(ValueError, match=r"splits <d>, <\|caption_end\|> into several tokens") as raised:
+        MiniMaxH3Initializer._require_marker_tokens(split, tmp_path)
+    assert "mlxgen prepare" in str(raised.value)
+
+
+@pytest.mark.fast
+def test_init_checks_the_width_and_the_tokenizer_before_reading_any_weights(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+
+    from mflux.models.common.resolution.path_resolution import PathResolution
+    from mflux.models.common.tokenizer import TokenizerLoader
+
+    def unreachable(*args, **kwargs):
+        raise AssertionError("weights must not be touched")
+
+    name = MiniMaxH3WeightDefinition.TOKENIZER_NAME
+    split = {name: SimpleNamespace(tokenizer=_CountingTokenizer({"</d>": 3}))}
+    monkeypatch.setattr(PathResolution, "resolve", staticmethod(lambda path, patterns: tmp_path))
+    monkeypatch.setattr(TokenizerLoader, "load_all", staticmethod(lambda definitions, model_path: split))
+    monkeypatch.setattr(MiniMaxH3Initializer, "_preflight_memory", staticmethod(unreachable))
+    monkeypatch.setattr(MiniMaxH3Initializer, "_load_weights", staticmethod(unreachable))
+
+    with pytest.raises(ValueError, match="splits </d>"):
+        MiniMaxH3Initializer.init(SimpleNamespace(), ModelConfig.minimax_h3(), quantize=8)
+    with pytest.raises(ValueError, match="--quantize 6 is not one of them"):
+        MiniMaxH3Initializer.init(SimpleNamespace(), ModelConfig.minimax_h3(), quantize=6)
+
+
+def _write_component(path: Path, megabytes: int, metadata: dict | None = None) -> int:
+    path.mkdir(parents=True)
+    mx.save_safetensors(
+        str(path / "0.safetensors"), {"w": mx.zeros((megabytes, 1024, 512), dtype=mx.bfloat16)}, metadata
+    )
+    return (path / "0.safetensors").stat().st_size
+
+
+@pytest.mark.fast
+def test_weight_estimate_follows_the_policy_and_leaves_packages_as_stored(tmp_path):
+    definition = MiniMaxH3WeightDefinition()
+    source = {name: _write_component(tmp_path / "source" / name, 2) for name in ("text_encoder", "transformer")}
+    source.update({name: _write_component(tmp_path / "source" / name, 1) for name in ("vae", "audio_vae")})
+    estimate = MiniMaxH3Initializer._estimate_resident_weight_bytes
+
+    assert estimate(tmp_path / "source", definition, None) == sum(source.values())
+    unquantized = source["vae"] + source["audio_vae"]
+    # 8-bit everywhere; at 4 the conditioner is 4-bit and the transformer 6-bit. Half a bit of scales and biases.
+    assert estimate(tmp_path / "source", definition, 8) == unquantized + 2 * int(source["transformer"] * 8.5 / 16)
+    assert estimate(tmp_path / "source", definition, 4) == unquantized + int(source["text_encoder"] * 4.5 / 16) + int(
+        source["transformer"] * 6.5 / 16
+    )
+
+    # A prepared package is already at its stored widths: --quantize must not shrink the estimate again.
+    stored = {"quantization_level": "8", "mflux_version": "test"}
+    package = {name: _write_component(tmp_path / "package" / name, 1, stored) for name in source}
+    assert estimate(tmp_path / "package", definition, 8) == sum(package.values())
+    assert estimate(tmp_path / "package", definition, None) == sum(package.values())

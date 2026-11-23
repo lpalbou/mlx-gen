@@ -11,6 +11,11 @@ Both options use CSS-style padding in `top,right,bottom,left` order. Percentages
 the source image size. For example, `5%,80%,5%,60%` adds a small top/bottom border, more space to
 the right, and a large extension to the left.
 
+Each value is either a whole-number percentage (`25%`) or a plain integer number of pixels (`128`,
+with no `px` suffix), and the two can be mixed: `0,256,0,10%`. The CSS shorthands apply: one value
+sets all four sides, two values set top/bottom and left/right, and three set top, left/right, and
+bottom. Values must be zero or positive, with at least one side above zero.
+
 Each side is independent, and `0` leaves that edge where it is. One call can therefore extend a
 single side, both sides of an axis, or all four at different depths — see
 [Expanding On Any Side](#expanding-on-any-side) for coverage across three source aspect ratios.

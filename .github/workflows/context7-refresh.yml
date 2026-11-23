@@ -1,0 +1,34 @@
+name: Context7 refresh
+
+# Manual re-index of this repository's user docs (docs/, README.md, llms.txt, llms-full.txt) on
+# Context7 (context7.com). The release workflow runs the same step after a PyPI publish, so this is
+# for a docs-only change on main:
+#
+#   gh workflow run context7-refresh.yml
+#
+# Context7 re-indexes a project at most once every 10 days. A run inside that window ends with a
+# notice and changes nothing, so run it once the docs are final. The credential CONTEXT7_API_KEY
+# lives in the GitHub environment "context7".
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  context7-refresh:
+    name: Refresh Context7 docs
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: context7
+      url: https://context7.com/${{ github.repository }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Trigger the Context7 refresh
+        env:
+          CONTEXT7_API_KEY: ${{ secrets.CONTEXT7_API_KEY }}
+        run: python tools/context7_refresh.py --repository "${{ github.repository }}" --label "${{ github.sha }}"

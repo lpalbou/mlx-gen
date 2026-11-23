@@ -105,8 +105,11 @@ This alias selects only the pinned `ByteDance/Bernini-R-1.3B-Diffusers` revision
 repository and similarly named third-party repositories intentionally fail closed; MLX-Gen never
 rewrites them to the 1.3B renderer.
 
-Both packages preflight with 2 GiB of free-space headroom, skip sources already present at their
-pinned revisions, and execute identically at run time: text encoder and transformer in BF16 (with
+Each alias is its own model id: generate with the alias you downloaded (`--model
+bernini-r-1.3b-bf16` after the BF16 download). Both packages preflight with 2 GiB of free-space
+headroom (17.60 GiB free for the 15.60 GiB BF16 package, 28.94 GiB free for the 26.94 GiB FP32
+source), skip sources already present at their pinned revisions, and execute identically at run
+time: text encoder and transformer in BF16 (with
 small FP32 keep-sets), VAE in FP32, so resident memory is far below the download size.
 
 On the 128 GB validation host, the bounded low-RAM profiles peaked at 9.45 GB whole-process

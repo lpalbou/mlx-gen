@@ -57,3 +57,46 @@ def test_quantized_entry_projections_keep_floating_inputs():
     quantized = embed(patches)
     rel = float(mx.abs(quantized - reference).max() / mx.abs(reference).max())
     assert rel < 5e-2, rel
+
+
+@pytest.mark.fast
+def test_quantized_adaln_projection_keeps_its_modulation_tables():
+    """A quantized AdaLN projection must feed floating activations, not the packed uint32 weight dtype.
+
+    Casting to `weight.dtype` truncated `silu(temb)` to integers on a quantized projection, which is what
+    made 8-bit AdaLN look unusable; the tables themselves survive 8-bit to well under a percent.
+    """
+    from mflux.models.minimax_h3.model.h3_transformer.h3_embedding import H3AdaLayerNormModulation
+
+    modulation = H3AdaLayerNormModulation(time_embed_dim=128, hidden_size=64)
+    mx.eval(modulation.parameters())
+    temb = mx.random.normal((2, 128))
+    reference = mx.concatenate(modulation(temb), axis=-1)
+    nn.quantize(modulation, bits=8)
+    assert modulation.linear.weight.dtype == mx.uint32
+    quantized = mx.concatenate(modulation(temb), axis=-1)
+    relative = float(mx.sqrt(mx.sum((quantized - reference) ** 2)) / mx.sqrt(mx.sum(reference**2)))
+    assert relative < 2e-2, relative
+
+
+@pytest.mark.fast
+@pytest.mark.parametrize("bits", [3, 4, 5, 6, 8])
+def test_lora_wraps_a_quantized_linear_of_any_width(bits):
+    """Packed columns hold `inputs * bits / 32`, so the input width is not `columns * (32 // bits)` at 5 or 6 bits."""
+    from mflux.models.common.lora.layer.linear_lora_layer import LoRALinear
+
+    quantized = nn.QuantizedLinear.from_linear(nn.Linear(192, 16, bias=False), group_size=64, bits=bits)
+    wrapped = LoRALinear.from_linear(quantized, r=4)
+    assert wrapped.lora_A.shape == (192, 4) and wrapped.lora_B.shape == (4, 16)
+    assert wrapped(mx.random.normal((2, 192))).shape == (2, 16)
+
+
+@pytest.mark.fast
+@pytest.mark.parametrize("bits", [4, 6, 8])
+def test_adapter_shapes_are_checked_against_the_real_input_width(bits):
+    from mflux.models.common.lora.mapping.lora_loader import LoRAApplicationError, LoRALoader
+
+    quantized = nn.QuantizedLinear.from_linear(nn.Linear(192, 16, bias=False), group_size=64, bits=bits)
+    LoRALoader._validate_lora_matrix_shapes(quantized, mx.zeros((192, 4)), mx.zeros((4, 16)), "blocks.0.to_q")
+    with pytest.raises(LoRAApplicationError, match=r"expected lora_A \(192, rank\)"):
+        LoRALoader._validate_lora_matrix_shapes(quantized, mx.zeros((180, 4)), mx.zeros((4, 16)), "blocks.0.to_q")

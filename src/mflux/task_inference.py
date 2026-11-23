@@ -2046,51 +2046,63 @@ MINIMAX_H3_PROMPT_SECTIONS = (
 )
 
 
-# Measured runs on an Apple M5 Max with 128 GiB, at q8 with the default 8 GiB cache limit and the
-# conditioner resident. Peak follows the packed row count rather than the canvas or the frame count
-# separately: the 243-frame `960x544` run and the 124-frame `1344x768` run differ by 0.5% in rows and
-# reached the same 84.8 GiB MLX peak. The killed run is published because it is the most informative
-# of the three: it was killed at 72% of the machine's memory, with another application holding
-# 7.5 GiB, which is what decided it.
+# Measured runs of the 0.39.0 packages on an Apple M5 Max with 128 GiB: one `mlxgen generate` process
+# each, 8 Turbo steps, footprint and MLX peak from the run's metadata sidecar. `--low-ram` releases the
+# conditioner after encoding and tightens the cache, so its peak is the load itself. Peak follows the
+# packed row count rather than the canvas or the frame count separately.
 _M5_MAX_RAM_BYTES = 128 * 1024**3
 _DEFAULT_CACHE_LIMIT_BYTES = 8 * 1024**3
+_LOW_RAM_CACHE_LIMIT_BYTES = 1_000_000_000
 MINIMAX_H3_MEASURED_RUNS: tuple[MemoryMeasurement, ...] = (
     MemoryMeasurement(
-        footprint_bytes=94_700_000_000,
+        footprint_bytes=82_637_262_112,
         outcome="completed",
         quantize=8,
         width=960,
         height=544,
         frames=124,
         steps=8,
-        mlx_peak_bytes=86_400_000_000,
+        mlx_peak_bytes=74_474_825_744,
         cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
         machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
     ),
     MemoryMeasurement(
-        footprint_bytes=99_700_000_000,
+        footprint_bytes=69_757_306_344,
         outcome="completed",
-        quantize=8,
-        width=1344,
-        height=768,
-        frames=124,
-        steps=8,
-        mlx_peak_bytes=91_000_000_000,
-        cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
-        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
-    ),
-    MemoryMeasurement(
-        footprint_bytes=99_500_000_000,
-        outcome="killed",
         quantize=8,
         width=960,
         height=544,
-        frames=243,
+        frames=124,
         steps=8,
-        mlx_peak_bytes=91_000_000_000,
+        mlx_peak_bytes=69_202_931_608,
+        cache_limit_bytes=_LOW_RAM_CACHE_LIMIT_BYTES,
+        release_text_encoder=True,
+        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
+    ),
+    MemoryMeasurement(
+        footprint_bytes=61_850_948_256,
+        outcome="completed",
+        quantize=4,
+        width=960,
+        height=544,
+        frames=124,
+        steps=8,
+        mlx_peak_bytes=53_628_315_664,
         cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
         machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
-        terminated_at="denoise step 4 of 8, before decode",
+    ),
+    MemoryMeasurement(
+        footprint_bytes=48_963_570_632,
+        outcome="completed",
+        quantize=4,
+        width=960,
+        height=544,
+        frames=124,
+        steps=8,
+        mlx_peak_bytes=48_419_903_212,
+        cache_limit_bytes=_LOW_RAM_CACHE_LIMIT_BYTES,
+        release_text_encoder=True,
+        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
     ),
 )
 
@@ -2122,18 +2134,20 @@ def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
         "default_height": overrides.get("default_height"),
         "default_frames": overrides.get("default_frames"),
         "default_audio_shift": overrides.get("default_audio_shift"),
-        # The released weights are bf16 (the two VAEs are fp32 and are never quantized). Unquantized
-        # they are ~134 GB resident, which is all of a 128 GiB Mac before activations, so q8 is the
-        # setting these entries are validated at rather than an optional saving. A host with more
-        # memory can compare `unquantized_weights_bytes` against its own and decide for itself.
+        # The released weights are bf16 and 115 GiB resident unquantized, more than a 128 GiB Mac can run, so
+        # a width is part of running the model. 8 is the policy closest to the released weights; 4 is the
+        # mixed low-memory policy (a 4-bit conditioner and a 6-bit transformer). A host with more memory can
+        # compare `unquantized_weights_bytes` against its own and decide for itself.
         "weight_precision": "bf16",
-        "unquantized_weights_bytes": 134_200_000_000,
+        "unquantized_weights_bytes": 123_600_000_000,
         "recommended_quantize": 8,
-        "validated_quantization_bits": (8,),
+        "validated_quantization_bits": (4, 8),
         "measured_runs": MINIMAX_H3_MEASURED_RUNS,
-        # Every completed measurement is at 124 frames; `max_frames` is the decode grid, not evidence.
+        # Every measurement is at 124 frames; `max_frames` is the decode grid, not evidence.
         "max_validated_frames": 124,
-        "peak_bytes_fixed": 89_410_000_000,
+        # The line through the default 8-bit run: footprint = fixed + per_row * packed rows. The slope is
+        # activations, so it does not depend on the weight width; the 4-bit policy sits 20.8 GB lower.
+        "peak_bytes_fixed": 77_350_000_000,
         "peak_bytes_per_packed_row": 271_356,
     }
 

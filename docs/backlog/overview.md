@@ -11,13 +11,13 @@ outside chat history.
 
 | State | Count |
 | --- | ---: |
-| Planned | 15 |
-| Proposed | 40 |
-| Completed | 67 |
+| Planned | 17 |
+| Proposed | 41 |
+| Completed | 68 |
 | Deprecated | 2 |
 | Recurrent | 1 |
 
-Counts are item files (recounted 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
+Counts are item files (recounted 2026-11-23 after item 0128 completed and follow-up 0129 was filed; 2026-10-04 after planned items 0126 and 0127 were filed; 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
 2026-07-25 release hygiene had moved 0093-0095, 0097-0099, and release
 item 0101 to completed/), including topic-track items under
 `planned/memory/`; the completed `planned/runtime_contracts/` track holds only its index.
@@ -358,8 +358,14 @@ memory follow-up state.
    [0118](completed/0118_minimax_h3_first_frame_conditioning_vision_tower.md) (first-frame
    image-to-video through the Qwen3-VL vision tower). Next: the AdaLN precompute and long-sequence performance work
    ([0119](proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance.md)). The
-   joint audio-video contract ADR and the license policy decision recorded in deprecated item 0104
-   are still owed.
+   quantized packages shipped with 0.39.0 as completed item
+   [0128](completed/0128_minimax_h3_quantized_packages.md), published as gated repositories by the
+   owner's decision on the license. The joint audio-video contract ADR is still owed.
+22. Run [item 0126](planned/0126_wan_q8_keep_8bit_at_runtime.md) before the full-size Wan q8 work in
+   item 0013. Wan q8 packages are converted to BF16 at load since 2026-06-12 and use BF16-class
+   memory; the failure behind that conversion was the MLX `quantized_matmul` fault above 32,767
+   rows (MLX before 0.32.0), which item 0117 already repairs for MiniMax-H3 with row chunks.
+   Validate Wan with its block linears kept 8-bit, starting with the 1280x720, 41-frame case.
 
 | ID | Item | Area | Priority | Status |
 | --- | --- | --- | --- | --- |
@@ -378,6 +384,8 @@ memory follow-up state.
 | 0063 | [Component-wise model loading memory policy](planned/memory/0063_componentwise_model_loading_memory_policy.md) | Memory, CLI, model loading | P0 | Quantitative validation pending |
 | 0064 | [Generation retention cleanup](planned/memory/0064_generation_retention_cleanup.md) | Memory, hidden states, stepwise output | P0 | Quantitative validation pending |
 | 0106 | [Bernini-R 1.3B full-trajectory parity and release quality](planned/0106_bernini_full_trajectory_parity_and_release_quality.md) | Bernini video, exact-input parity, cadence, visual release proof | P0 release blocker | Planned |
+| 0126 | [Keep Wan q8 packages 8-bit in memory](planned/0126_wan_q8_keep_8bit_at_runtime.md) | Video, Wan, quantization, memory, MLX kernel fault | P1 | Planned |
+| 0127 | [Recommend the 4-step adapters with each Wan and Qwen model](planned/0127_recommend_4step_adapters_for_wan_and_qwen.md) | LoRA, Wan, Qwen, docs, download | P2 | Planned |
 
 ## Proposed ledger
 
@@ -422,6 +430,7 @@ memory follow-up state.
 | 0123 | [Publish the duration and sampling fields on the other families](proposed/0123_publish_duration_and_audio_fields_on_other_families.md) | Capability schema, Wan, Bernini | Promote alongside the next Wan capability work; the fields exist as of schema 13 but only MiniMax-H3 fills them, so a null reads as unknown rather than as absent. |
 | 0124 | [Publish each route's accepted options, derived from its parser](proposed/0124_publish_accepted_options_per_route.md) | Capability schema, CLI routing, host integration | Promote when a host again needs per-family knowledge to withhold an option; adding one `supports_<option>` boolean per case does not scale and mis-declares routes nobody considered. |
 | 0125 | [MiniMax-H3 adapter layouts, validated one real file per producer](proposed/0125_minimax_h3_lora_layouts_validation.md) | MiniMax-H3, LoRA | Promote when a kohya / musubi-tuner or DiffSynth-Studio H3 adapter is at hand; the mapping ships for the original-checkpoint layout (validated with an ai-toolkit civitai file on 2026-09-09) and refuses DiffSynth's interleaved fused QKV until a real file proves the de-interleave. |
+| 0129 | [Router and docs follow-ups from the 0.39.0 documentation pass](proposed/0129_router_and_docs_followups_from_the_0_39_0_documentation_pass.md) | Router messages, local-folder routing, docs | Promote the message and routing items when the router is next touched; the documentation items can ride with any docs pass. Eleven findings from checking the agent skill against the code, none of which blocks a documented workflow. |
 
 ## Completed ledger
 
@@ -494,6 +503,7 @@ memory follow-up state.
 | 0117 | [MiniMax-H3 text-to-video-with-audio runtime and Turbo adapters](completed/0117_minimax_h3_text_to_video_audio_runtime.md) | Video with audio, MiniMax-H3, streaming q8 loading, generated-audio contract | 2026-09-04 | Ported the diffusers modular pipeline natively (layout, schedulers, transformer, Qwen3-VL conditioner, video and audio VAEs) with component parity at fp32 noise, shipped `minimax-h3`, `minimax-h3-turbo` and `minimax-h3-turbo-544p` with lightx2v adapters, generated stereo AAC audio in the MP4, and the first model-backed clips. First-frame conditioning is item 0118. |
 | 0118 | [MiniMax-H3 first-frame conditioning through the Qwen3-VL vision tower](completed/0118_minimax_h3_first_frame_conditioning_vision_tower.md) | MiniMax-H3 image-to-video, Qwen3-VL vision tower, DeepStack | 2026-09-05 | Ported the vision tower, processor, rope index and DeepStack injection (exact vs transformers, real weights 1e-5), shipped `--image-path` first-frame conditioning with the reference's keyframe canvas, presentation and condition-latent recipe, and the `minimax-h3.first-frame` capability row. |
 | 0120 | [MiniMax-H3 embedding-host contract](completed/0120_minimax_h3_embedding_host_contract.md) | Capability schema 13, progress events, duration bounds, host integration | 2026-09-06 | From a BlackPixel feature request, adversarially verified first. Fixed progress never reaching the callback registry, the `denoising`/duplicate-`complete` phase vocabulary, a documented maximum frame count (362) that always raised, duplicate prompt sections, the duplicate Turbo label, unvalidated Python-runtime keywords, health validation running before the audio mux, and a sidecar that could overwrite. Published the audio, duration, sampling and per-entry-default fields plus `prompt_sections` descriptors at `schema_version` 13. Follow-ups 0121-0123. |
+| 0128 | [MiniMax-H3 quantized packages on Hugging Face](completed/0128_minimax_h3_quantized_packages.md) | MiniMax-H3, quantization policy, packaging, Hugging Face, release 0.39.0 | 2026-11-23 | Published `minimax-h3-8bit` (64.3 GiB) and the mixed-width `minimax-h3-4bit` (44.9 GiB: 4-bit conditioner, 6-bit transformer) as gated repositories. The policy is measured: no transformer family tolerates 4-bit better than another, the AdaLN projections quantize like any linear (the earlier failure was an input cast), and the vision tower stays unquantized. Fixed cache resolution of downloaded packages, package tokenizers, the model card, and the loader's refusal of mismatched packages. The 8-bit package runs on 96 GB and the 4-bit one on 64 GB with `--low-ram`, both tested with RAM locked away. |
 
 ## Deprecated ledger
 

@@ -6627,6 +6627,61 @@ def test_download_command_uses_a14b_wan_patterns(monkeypatch):
     assert "transformer_2/*.json" in calls[0][1]
 
 
+def test_download_command_for_a_minimax_h3_package_fetches_the_license_and_names_the_package(monkeypatch, capsys):
+    calls = []
+
+    def fake_snapshot_download(*, repo_id, allow_patterns):
+        calls.append((repo_id, allow_patterns))
+        return "/tmp/hf-cache/minimax-h3"
+
+    monkeypatch.setattr("huggingface_hub.snapshot_download", fake_snapshot_download)
+    monkeypatch.setattr(
+        "mflux.models.common.resolution.lora_resolution.LoraResolution.resolve",
+        staticmethod(lambda path: f"/tmp/loras/{path.rsplit('/', 1)[-1]}"),
+    )
+
+    mlx_gen._download_model(["--model", "AbstractFramework/minimax-h3-4bit", "--base-model", "minimax-h3-turbo-544p"])
+
+    assert calls[0][0] == "AbstractFramework/minimax-h3-4bit"
+    assert {
+        "LICENSE",
+        "NOTICE",
+        "tokenizer/*",
+        "text_encoder/*.safetensors",
+        "transformer/*.safetensors",
+        "audio_vae/*.safetensors",
+    }.issubset(set(calls[0][1]))
+    out = capsys.readouterr().out
+    assert "minimax_h3_fl2v_turbo_8step_v1.0_bf16.safetensors" in out
+    # The package is addressed by its own repo id; the schedule alias alone would load the 196 GB source.
+    assert "mlxgen generate --model AbstractFramework/minimax-h3-4bit --base-model minimax-h3-turbo-544p " in out
+
+    mlx_gen._download_model(["--model", "minimax-h3-turbo-544p"])
+
+    assert calls[1][0] == "MiniMaxAI/MiniMax-H3"
+    assert "mlxgen generate --model minimax-h3-turbo-544p --prompt" in capsys.readouterr().out
+
+
+def test_download_required_for_a_published_package_does_not_suggest_preparing_it():
+    from mflux.models.common.download_policy import DownloadRequiredError
+
+    package = DownloadRequiredError("AbstractFramework/minimax-h3-8bit")
+    assert package.download_command == "mlxgen download --model AbstractFramework/minimax-h3-8bit"
+    assert package.prepare_command is None and "mlxgen prepare" not in str(package)
+    assert "with the same --base-model" in str(package)
+
+    source = DownloadRequiredError("MiniMaxAI/MiniMax-H3")
+    assert source.prepare_command is not None and "mlxgen prepare --model MiniMaxAI/MiniMax-H3" in str(source)
+
+
+def test_bernini_bf16_package_alias_routes_like_the_source_alias():
+    for model in ("bernini-r-1.3b-bf16", "bernini-r-1.3b"):
+        invocation = mlx_gen._resolve_invocation(
+            ["--model", model, "--reference-image", "reference.png", "--prompt", "x", "--output", "out.mp4"]
+        )
+        assert invocation.target_name == "mlxgen-generate-wan"
+
+
 def test_download_command_uses_pinned_factored_bernini_sources(monkeypatch):
     calls = []
 

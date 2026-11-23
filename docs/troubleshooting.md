@@ -20,19 +20,37 @@ mlxgen generate --model ./models/wan2.2-i2v-a14b-diffusers-8bit ...
 mlxgen generate --model AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit ...
 ```
 
+`mlxgen download` stops with `--model must resolve to a Hugging Face repo id for download` when
+`--model` is a local path or a name that is neither a model alias nor an `owner/repo` id. Pass the
+alias or the repository id.
+
 ## Local Path Cannot Be Classified
 
-When using a local model path, MLX-Gen may not be able to infer the model family from the folder name. Add `--family`:
+A local folder or custom repository name that contains no catalog model name cannot be identified.
+`mlxgen generate` and `mlxgen capabilities` stop with one of these usage errors:
+
+| Message starts with | Fix |
+| --- | --- |
+| `Could not infer a supported backend from model '<name>'.` | Add `--base-model <alias>`. The message lists family names, but a family alone does not identify the model. |
+| `family='<family>' is not enough to configure model '<name>'.` | Keep or drop `--family`, and add `--base-model <alias>`. |
 
 ```sh
 mlxgen generate \
-  --model ./models/qwen-image-8bit \
-  --family qwen \
+  --model ./models/my-package \
+  --base-model qwen-image \
   --prompt "A clean studio product photo" \
   --output image.png
 ```
 
-Supported router families are `qwen`, `flux2`, `bonsai`, `fibo`, `z-image`, `ernie-image`, and `wan`.
+A folder whose name does contain a catalog model name loads, but can publish fewer routes than the
+model supports until `--base-model` is passed; see
+[Prepare A Local MLX-Gen Package](model-management.md#prepare-a-local-mlx-gen-package).
+
+FLUX.1 aliases and repositories (`dev`, `schnell`, `krea-dev`) produce the same `Could not infer a
+supported backend` error because `mlxgen generate` and `mlxgen capabilities` do not route FLUX.1.
+`mlxgen download` and `mlxgen prepare` accept those aliases, and FLUX.1 generation runs through the
+`mflux-generate` compatibility entry point. For new work in the unified CLI, use a FLUX.2 Klein
+model such as `flux2-klein-4b`.
 
 ## A Package Calls `mflux-generate-flux2*` Directly And Fails
 
@@ -295,12 +313,14 @@ edit.
 For a memory-constrained host, keep `--low-ram` enabled. The bounded model-backed proof peaked at
 9.45 GB whole-process physical footprint on the 128 GB validation host, which predicts a useful
 margin on an 18 GB Mac but is not a direct 18 GB-host proof. That does not mean 18 GB of fresh disk
-is sufficient: the pinned factored selective download is about 16.36 GiB and requires 2 GiB
-headroom, for 18.36 GiB free. Run:
+is sufficient: the pinned BF16 package is about 15.60 GiB and requires 2 GiB headroom, for
+17.60 GiB free, and the FP32 source alias `bernini-r-1.3b` needs 28.94 GiB free. Run:
 
 ```sh
-mlxgen download --model bernini-r-1.3b
+mlxgen download --model bernini-r-1.3b-bf16
 ```
+
+Then generate with the same alias, `--model bernini-r-1.3b-bf16`.
 
 If R2V is coherent but misses requested accessories, check these before treating it as a runtime
 bug:
@@ -327,19 +347,31 @@ publishes `unquantized_weights_bytes` so an application can make the same decisi
 
 ## MiniMax-H3 Runs Out Of Memory Or Disk
 
-MiniMax-H3 needs about 140 GB of disk for its snapshot and, with `--quantize 8`, peaks at about
-80 GB of MLX memory (88 GB process footprint) on a `960x544` clip and 93 GB at `1344x768`. Run it on a 128 GB Mac with
-`--quantize 8`, close other GPU-heavy applications, and prefer `minimax-h3-turbo-544p` over the
+MiniMax-H3 needs about 140 GB of disk for its source snapshot, or 64.3 GiB for the 8-bit package
+and 44.9 GiB for the mixed 4-bit one. On a `960x544`, 124-frame clip the 8-bit package peaks at a
+77.0 GiB process footprint (65.0 GiB with `--low-ram`) and the 4-bit package at 57.6 GiB (45.6 GiB
+with `--low-ram`). Use the 8-bit package on 96 GB or more and the 4-bit package with `--low-ram` on
+64 GB; [Memory By Machine](minimax-h3.md#memory-by-machine) has the table. Close other memory-heavy
+applications, and prefer `minimax-h3-turbo-544p` over the
 768p entries while iterating; the 768p canvas costs about five minutes per step. The MLX
 free-buffer cache is capped at the process default (up to 8 GiB); `--mlx-cache-limit-gb` lowers or
 lifts that cap. If `mlxgen download` stops early, check free disk space and rerun it (downloads
-resume). The first load after a download reads 133 GB of shards from disk and takes a few minutes;
-later loads are fast, and a prepared package (`mlxgen prepare --model minimax-h3 --quantize 8
---path ...`, 75 GB) skips the quantization pass on every load.
+resume). The first source load after a download reads 134 GB of shards from disk and takes a few
+minutes; later loads are fast, and a package (`AbstractFramework/minimax-h3-8bit`,
+`AbstractFramework/minimax-h3-4bit`, or your own from `mlxgen prepare`) skips the quantization pass
+on every load.
+
+If loading a package stops with "splits `<d>` ... into several tokens", its tokenizer does not carry
+the model's dialogue markers. Prepare the package again; the message names the command.
+
+A repository id such as `AbstractFramework/minimax-h3-8bit` resolves to a complete
+`./models/minimax-h3-8bit` or `~/models/minimax-h3-8bit` folder before the Hugging Face cache.
+`mlxgen generate` prints `Loaded weights from <folder>`; rename or remove a local folder of that
+name when you mean the downloaded package.
 
 ## `generate --path` Fails
 
-`--path` belongs to `mlxgen prepare`, where it names the local MLX-Gen package to create. It is not a generation option.
+`--path` belongs to `mlxgen prepare`, where it names the local MLX-Gen package to create. It is not a generation option. `mlxgen generate --path ...` stops with `--path prepares a local model folder and is not a generation option.` and prints the equivalent `mlxgen prepare` command.
 
 To create a quantized MLX-Gen package:
 

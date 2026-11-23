@@ -13,7 +13,8 @@ class LoRALinear(nn.Module):
     ):
         output_dims, input_dims = linear.weight.shape
         if isinstance(linear, nn.QuantizedLinear):
-            input_dims *= 32 // linear.bits
+            # Packed columns hold `inputs * bits / 32`; `32 // bits` would be wrong for 3, 5 and 6 bits.
+            input_dims = input_dims * 32 // linear.bits
         lora_lin = LoRALinear(
             input_dims=input_dims,
             output_dims=output_dims,

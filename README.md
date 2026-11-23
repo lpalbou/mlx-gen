@@ -73,8 +73,10 @@ The main capabilities are:
   keyframe, produces a 24 fps clip and its soundtrack in a single MP4 (AAC track), 5 to 15 seconds
   long, with the lightx2v 8-step Turbo adapters attached automatically and community LoRA adapters
   (civitai, ai-toolkit, ComfyUI, kohya key layouts) stackable on them. The soundtrack covers ambient
-  sound, a score, and spoken dialogue with the speaker's mouth animated to match. Run it with
-  `--quantize 8` or from a prepared 75 GB q8 package (`mlxgen prepare`) on a 128 GB Mac (see
+  sound, a score, and spoken dialogue with the speaker's mouth animated to match. Run it from
+  `AbstractFramework/minimax-h3-8bit` (64 GiB on disk, 77 GiB peak, for 96 GB Macs and up) or the
+  mixed-width `AbstractFramework/minimax-h3-4bit` (45 GiB on disk, 46 GiB peak with `--low-ram`, for
+  64 GB Macs), or quantize the source at load time with `--quantize 8` or `--quantize 4` (see
   `docs/minimax-h3.md`);
 - ByteDance Bernini-R 1.3B renderer support (`bernini-r-1.3b`): generate video from one to eight
   ordered ordinary reference images, edit one source video with those references, or run
@@ -375,10 +377,16 @@ Wan2.2 video:
 - `AbstractFramework/wan2.2-i2v-a14b-diffusers-bf16`
 - `AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit`
 
-Bernini-R uses the official `ByteDance/Bernini-R-1.3B-Diffusers` renderer together with pinned
-Wan2.1 base components. It currently has no published MLX-Gen quantized package: use
-`mlxgen download --model bernini-r-1.3b`, omit `--quantize`, and see
-[Bernini-R 1.3B](docs/bernini.md).
+MiniMax-H3 video with audio (gated, MiniMax H3 Community License, mlx-gen 0.39.0 or later):
+
+- `AbstractFramework/minimax-h3-8bit`
+- `AbstractFramework/minimax-h3-4bit`
+
+Bernini-R runs from a pinned revision of the official `ByteDance/Bernini-R-1.3B-Diffusers`
+repository (`bernini-r-1.3b`) or of its BF16 package `AbstractFramework/bernini-r-1.3B-diffusers-bf16`
+(`bernini-r-1.3b-bf16`). It has no published MLX-Gen quantized package: download one of the two
+aliases with `mlxgen download --model <alias>`, generate with the same alias, omit `--quantize`,
+and see [Bernini-R 1.3B](docs/bernini.md).
 
 Use `mlxgen download --model <repo-id>` to cache a published model, then pass the repository id to
 the relevant command: `mlxgen generate` for image/video generation or `mlxgen upscale` for SeedVR2
@@ -437,11 +445,14 @@ progress callbacks make long runs observable.
 
 ## Documentation
 
+Release notes are in the [changelog](CHANGELOG.md); the latest release adds the published MiniMax-H3
+packages.
+
 - [Getting started](docs/getting-started.md): installation, first runs, SeedVR2 upscaling, and Wan video.
 - [API and CLI](docs/api.md): command surface, router behavior, image-to-image modes, generative reframe, backend-specific outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.
 - [Image edit modes](docs/image-edit-modes.md): what latent img2img, edit-reference, multi-reference, generative reframe, and outpaint mean in practice, with examples.
 - [Wan video](docs/wan-video.md): practical Wan2.2 T2V/I2V sizing, plain and masked prompt-guided A14B video-to-video with included proof artifacts, the natively ported Wan2.1-VACE-1.3B route (reference-image object injection and learned mask conditioning), a measured motion-fidelity ladder (strength vs gesture preservation), broader A14B target size families, and 5-second M5 Max comparison clips.
-- [Bernini-R 1.3B](docs/bernini.md): ordered reference-to-video, reference-guided/source-only video editing, factored downloads, BF16-only memory guidance, and playable proof artifacts.
+- [Bernini-R 1.3B](docs/bernini.md): ordered reference-to-video, reference-guided/source-only video editing, pinned downloads, BF16-only memory guidance, and playable proof artifacts.
 - [Example workflow](docs/examples/spaceship-snow.md): reproducible image and video commands.
 - [Image upscaling](docs/upscaling.md): SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, published five-second Eiffel `1x` and `2x` 3B/7B validation bundles, readable tone-correction labels, and 5x source/output comparisons.
 - [Image edit capabilities](docs/edit-capabilities.md): image-edit contact sheets, exact model/package status, and command logs.
@@ -452,6 +463,14 @@ progress callbacks make long runs observable.
 - [FAQ](docs/faq.md): recurring questions, image-to-image mode selection, SeedVR2 sizing, Qwen edit variants, negative prompts, reframe/outpaint, Wan resolutions, and usage limits.
 - [Troubleshooting](docs/troubleshooting.md): common setup and runtime failures.
 - [Acknowledgements](ACKNOWLEDGEMENTS.md): upstream mflux and model-community credits.
+
+## For AI agents
+
+If you are an AI agent that will run `mlxgen` or call MLX-Gen from Python, load the package agent
+skill at [`skills/mlx-gen/SKILL.md`](skills/mlx-gen/SKILL.md) first. It covers what to check before
+an expensive run, the download-first contract, how model ids resolve, recipes per task, and the
+common failures with their fixes. To register it, copy the `skills/mlx-gen/` folder into your
+agent's skills directory.
 
 ## License
 
