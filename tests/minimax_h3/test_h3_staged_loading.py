@@ -318,10 +318,14 @@ def test_weights_not_read_yet_refuse_a_file_that_changed(tmp_path):
     with pytest.raises(RuntimeError, match="changed on disk after the model was loaded"):
         tables.for_schedule(model.transformer, [mx.array([0.5], dtype=mx.float32)])
 
+    # The decoders are checked the same way until their first use. Checked directly: a whole clip would
+    # evaluate the block's pending reads against the rewritten file.
     model.deferred_weight_bytes = 1
     model.decoder_signatures = stream.signatures
     with pytest.raises(RuntimeError, match="changed on disk after the model was loaded"):
-        model.generate_video(seed=1, prompt="A fox", num_frames=124, width=96, height=64, num_inference_steps=1)
+        model._require_decoder_files()
+    model.deferred_weight_bytes = 0
+    model._require_decoder_files()
 
 
 @pytest.mark.fast
