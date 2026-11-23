@@ -1,11 +1,11 @@
 import json
 import logging
+import os
 from pathlib import Path
 
 import mlx.core as mx
 import numpy as np
 import PIL.Image
-from PIL._typing import StrOrBytesPath
 
 from mflux.cli.output_paths import resolve_collision_free_path
 from mflux.models.common.config.config import Config
@@ -14,6 +14,9 @@ from mflux.utils.box_values import AbsoluteBoxValues, BoxValues
 from mflux.utils.generated_image import GeneratedImage
 from mflux.utils.metadata_builder import MetadataBuilder
 from mflux.utils.tensor_health import TensorHealth
+
+# Pillow keeps this alias in the private `PIL._typing`, which does not import on every Python and Pillow pair.
+StrOrBytesPath = str | bytes | os.PathLike[str] | os.PathLike[bytes]
 
 # No module-scope PIL.Image.init(): PIL registers format plugins itself on the
 # first open()/save(), and eagerly initializing all plugins costs ~0.2 s on
