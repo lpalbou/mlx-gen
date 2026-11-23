@@ -1696,7 +1696,7 @@ package, or quantize the source snapshot at load time.</p>
 </tr>
 <tr>
 <td>mlx-gen</td>
-<td>0.39.0 or later for the published packages.</td>
+<td>0.39.1 or later for the published packages.</td>
 </tr>
 </tbody>
 </table>
@@ -1708,6 +1708,9 @@ package, or quantize the source snapshot at load time.</p>
 <th>Package</th>
 <th>Widths</th>
 <th style="text-align: right;">Disk</th>
+<th>Runs on</th>
+<th style="text-align: right;">Peak memory</th>
+<th style="text-align: right;">Peak memory with <code>--low-ram</code></th>
 </tr>
 </thead>
 <tbody>
@@ -1715,14 +1718,23 @@ package, or quantize the source snapshot at load time.</p>
 <td><a href="https://huggingface.co/AbstractFramework/minimax-h3-8bit"><code>AbstractFramework/minimax-h3-8bit</code></a></td>
 <td>8-bit transformer and conditioner</td>
 <td style="text-align: right;">64.3 GiB</td>
+<td>96 GB Macs and up</td>
+<td style="text-align: right;">77.0 GiB</td>
+<td style="text-align: right;">65.0 GiB</td>
 </tr>
 <tr>
 <td><a href="https://huggingface.co/AbstractFramework/minimax-h3-4bit"><code>AbstractFramework/minimax-h3-4bit</code></a></td>
 <td>Mixed: 4-bit conditioner, 6-bit transformer</td>
 <td style="text-align: right;">44.9 GiB</td>
+<td>64 GB Macs and up; add <code>--low-ram</code> at 64 GB</td>
+<td style="text-align: right;">57.6 GiB</td>
+<td style="text-align: right;">45.6 GiB</td>
 </tr>
 </tbody>
 </table>
+<p>Choose by the memory of your Mac: the 8-bit package on 96 GB or more, the 4-bit package on 64 GB.
+Peak memory is the whole-process footprint of one <code>960x544</code>, 124-frame, 8-step clip;
+<a href="#memory-by-machine">Memory By Machine</a> has the test conditions.</p>
 <p>The 8-bit package is the closest to the released weights. The 4-bit package gives the same scene
 and staging at about twice the 8-bit package's distance from the BF16 weights, in 19 GiB less
 memory. Its transformer is 6-bit because no part of the transformer tolerates 4-bit better than
