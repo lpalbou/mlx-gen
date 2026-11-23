@@ -5,7 +5,7 @@ Open this file when you need to read or branch on the output of `mlxgen capabili
 
 ## `mlxgen capabilities --model <id> [--base-model <alias>] [--family <family>]`
 
-Top level (`schema_version` 16):
+Top level (`schema_version` 17):
 
 | Field | Meaning |
 | --- | --- |
@@ -57,7 +57,8 @@ Option support (send an option only when its flag is `true`):
 | `supports_audio_shift` | `--audio-shift` |
 | `supports_video_strength`, `supports_video_mask` | `--video-strength`, `--video-mask-path` |
 | `supports_last_image`, `supports_context_frames`, `supports_svi` | `--last-image`, `--context-frames`, `--svi-anchor-image` (Wan A14B image-to-video) |
-| `supports_text_encoder_release` | `--release-text-encoder` |
+| `supports_block_streaming` | `--stream-blocks` (MiniMax-H3: read each transformer block from disk at every step instead of holding the transformer in memory) |
+| `supports_text_encoder_release` | Whether releasing the text encoder lowers the peak. `false` on MiniMax-H3 rows: the conditioner is never held in memory, and `--release-text-encoder` is accepted with no effect |
 
 `supports_guidance` and `supports_negative_prompt` are independent: distilled FLUX.2 Klein has
 guidance without a negative prompt, Z-Image Turbo the reverse.
@@ -94,12 +95,12 @@ Precision and memory (where published):
 | Field | Meaning |
 | --- | --- |
 | `weight_precision` | Precision of the released weights before quantization. |
-| `unquantized_weights_bytes` | Resident size of the unquantized weights; compare with the machine's memory. |
+| `unquantized_weights_bytes` | What stands in memory when the weights run unquantized. On MiniMax-H3: the transformer without its AdaLN projections, and the VAEs (43 GiB). |
 | `recommended_quantize` | The quantization to default to, or `null`. |
 | `validated_quantization_bits` | Bit widths with recorded evidence (narrower than what `--quantize` accepts). |
-| `measured_runs` | Array of measured runs: `outcome` (`completed` or `killed`), `footprint_bytes`, `mlx_peak_bytes`, `terminated_at`, and the conditions `quantize`, `width`, `height`, `frames`, `steps`, `cache_limit_bytes`, `release_text_encoder`, `machine_total_ram_bytes`. For a killed run `footprint_bytes` is a lower bound. |
+| `measured_runs` | Array of measured runs: `outcome` (`completed` or `killed`), `footprint_bytes`, `mlx_peak_bytes`, `terminated_at`, and the conditions `quantize` (`null`: the unquantized 16-bit weights), `width`, `height`, `frames`, `steps`, `cache_limit_bytes`, `low_ram`, `stream_blocks`, `machine_total_ram_bytes`. `release_text_encoder` is also present and carries the same value as `low_ram`. For a killed run `footprint_bytes` is a lower bound. |
 | `max_validated_frames` | Largest frame count with a completed measurement. |
-| `peak_bytes_fixed`, `peak_bytes_per_packed_row` | Expected footprint is roughly `peak_bytes_fixed + peak_bytes_per_packed_row x packed_rows`. An estimate, not a guarantee that a run fits. |
+| `peak_bytes_fixed`, `peak_bytes_per_packed_row` | Expected footprint is at most roughly `peak_bytes_fixed + peak_bytes_per_packed_row x packed_rows`. On MiniMax-H3 this is an upper line through the default 8-bit run (`peak_bytes_fixed` 34,390,000,000); prefer the matching `measured_runs` entry for another width or mode. An estimate, not a guarantee that a run fits. |
 
 Outpaint contract (non-null only on outpaint rows):
 
@@ -152,7 +153,8 @@ for row in caps["capabilities"]:  # `mlxgen generate` routes
     if row["default_steps"] is not None:  # published only where the route declares its defaults
         print("  defaults", row["default_width"], row["default_height"], row["default_steps"], row["default_frames"])
     for run in row["measured_runs"]:
-        print("  measured", run["outcome"], run["width"], run["height"], run["frames"], run["footprint_bytes"])
+        mode = "stream-blocks" if run.get("stream_blocks") else "low-ram" if run.get("low_ram") else "default"
+        print("  measured", run["outcome"], run["quantize"], mode, run["width"], run["height"], run["footprint_bytes"])
 for row in caps["restoration"]:  # `mlxgen upscale` routes
     print("upscale", row["id"], row["accepted_media"], "default", row["default_resolution"])
 ```

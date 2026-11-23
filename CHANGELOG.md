@@ -7,6 +7,104 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.40.0] - 2026-11-23
+
+MiniMax-H3 runs in less than half the memory it needed in 0.39, on Macs from 24 GB, and the
+released 16-bit weights run. Other model families are unchanged. The mechanism, the measurements
+and the tests are in [MiniMax-H3 memory, speed and quantization](docs/minimax-h3-memory.md).
+
+### Added
+
+- **`--stream-blocks` for MiniMax-H3** (`MiniMaxH3(..., stream_blocks=True)` in Python). Each
+  transformer block is read from disk for the length of its call instead of the transformer being
+  held in memory. With `--low-ram`, a `960x544`, 124-frame clip peaks at 11.1 GiB from the 8-bit
+  package and 11.7 GiB from the 16-bit weights, and completed on 24 GB and 32 GB of memory. It
+  works from a prepared package, or from the source snapshot without `--quantize`; a request that
+  cannot be met is reported on stderr and the transformer stays in memory. Every step reads the
+  blocks again (20 GiB at 8-bit, 36 GiB at 16-bit), which costs a few percent of a clip's time from
+  an internal SSD; see [Speed](docs/minimax-h3-memory.md#speed).
+- **The released 16-bit MiniMax-H3 weights run.** `mlxgen generate --model minimax-h3-turbo-544p`
+  without `--quantize` runs the source snapshot (134 GiB of weight files) at a 54.4 GiB peak,
+  44.0 GiB with `--low-ram`. In 0.39 this load was refused on a 128 GB Mac.
+- **`AbstractFramework/minimax-h3-bf16`** (115 GiB, gated like the other two packages): the
+  released weights, repacked with only the 50 conditioner layers the model reads and the video VAE
+  at the 16-bit precision it runs at. `mlxgen prepare --model minimax-h3 --path <folder>`, without
+  `--quantize`, writes the same package.
+- **`generate_video(..., release_transformer=True)`** frees the transformer before the decode, as
+  `--low-ram` does on the CLI; the next call reads it again.
+- **Metadata fields** `modulation_tables`, `transformer_blocks_streamed` and `transformer_released`
+  record how a MiniMax-H3 run held the transformer.
+- **Capability fields** (schema 17): `supports_block_streaming` on every generation row, and
+  `low_ram` and `stream_blocks` on each `measured_runs` entry. MiniMax-H3 publishes ten measured
+  runs: the 16-bit, 8-bit and mixed 4-bit weights in each measured mode.
+- **`tools/minimax_h3_memory_probe.py`** produces the reference clips, the velocity errors against
+  the 16-bit weights and the timings behind the memory page.
+
+### Changed
+
+- **MiniMax-H3 peak memory.** A run holds the transformer without its AdaLN projections. The
+  Qwen3-VL conditioner is read from disk layer by layer for the length of an encode, the AdaLN
+  projections are read once per schedule to compute modulation tables, and the VAEs are read at
+  their first use. Peak process footprint at `960x544`, 124 frames, 8 steps on an Apple M5 Max:
+
+  | Weights | 0.39 | 0.40.0 | 0.40.0 with `--low-ram` |
+  | --- | ---: | ---: | ---: |
+  | 8-bit package | 77.0 GiB (65.0 GiB with `--low-ram`) | 37.0 GiB | 26.3 GiB |
+  | Mixed 4-bit package | 57.6 GiB (45.6 GiB with `--low-ram`) | 32.5 GiB | 21.9 GiB |
+  | 16-bit weights | refused | 54.4 GiB | 44.0 GiB |
+
+  At `1344x768` the 8-bit package peaks at 38.3 GiB (82.0 GiB in 0.39). The output is unchanged:
+  clips are byte-identical to the ones 0.39 wrote from the same weights. Affected: everyone running
+  MiniMax-H3; no option is needed to get the lower peak.
+- **Smaller Macs.** The 8-bit package completed a `960x544` clip on 48 GB with default settings,
+  36 GB with `--low-ram` and 24 GB with `--stream-blocks --low-ram`; the 16-bit weights on 96 GB,
+  64 GB and 32 GB; the mixed 4-bit package on 32 GB with `--low-ram`. The sizes were tested on a
+  128 GB Mac with the difference in RAM locked. In 0.39 the 8-bit package needed 96 GB and the
+  4-bit package 64 GB.
+- **`--low-ram` on MiniMax-H3** sets the MLX cache to 1 GB and frees the transformer before the
+  decode. With several seeds in one command the transformer is read again for each seed. The clip
+  is the same file as without the option.
+- **8-bit MiniMax-H3 weights are chosen on the stored grid.** Load-time `--quantize 8` and
+  `mlxgen prepare --quantize 8` pick each weight's level on the 16-bit grid that the file stores,
+  which lowers a layer's weight error by about a quarter at the same size, memory and speed.
+  `AbstractFramework/minimax-h3-8bit` was rebuilt this way and equals load-time `--quantize 8` byte
+  for byte. The mixed 4-bit policy and its package are unchanged.
+- **`mlxgen prepare` for MiniMax-H3 writes one component at a time** and needs the memory of the
+  largest one, 33 GiB for an 8-bit package and 62 GiB for the 16-bit one, instead of the whole
+  model.
+- **The load-time memory check** counts what a run holds in memory, and its message names
+  `--stream-blocks`, `--quantize` and a smaller package as remedies.
+- **A weight file replaced under a loaded MiniMax-H3 model stops the run** with an error that names
+  the file, since weights not read yet would come from the new file.
+- **MiniMax-H3 model cards** list the three packages with their peak memory and smallest tested Mac
+  in each mode.
+
+### Compatibility
+
+- **`--release-text-encoder`, `generate_video(release_text_encoder=...)` and
+  `model.release_text_encoder()` are accepted and have no effect** on MiniMax-H3: the conditioner
+  is never held in memory. Scripts that pass them keep working and can drop them. A `MiniMaxH3`
+  instance exposes `model.conditioner` in place of `model.text_encoder`.
+- **Capabilities `schema_version` is 17.** On MiniMax-H3 rows `supports_text_encoder_release` is
+  `false`; a host that offered a toggle from that field can offer `supports_block_streaming`
+  instead. Each `measured_runs` entry keeps `release_text_encoder`, now with the value of `low_ram`.
+  `quantize` is `null` on the runs of the 16-bit weights, so read it as nullable.
+  `unquantized_weights_bytes` is what stands in memory unquantized (46,074,000,000 bytes, 43 GiB),
+  where 0.39 published the size of all weights. `peak_bytes_fixed` is 34,390,000,000 with the same
+  `peak_bytes_per_packed_row`, an upper line through the default 8-bit run. A host that hard-codes
+  a MiniMax-H3 peak or a minimum machine size should read `measured_runs` instead.
+- **The three packages need mlx-gen 0.40.0 or later for the memory figures above.**
+- **Clips from the rebuilt 8-bit package differ slightly from clips made from the earlier files**,
+  and clips from load-time `--quantize 8` differ slightly from 0.39's: the same scene on the same
+  seed, with small frame-level differences. Run `mlxgen download --model
+  AbstractFramework/minimax-h3-8bit --base-model minimax-h3-turbo-544p` again to fetch the rebuilt
+  files. Clips from the 4-bit package and from `--quantize 4` are byte-identical to 0.39.
+- **Do not replace a package's files while a process generates from it**; load the model again
+  after replacing them.
+- **An adapter that trains the per-block AdaLN projections** keeps them in memory (12.9 GiB at
+  8-bit, 24.2 GiB at 16-bit) and disables `--stream-blocks`. The lightx2v Turbo adapters are not
+  affected.
+
 ## [0.39.2] - 2026-11-23
 
 ### Changed

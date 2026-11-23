@@ -12,12 +12,12 @@ outside chat history.
 | State | Count |
 | --- | ---: |
 | Planned | 17 |
-| Proposed | 41 |
-| Completed | 68 |
+| Proposed | 42 |
+| Completed | 69 |
 | Deprecated | 2 |
 | Recurrent | 1 |
 
-Counts are item files (recounted 2026-11-23 after item 0128 completed and follow-up 0129 was filed; 2026-10-04 after planned items 0126 and 0127 were filed; 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
+Counts are item files (recounted 2026-11-23 after item 0130 completed and follow-up 0131 was filed; 2026-11-23 after item 0128 completed and follow-up 0129 was filed; 2026-10-04 after planned items 0126 and 0127 were filed; 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
 2026-07-25 release hygiene had moved 0093-0095, 0097-0099, and release
 item 0101 to completed/), including topic-track items under
 `planned/memory/`; the completed `planned/runtime_contracts/` track holds only its index.
@@ -356,7 +356,11 @@ memory follow-up state.
 21. MiniMax-H3 shipped as completed items [0117](completed/0117_minimax_h3_text_to_video_audio_runtime.md)
    (text-to-video with synchronized stereo audio, Turbo adapters) and
    [0118](completed/0118_minimax_h3_first_frame_conditioning_vision_tower.md) (first-frame
-   image-to-video through the Qwen3-VL vision tower). Next: the AdaLN precompute and long-sequence performance work
+   image-to-video through the Qwen3-VL vision tower). The AdaLN precompute shipped with 0.40.0 in
+   [0130](completed/0130_minimax_h3_staged_loading_and_reindexed_8bit.md), which also takes the
+   conditioner and the VAEs out of resident memory, adds `--stream-blocks` and the 16-bit package;
+   its follow-ups are [0131](proposed/0131_minimax_h3_memory_followups.md). Next: the long-sequence
+   performance work
    ([0119](proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance.md)). The
    quantized packages shipped with 0.39.0 as completed item
    [0128](completed/0128_minimax_h3_quantized_packages.md), published as gated repositories by the
@@ -431,6 +435,7 @@ memory follow-up state.
 | 0124 | [Publish each route's accepted options, derived from its parser](proposed/0124_publish_accepted_options_per_route.md) | Capability schema, CLI routing, host integration | Promote when a host again needs per-family knowledge to withhold an option; adding one `supports_<option>` boolean per case does not scale and mis-declares routes nobody considered. |
 | 0125 | [MiniMax-H3 adapter layouts, validated one real file per producer](proposed/0125_minimax_h3_lora_layouts_validation.md) | MiniMax-H3, LoRA | Promote when a kohya / musubi-tuner or DiffSynth-Studio H3 adapter is at hand; the mapping ships for the original-checkpoint layout (validated with an ai-toolkit civitai file on 2026-09-09) and refuses DiffSynth's interleaved fused QKV until a real file proves the de-interleave. |
 | 0129 | [Router and docs follow-ups from the 0.39.0 documentation pass](proposed/0129_router_and_docs_followups_from_the_0_39_0_documentation_pass.md) | Router messages, local-folder routing, docs | Promote the message and routing items when the router is next touched; the documentation items can ride with any docs pass. Eleven findings from checking the agent skill against the code, none of which blocks a documented workflow. |
+| 0131 | [MiniMax-H3 memory follow-ups after staged loading](proposed/0131_minimax_h3_memory_followups.md) | MiniMax-H3, memory, block streaming, quantization, preflight | Promote the re-indexing of other families' 8-bit weights when another family's 8-bit package is next rebuilt; the read-rate report, the plan-based preflight, the working-memory and load-time-quantization items can ride with the next change to the MiniMax-H3 runtime; keeping several blocks in memory while streaming needs a report of slow streaming from a user first. Nine candidates left out of item 0130, none needed for the shipped behavior. |
 
 ## Completed ledger
 
@@ -504,6 +509,7 @@ memory follow-up state.
 | 0118 | [MiniMax-H3 first-frame conditioning through the Qwen3-VL vision tower](completed/0118_minimax_h3_first_frame_conditioning_vision_tower.md) | MiniMax-H3 image-to-video, Qwen3-VL vision tower, DeepStack | 2026-09-05 | Ported the vision tower, processor, rope index and DeepStack injection (exact vs transformers, real weights 1e-5), shipped `--image-path` first-frame conditioning with the reference's keyframe canvas, presentation and condition-latent recipe, and the `minimax-h3.first-frame` capability row. |
 | 0120 | [MiniMax-H3 embedding-host contract](completed/0120_minimax_h3_embedding_host_contract.md) | Capability schema 13, progress events, duration bounds, host integration | 2026-09-06 | From a BlackPixel feature request, adversarially verified first. Fixed progress never reaching the callback registry, the `denoising`/duplicate-`complete` phase vocabulary, a documented maximum frame count (362) that always raised, duplicate prompt sections, the duplicate Turbo label, unvalidated Python-runtime keywords, health validation running before the audio mux, and a sidecar that could overwrite. Published the audio, duration, sampling and per-entry-default fields plus `prompt_sections` descriptors at `schema_version` 13. Follow-ups 0121-0123. |
 | 0128 | [MiniMax-H3 quantized packages on Hugging Face](completed/0128_minimax_h3_quantized_packages.md) | MiniMax-H3, quantization policy, packaging, Hugging Face, release 0.39.0 | 2026-11-23 | Published `minimax-h3-8bit` (64.3 GiB) and the mixed-width `minimax-h3-4bit` (44.9 GiB: 4-bit conditioner, 6-bit transformer) as gated repositories. The policy is measured: no transformer family tolerates 4-bit better than another, the AdaLN projections quantize like any linear (the earlier failure was an input cast), and the vision tower stays unquantized. Fixed cache resolution of downloaded packages, package tokenizers, the model card, and the loader's refusal of mismatched packages. The 8-bit package runs on 96 GB and the 4-bit one on 64 GB with `--low-ram`, both tested with RAM locked away. |
+| 0130 | [MiniMax-H3 staged loading, block streaming, re-indexed 8-bit weights and the 16-bit package](completed/0130_minimax_h3_staged_loading_and_reindexed_8bit.md) | MiniMax-H3, memory, block streaming, quantization, packaging, capability schema 17, release 0.40.0 | 2026-11-23 | The conditioner is read from disk for the length of an encode, the AdaLN projections become per-schedule modulation tables, the VAEs are read at first use, and `--stream-blocks` reads each transformer block for the length of its call. Peak at `960x544`, 124 frames: 37.0 GiB with the 8-bit package (26.3 GiB with `--low-ram`, 11.1 GiB streamed) and 54.4 GiB with the released 16-bit weights (44.0 GiB, 11.7 GiB), byte-identical clips in every mode. Locked-RAM runs completed at 48 / 36 / 24 GB (8-bit), 96 / 64 / 32 GB (16-bit) and 32 GB (mixed 4-bit). 8-bit levels are chosen on the stored grid; `minimax-h3-8bit` was rebuilt and `minimax-h3-bf16` (115 GiB) published. `mlxgen prepare` writes one component at a time. Follow-up 0131. |
 
 ## Deprecated ledger
 

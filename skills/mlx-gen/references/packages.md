@@ -52,8 +52,8 @@ Identifying the model behind a name:
   saving only.
 - Bonsai is already packed (omit `--quantize`, no `prepare`). Bernini-R is BF16 only (rejects
   `--quantize` and `prepare`). SwiftVR is BF16 only.
-- MiniMax-H3 accepts only `--quantize 8` or `--quantize 4` on its source snapshot; see
-  [minimax-h3.md](minimax-h3.md).
+- MiniMax-H3 accepts only `--quantize 8` or `--quantize 4` on its source snapshot, and runs the
+  released 16-bit weights without it; see [minimax-h3.md](minimax-h3.md).
 - Packages are MLX-Gen specific: they do not load with Diffusers or Transformers
   `from_pretrained()`, and third-party FP8/NVFP4 checkpoints are not MLX-Gen inputs.
 
@@ -82,7 +82,7 @@ packages with `mlxgen upscale`.
 | Wan2.2 TI2V-5B | 31.9 | `wan2.2-ti2v-5b-diffusers-bf16` (21.2), `wan2.2-ti2v-5b-diffusers-8bit` (16.9) |
 | Wan2.2 T2V-A14B | 117.5 | `wan2.2-t2v-a14b-diffusers-bf16` (64.1), `wan2.2-t2v-a14b-diffusers-8bit` (39.5) |
 | Wan2.2 I2V-A14B | 117.5 | `wan2.2-i2v-a14b-diffusers-bf16` (64.1), `wan2.2-i2v-a14b-diffusers-8bit` (39.5) |
-| MiniMax-H3 | about 140 GB | `minimax-h3-8bit` (about 64), `minimax-h3-4bit` (about 45) |
+| MiniMax-H3 | 134 | `minimax-h3-bf16` (115), `minimax-h3-8bit` (64.3), `minimax-h3-4bit` (44.9) |
 
 Notes:
 
@@ -92,6 +92,12 @@ Notes:
   (`mlxgen download --model bernini-r-1.3b`, about 27 GiB plus 2 GiB of required free-space
   headroom) have no quantized package.
 - No Wan 4-bit package is published.
+- MiniMax-H3 at `960x544`, 124 frames, peaks at 54.4 GiB (`minimax-h3-bf16`), 37.0 GiB
+  (`minimax-h3-8bit`) or 32.5 GiB (`minimax-h3-4bit`) with default settings, and completes on
+  96 GB and 48 GB Macs for the first two. `--low-ram` lowers the peaks to 44.0, 26.3 and 21.9 GiB
+  (64, 36 and 32 GB Macs), and `--stream-blocks --low-ram` to 11.7 and 11.1 GiB for the 16-bit and
+  8-bit packages (32 and 24 GB Macs). The packages need mlx-gen 0.40.0 or newer for these
+  figures; see [minimax-h3.md](minimax-h3.md).
 - Model weights keep their original licenses and access terms. FLUX.2 Klein 9B packages are gated
   and non-commercial; MiniMax-H3 packages carry a territory-restricted license.
 

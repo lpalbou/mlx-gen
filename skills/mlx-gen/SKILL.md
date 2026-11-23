@@ -4,7 +4,7 @@ description: Run local image and video generation on Apple Silicon with MLX thro
 license: MIT
 compatibility: macOS on Apple Silicon with MLX; Python 3.10 or newer. Runs locally from model files on disk. Network access is needed only for `mlxgen download` (and for `mlxgen prepare` when the source model is not cached). Models need from a few GiB to more than 100 GiB of disk and of unified memory.
 metadata:
-  package-version: "0.39.2"
+  package-version: "0.40.0"
 ---
 
 # mlx-gen
@@ -221,9 +221,9 @@ outpaint from Python: [references/python-api.md](references/python-api.md).
   reference points: FLUX.2 Klein 4B 8-bit at 512px, 9.2 GiB peak; Qwen Image Edit 2511 8-bit at
   768x432, 30.9 GiB peak; Wan A14B, about 33 GiB peak even at a small 384x224 profile, and about
   30 minutes for a five-second 480x240 clip on an Apple M5 Max; Wan TI2V-5B 8-bit at 1280x704 and
-  17 frames, 103.7 GiB peak; MiniMax-H3 at `960x544` and 124 frames, 77.0 GiB peak with the 8-bit
-  package (45.6 GiB with the 4-bit package and `--low-ram`) and 11 to 17 minutes per clip.
-  Downloads run from 3.6 GiB (Bonsai) to about 140 GB (MiniMax-H3 source).
+  17 frames, 103.7 GiB peak; MiniMax-H3 at `960x544` and 124 frames, 37.0 GiB peak with the 8-bit
+  package (26.3 GiB with `--low-ram`, 11.1 GiB with `--stream-blocks --low-ram`) and 11 to 17
+  minutes per clip. Downloads run from 3.6 GiB (Bonsai) to 134 GiB (MiniMax-H3 source).
 - A run that does not fit can be killed by the OS mid-denoise with no output, and other
   applications' memory counts. Start with the smallest documented profile, run one heavy job at a
   time, and in Python serialize access to a loaded model.

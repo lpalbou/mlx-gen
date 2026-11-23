@@ -337,29 +337,59 @@ For RV2V/V2V, Bernini requires source-aspect, resize-only video conditioning. It
 rejects crop, pad, exact-resize, `--video-strength`, masks, LoRA, and non-UniPC solvers. See
 [Bernini-R 1.3B](bernini.md) and its [validation bundle](assets/validation/bernini-r-1.3b-2026-08-11/README.md).
 
-## MiniMax-H3 Refuses To Load Without `--quantize 8`
+## MiniMax-H3 Stops At Load With "Needs About N GiB Of Resident Weights"
 
-Unquantized, this model's weights are 125 GiB resident, which is 97% of a 128 GiB Mac before any
-activations, so the runtime refuses the load and names the remedy instead of letting the OS kill the
-process partway through. Pass `--quantize 8`, or load a prepared q8 package. On a machine with enough
-memory the same load proceeds: the check compares against your own hardware, and the capability row
-publishes `unquantized_weights_bytes` so an application can make the same decision in advance.
+A MiniMax-H3 run holds the transformer without its AdaLN projections in memory: 20 GiB at 8-bit and
+37.5 GiB at 16-bit, plus the Turbo adapter and the VAEs. When that part alone is more than 85% of
+the machine's memory the runtime stops before reading it and names the remedies, instead of
+letting the OS kill the process partway through. In order of preference:
+
+- pass `--stream-blocks --low-ram`, which reads each transformer block from disk at every step and
+  holds one block at a time;
+- load a smaller package: `AbstractFramework/minimax-h3-8bit` instead of the 16-bit weights, or
+  `AbstractFramework/minimax-h3-4bit`;
+- on the source snapshot, pass `--quantize 8` or `--quantize 4`.
+
+The check compares against your own hardware, and the capability row publishes `measured_runs` and
+`unquantized_weights_bytes` so an application can make the same decision in advance.
 
 ## MiniMax-H3 Runs Out Of Memory Or Disk
 
-MiniMax-H3 needs about 140 GB of disk for its source snapshot, or 64.3 GiB for the 8-bit package
-and 44.9 GiB for the mixed 4-bit one. On a `960x544`, 124-frame clip the 8-bit package peaks at a
-77.0 GiB process footprint (65.0 GiB with `--low-ram`) and the 4-bit package at 57.6 GiB (45.6 GiB
-with `--low-ram`); at `1344x768` the 8-bit package peaks at 82.0 GiB. Use the 8-bit package on 96 GB or more and the 4-bit package with `--low-ram` on
-64 GB; [Memory By Machine](minimax-h3.md#memory-by-machine) has the table. Close other memory-heavy
-applications, and prefer `minimax-h3-turbo-544p` over the
-768p entries while iterating; the 768p canvas costs about five minutes per step. The MLX
-free-buffer cache is capped at the process default (up to 8 GiB); `--mlx-cache-limit-gb` lowers or
-lifts that cap. If `mlxgen download` stops early, check free disk space and rerun it (downloads
-resume). The first source load after a download reads 134 GB of shards from disk and takes a few
-minutes; later loads are fast, and a package (`AbstractFramework/minimax-h3-8bit`,
-`AbstractFramework/minimax-h3-4bit`, or your own from `mlxgen prepare`) skips the quantization pass
-on every load.
+Disk: the 16-bit package is 115 GiB, the 8-bit package 64.3 GiB and the mixed 4-bit one 44.9 GiB;
+the source snapshot is 134 GiB of weight files. If `mlxgen download` stops early, check free disk
+space and rerun it (downloads resume).
+
+Memory: on a `960x544`, 124-frame clip the 8-bit package peaks at a 37.0 GiB process footprint with
+default settings, 26.3 GiB with `--low-ram` and 11.1 GiB with `--stream-blocks --low-ram`. The
+16-bit weights peak at 54.4 GiB, 44.0 GiB and 11.7 GiB in the same three modes, and the mixed 4-bit
+package at 32.5 GiB and 21.9 GiB with `--low-ram`. At `1344x768` the default mode peaks at 38.3 GiB
+(8-bit) and 55.7 GiB (16-bit). When a run does not fit:
+
+- add `--low-ram` (a 1 GB MLX cache, and the transformer freed before the decode), then
+  `--stream-blocks --low-ram` (each transformer block read from disk at every step). The clip is
+  the same file in every mode, and each option costs a few percent of a clip's time;
+- pick the mode by machine size from [Memory By Machine](minimax-h3.md#memory-by-machine): the
+  8-bit package completes on 48 GB by default, on 36 GB with `--low-ram` and on 24 GB with
+  `--stream-blocks --low-ram`; the 16-bit weights on 96 GB, 64 GB and 32 GB;
+- close other memory-heavy applications: their memory counts;
+- prefer `minimax-h3-turbo-544p` over the 768p entries while iterating; the 768p canvas costs about
+  five minutes per step.
+
+The MLX free-buffer cache is capped at the process default (up to 8 GiB); `--mlx-cache-limit-gb`
+lowers or lifts that cap, and what it allows adds to the footprint.
+
+If stderr says "the transformer blocks are not streamed from disk", `--stream-blocks` did not
+apply and the transformer stayed in memory. The message names the reason: a source snapshot loaded
+with `--quantize` (stream from a prepared package, or load the snapshot without `--quantize`), or
+an adapter that trains the per-block AdaLN projections.
+
+## MiniMax-H3 Stops With "Changed On Disk After The Model Was Loaded"
+
+The conditioner, the AdaLN projections, the VAEs and streamed transformer blocks are read from the
+weight files after the model is loaded. When one of those files is replaced while the model is
+loaded, the weights not read yet would come from the new file, so the runtime checks the files
+before each of those reads and stops. Load the model again; do not rewrite or re-download a
+package while a process is generating from it.
 
 If loading a package stops with "splits `<d>` ... into several tokens", its tokenizer does not carry
 the model's dialogue markers. Prepare the package again; the message names the command.

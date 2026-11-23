@@ -17,29 +17,59 @@ runs through `mlxgen generate` as `text-to-video`, or `image-to-video` when `--i
 - **Cost.** This is the heaviest model in the package. Agree on the schedule, canvas, and frame
   count with the user before starting, and run nothing else heavy alongside it.
 
-| Profile (124 frames) | Peak memory | Peak with `--low-ram` | Time per clip |
-| --- | ---: | ---: | --- |
-| 8-bit package, `minimax-h3-turbo-544p`, `960x544` | 77.0 GiB | 65.0 GiB | 11 to 17 min |
-| 4-bit package, `minimax-h3-turbo-544p`, `960x544` | 57.6 GiB | 45.6 GiB | 11 to 17 min |
-| 8-bit package, `minimax-h3-turbo`, `1344x768` | 82.0 GiB | not measured | about 34 min |
-| 8-bit package, base schedule (50 steps), `960x544` | as the 8-bit `960x544` row | | about 62 min |
+| Profile (124 frames, default mode) | Peak memory | Time per clip |
+| --- | ---: | --- |
+| 8-bit package, `minimax-h3-turbo-544p`, `960x544` | 37.0 GiB | 11 to 17 min |
+| 16-bit package, `minimax-h3-turbo-544p`, `960x544` | 54.4 GiB | 11 to 17 min |
+| 4-bit package, `minimax-h3-turbo-544p`, `960x544` | 32.5 GiB | 11 to 17 min |
+| 8-bit package, `minimax-h3-turbo`, `1344x768` | 38.3 GiB | about 34 min |
+| 16-bit package, `minimax-h3-turbo`, `1344x768` | 55.7 GiB | about 34 min |
+| 8-bit package, base schedule (50 steps), `960x544` | as the 8-bit `960x544` row | about 62 min |
 
 Peak memory is the whole-process footprint on an Apple M5 Max; times assume an otherwise idle
-machine. Pick the package by machine memory: the 8-bit package from 96 GB, the 4-bit package with
-`--low-ram` on 64 GB (close other memory-heavy applications first), neither below that. A longer
-clip or larger canvas costs more, about 0.25 GiB per thousand packed rows (`960x544` at 124 frames
-is 19,484 rows; `1344x768` at 124 frames and `960x544` at 243 frames are about 37,800).
+machine. A longer clip costs more than the 124-frame figure.
+
+## Memory modes
+
+A run holds the transformer in memory and reads the rest from disk when it is needed (the text
+conditioner during an encode, the AdaLN projections once per schedule, the VAEs at first use). Two
+options lower the peak further. All three modes write the same clip, and each option costs a few
+percent of a clip's time.
+
+| Mode | What it does |
+| --- | --- |
+| default | Transformer in memory; MLX cache up to 8 GiB. |
+| `--low-ram` | MLX cache 1 GB, and the transformer is freed before the decode (read again for each seed). |
+| `--stream-blocks --low-ram` | Each transformer block is read from disk for the length of its call, at every step (20 GiB per step at 8-bit, 36 GiB at 16-bit). Needs a prepared package, or the source snapshot without `--quantize`. |
+
+Pick the mode by the machine's unified memory. Each cell is the peak at `960x544`, 124 frames, and
+the smallest Mac memory that run completed on:
+
+| Package | Default | `--low-ram` | `--stream-blocks --low-ram` |
+| --- | --- | --- | --- |
+| `AbstractFramework/minimax-h3-bf16` | 54.4 GiB, 96 GB | 44.0 GiB, 64 GB | 11.7 GiB, 32 GB |
+| `AbstractFramework/minimax-h3-8bit` | 37.0 GiB, 48 GB | 26.3 GiB, 36 GB | 11.1 GiB, 24 GB |
+| `AbstractFramework/minimax-h3-4bit` | 32.5 GiB, not tested | 21.9 GiB, 32 GB | not measured |
+
+- The machine sizes were tested on a 128 GB Mac with the difference in RAM locked, not on Macs of
+  those sizes. Close other memory-heavy applications near the low end of a range.
+- On 36 GB, `--low-ram` alone completes but takes 60% longer; use `--stream-blocks --low-ram` at
+  36 GB and below.
+- If stderr says "the transformer blocks are not streamed from disk", the option did not apply and
+  the transformer stayed in memory; the message names the reason.
 
 ## Packages and schedules
 
-Two published packages hold the base weights already quantized. They need mlx-gen 0.39.1 or newer.
+Three published packages hold the base weights. They need mlx-gen 0.40.0 or newer for the memory
+figures above.
 
-| Package | Contents | Disk | Runs on |
-| --- | --- | ---: | --- |
-| `AbstractFramework/minimax-h3-8bit` | 8-bit; the closest to the released weights | about 64 GiB | 96 GB Macs and up |
-| `AbstractFramework/minimax-h3-4bit` | Mixed: 4-bit conditioner, 6-bit transformer; for less memory | about 45 GiB | 64 GB Macs and up; add `--low-ram` at 64 GB |
+| Package | Contents | Disk |
+| --- | --- | ---: |
+| `AbstractFramework/minimax-h3-8bit` | 8-bit; recommended. Close to the 16-bit weights' own noise floor, same sharpness | 64.3 GiB |
+| `AbstractFramework/minimax-h3-bf16` | The released 16-bit weights, repacked | 115 GiB |
+| `AbstractFramework/minimax-h3-4bit` | Mixed: 4-bit conditioner, 6-bit transformer; loses 12 to 20% of fine detail on text-to-video clips | 44.9 GiB |
 
-Neither package contains a speed adapter. `--base-model` chooses the schedule the package runs as:
+No package contains a speed adapter. `--base-model` chooses the schedule the package runs as:
 
 | `--base-model` | Steps | Default canvas | Use |
 | --- | ---: | --- | --- |
@@ -68,14 +98,29 @@ Success: `<CLIP.mp4>` (124 frames at `960x544`, 24 fps, stereo AAC) and `<CLIP>.
 The `capabilities` call should print `"label": "MiniMax-H3 Turbo 544p"` with `default_steps` 8;
 if it prints `"MiniMax-H3"` and 50 steps, `--base-model` is missing.
 
+On a machine below 48 GB, add the mode from the table above to the same command:
+
+```sh
+mlxgen generate \
+  --model "AbstractFramework/minimax-h3-8bit" \
+  --base-model minimax-h3-turbo-544p \
+  --prompt "<PROMPT>" --soundscape "<SOUND>" --music "<MUSIC>" \
+  --stream-blocks --low-ram \
+  --seed 42 --metadata \
+  --output "<CLIP.mp4>"
+```
+
+Success: the same files, and the CLI prints "Transformer blocks are read from disk at every step"
+with the GiB read per step. The sidecar records `transformer_blocks_streamed: true`.
+
 ### Running from the source snapshot instead
 
 The catalog entries `minimax-h3`, `minimax-h3-turbo`, and `minimax-h3-turbo-544p` address the
-source repository `MiniMaxAI/MiniMax-H3` (about 140 GB on disk) with the same three schedules.
+source repository `MiniMaxAI/MiniMax-H3` (134 GiB of weight files) with the same three schedules.
 There `--quantize` accepts only `8` or `4` for this model (`4` is the same mixed policy as the
-4-bit package); other values are refused. Omitting it loads the weights unquantized, which needs a
-machine larger than their `unquantized_weights_bytes` (published by `capabilities`); a load that
-cannot fit is refused with a message naming the remedy, instead of being killed mid-load.
+4-bit package); other values are refused. Omitting it runs the released 16-bit weights, at the
+memory of the 16-bit package. A load that cannot fit is refused with a message naming the remedy
+(`--stream-blocks`, `--quantize`, or a smaller package), instead of being killed mid-load.
 
 ```sh
 mlxgen download --model minimax-h3-turbo-544p
@@ -85,7 +130,8 @@ mlxgen generate --model minimax-h3-turbo-544p --quantize 8 \
 ```
 
 A package gives the same result as load-time quantization at the same width and skips the
-quantization pass on every load, so prefer a package.
+quantization pass on every load, so prefer a package. `--stream-blocks` does not apply to a source
+snapshot loaded with `--quantize`.
 
 ## Prompting
 
@@ -117,17 +163,20 @@ The model is trained on three labelled sections:
 | `--steps` | Transformer evaluations: `8` on the Turbo schedules, `50` on the base schedule. |
 | `--video-shift`, `--audio-shift` | Schedule shifts. Defaults `12` / `3` (base and 544p), `6` / `3` (768p Turbo). |
 | `--no-audio` | Skip the audio decode and write a silent clip. |
-| `--release-text-encoder` | Drop the text conditioner after encoding the prompt; lowers the peak during denoising, not during loading. |
-| `--low-ram` | Tightens the MLX cache and releases the conditioner after encoding. |
+| `--low-ram` | MLX cache 1 GB instead of up to 8 GiB, and the transformer is freed before the decode. Same clip. |
+| `--stream-blocks` | Read each transformer block from disk for the length of its call instead of holding the transformer in memory. Same clip. A request that cannot be met is reported on stderr. |
+| `--release-text-encoder` | Accepted and has no effect: the text conditioner is never held in memory. |
 | `--mlx-cache-limit-gb` | Caps the MLX free-buffer cache. Raising it raises the peak more than a larger canvas does. |
 | `--lora-paths`, `--lora-scales` | Replace the automatic Turbo adapter with the list you pass (see below). |
 | `--seed`, `--auto-seeds`, `--metadata`, `--output`, `--json-events`, `--no-replace` | As on other generate routes. |
 
-Memory follows the packed sequence length, which grows with both canvas and frame count: a longer
-clip costs more than the 124-frame figure. Before a long run the runtime estimates the peak,
+Working memory follows the packed sequence length, which grows with both canvas and frame count: a
+longer clip costs more than the 124-frame figure. Before a long run the runtime estimates the peak,
 refuses a request that cannot fit, and warns when other processes will decide the outcome. Read
-`measured_runs`, `max_validated_frames`, `peak_bytes_fixed`, and `peak_bytes_per_packed_row` from
-`mlxgen capabilities` for the published measurements; `max_frames` is only the decode limit.
+`measured_runs` (each run carries `quantize`, `low_ram`, and `stream_blocks`; `quantize: null` is
+the 16-bit weights), `supports_block_streaming`, `max_validated_frames`, `peak_bytes_fixed`, and
+`peak_bytes_per_packed_row` from `mlxgen capabilities` for the published measurements; `max_frames`
+is only the decode limit.
 
 ## Output
 
@@ -135,6 +184,8 @@ refuses a request that cannot fit, and warns when other processes will decide th
   (they differ when `--frames` was rounded), `duration_seconds`, and the audio fields
   `audio_present`, `audio_source`, `audio_channels`, `audio_sample_rate`,
   `audio_duration_seconds`, `audio_muxed`, `audio_codec`, `audio_mux_mode`.
+- It also records the memory mode of the run: `modulation_tables`, `transformer_blocks_streamed`,
+  and `transformer_released`.
 - If the soundtrack cannot be muxed (no `ffmpeg` on `PATH` and the fallback fails), the video is
   still written and the track is saved as `<output>.wav`; `audio_sidecar_path` names it. Check
   `audio_muxed` before reporting a clip with sound.
@@ -181,8 +232,14 @@ print(result.saved_path, result.artifact.audio.sample_rate)
 
 The generate keywords are `prompt`, `soundscape`, `music`, `image_path`, `width`, `height`,
 `num_frames`, `num_inference_steps`, `video_shift`, `audio_shift`, `generate_audio`, and
-`release_text_encoder`. The artifact carries the soundtrack as `artifact.audio` (`waveform`,
-`sample_rate`).
+`release_transformer` (`True` frees the transformer before the decode, as `--low-ram` does).
+`release_text_encoder` is accepted and has no effect. The artifact carries the soundtrack as
+`artifact.audio` (`waveform`, `sample_rate`).
+
+Block streaming is a constructor argument of the model class, `stream_blocks=True`. Through the
+runtime pass it as `load_generation_model(model=MODEL, base_model=SCHEDULE,
+model_kwargs={"stream_blocks": True})`; `mx.set_cache_limit(1_000_000_000)` from `mlx.core` is the
+cache part of `--low-ram`.
 
 ## Limits and failures
 
@@ -190,7 +247,13 @@ The generate keywords are `prompt`, `soundscape`, `music`, `image_path`, `width`
 - Fast hand-object interaction is where the 8-step schedules are least reliable.
 - "splits `<d>` ... into several tokens" when loading a package you prepared: its tokenizer lost
   the dialogue markers. Prepare the package again with the command in the message.
-- Out of memory or disk: use the 4-bit package, the 544p schedule, 124 frames, close other
-  GPU-heavy applications, and rerun an interrupted download (downloads resume).
+- Out of memory: add `--low-ram`, then `--stream-blocks --low-ram`; use the 544p schedule and 124
+  frames; close other memory-heavy applications. Out of disk: the 4-bit package is the smallest;
+  rerun an interrupted download (downloads resume).
+- "changed on disk after the model was loaded": a weight file was replaced while the model was
+  loaded. Load the model again, and do not rewrite a package while a process generates from it.
+- An adapter that trains the per-block AdaLN projections keeps them in memory and disables
+  `--stream-blocks`. The Turbo adapters do not.
 
-Source docs: <https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/minimax-h3.md>.
+Source docs: <https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/minimax-h3.md> and
+<https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/minimax-h3-memory.md>.

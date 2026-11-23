@@ -29,10 +29,10 @@ more steps, longer videos, and heavier edit modes need more than the measured pr
 | Memory | Images | Edits | Video | Restoration |
 | --- | --- | --- | --- | --- |
 | 18 GB | `prism-ml/bonsai-image-ternary-4B-mlx-2bit`, `AbstractFramework/flux.2-klein-4b-8bit`, `AbstractFramework/ernie-image-turbo-8bit` | ERNIE 8-bit for latent restyle, Klein 4B 8-bit for lighter edits; avoid Qwen edit and control routes | No production recommendation (Bernini-R fits the tested low-RAM shapes but is experimental) | SeedVR2 3B/7B image upscaling |
-| 24 GB | add `AbstractFramework/fibo-8bit`, `AbstractFramework/z-image-turbo-8bit`, `AbstractFramework/qwen-image-2512-8bit` (text only) | Z-Image Turbo 8-bit latent and inpaint; Klein 4B 8-bit stays the lighter edit default | No conservative Wan A14B recommendation | SeedVR2 image upscaling; video restore needs more headroom |
-| 32 GB | same, with more headroom | same; Klein 4B and Z-Image Turbo are safer than Qwen Edit | Wan A14B is above this tier | `AbstractFramework/seedvr2-3b-8bit` five-second video restore is in range |
-| 64 GB | all image families | add `AbstractFramework/qwen-image-edit-2511-8bit`, `AbstractFramework/qwen-image-8bit` control and control-inpaint | First conservative tier for Wan A14B; MiniMax-H3 with `AbstractFramework/minimax-h3-4bit` and `--low-ram` | SeedVR2 7B image upscaling; keep SeedVR2 3B for video restore |
-| 128 GB or more | everything | everything | add Wan TI2V-5B 8-bit high-resolution profiles and `AbstractFramework/minimax-h3-8bit` (fits from 96 GB) | add SeedVR2 7B five-second video restore |
+| 24 GB | add `AbstractFramework/fibo-8bit`, `AbstractFramework/z-image-turbo-8bit`, `AbstractFramework/qwen-image-2512-8bit` (text only) | Z-Image Turbo 8-bit latent and inpaint; Klein 4B 8-bit stays the lighter edit default | No conservative Wan A14B recommendation; MiniMax-H3 with `AbstractFramework/minimax-h3-8bit` and `--stream-blocks --low-ram` | SeedVR2 image upscaling; video restore needs more headroom |
+| 32 GB | same, with more headroom | same; Klein 4B and Z-Image Turbo are safer than Qwen Edit | Wan A14B is above this tier; MiniMax-H3 with `--stream-blocks --low-ram` (8-bit or 16-bit package) | `AbstractFramework/seedvr2-3b-8bit` five-second video restore is in range |
+| 64 GB | all image families | add `AbstractFramework/qwen-image-edit-2511-8bit`, `AbstractFramework/qwen-image-8bit` control and control-inpaint | First conservative tier for Wan A14B; MiniMax-H3 with `AbstractFramework/minimax-h3-8bit` and default settings (fits from 48 GB), or the 16-bit package with `--low-ram` | SeedVR2 7B image upscaling; keep SeedVR2 3B for video restore |
+| 128 GB or more | everything | everything | add Wan TI2V-5B 8-bit high-resolution profiles and `AbstractFramework/minimax-h3-bf16` with default settings (fits from 96 GB) | add SeedVR2 7B five-second video restore |
 
 Measured peaks behind that table:
 

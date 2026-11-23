@@ -221,9 +221,9 @@ class MiniMaxH3Initializer:
         resident_modulation: bool = False,
         stream_blocks: bool = False,
     ) -> None:
-        # Unquantized, the released weights do not fit a 128 GiB machine, and without this the OS kills the
-        # process partway through the load with nothing said. Reports and stops; never quantizes on the caller's
-        # behalf (ADR 0002).
+        # What a run holds in memory can exceed a small machine, and without this the OS kills the process
+        # partway through the load with nothing said. Reports and stops; never quantizes or streams on the
+        # caller's behalf (ADR 0002).
         physical_bytes = RuntimeMemory.total_physical_memory_bytes()
         if physical_bytes <= 0:
             # Unknown physical memory: a preflight that guesses would refuse runs that fit.
