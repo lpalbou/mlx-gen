@@ -6,6 +6,7 @@ step), two rectified-flow schedulers (video shift 12, audio shift 3) advanced in
 visual VAE decode in ImageNet pixel space and the fp32 audio VAE decode at 32 kHz.
 """
 
+import gc
 import hashlib
 import shutil
 import sys
@@ -22,6 +23,7 @@ from mlx.utils import tree_flatten
 from mflux.callbacks import ProgressEvent
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.lora.mapping.lora_loader import LoRALoader
+from mflux.models.common.weights.loading.streaming_weight_loader import StreamingWeightLoader
 from mflux.models.minimax_h3.latent_creator.h3_layout import (
     AUDIO_CHANNELS,
     CANVAS_MAX_PIXELS,
@@ -136,6 +138,7 @@ class MiniMaxH3(nn.Module):
         model_path: str | None = None,
         lora_paths: list[str] | None = None,
         lora_scales: list[float] | None = None,
+        stream_blocks: bool = False,
     ):
         super().__init__()
         MiniMaxH3Initializer.init(
@@ -145,6 +148,7 @@ class MiniMaxH3(nn.Module):
             model_path=model_path,
             lora_paths=lora_paths,
             lora_scales=lora_scales,
+            stream_blocks=stream_blocks,
         )
 
     # ------------------------------------------------------------------ public API
@@ -165,8 +169,11 @@ class MiniMaxH3(nn.Module):
         generate_audio: bool = True,
         progress_callback=None,
         release_text_encoder: bool = False,
+        release_transformer: bool = False,
     ) -> GeneratedVideo:
         started = time.perf_counter()
+        if self.transformer is None:
+            MiniMaxH3Initializer.load_transformer(self)
         keyframe = self._load_keyframe(image_path) if image_path is not None else None
         plan = self._plan(width, height, num_frames, num_inference_steps, video_shift, audio_shift, keyframe=keyframe)
         self._preflight_request(plan)
@@ -177,8 +184,6 @@ class MiniMaxH3(nn.Module):
         keyframes = [self._fit_keyframe(keyframe, plan.width, plan.height)] if keyframe is not None else []
 
         prompt_embeds, text_token_tags = self._encode_presentation(full_prompt, keyframes)
-        if release_text_encoder:
-            self.release_text_encoder()
         text_length = prompt_embeds.shape[1]
         layout = build_packed_sequence(
             text_token_tags,
@@ -225,14 +230,17 @@ class MiniMaxH3(nn.Module):
         num_condition_audio_rows = layout.num_condition_audio_rows
 
         total_steps = len(video_scheduler.timesteps)
+        # Every step's timesteps are fixed by the schedule, so the AdaLN modulation of the whole run is
+        # computed here, before the first step.
+        row_timesteps = [
+            build_row_timesteps(layout, float(video_t), float(audio_t), max(float(video_t), KEYFRAME_NOISE_AUG), 1.0)
+            for video_t, audio_t in zip(video_scheduler.timesteps, audio_scheduler.timesteps)
+        ]
+        modulation = None
+        if self.modulation_tables is not None:
+            modulation = self.modulation_tables.for_schedule(self.transformer, [unique for unique, _ in row_timesteps])
         for step, (video_t, audio_t) in enumerate(zip(video_scheduler.timesteps, audio_scheduler.timesteps)):
-            unique_timesteps, timestep_indices = build_row_timesteps(
-                layout,
-                float(video_t),
-                float(audio_t),
-                max(float(video_t), KEYFRAME_NOISE_AUG),
-                1.0,
-            )
+            unique_timesteps, timestep_indices = row_timesteps[step]
             video_pred, audio_pred = self.transformer(
                 hidden_states=video_rows[None],
                 audio_hidden_states=audio_rows[None],
@@ -244,6 +252,8 @@ class MiniMaxH3(nn.Module):
                 video_indices=layout.video_indices,
                 audio_indices=layout.audio_indices,
                 text_indices=layout.text_indices,
+                modulation=None if modulation is None else modulation[step],
+                block_stream=self.block_stream,
             )
             video_rows[num_condition_video_rows:] = video_scheduler.step(
                 video_pred[0, num_condition_video_rows:].astype(mx.float32), step, video_rows[num_condition_video_rows:]
@@ -263,8 +273,14 @@ class MiniMaxH3(nn.Module):
             )
 
         self._emit(progress_callback, phase="decode", plan=plan, step=total_steps, seed=seed, task=task)
+        # With streamed blocks nothing of the transformer stands in memory, so there is nothing to free.
+        released = release_transformer and self.block_stream is None
+        if released:
+            self.release_transformer()
         frames = self._decode_video(video_rows[num_condition_video_rows:], plan)
         audio = self._decode_audio(audio_rows[num_condition_audio_rows:], plan) if generate_audio else None
+        # The decoders are in memory from here on.
+        self.deferred_weight_bytes = 0
         # `generated`, not `complete`: the CLI emits `complete` once the file is written and the audio
         # muxed, so a terminal `complete` here would point a host at a path with no file behind it.
         self._emit(progress_callback, phase="generated", plan=plan, step=total_steps, seed=seed, task=task)
@@ -299,17 +315,20 @@ class MiniMaxH3(nn.Module):
                 "requested_frames": plan.requested_frames,
                 "text_tokens": int(text_length),
                 "generate_audio": bool(generate_audio),
+                "modulation_tables": modulation is not None,
+                "transformer_blocks_streamed": self.block_stream is not None,
+                "transformer_released": released,
             },
             audio=audio,
         )
 
     def release_text_encoder(self) -> None:
-        """Drop the conditioner (the largest resident component); cached prompt embeddings stay usable."""
-        if getattr(self, "text_encoder", None) is None:
-            return
-        self.text_encoder = None
-        import gc
+        # Kept for hosts that call it: the conditioner is read for the length of an encode and never held.
+        return
 
+    def release_transformer(self) -> None:
+        # Frees the transformer for the decode; the next `generate_video` reads it again.
+        self.transformer = None
         gc.collect()
         mx.clear_cache()
 
@@ -318,7 +337,16 @@ class MiniMaxH3(nn.Module):
         from mflux.models.common.weights.saving.model_saver import ModelSaver
 
         self._require_packageable_source()
-        ModelSaver.save_model(model=self, bits=self.bits, base_path=base_path, weight_definition=self.weight_definition)
+        # A package holds every component whole, which is more than a run keeps in memory: each one is
+        # loaded, written and released in turn, and the transformer this model generates with goes first.
+        self.release_transformer()
+        ModelSaver.save_components(
+            model=self,
+            bits=self.bits,
+            base_path=base_path,
+            weight_definition=self.weight_definition,
+            load_component=self._load_component,
+        )
         self._copy_source_files(base_path)
         notice = ModelCardSaver.render_minimax_h3_notice(self.model_config.model_name, self.bits)
         (Path(base_path) / "NOTICE").write_text(notice, encoding="utf-8")
@@ -336,6 +364,11 @@ class MiniMaxH3(nn.Module):
         "transformer/config.json",
         "text_encoder/config.json",
     )
+
+    def _load_component(self, component):
+        return MiniMaxH3Initializer.load_component(
+            Path(self.root_path), self.weight_definition, component.name, self.quantize_arg
+        )
 
     def _require_packageable_source(self) -> None:
         if getattr(self, "lora_paths", None):
@@ -464,10 +497,8 @@ class MiniMaxH3(nn.Module):
         cached = self.prompt_embed_cache.get(cache_key)
         if cached is not None:
             return cached
-        if getattr(self, "text_encoder", None) is None:
-            raise RuntimeError("The MiniMax-H3 text encoder was released; only cached prompts can be generated.")
         tokenizer = self.tokenizers[MiniMaxH3WeightDefinition.TOKENIZER_NAME].tokenizer
-        merge = self.text_encoder.visual.spatial_merge_size
+        merge = self.conditioner.spatial_merge_size
         token_ids: list[int] = []
         tags: list[int] = []
         patches, grids = [], []
@@ -485,7 +516,7 @@ class MiniMaxH3(nn.Module):
             raise ValueError("MiniMax-H3 needs a non-empty prompt.")
         token_ids += prompt_ids
         tags += [TEXT_TAG] * len(prompt_ids)
-        embeds = self.text_encoder.encode(np.array(token_ids, dtype=np.int32), patches or None, grids or None)
+        embeds = self.conditioner.encode(np.array(token_ids, dtype=np.int32), patches or None, grids or None)
         embeds = embeds.astype(ModelConfig.precision)
         mx.eval(embeds)
         result = (embeds, np.array(tags, dtype=np.int32))
@@ -506,6 +537,7 @@ class MiniMaxH3(nn.Module):
     def _encode_keyframe_latents(self, keyframe: PIL.Image.Image) -> mx.array:
         """Normalized condition latents `(1, C, 1, H/16, W/16)`: ImageNet-normalized pixels through the video VAE,
         the posterior *sampled* under a fixed seed and rounded to float16, as the released model conditions."""
+        self._require_decoder_files()
         pixels = np.asarray(keyframe, dtype=np.float32) / 255.0
         pixels = (pixels - np.array(PIXEL_MEAN, dtype=np.float32)) / np.array(PIXEL_STD, dtype=np.float32)
         pixels = mx.array(pixels.transpose(2, 0, 1))[None, :, None]  # (1, 3, 1, H, W)
@@ -522,13 +554,10 @@ class MiniMaxH3(nn.Module):
     # ------------------------------------------------------------------ decoding
 
     def _decode_video(self, video_rows: mx.array, plan: H3GenerationPlan) -> list[PIL.Image.Image]:
+        self._require_decoder_files()
+        patch_size, in_channels = self.transformer_geometry
         latents = unpatchify_video_rows(
-            video_rows,
-            self.transformer.in_channels,
-            plan.num_latent_frames,
-            plan.latent_height,
-            plan.latent_width,
-            self.transformer.patch_size,
+            video_rows, in_channels, plan.num_latent_frames, plan.latent_height, plan.latent_width, patch_size
         )
         latents = latents * self.vae.latents_std.reshape(1, -1, 1, 1, 1) + self.vae.latents_mean.reshape(1, -1, 1, 1, 1)
         pixels = self.vae.decode(
@@ -543,6 +572,7 @@ class MiniMaxH3(nn.Module):
         return [PIL.Image.fromarray(frame) for frame in frames]
 
     def _decode_audio(self, audio_rows: mx.array, plan: H3GenerationPlan) -> GeneratedAudio:
+        self._require_decoder_files()
         latents = unpack_audio_rows(audio_rows, AUDIO_CHANNELS, plan.num_audio_latents)  # (2, C, A)
         latents = latents * self.audio_vae.latents_std.reshape(1, -1, 1) + self.audio_vae.latents_mean.reshape(1, -1, 1)
         waveform = self.audio_vae.decode(latents.astype(mx.float32))  # (2, 1, samples)
@@ -551,6 +581,11 @@ class MiniMaxH3(nn.Module):
             waveform=np.array(waveform[:, 0, :], dtype=np.float32), sample_rate=self.audio_vae.sampling_rate
         )
         return track.trimmed(plan.duration_seconds)
+
+    def _require_decoder_files(self) -> None:
+        # Until their first use the VAE weights are still on disk.
+        if self.deferred_weight_bytes:
+            StreamingWeightLoader.require_unchanged(self.decoder_signatures)
 
     @staticmethod
     def _component_dtype(module: nn.Module) -> mx.Dtype:
@@ -593,6 +628,8 @@ class MiniMaxH3(nn.Module):
         resident_bytes = snapshot.darwin_physical_footprint_bytes or snapshot.process_rss_bytes or 0
         if resident_bytes <= 0:
             return
+        # The VAEs are read at their first use, so until then the footprint does not show them.
+        resident_bytes += getattr(self, "deferred_weight_bytes", 0)
         expected = self.estimate_peak_bytes(plan.width, plan.height, plan.num_frames, resident_bytes=resident_bytes)
         gib = 1024**3
         shape = (
@@ -601,7 +638,7 @@ class MiniMaxH3(nn.Module):
         )
         levers = (
             "Shorten the clip or use a smaller canvas (both reduce the packed sequence, which is what "
-            "the peak follows), pass --release-text-encoder, or lower --mlx-cache-limit-gb."
+            "the peak follows), pass --stream-blocks, or lower --mlx-cache-limit-gb."
         )
         if expected >= physical_bytes:
             raise MemoryError(f"MiniMax-H3: {shape}, so the run cannot fit. {levers}")

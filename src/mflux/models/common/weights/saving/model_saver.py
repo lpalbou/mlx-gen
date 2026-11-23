@@ -1,6 +1,7 @@
+import gc
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, Callable
 
 import mlx.core as mx
 from mlx import nn
@@ -27,13 +28,7 @@ class ModelSaver:
         base_path: str,
         weight_definition: "WeightDefinitionType",
     ) -> None:
-        # Save tokenizers from model.tokenizers dict
-        tokenizer_defs = weight_definition.get_tokenizers()
-        for t in tokenizer_defs:
-            if hasattr(model, "tokenizers") and t.name in model.tokenizers:
-                tokenizer_wrapper = model.tokenizers[t.name]
-                if hasattr(tokenizer_wrapper, "tokenizer"):
-                    ModelSaver._save_tokenizer(base_path, tokenizer_wrapper.tokenizer, t.hf_subdir)
+        ModelSaver.save_tokenizers(model, base_path, weight_definition)
 
         # Save model components with progress bar
         components = weight_definition.get_components()
@@ -41,12 +36,44 @@ class ModelSaver:
             attr_name = component_definition.model_attr or component_definition.name
             component = getattr(model, attr_name, None)
             if component is not None:
-                # Bake and strip any LoRA wrappers to avoid duplicating shared weights
-                LoRASaver.bake_and_strip_lora(component)
-                component_bits = None if component_definition.skip_quantization else bits
-                ModelSaver._save_weights(base_path, component_bits, component, component_definition.hf_subdir)
+                ModelSaver.save_component(base_path, bits, component, component_definition)
 
         ModelCardSaver.save_model_card(base_path, model, bits)
+
+    @staticmethod
+    def save_components(
+        model: Any,
+        bits: int | None,
+        base_path: str,
+        weight_definition: "WeightDefinitionType",
+        load_component: Callable[[Any], nn.Module],
+    ) -> None:
+        # For a model that does not hold every component in memory: each one is loaded, written and
+        # released in turn, so writing a package needs the room of its largest component only.
+        ModelSaver.save_tokenizers(model, base_path, weight_definition)
+        components = weight_definition.get_components()
+        for component_definition in tqdm(components, desc="Saving components", unit="component"):
+            component = load_component(component_definition)
+            ModelSaver.save_component(base_path, bits, component, component_definition)
+            del component
+            gc.collect()
+            mx.clear_cache()
+        ModelCardSaver.save_model_card(base_path, model, bits)
+
+    @staticmethod
+    def save_tokenizers(model: Any, base_path: str, weight_definition: "WeightDefinitionType") -> None:
+        for t in weight_definition.get_tokenizers():
+            if hasattr(model, "tokenizers") and t.name in model.tokenizers:
+                tokenizer_wrapper = model.tokenizers[t.name]
+                if hasattr(tokenizer_wrapper, "tokenizer"):
+                    ModelSaver._save_tokenizer(base_path, tokenizer_wrapper.tokenizer, t.hf_subdir)
+
+    @staticmethod
+    def save_component(base_path: str, bits: int | None, component: nn.Module, component_definition) -> None:
+        # Bake and strip any LoRA wrappers to avoid duplicating shared weights
+        LoRASaver.bake_and_strip_lora(component)
+        component_bits = None if component_definition.skip_quantization else bits
+        ModelSaver._save_weights(base_path, component_bits, component, component_definition.hf_subdir)
 
     @staticmethod
     def _save_tokenizer(base_path: str, tokenizer: "PreTrainedTokenizer", subdir: str) -> None:

@@ -557,7 +557,7 @@ def test_request_preflight_warns_near_the_limit_and_refuses_the_impossible(capsy
 
     model._preflight_request(plan(960, 544, 345))
     warning = capsys.readouterr().err
-    assert "345 frames" in warning and "killed" in warning and "--release-text-encoder" in warning
+    assert "345 frames" in warning and "killed" in warning and "--stream-blocks" in warning
 
     # A request larger than the whole machine is refused rather than warned about.
     monkeypatch.setattr(RuntimeMemory, "total_physical_memory_bytes", staticmethod(lambda: 64 * gib))
@@ -638,6 +638,9 @@ class _PackagedModel:
     from mflux.models.minimax_h3.variants.minimax_h3 import MiniMaxH3 as _H3
 
     save_model = _H3.save_model
+    _load_component = _H3._load_component
+    transformer = None
+    release_transformer = _H3.release_transformer
     _require_packageable_source = _H3._require_packageable_source
     _copy_source_files = _H3._copy_source_files
     PACKAGED_SOURCE_FILES = _H3.PACKAGED_SOURCE_FILES
@@ -663,14 +666,14 @@ def _stub_model_saver(monkeypatch) -> list[str]:
 
     saved: list[str] = []
 
-    def save_model(model, bits, base_path, weight_definition):
+    def save_components(model, bits, base_path, weight_definition, load_component):
         # What the shared saver leaves behind: a re-serialized tokenizer without the vocabulary files.
         saved.append(base_path)
         (Path(base_path) / "tokenizer").mkdir(parents=True)
         (Path(base_path) / "tokenizer" / "tokenizer.json").write_text("re-saved")
         (Path(base_path) / "tokenizer" / "chat_template.jinja").write_text("re-saved")
 
-    monkeypatch.setattr(ModelSaver, "save_model", staticmethod(save_model))
+    monkeypatch.setattr(ModelSaver, "save_components", staticmethod(save_components))
     return saved
 
 
@@ -796,7 +799,7 @@ def test_init_checks_the_width_and_the_tokenizer_before_reading_any_weights(tmp_
     monkeypatch.setattr(PathResolution, "resolve", staticmethod(lambda path, patterns: tmp_path))
     monkeypatch.setattr(TokenizerLoader, "load_all", staticmethod(lambda definitions, model_path: split))
     monkeypatch.setattr(MiniMaxH3Initializer, "_preflight_memory", staticmethod(unreachable))
-    monkeypatch.setattr(MiniMaxH3Initializer, "_load_weights", staticmethod(unreachable))
+    monkeypatch.setattr(MiniMaxH3Initializer, "load_transformer", staticmethod(unreachable))
 
     with pytest.raises(ValueError, match="splits </d>"):
         MiniMaxH3Initializer.init(SimpleNamespace(), ModelConfig.minimax_h3(), quantize=8)
@@ -806,10 +809,12 @@ def test_init_checks_the_width_and_the_tokenizer_before_reading_any_weights(tmp_
 
 def _write_component(path: Path, megabytes: int, metadata: dict | None = None) -> int:
     path.mkdir(parents=True)
-    mx.save_safetensors(
-        str(path / "0.safetensors"), {"w": mx.zeros((megabytes, 1024, 512), dtype=mx.bfloat16)}, metadata
-    )
-    return (path / "0.safetensors").stat().st_size
+    tensors = {"w": mx.zeros((megabytes, 1024, 512), dtype=mx.bfloat16)}
+    if path.name == "transformer":
+        # As large again as the rest: read once per schedule for its tables, never held.
+        tensors["transformer_blocks.0.adaln_proj.linear.weight"] = mx.zeros((megabytes, 1024, 512), dtype=mx.bfloat16)
+    mx.save_safetensors(str(path / "0.safetensors"), tensors, metadata)
+    return megabytes * 1024 * 512 * 2
 
 
 @pytest.mark.fast
@@ -819,16 +824,19 @@ def test_weight_estimate_follows_the_policy_and_leaves_packages_as_stored(tmp_pa
     source.update({name: _write_component(tmp_path / "source" / name, 1) for name in ("vae", "audio_vae")})
     estimate = MiniMaxH3Initializer._estimate_resident_weight_bytes
 
-    assert estimate(tmp_path / "source", definition, None) == sum(source.values())
-    unquantized = source["vae"] + source["audio_vae"]
-    # 8-bit everywhere; at 4 the conditioner is 4-bit and the transformer 6-bit. Half a bit of scales and biases.
-    assert estimate(tmp_path / "source", definition, 8) == unquantized + 2 * int(source["transformer"] * 8.5 / 16)
-    assert estimate(tmp_path / "source", definition, 4) == unquantized + int(source["text_encoder"] * 4.5 / 16) + int(
-        source["transformer"] * 6.5 / 16
-    )
+    # What stays in memory: the transformer without its AdaLN projections, and the two VAEs. The conditioner is
+    # read for the length of an encode.
+    decoders = source["vae"] + source["audio_vae"]
+    assert estimate(tmp_path / "source", definition, None) == decoders + source["transformer"]
+    # An adapter that trains the projections keeps them resident.
+    assert estimate(tmp_path / "source", definition, None, True) == decoders + 2 * source["transformer"]
+    # 8-bit at 8; at 4 the transformer is 6-bit. Half a bit of scales and biases.
+    assert estimate(tmp_path / "source", definition, 8) == decoders + int(source["transformer"] * 8.5 / 16)
+    assert estimate(tmp_path / "source", definition, 4) == decoders + int(source["transformer"] * 6.5 / 16)
 
     # A prepared package is already at its stored widths: --quantize must not shrink the estimate again.
     stored = {"quantization_level": "8", "mflux_version": "test"}
     package = {name: _write_component(tmp_path / "package" / name, 1, stored) for name in source}
-    assert estimate(tmp_path / "package", definition, 8) == sum(package.values())
-    assert estimate(tmp_path / "package", definition, None) == sum(package.values())
+    resident = package["transformer"] + package["vae"] + package["audio_vae"]
+    assert estimate(tmp_path / "package", definition, 8) == resident
+    assert estimate(tmp_path / "package", definition, None) == resident

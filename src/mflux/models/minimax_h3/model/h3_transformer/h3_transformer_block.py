@@ -65,10 +65,17 @@ class H3TransformerBlock(nn.Module):
         self.adaln_proj = H3AdaLayerNormModulation(time_embed_dim, hidden_size)
 
     def __call__(
-        self, hidden_states: mx.array, temb: mx.array, adaln_indices: mx.array, rotary_emb: tuple[mx.array, mx.array]
+        self,
+        hidden_states: mx.array,
+        temb: mx.array,
+        adaln_indices: mx.array,
+        rotary_emb: tuple[mx.array, mx.array],
+        modulation: tuple[mx.array, ...] | None = None,
     ) -> mx.array:
+        # `modulation` is this block's AdaLN output for `temb`, computed ahead; its projection is then not held.
+        tables = self.adaln_proj(temb) if modulation is None else modulation
         shift_msa, scale_msa, gate_msa, shift_mlp, scale_mlp, gate_mlp = (
-            mx.take(table, adaln_indices, axis=0) for table in self.adaln_proj(temb)
+            mx.take(table, adaln_indices, axis=0) for table in tables
         )
         normed = self.norm1(hidden_states) * (1.0 + scale_msa) + shift_msa
         hidden_states = hidden_states + gate_msa * self.attn(normed, rotary_emb)

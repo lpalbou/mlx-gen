@@ -215,7 +215,10 @@ def test_generate_video_runs_with_an_original_layout_adapter_on_every_target(tmp
     mx.save_safetensors(str(path), adapter)
     reference = model.generate_video(seed=1, prompt="A fox", num_frames=124, width=96, height=64, num_inference_steps=1)
 
-    MiniMaxH3Initializer._apply_lora(model, lora_paths=[str(path)], lora_scales=[1.0])
+    model.lora_paths, model.lora_scales = MiniMaxH3Initializer._resolve_adapters(model.model_config, [str(path)], [1.0])
+    # This adapter trains the per-block AdaLN projections, so a load keeps them in memory for it.
+    assert MiniMaxH3Initializer.adapter_targets_modulation(str(path))
+    MiniMaxH3Initializer._apply_lora(model)
     assert model.lora_paths == [str(path)] and model.lora_scales == [1.0]
     (report,) = model.lora_application_result.reports
     assert report.unmatched_key_count == 0 and report.scale == 1.0  # no alpha anywhere: alpha == rank

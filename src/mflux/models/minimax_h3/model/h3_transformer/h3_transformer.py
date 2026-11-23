@@ -10,6 +10,7 @@ import mlx.core as mx
 from mlx import nn
 
 from mflux.models.minimax_h3.model.h3_precision import linear_input_dtype
+from mflux.models.minimax_h3.model.h3_transformer.h3_block_stream import H3BlockStream
 from mflux.models.minimax_h3.model.h3_transformer.h3_embedding import (
     H3AdaLayerNormOut,
     H3RotaryPosEmbed,
@@ -74,6 +75,9 @@ class MiniMaxH3Transformer(nn.Module):
         self.proj_out = nn.Linear(hidden_size, video_patch_dim, bias=True)
         self.audio_proj_out = nn.Linear(hidden_size, audio_in_channels, bias=True)
 
+    def timestep_embedding(self, timestep: mx.array) -> mx.array:
+        return self.time_embedder(self.time_proj(timestep).astype(linear_input_dtype(self.time_embedder.linear_1)))
+
     def __call__(
         self,
         hidden_states: mx.array,
@@ -86,6 +90,8 @@ class MiniMaxH3Transformer(nn.Module):
         video_indices: mx.array,
         audio_indices: mx.array,
         text_indices: mx.array,
+        modulation: list[tuple[mx.array, ...]] | None = None,
+        block_stream: H3BlockStream | None = None,
     ) -> tuple[mx.array, mx.array]:
         """Return the data-ward velocity of the video rows `(B, Nv, C*patch)` and audio rows `(B, Na, Ca)`."""
         sequence_length = position_ids.shape[0]
@@ -102,11 +108,14 @@ class MiniMaxH3Transformer(nn.Module):
         packed[:, video_indices, :] = video_embeds.astype(text_embeds.dtype)
         packed[:, audio_indices, :] = audio_embeds.astype(text_embeds.dtype)
 
-        temb = self.time_embedder(self.time_proj(timestep).astype(linear_input_dtype(self.time_embedder.linear_1)))
+        temb = self.timestep_embedding(timestep)
         adaln_indices = timestep_indices * MODALITY_NUM + token_tags
 
-        for block in self.transformer_blocks:
-            packed = block(packed, temb, adaln_indices, rotary_emb)
+        for index, block in enumerate(self.transformer_blocks):
+            packed = block(packed, temb, adaln_indices, rotary_emb, None if modulation is None else modulation[index])
+            if block_stream is not None:
+                mx.eval(packed)
+                block_stream.rebind(index, block)
 
         packed = self.norm_out(packed, temb, timestep_indices).astype(linear_input_dtype(self.proj_out))
         video_output = mx.take(self.proj_out(packed), video_indices, axis=1)

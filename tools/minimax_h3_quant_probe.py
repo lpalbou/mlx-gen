@@ -18,6 +18,7 @@ from mflux.models.common.tokenizer import TokenizerLoader
 from mflux.models.common.weights.loading.streaming_weight_loader import StreamingWeightLoader
 from mflux.models.minimax_h3.minimax_h3_initializer import MiniMaxH3Initializer
 from mflux.models.minimax_h3.model.h3_precision import disable_tf32
+from mflux.models.minimax_h3.model.h3_text_encoder.h3_conditioner import H3Conditioner
 from mflux.models.minimax_h3.model.h3_text_encoder.qwen3_vl_model import Qwen3VLModel
 from mflux.models.minimax_h3.model.h3_text_encoder.qwen3_vl_text_model import Qwen3VLTextModel
 from mflux.models.minimax_h3.model.h3_transformer.h3_transformer import MiniMaxH3Transformer
@@ -48,9 +49,10 @@ class TransformerRecorder:
         self.output_dir = output_dir
         self.label = label
         self.calls = 0
-        self.patch_size = transformer.patch_size
-        self.in_channels = transformer.in_channels
-        self.audio_in_channels = transformer.audio_in_channels
+
+    def __getattr__(self, name: str):
+        # The model reads the transformer's geometry, blocks and timestep embedding through this stand-in.
+        return getattr(self.transformer, name)
 
     def __call__(self, **kwargs):
         video, audio = self.transformer(**kwargs)
@@ -62,6 +64,16 @@ class TransformerRecorder:
             mx.save_safetensors(str(self.output_dir / f"capture_{self.label}_step{self.calls}.safetensors"), arrays)
         self.calls += 1
         return video, audio
+
+
+class ResidentConditioner:
+    # A conditioner held in memory, with the surface of the model's streamed one.
+    def __init__(self, model: Qwen3VLModel):
+        self.model = model
+        self.spatial_merge_size = model.visual.spatial_merge_size
+
+    def encode(self, token_ids, image_patches=None, image_grids=None) -> mx.array:
+        return self.model.encode(token_ids, image_patches, image_grids)
 
 
 class H3QuantProbe:
@@ -115,6 +127,11 @@ class H3QuantProbe:
 
         MiniMaxH3WeightDefinition.quantization_predicate = staticmethod(predicate)
         model = MiniMaxH3(model_config=ModelConfig.from_name(args.base_model), quantize=8)
+        if model.modulation_tables is not None:
+            # The AdaLN tables follow the candidate's width for the projections, not the shipped policy's.
+            model.modulation_tables.bits = H3QuantProbe.variant_bits(
+                args.transformer_variant, H3QuantProbe.TRANSFORMER_FAMILIES, "transformer_blocks.0.adaln_proj.linear"
+            )
         H3QuantProbe._run_clips(model, args)
 
     @staticmethod
@@ -333,7 +350,9 @@ class H3QuantProbe:
             started = time.perf_counter()
             encoder = H3QuantProbe._load_text_encoder(root, variant)
             load_seconds = time.perf_counter() - started
-            holder = SimpleNamespace(prompt_embed_cache={}, text_encoder=encoder, tokenizers=tokenizers)
+            holder = SimpleNamespace(
+                prompt_embed_cache={}, conditioner=ResidentConditioner(encoder), tokenizers=tokenizers
+            )
             rows = {}
             for label, prompt, keyframes in presentations:
                 embeds, _ = MiniMaxH3._encode_presentation(holder, compose_prompt(prompt), keyframes)
@@ -432,7 +451,7 @@ class H3QuantProbe:
     @staticmethod
     def _load_text_encoder(root: Path, variant: str) -> Qwen3VLModel:
         component = next(c for c in MiniMaxH3WeightDefinition().components() if c.name == "text_encoder")
-        component.weight_files = MiniMaxH3Initializer._text_encoder_shards(root / component.hf_subdir)
+        component.weight_files = H3Conditioner.needed_shards(root / component.hf_subdir)
         model = Qwen3VLModel(language_model=Qwen3VLTextModel(num_hidden_layers=TEXT_ENCODER_NUM_LAYERS))
         StreamingWeightLoader.load_into(
             model=model,

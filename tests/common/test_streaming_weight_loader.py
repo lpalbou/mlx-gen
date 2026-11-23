@@ -38,7 +38,7 @@ def _predicate(path, module, bits=None):
 
 
 @pytest.mark.fast
-@pytest.mark.parametrize("quantize", [None, 8])
+@pytest.mark.parametrize("quantize", [None, 6, 8])
 def test_streaming_matches_whole_component_loading(tmp_path, quantize):
     reference = _Tiny()
     mx.eval(reference.parameters())
@@ -58,7 +58,11 @@ def test_streaming_matches_whole_component_loading(tmp_path, quantize):
     assert bits == quantize
     got, want = dict(tree_flatten(model.parameters())), dict(tree_flatten(expected.parameters()))
     assert sorted(got) == sorted(want)
-    assert all(mx.array_equal(got[k], want[k]).item() for k in want)
+    # At 8 bits the streamed load picks its indices on the stored grid: same grid, other packed weights.
+    regridded = {k for k in want if quantize == 8 and want[k].dtype == mx.uint32}
+    assert all(mx.array_equal(got[k], want[k]).item() for k in want if k not in regridded)
+    assert all(got[k].shape == want[k].shape and not mx.array_equal(got[k], want[k]).item() for k in regridded)
+    assert bool(regridded) == (quantize == 8)
 
 
 @pytest.mark.fast
@@ -257,3 +261,27 @@ def test_prepared_package_at_another_group_size_is_refused(tmp_path):
     component = _prepared_from(tmp_path, source, 8)
     with pytest.raises(ValueError, match="do not fit its 64 inputs at a group size of 64"):
         StreamingWeightLoader.load_into(_Tiny(), tmp_path, component, quantize_arg=None)
+
+
+@pytest.mark.fast
+def test_eight_bit_indices_are_chosen_on_the_grid_that_is_stored():
+    weight = mx.random.normal((96, 256), key=mx.random.key(0)).astype(mx.bfloat16)
+    reference = weight.astype(mx.float32)
+
+    def error(packed, scales, biases, bits):
+        restored = mx.dequantize(packed, scales.astype(mx.float32), biases.astype(mx.float32), group_size=64, bits=bits)
+        return float(mx.sqrt(mx.sum((restored - reference) ** 2) / mx.sum(reference**2)))
+
+    plain = mx.quantize(weight, group_size=64, bits=8)
+    packed, scales, biases = StreamingWeightLoader.quantize(weight, 64, 8)
+    # The same grid and the same size; only which level each weight takes changes.
+    assert mx.array_equal(scales, plain[1]).item() and mx.array_equal(biases, plain[2]).item()
+    assert packed.shape == plain[0].shape and packed.dtype == plain[0].dtype
+    assert error(packed, scales, biases, 8) < 0.85 * error(*plain, 8)
+
+    # Narrower widths, and a float32 tensor whose grid is stored exactly, are quantized as MLX does it.
+    for bits in (4, 6):
+        ours, theirs = StreamingWeightLoader.quantize(weight, 64, bits), mx.quantize(weight, group_size=64, bits=bits)
+        assert all(mx.array_equal(a, b).item() for a, b in zip(ours, theirs))
+    ours, theirs = StreamingWeightLoader.quantize(reference, 64, 8), mx.quantize(reference, group_size=64, bits=8)
+    assert all(mx.array_equal(a, b).item() for a, b in zip(ours, theirs))

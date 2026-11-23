@@ -135,14 +135,20 @@ class Qwen3VLTextModel(nn.Module):
         inputs_embeds: mx.array | None = None,
         deepstack_visual_embeds: list[mx.array] | None = None,
         visual_positions: mx.array | None = None,
+        release_layers: bool = False,
     ) -> mx.array:
         x = self.embed_tokens(input_ids) if inputs_embeds is None else inputs_embeds
         if position_ids is None:
             position_ids = self.text_position_ids(x.shape[0], x.shape[1])
         cos, sin = self.rotary_emb(position_ids)
-        for index, layer in enumerate(self.layers):
-            x = layer(x, cos, sin)
+        for index in range(len(self.layers)):
+            x = self.layers[index](x, cos, sin)
             if deepstack_visual_embeds is not None and index < len(deepstack_visual_embeds):
                 # DeepStack: add the visual features of stage `index` to the vision-token rows.
                 x[:, visual_positions, :] = x[:, visual_positions, :] + deepstack_visual_embeds[index].astype(x.dtype)
+            if release_layers:
+                # A layer whose weights are pending file reads holds them from here on; dropping it after its
+                # one use keeps a single layer in memory. The model cannot run again afterwards.
+                mx.eval(x)
+                self.layers[index] = None
         return x

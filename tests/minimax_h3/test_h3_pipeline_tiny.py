@@ -26,6 +26,20 @@ class _StubHFTokenizer:
         return {"input_ids": [(ord(c) % 90) + 3 for c in text[:40]]}
 
 
+class _ResidentConditioner:
+    """A conditioner held in memory, with the `H3Conditioner` surface the pipeline uses."""
+
+    def __init__(self, model: Qwen3VLModel):
+        self.model = model
+
+    def encode(self, token_ids, image_patches=None, image_grids=None):
+        return self.model.encode(token_ids, image_patches, image_grids)
+
+    @property
+    def spatial_merge_size(self) -> int:
+        return self.model.visual.spatial_merge_size
+
+
 class _StubTokenizer:
     tokenizer = _StubHFTokenizer()
 
@@ -42,7 +56,11 @@ def _tiny_model() -> MiniMaxH3:
     model.prompt_embed_cache = {}
     model.lora_paths, model.lora_scales = [], []
     model.tokenizers = {MiniMaxH3WeightDefinition.TOKENIZER_NAME: _StubTokenizer()}
-    model.text_encoder = Qwen3VLModel(
+    model.modulation_tables = None
+    model.block_stream = None
+    model.decoder_signatures = {}
+    model.deferred_weight_bytes = 0
+    text_encoder = Qwen3VLModel(
         language_model=Qwen3VLTextModel(
             vocab_size=151936,
             hidden_size=16,
@@ -100,7 +118,9 @@ def _tiny_model() -> MiniMaxH3:
         latents_mean=[0.0] * 32,
         latents_std=[1.0] * 32,
     )
-    mx.eval(model.parameters())
+    mx.eval(model.parameters(), text_encoder.parameters())
+    model.conditioner = _ResidentConditioner(text_encoder)
+    model.transformer_geometry = (model.transformer.patch_size, model.transformer.in_channels)
     return model
 
 

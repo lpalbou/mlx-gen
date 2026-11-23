@@ -180,6 +180,8 @@ class Qwen3VLVisionBlock(nn.Module):
 
 
 class Qwen3VLVisionModel(nn.Module):
+    SPATIAL_MERGE_SIZE = 2
+
     def __init__(
         self,
         hidden_size: int = 1152,
@@ -189,7 +191,7 @@ class Qwen3VLVisionModel(nn.Module):
         in_channels: int = 3,
         patch_size: int = 16,
         temporal_patch_size: int = 2,
-        spatial_merge_size: int = 2,
+        spatial_merge_size: int = SPATIAL_MERGE_SIZE,
         num_position_embeddings: int = 2304,
         out_hidden_size: int = 5120,
         deepstack_visual_indexes: tuple[int, ...] = (8, 16, 24),
