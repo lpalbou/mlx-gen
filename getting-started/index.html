@@ -1924,27 +1924,33 @@ minutes. See <a href="../wan-video/">Wan Video</a> for MP4 examples and frame st
 <p><img alt="Wan2.2 TI2V 1280x704 text-to-video contact sheet" src="../assets/generation/wan2.2-ti2v-5b-t2v-1280x704-17f-20steps-contact-sheet.png" /></p>
 <p><img alt="Wan2.2 TI2V first-frame image-to-video contact sheet" src="../assets/generation/wan2.2-ti2v-5b-i2v-bateau-1280x704-17f-20steps-contact-sheet.png" /></p>
 <h3 id="generate-a-video-with-sound-minimax-h3">Generate A Video With Sound (MiniMax-H3)<a class="headerlink" href="#generate-a-video-with-sound-minimax-h3" title="Permanent link">&para;</a></h3>
-<p>MiniMax-H3 generates the clip and a synchronized stereo soundtrack together. The published
-packages are the practical way to run it: <code>AbstractFramework/minimax-h3-8bit</code> (64.3 GiB, for 96 GB
-Macs and up) and the mixed-width <code>AbstractFramework/minimax-h3-4bit</code> (44.9 GiB, for 64 GB Macs with
-<code>--low-ram</code>); see <a href="../minimax-h3/#published-packages">MiniMax-H3 video with audio</a> for their
-commands. The example below runs the same weights from the source snapshot, which needs about
-140 GB of disk and quantizes at load time.</p>
-<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>minimax-h3-turbo-544p
+<p>MiniMax-H3 generates the clip and a synchronized stereo soundtrack together. Three published
+packages hold its weights: <code>AbstractFramework/minimax-h3-8bit</code> (64.3 GiB on disk, the recommended
+one), the released 16-bit weights as <code>AbstractFramework/minimax-h3-bf16</code> (115 GiB) and the
+mixed-width <code>AbstractFramework/minimax-h3-4bit</code> (44.9 GiB). The repositories are gated: sign in
+with <code>hf auth login</code> and accept the license terms on the model page first.</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/minimax-h3-8bit<span class="w"> </span>--base-model<span class="w"> </span>minimax-h3-turbo-544p
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--model<span class="w"> </span>minimax-h3-turbo-544p<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/minimax-h3-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--base-model<span class="w"> </span>minimax-h3-turbo-544p<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A red fox trots through fresh snow in a birch forest at dawn; halfway through it stops and looks at the camera."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--soundscape<span class="w"> </span><span class="s2">"Soft crunch of paws in dry snow, faint wind, two distant crow caws."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--music<span class="w"> </span><span class="s2">"Sparse piano, slow tempo."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--quantize<span class="w"> </span><span class="m">8</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>fox.mp4<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--metadata
 </code></pre></div>
+<p>This <code>960x544</code>, 124-frame clip peaks at 37.0 GiB of memory and completes on a 48 GB Mac. Add
+<code>--low-ram</code> on a 36 GB Mac (26.3 GiB peak), or <code>--stream-blocks --low-ram</code> from 24 GB (11.1 GiB
+peak, with each transformer block read from disk at every step). The clip is the same file in
+every mode. See <a href="../minimax-h3/#memory-by-machine">Memory By Machine</a> for the 16-bit weights and the
+other machine sizes.</p>
 <p>The MP4 carries an AAC stereo track; <code>--no-audio</code> writes a silent clip, and <code>--image-path</code> starts the
 clip from a keyframe. See
-<a href="../minimax-h3/">MiniMax-H3 video with audio</a> for prompting, sizing, and runtime cost.</p>
+<a href="../minimax-h3/">MiniMax-H3 video with audio</a> for prompting, sizing, and runtime cost, and
+<a href="../minimax-h3-memory/">MiniMax-H3 memory, speed and quantization</a> for how a run keeps most of the
+weights out of memory.</p>
 <h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
 <ul>
 <li>See <a href="../previews/">Generation Previews</a> to watch a generation as it forms, with tiny-decoder previews and the application integration path.</li>

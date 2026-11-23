@@ -1295,6 +1295,7 @@ more memory than the example profile shown here.</p>
 <li><a href="../edit-capabilities/">Image edit capabilities</a></li>
 <li><a href="../upscaling/">Image upscaling</a></li>
 <li><a href="../wan-video/">Wan video</a></li>
+<li><a href="../minimax-h3/">MiniMax-H3 video with audio</a> and its <a href="../minimax-h3-memory/">memory page</a></li>
 <li><a href="../bernini/">Bernini-R 1.3B</a></li>
 </ul>
 <h2 id="recommended-by-memory-tier">Recommended By Memory Tier<a class="headerlink" href="#recommended-by-memory-tier" title="Permanent link">&para;</a></h2>
@@ -1320,28 +1321,28 @@ more memory than the example profile shown here.</p>
 <td><code>24 GB</code></td>
 <td>Add <code>AbstractFramework/fibo-8bit</code>, <code>AbstractFramework/z-image-turbo-8bit</code>, and <code>AbstractFramework/qwen-image-2512-8bit</code> text-only runs.</td>
 <td><code>z-image-turbo-8bit</code> latent and native inpaint become practical. <code>flux.2-klein-4b-8bit</code> remains the lighter edit default.</td>
-<td>No conservative Wan A14B recommendation since the 2026-06-12 q8 runtime-precision fix (A14B now needs BF16-class memory, ~33 GiB physical peak).</td>
+<td>No conservative Wan A14B recommendation since the 2026-06-12 q8 runtime-precision fix (A14B now needs BF16-class memory, ~33 GiB physical peak). Video with a synchronized stereo soundtrack runs here with <code>AbstractFramework/minimax-h3-8bit</code> and <code>--stream-blocks --low-ram</code> (11.1 GiB peak at <code>960x544</code>, 124 frames; each transformer block is read from disk at every step, and the package needs 64.3 GiB of disk, see <a href="../minimax-h3/#memory-by-machine">MiniMax-H3</a>).</td>
 <td>SeedVR2 image upscaling remains easy. The published five-second video-restore profile still needs more headroom than this tier.</td>
 </tr>
 <tr>
 <td><code>32 GB</code></td>
 <td>The 24 GB image recommendations remain good with more headroom.</td>
 <td><code>qwen-image-2512-8bit</code> text-only runs are comfortable. For edit-heavy work, <code>z-image-turbo-8bit</code> and <code>flux.2-klein-4b-8bit</code> are still the safer defaults than Qwen Edit.</td>
-<td>Wan A14B runs at BF16-class memory since 2026-06-12 (~33 GiB physical peak at the small low-RAM profile), above this tier's conservative envelope.</td>
+<td>Wan A14B runs at BF16-class memory since 2026-06-12 (~33 GiB physical peak at the small low-RAM profile), above this tier's conservative envelope. MiniMax-H3 runs with <code>--stream-blocks --low-ram</code> from the 8-bit package (11.1 GiB peak) or from the released 16-bit weights, <code>AbstractFramework/minimax-h3-bf16</code> (11.7 GiB peak, 115 GiB of disk).</td>
 <td><code>seedvr2-3b-8bit</code> published <code>29/8</code> five-second video restore is in range; <code>seedvr2-7b</code> video restore is still above this tier in the published profile.</td>
 </tr>
 <tr>
 <td><code>64 GB</code></td>
 <td>All image families above are practical.</td>
 <td>Add <code>AbstractFramework/qwen-image-edit-2511-8bit</code> for strong layout-preserving edit/reference work, plus <code>AbstractFramework/qwen-image-8bit</code> control and control-inpaint.</td>
-<td>Wan A14B (q8 storage or BF16; both run at BF16-class memory, ~33 GiB physical peak in the small low-RAM profile) is the first conservative tier for A14B video. Video with a synchronized stereo soundtrack runs here with <code>AbstractFramework/minimax-h3-4bit</code> and <code>--low-ram</code> (45.6 GiB peak at <code>960x544</code>, 124 frames; close other memory-heavy applications, see <a href="../minimax-h3/#memory-by-machine">MiniMax-H3</a>).</td>
+<td>Wan A14B (q8 storage or BF16; both run at BF16-class memory, ~33 GiB physical peak in the small low-RAM profile) is the first conservative tier for A14B video. MiniMax-H3 runs here with <code>AbstractFramework/minimax-h3-8bit</code> and default settings (37.0 GiB peak at <code>960x544</code>, 124 frames; default settings fit from 48 GB and <code>--low-ram</code> from 36 GB), and the released 16-bit weights with <code>--low-ram</code> (44.0 GiB peak).</td>
 <td><code>seedvr2-7b</code> image upscaling is easy. For published video-restore proofs, keep using <code>seedvr2-3b</code> unless you have more than 64 GB free.</td>
 </tr>
 <tr>
 <td><code>128+ GB</code></td>
 <td>Everything above.</td>
 <td>Everything above, plus room for larger or more exploratory runs.</td>
-<td>Add native <code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code> high-resolution video profiles such as <code>1280x704, 17 frames, 20 steps</code>, and <code>AbstractFramework/minimax-h3-8bit</code> for video with a synchronized stereo soundtrack at the width closest to the released weights (77.0 GiB peak at <code>960x544</code>, 124 frames; it fits from 96 GB, see <a href="../minimax-h3/#memory-by-machine">MiniMax-H3</a>).</td>
+<td>Add native <code>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit</code> high-resolution video profiles such as <code>1280x704, 17 frames, 20 steps</code>, and the released 16-bit MiniMax-H3 weights, <code>AbstractFramework/minimax-h3-bf16</code>, with default settings (54.4 GiB peak at <code>960x544</code>, 124 frames; they fit from 96 GB, see <a href="../minimax-h3/#memory-by-machine">MiniMax-H3</a>).</td>
 <td>Add published <code>seedvr2-7b</code> five-second <code>29/8</code> video restore and larger Wan experimentation with real headroom.</td>
 </tr>
 </tbody>
@@ -1460,6 +1461,24 @@ more memory than the example profile shown here.</p>
 <td><code>103.7 GiB</code> physical peak</td>
 </tr>
 <tr>
+<td>T2V with audio</td>
+<td><code>AbstractFramework/minimax-h3-8bit</code></td>
+<td><code>960x544</code>, <code>124</code> frames, <code>8</code> steps</td>
+<td><code>37.0 GiB</code> physical peak; <code>26.3 GiB</code> with <code>--low-ram</code>; <code>11.1 GiB</code> with <code>--stream-blocks --low-ram</code></td>
+</tr>
+<tr>
+<td>T2V with audio</td>
+<td><code>AbstractFramework/minimax-h3-bf16</code></td>
+<td><code>960x544</code>, <code>124</code> frames, <code>8</code> steps</td>
+<td><code>54.4 GiB</code> physical peak; <code>44.0 GiB</code> with <code>--low-ram</code>; <code>11.7 GiB</code> with <code>--stream-blocks --low-ram</code></td>
+</tr>
+<tr>
+<td>T2V with audio</td>
+<td><code>AbstractFramework/minimax-h3-4bit</code></td>
+<td><code>960x544</code>, <code>124</code> frames, <code>8</code> steps</td>
+<td><code>32.5 GiB</code> physical peak; <code>21.9 GiB</code> with <code>--low-ram</code></td>
+</tr>
+<tr>
 <td>R2V</td>
 <td><code>ByteDance/Bernini-R-1.3B-Diffusers</code> factored BF16</td>
 <td><code>320x192</code>, <code>17</code> frames, <code>20</code> steps, 8 references, low-RAM</td>
@@ -1487,6 +1506,13 @@ more memory than the example profile shown here.</p>
   its visual release gate fails. The official 81-frame profile remains unmeasured, and a fresh
   download separately needs 17.60 GiB free disk including headroom for <code>bernini-r-1.3b-bf16</code>, or
   28.94 GiB for the FP32 source <code>bernini-r-1.3b</code>.</li>
+<li>MiniMax-H3 video with sound runs from <code>24 GB</code> with the 8-bit package and
+  <code>--stream-blocks --low-ram</code>, from <code>36 GB</code> with <code>--low-ram</code>, and from <code>48 GB</code> with default
+  settings. The released 16-bit weights run from <code>32 GB</code>, <code>64 GB</code> and <code>96 GB</code> in the same three
+  modes. Each size is the smallest a <code>960x544</code>, 124-frame clip completed on, tested on a 128 GB Mac
+  with the difference in RAM locked; the three modes write the same clip, and
+  <code>--stream-blocks</code> reads the transformer blocks from disk at every step. See
+  <a href="../minimax-h3-memory/#tested-machine-sizes">Tested Machine Sizes</a>.</li>
 <li><code>64 GB</code> is the first conservative tier for Wan A14B video: since the 2026-06-12 q8
   runtime-precision fix, A14B runs at BF16-class memory (~33 GiB physical peak even at the small
   low-RAM benchmark profile).</li>

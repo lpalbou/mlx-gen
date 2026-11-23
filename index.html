@@ -1478,11 +1478,16 @@ long-running local jobs.</p>
   keyframe, produces a 24 fps clip and its soundtrack in a single MP4 (AAC track), 5 to 15 seconds
   long, with the lightx2v 8-step Turbo adapters attached automatically and community LoRA adapters
   (civitai, ai-toolkit, ComfyUI, kohya key layouts) stackable on them. The soundtrack covers ambient
-  sound, a score, and spoken dialogue with the speaker's mouth animated to match. Run it from
-  <code>AbstractFramework/minimax-h3-8bit</code> (64 GiB on disk, 77 GiB peak, for 96 GB Macs and up) or the
-  mixed-width <code>AbstractFramework/minimax-h3-4bit</code> (45 GiB on disk, 46 GiB peak with <code>--low-ram</code>, for
-  64 GB Macs), or quantize the source at load time with <code>--quantize 8</code> or <code>--quantize 4</code> (see
-  <code>docs/minimax-h3.md</code>);</li>
+  sound, a score, and spoken dialogue with the speaker's mouth animated to match. A run holds the
+  transformer in memory and reads the conditioner, the AdaLN projections and the VAEs from disk
+  when they are needed, so a <code>960x544</code>, 124-frame clip from <code>AbstractFramework/minimax-h3-8bit</code>
+  (64 GiB on disk) peaks at 37.0 GiB and completes on a 48 GB Mac, at 26.3 GiB with <code>--low-ram</code>
+  (36 GB Macs), and at 11.1 GiB with <code>--stream-blocks --low-ram</code> (24 GB Macs), which reads each
+  transformer block from disk at every step. The released 16-bit weights run from
+  <code>AbstractFramework/minimax-h3-bf16</code> (115 GiB on disk; 54.4, 44.0 and 11.7 GiB peak in the same
+  three modes, on 96, 64 and 32 GB Macs), and the mixed-width <code>AbstractFramework/minimax-h3-4bit</code>
+  (45 GiB on disk) is the smallest download. See <code>docs/minimax-h3.md</code> and
+  <code>docs/minimax-h3-memory.md</code>;</li>
 <li>ByteDance Bernini-R 1.3B renderer support (<code>bernini-r-1.3b</code>): generate video from one to eight
   ordered ordinary reference images, edit one source video with those references, or run
   source-only prompt-guided video editing through the unified CLI and Python runtime. Download
@@ -1732,8 +1737,9 @@ validated 7B source/q8/q4 profile.</p>
 <li><code>AbstractFramework/wan2.2-i2v-a14b-diffusers-bf16</code></li>
 <li><code>AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit</code></li>
 </ul>
-<p>MiniMax-H3 video with audio (gated, MiniMax H3 Community License, mlx-gen 0.39.1 or later):</p>
+<p>MiniMax-H3 video with audio (gated, MiniMax H3 Community License, mlx-gen 0.40.0 or later):</p>
 <ul>
+<li><code>AbstractFramework/minimax-h3-bf16</code></li>
 <li><code>AbstractFramework/minimax-h3-8bit</code></li>
 <li><code>AbstractFramework/minimax-h3-4bit</code></li>
 </ul>
@@ -1841,13 +1847,16 @@ The 0.18.11 release also validates the published A14B q8 T2V/I2V handles on a 41
 run from model files already on disk, apps can inspect supported modes before loading weights, and
 progress callbacks make long runs observable.</p>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
-<p>Release notes are in the <a href="CHANGELOG.md">changelog</a>; the 0.39 releases add the published MiniMax-H3
-packages and the Macs each one runs on.</p>
+<p>Release notes are in the <a href="CHANGELOG.md">changelog</a>; release 0.40.0 lowers MiniMax-H3's peak memory
+to 37.0 GiB with the 8-bit package (11.1 GiB with <code>--stream-blocks --low-ram</code>), runs the released
+16-bit weights, and publishes them as <code>AbstractFramework/minimax-h3-bf16</code>.</p>
 <ul>
 <li><a href="getting-started/">Getting started</a>: installation, first runs, SeedVR2 upscaling, and Wan video.</li>
 <li><a href="api/">API and CLI</a>: command surface, router behavior, image-to-image modes, generative reframe, backend-specific outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.</li>
 <li><a href="image-edit-modes/">Image edit modes</a>: what latent img2img, edit-reference, multi-reference, generative reframe, and outpaint mean in practice, with examples.</li>
 <li><a href="wan-video/">Wan video</a>: practical Wan2.2 T2V/I2V sizing, plain and masked prompt-guided A14B video-to-video with included proof artifacts, the natively ported Wan2.1-VACE-1.3B route (reference-image object injection and learned mask conditioning), a measured motion-fidelity ladder (strength vs gesture preservation), broader A14B target size families, and 5-second M5 Max comparison clips.</li>
+<li><a href="minimax-h3/">MiniMax-H3 video with audio</a>: text-to-video and first-frame image-to-video with a generated stereo soundtrack, the three published packages, memory by machine size, prompting, sizing, and measured runtime.</li>
+<li><a href="minimax-h3-memory/">MiniMax-H3 memory, speed and quantization</a>: what a MiniMax-H3 run holds in memory, the <code>--low-ram</code> and <code>--stream-blocks</code> modes with their cost in time, the tested machine sizes, and the quantized packages compared with the released 16-bit weights.</li>
 <li><a href="bernini/">Bernini-R 1.3B</a>: ordered reference-to-video, reference-guided/source-only video editing, pinned downloads, BF16-only memory guidance, and playable proof artifacts.</li>
 <li><a href="examples/spaceship-snow/">Example workflow</a>: reproducible image and video commands.</li>
 <li><a href="upscaling/">Image upscaling</a>: SeedVR2 sizing, published 3B/7B q8/q4 package usage, the host-safe video restore profile, published five-second Eiffel <code>1x</code> and <code>2x</code> 3B/7B validation bundles, readable tone-correction labels, and 5x source/output comparisons.</li>
@@ -1865,7 +1874,10 @@ packages and the Macs each one runs on.</p>
 skill at <a href="skills/mlx-gen/SKILL.md"><code>skills/mlx-gen/SKILL.md</code></a> first. It covers what to check before
 an expensive run, the download-first contract, how model ids resolve, recipes per task, and the
 common failures with their fixes. To register it, copy the <code>skills/mlx-gen/</code> folder into your
-agent's skills directory.</p>
+agent's skills directory. For MiniMax-H3, its
+<a href="skills/mlx-gen/references/minimax-h3.md">reference</a> lists peak memory by package and mode, and
+<a href="minimax-h3-memory/">MiniMax-H3 memory, speed and quantization</a> has the measurements behind
+it.</p>
 <h2 id="license">License<a class="headerlink" href="#license" title="Permanent link">&para;</a></h2>
 <p>MLX-Gen is MIT licensed. Model weights remain governed by their original licenses and access terms.</p>
 

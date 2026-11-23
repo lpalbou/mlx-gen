@@ -1197,10 +1197,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#minimax-h3-refuses-to-load-without-quantize-8" class="md-nav__link">
+  <a href="#minimax-h3-stops-at-load-with-needs-about-n-gib-of-resident-weights" class="md-nav__link">
     <span class="md-ellipsis">
       
-        MiniMax-H3 Refuses To Load Without --quantize 8
+        MiniMax-H3 Stops At Load With "Needs About N GiB Of Resident Weights"
       
     </span>
   </a>
@@ -1212,6 +1212,17 @@
     <span class="md-ellipsis">
       
         MiniMax-H3 Runs Out Of Memory Or Disk
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minimax-h3-stops-with-changed-on-disk-after-the-model-was-loaded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MiniMax-H3 Stops With "Changed On Disk After The Model Was Loaded"
       
     </span>
   </a>
@@ -1493,10 +1504,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#minimax-h3-refuses-to-load-without-quantize-8" class="md-nav__link">
+  <a href="#minimax-h3-stops-at-load-with-needs-about-n-gib-of-resident-weights" class="md-nav__link">
     <span class="md-ellipsis">
       
-        MiniMax-H3 Refuses To Load Without --quantize 8
+        MiniMax-H3 Stops At Load With "Needs About N GiB Of Resident Weights"
       
     </span>
   </a>
@@ -1508,6 +1519,17 @@
     <span class="md-ellipsis">
       
         MiniMax-H3 Runs Out Of Memory Or Disk
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#minimax-h3-stops-with-changed-on-disk-after-the-model-was-loaded" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MiniMax-H3 Stops With "Changed On Disk After The Model Was Loaded"
       
     </span>
   </a>
@@ -1857,26 +1879,52 @@ bug:</p>
 <p>For RV2V/V2V, Bernini requires source-aspect, resize-only video conditioning. It intentionally
 rejects crop, pad, exact-resize, <code>--video-strength</code>, masks, LoRA, and non-UniPC solvers. See
 <a href="../bernini/">Bernini-R 1.3B</a> and its <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/README.md">validation bundle</a>.</p>
-<h2 id="minimax-h3-refuses-to-load-without-quantize-8">MiniMax-H3 Refuses To Load Without <code>--quantize 8</code><a class="headerlink" href="#minimax-h3-refuses-to-load-without-quantize-8" title="Permanent link">&para;</a></h2>
-<p>Unquantized, this model's weights are 125 GiB resident, which is 97% of a 128 GiB Mac before any
-activations, so the runtime refuses the load and names the remedy instead of letting the OS kill the
-process partway through. Pass <code>--quantize 8</code>, or load a prepared q8 package. On a machine with enough
-memory the same load proceeds: the check compares against your own hardware, and the capability row
-publishes <code>unquantized_weights_bytes</code> so an application can make the same decision in advance.</p>
+<h2 id="minimax-h3-stops-at-load-with-needs-about-n-gib-of-resident-weights">MiniMax-H3 Stops At Load With "Needs About N GiB Of Resident Weights"<a class="headerlink" href="#minimax-h3-stops-at-load-with-needs-about-n-gib-of-resident-weights" title="Permanent link">&para;</a></h2>
+<p>A MiniMax-H3 run holds the transformer without its AdaLN projections in memory: 20 GiB at 8-bit and
+37.5 GiB at 16-bit, plus the Turbo adapter and the VAEs. When that part alone is more than 85% of
+the machine's memory the runtime stops before reading it and names the remedies, instead of
+letting the OS kill the process partway through. In order of preference:</p>
+<ul>
+<li>pass <code>--stream-blocks --low-ram</code>, which reads each transformer block from disk at every step and
+  holds one block at a time;</li>
+<li>load a smaller package: <code>AbstractFramework/minimax-h3-8bit</code> instead of the 16-bit weights, or
+  <code>AbstractFramework/minimax-h3-4bit</code>;</li>
+<li>on the source snapshot, pass <code>--quantize 8</code> or <code>--quantize 4</code>.</li>
+</ul>
+<p>The check compares against your own hardware, and the capability row publishes <code>measured_runs</code> and
+<code>unquantized_weights_bytes</code> so an application can make the same decision in advance.</p>
 <h2 id="minimax-h3-runs-out-of-memory-or-disk">MiniMax-H3 Runs Out Of Memory Or Disk<a class="headerlink" href="#minimax-h3-runs-out-of-memory-or-disk" title="Permanent link">&para;</a></h2>
-<p>MiniMax-H3 needs about 140 GB of disk for its source snapshot, or 64.3 GiB for the 8-bit package
-and 44.9 GiB for the mixed 4-bit one. On a <code>960x544</code>, 124-frame clip the 8-bit package peaks at a
-77.0 GiB process footprint (65.0 GiB with <code>--low-ram</code>) and the 4-bit package at 57.6 GiB (45.6 GiB
-with <code>--low-ram</code>); at <code>1344x768</code> the 8-bit package peaks at 82.0 GiB. Use the 8-bit package on 96 GB or more and the 4-bit package with <code>--low-ram</code> on
-64 GB; <a href="../minimax-h3/#memory-by-machine">Memory By Machine</a> has the table. Close other memory-heavy
-applications, and prefer <code>minimax-h3-turbo-544p</code> over the
-768p entries while iterating; the 768p canvas costs about five minutes per step. The MLX
-free-buffer cache is capped at the process default (up to 8 GiB); <code>--mlx-cache-limit-gb</code> lowers or
-lifts that cap. If <code>mlxgen download</code> stops early, check free disk space and rerun it (downloads
-resume). The first source load after a download reads 134 GB of shards from disk and takes a few
-minutes; later loads are fast, and a package (<code>AbstractFramework/minimax-h3-8bit</code>,
-<code>AbstractFramework/minimax-h3-4bit</code>, or your own from <code>mlxgen prepare</code>) skips the quantization pass
-on every load.</p>
+<p>Disk: the 16-bit package is 115 GiB, the 8-bit package 64.3 GiB and the mixed 4-bit one 44.9 GiB;
+the source snapshot is 134 GiB of weight files. If <code>mlxgen download</code> stops early, check free disk
+space and rerun it (downloads resume).</p>
+<p>Memory: on a <code>960x544</code>, 124-frame clip the 8-bit package peaks at a 37.0 GiB process footprint with
+default settings, 26.3 GiB with <code>--low-ram</code> and 11.1 GiB with <code>--stream-blocks --low-ram</code>. The
+16-bit weights peak at 54.4 GiB, 44.0 GiB and 11.7 GiB in the same three modes, and the mixed 4-bit
+package at 32.5 GiB and 21.9 GiB with <code>--low-ram</code>. At <code>1344x768</code> the default mode peaks at 38.3 GiB
+(8-bit) and 55.7 GiB (16-bit). When a run does not fit:</p>
+<ul>
+<li>add <code>--low-ram</code> (a 1 GB MLX cache, and the transformer freed before the decode), then
+  <code>--stream-blocks --low-ram</code> (each transformer block read from disk at every step). The clip is
+  the same file in every mode, and each option costs 3 to 10% of a clip's time;</li>
+<li>pick the mode by machine size from <a href="../minimax-h3/#memory-by-machine">Memory By Machine</a>: the
+  8-bit package completes on 48 GB by default, on 36 GB with <code>--low-ram</code> and on 24 GB with
+  <code>--stream-blocks --low-ram</code>; the 16-bit weights on 96 GB, 64 GB and 32 GB;</li>
+<li>close other memory-heavy applications: their memory counts;</li>
+<li>prefer <code>minimax-h3-turbo-544p</code> over the 768p entries while iterating; the 768p canvas costs about
+  five minutes per step.</li>
+</ul>
+<p>The MLX free-buffer cache is capped at the process default (up to 8 GiB); <code>--mlx-cache-limit-gb</code>
+lowers or lifts that cap, and what it allows adds to the footprint.</p>
+<p>If stderr says "the transformer blocks are not streamed from disk", <code>--stream-blocks</code> did not
+apply and the transformer stayed in memory. The message names the reason: a source snapshot loaded
+with <code>--quantize</code> (stream from a prepared package, or load the snapshot without <code>--quantize</code>), or
+an adapter that trains the per-block AdaLN projections.</p>
+<h2 id="minimax-h3-stops-with-changed-on-disk-after-the-model-was-loaded">MiniMax-H3 Stops With "Changed On Disk After The Model Was Loaded"<a class="headerlink" href="#minimax-h3-stops-with-changed-on-disk-after-the-model-was-loaded" title="Permanent link">&para;</a></h2>
+<p>The conditioner, the AdaLN projections, the VAEs and streamed transformer blocks are read from the
+weight files after the model is loaded. When one of those files is replaced while the model is
+loaded, the weights not read yet would come from the new file, so the runtime checks the files
+before each of those reads and stops. Load the model again; do not rewrite or re-download a
+package while a process is generating from it.</p>
 <p>If loading a package stops with "splits <code>&lt;d&gt;</code> ... into several tokens", its tokenizer does not carry
 the model's dialogue markers. Prepare the package again; the message names the command.</p>
 <p>A repository id such as <code>AbstractFramework/minimax-h3-8bit</code> resolves to a complete

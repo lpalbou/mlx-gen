@@ -1232,6 +1232,11 @@ the 4-bit package, instead of the 24 GiB of BF16 described above. Precomputing t
 that smaller amount; it would matter most for the 4-bit package on 64 GB machines, where the load
 peak is the limit.</p>
 <h2 id="proposed-direction">Proposed direction<a class="headerlink" href="#proposed-direction" title="Permanent link">&para;</a></h2>
+<p>Direction 1 shipped on 2026-11-23 as item
+<a href="../../completed/0130_minimax_h3_staged_loading_and_reindexed_8bit/">0130</a>: the tables are computed
+per schedule from disk and the projections are never held; the 16-bit transformer fits (54.4 GiB
+peak at <code>960x544</code>), and at that canvas 16-bit and 8-bit steps take the same time. Directions 2 and
+3 remain.</p>
 <ol>
 <li>Precompute the AdaLN tables per generation and release the projection weights (reload from the
    shards for a schedule change); measure the memory win and whether a bf16 transformer then fits

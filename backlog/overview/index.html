@@ -1348,11 +1348,11 @@ outside chat history.</p>
 </tr>
 <tr>
 <td>Proposed</td>
-<td style="text-align: right;">41</td>
+<td style="text-align: right;">42</td>
 </tr>
 <tr>
 <td>Completed</td>
-<td style="text-align: right;">68</td>
+<td style="text-align: right;">69</td>
 </tr>
 <tr>
 <td>Deprecated</td>
@@ -1364,7 +1364,7 @@ outside chat history.</p>
 </tr>
 </tbody>
 </table>
-<p>Counts are item files (recounted 2026-11-23 after item 0128 completed and follow-up 0129 was filed; 2026-10-04 after planned items 0126 and 0127 were filed; 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
+<p>Counts are item files (recounted 2026-11-23 after item 0130 completed and follow-up 0131 was filed; 2026-11-23 after item 0128 completed and follow-up 0129 was filed; 2026-10-04 after planned items 0126 and 0127 were filed; 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
 2026-07-25 release hygiene had moved 0093-0095, 0097-0099, and release
 item 0101 to completed/), including topic-track items under
 <code>planned/memory/</code>; the completed <code>planned/runtime_contracts/</code> track holds only its index.
@@ -1694,7 +1694,11 @@ memory follow-up state.</p>
 <li>MiniMax-H3 shipped as completed items <a href="../completed/0117_minimax_h3_text_to_video_audio_runtime/">0117</a>
    (text-to-video with synchronized stereo audio, Turbo adapters) and
    <a href="../completed/0118_minimax_h3_first_frame_conditioning_vision_tower/">0118</a> (first-frame
-   image-to-video through the Qwen3-VL vision tower). Next: the AdaLN precompute and long-sequence performance work
+   image-to-video through the Qwen3-VL vision tower). The AdaLN precompute shipped with 0.40.0 in
+   <a href="../completed/0130_minimax_h3_staged_loading_and_reindexed_8bit/">0130</a>, which also takes the
+   conditioner and the VAEs out of resident memory, adds <code>--stream-blocks</code> and the 16-bit package;
+   its follow-ups are <a href="../proposed/0131_minimax_h3_memory_followups/">0131</a>. Next: the long-sequence
+   performance work
    (<a href="../proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance/">0119</a>). The
    quantized packages shipped with 0.39.0 as completed item
    <a href="../completed/0128_minimax_h3_quantized_packages/">0128</a>, published as gated repositories by the
@@ -2087,6 +2091,12 @@ memory follow-up state.</p>
 <td><a href="../proposed/0129_router_and_docs_followups_from_the_0_39_0_documentation_pass/">Router and docs follow-ups from the 0.39.0 documentation pass</a></td>
 <td>Router messages, local-folder routing, docs</td>
 <td>Promote the message and routing items when the router is next touched; the documentation items can ride with any docs pass. Eleven findings from checking the agent skill against the code, none of which blocks a documented workflow.</td>
+</tr>
+<tr>
+<td>0131</td>
+<td><a href="../proposed/0131_minimax_h3_memory_followups/">MiniMax-H3 memory follow-ups after staged loading</a></td>
+<td>MiniMax-H3, memory, block streaming, quantization, preflight</td>
+<td>Promote the re-indexing of other families' 8-bit weights when another family's 8-bit package is next rebuilt; the read-rate report, the plan-based preflight, the working-memory and load-time-quantization items can ride with the next change to the MiniMax-H3 runtime; keeping several blocks in memory while streaming needs a report of slow streaming from a user first. Nine candidates left out of item 0130, none needed for the shipped behavior.</td>
 </tr>
 </tbody>
 </table>
@@ -2577,6 +2587,13 @@ memory follow-up state.</p>
 <td>MiniMax-H3, quantization policy, packaging, Hugging Face, release 0.39.0</td>
 <td>2026-11-23</td>
 <td>Published <code>minimax-h3-8bit</code> (64.3 GiB) and the mixed-width <code>minimax-h3-4bit</code> (44.9 GiB: 4-bit conditioner, 6-bit transformer) as gated repositories. The policy is measured: no transformer family tolerates 4-bit better than another, the AdaLN projections quantize like any linear (the earlier failure was an input cast), and the vision tower stays unquantized. Fixed cache resolution of downloaded packages, package tokenizers, the model card, and the loader's refusal of mismatched packages. The 8-bit package runs on 96 GB and the 4-bit one on 64 GB with <code>--low-ram</code>, both tested with RAM locked away.</td>
+</tr>
+<tr>
+<td>0130</td>
+<td><a href="../completed/0130_minimax_h3_staged_loading_and_reindexed_8bit/">MiniMax-H3 staged loading, block streaming, re-indexed 8-bit weights and the 16-bit package</a></td>
+<td>MiniMax-H3, memory, block streaming, quantization, packaging, capability schema 17, release 0.40.0</td>
+<td>2026-11-23</td>
+<td>The conditioner is read from disk for the length of an encode, the AdaLN projections become per-schedule modulation tables, the VAEs are read at first use, and <code>--stream-blocks</code> reads each transformer block for the length of its call. Peak at <code>960x544</code>, 124 frames: 37.0 GiB with the 8-bit package (26.3 GiB with <code>--low-ram</code>, 11.1 GiB streamed) and 54.4 GiB with the released 16-bit weights (44.0 GiB, 11.7 GiB), byte-identical clips in every mode. Locked-RAM runs completed at 48 / 36 / 24 GB (8-bit), 96 / 64 / 32 GB (16-bit) and 32 GB (mixed 4-bit). 8-bit levels are chosen on the stored grid; <code>minimax-h3-8bit</code> was rebuilt and <code>minimax-h3-bf16</code> (115 GiB) published. <code>mlxgen prepare</code> writes one component at a time. Follow-up 0131.</td>
 </tr>
 </tbody>
 </table>

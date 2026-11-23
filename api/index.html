@@ -1769,7 +1769,7 @@ not a separate public task.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>capabilities<span class="w"> </span>--model<span class="w"> </span>flux2-klein-4b
 </code></pre></div>
 <p>The JSON includes each route-supported public task, internal mode, image count, route handler, and
-option support. The payload carries <code>schema_version</code> 16. It reports <code>min_reference_images</code> and
+option support. The payload carries <code>schema_version</code> 17. It reports <code>min_reference_images</code> and
 <code>max_reference_images</code> so applications can keep semantic references separate from primary <code>--image</code>
 inputs, and the outpaint conditioning-canvas contract described in
 <a href="#outpaint-conditioning-canvas">Outpaint Conditioning Canvas</a>. Route support
@@ -2444,12 +2444,20 @@ not published yet; send those by route.</p>
 <td>Whether a guidance scale steers the route. Independent of <code>supports_negative_prompt</code>: a distilled FLUX.2 Klein route has guidance but no negative prompt, and Z-Image Turbo has a negative prompt but no guidance, so neither field substitutes for the other.</td>
 </tr>
 <tr>
+<td><code>supports_block_streaming</code></td>
+<td>Whether the route can read its transformer blocks from disk at every step instead of holding them in memory (<code>--stream-blocks</code>, <code>stream_blocks=True</code>). <code>true</code> on the MiniMax-H3 rows. The peak drops by the size of the blocks, and step time then depends on the disk.</td>
+</tr>
+<tr>
+<td><code>supports_text_encoder_release</code></td>
+<td>Whether releasing the text encoder after the prompt is encoded lowers the route's peak. <code>false</code> on the MiniMax-H3 rows: the conditioner is read from disk for the length of an encode and never held in memory.</td>
+</tr>
+<tr>
 <td><code>weight_precision</code></td>
 <td>The precision the released weights are stored at, before any quantization.</td>
 </tr>
 <tr>
 <td><code>unquantized_weights_bytes</code></td>
-<td>Resident size of the weights this route loads, unquantized, in bytes. Compare it against the machine's own memory to decide whether quantization can be skipped.</td>
+<td>What stands in memory when the route runs its weights unquantized, in bytes. On MiniMax-H3 that is the transformer without its AdaLN projections, and the VAEs (43 GiB); the conditioner and the AdaLN projections are read from disk when they are needed. Read <code>measured_runs</code> for the peak of a whole run.</td>
 </tr>
 <tr>
 <td><code>recommended_quantize</code></td>
@@ -2461,7 +2469,7 @@ not published yet; send those by route.</p>
 </tr>
 <tr>
 <td><code>measured_runs</code></td>
-<td>Measured runs, each with <code>outcome</code> (<code>completed</code> or <code>killed</code>), <code>footprint_bytes</code> (the highest process footprint observed: a peak for a completed run, a lower bound for a killed one), <code>mlx_peak_bytes</code>, <code>terminated_at</code>, and the conditions that make the number reproducible: <code>quantize</code>, <code>width</code>, <code>height</code>, <code>frames</code>, <code>steps</code>, <code>cache_limit_bytes</code>, <code>release_text_encoder</code>, <code>machine_total_ram_bytes</code>. Killed runs are published too, because a run that did not fit is what a host most needs to know.</td>
+<td>Measured runs, each with <code>outcome</code> (<code>completed</code> or <code>killed</code>), <code>footprint_bytes</code> (the highest process footprint observed: a peak for a completed run, a lower bound for a killed one), <code>mlx_peak_bytes</code>, <code>terminated_at</code>, and the conditions that make the number reproducible: <code>quantize</code> (<code>null</code> for the unquantized weights), <code>width</code>, <code>height</code>, <code>frames</code>, <code>steps</code>, <code>cache_limit_bytes</code>, <code>low_ram</code>, <code>stream_blocks</code>, <code>machine_total_ram_bytes</code>. <code>release_text_encoder</code> is also present on each run and carries the same value as <code>low_ram</code>. Killed runs are published too, because a run that did not fit is what a host most needs to know.</td>
 </tr>
 <tr>
 <td><code>max_validated_frames</code></td>
@@ -2469,7 +2477,7 @@ not published yet; send those by route.</p>
 </tr>
 <tr>
 <td><code>peak_bytes_fixed</code>, <code>peak_bytes_per_packed_row</code></td>
-<td>The measured line through the runs above: expected footprint is roughly <code>peak_bytes_fixed + peak_bytes_per_packed_row x packed_rows</code>. Measured bytes, not a feasibility guarantee - whether a run survives also depends on what else is resident.</td>
+<td>A line through the runs above: expected footprint is at most roughly <code>peak_bytes_fixed + peak_bytes_per_packed_row x packed_rows</code>. On MiniMax-H3 it is an upper line through the default 8-bit <code>960x544</code> run (<code>peak_bytes_fixed</code> 34,390,000,000), 3.6 GB above the measured <code>1344x768</code> run. Measured bytes, not a feasibility guarantee - whether a run survives also depends on what else is resident.</td>
 </tr>
 <tr>
 <td><code>outpaint_auto_split_corner_ratio</code></td>
@@ -2717,7 +2725,9 @@ system/effective prompts, component-source revisions, and output health. See
 <p><code>minimax-h3</code>, <code>minimax-h3-turbo</code>, and <code>minimax-h3-turbo-544p</code> route through <code>mlxgen generate</code> as
 <code>text-to-video</code>, or as <code>image-to-video</code> when <code>--image-path</code> is given, and write one MP4 with the
 generated stereo soundtrack. See
-<a href="../minimax-h3/">MiniMax-H3 video with audio</a> for sizing, prompting, and measured cost.</p>
+<a href="../minimax-h3/">MiniMax-H3 video with audio</a> for sizing, prompting, and measured cost, and
+<a href="../minimax-h3-memory/">MiniMax-H3 memory, speed and quantization</a> for peak memory by package and
+mode, the cost of each mode in time, and the tested machine sizes.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>minimax-h3-turbo-544p<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A red fox trots through fresh snow in a birch forest at dawn."</span><span class="w"> </span><span class="se">\</span>
@@ -2767,7 +2777,7 @@ generated stereo soundtrack. See
 </tr>
 <tr>
 <td><code>--quantize</code>, <code>-q</code></td>
-<td>Load-time q8 (recommended) or q4 quantization of the transformer and conditioner. Not needed for a prepared package.</td>
+<td>Load-time 8-bit (recommended) or mixed 4-bit quantization of the source snapshot's transformer and conditioner. Omit it to run the released 16-bit weights, and for a prepared package.</td>
 </tr>
 <tr>
 <td><code>--base-model</code></td>
@@ -2786,12 +2796,16 @@ generated stereo soundtrack. See
 <td>One keyframe the clip starts from (<code>image-to-video</code>). The canvas follows its aspect ratio at the entry's short edge (768, or 544 for the 544p entry) unless <code>--width</code>/<code>--height</code> are given; the keyframe is stretched onto the canvas and conditions both the latent rows and the text sequence.</td>
 </tr>
 <tr>
-<td><code>--release-text-encoder</code></td>
-<td>Drop the Qwen3-VL conditioner once the prompt is encoded, lowering the peak by its resident size. Cached prompt embeddings stay usable; a run with a new prompt reloads it.</td>
+<td><code>--low-ram</code></td>
+<td>Low-RAM mode, as on every other generate route: the MLX cache is 1 GB instead of up to 8 GiB, and the transformer is freed before the decode. With several seeds the transformer is read again for each seed. The clip is the same file as without the option.</td>
 </tr>
 <tr>
-<td><code>--low-ram</code></td>
-<td>Low-RAM mode, as on every other generate route: tightens the MLX cache and releases the conditioner after encoding.</td>
+<td><code>--stream-blocks</code></td>
+<td>Read each transformer block from disk for the length of its call instead of holding the transformer in memory. The peak drops by the size of the blocks, and every step reads them again (20 GiB per step at 8-bit, 36 GiB at 16-bit). Works from a prepared package, or from the source snapshot without <code>--quantize</code>; a request that cannot be met is reported on stderr and the transformer stays in memory. The clip is the same file as without the option. Python: <code>MiniMaxH3(..., stream_blocks=True)</code>. Published as <code>supports_block_streaming</code>.</td>
+</tr>
+<tr>
+<td><code>--release-text-encoder</code></td>
+<td>Accepted and has no effect: the Qwen3-VL conditioner is read from disk for the length of an encode and is never held in memory.</td>
 </tr>
 <tr>
 <td><code>--video-shift</code>, <code>--audio-shift</code></td>
@@ -2817,7 +2831,10 @@ was rounded up to the grid), for image-to-video the source image path and size, 
 generated-audio fields <code>audio_present</code>, <code>audio_source</code>,
 <code>audio_channels</code>, <code>audio_sample_rate</code>, <code>audio_duration_seconds</code>, <code>audio_muxed</code>, <code>audio_codec</code>,
 <code>audio_mux_mode</code>. When the track cannot be muxed it is written as <code>&lt;output&gt;.wav</code> and
-<code>audio_sidecar_path</code> names it.</p>
+<code>audio_sidecar_path</code> names it. Three booleans record how the run held the transformer:
+<code>modulation_tables</code> (the AdaLN projections were used as per-schedule tables),
+<code>transformer_blocks_streamed</code> (<code>--stream-blocks</code> applied) and <code>transformer_released</code> (the
+transformer was freed before the decode).</p>
 <h3 id="wan-video-parameters">Wan Video Parameters<a class="headerlink" href="#wan-video-parameters" title="Permanent link">&para;</a></h3>
 <p>Wan uses frame-count control rather than a separate duration flag. The output duration is:</p>
 <div class="highlight"><pre><span></span><code>duration_seconds = frames / fps
@@ -2880,7 +2897,7 @@ and the source duration plus requested fps may resolve fewer <code>4n+1</code> f
 </tr>
 <tr>
 <td><code>--context-frames</code></td>
-<td>Wan A14B image-to-video only (EXPERIMENTAL zero-shot): the ordered frames that FOLLOW <code>--image-path</code> in the motion being continued. The conditioned head becomes <code>[--image-path, *--context-frames]</code>, so a continuation clip inherits the predecessor's real momentum instead of restarting from one frozen frame (the multi-frame handover used by SkyReels-V2/SVI-class pipelines). Pass 4, 8, or 12 frames — the head must fill whole 4x VAE latent groups (5, 9, or 13 conditioned frames); passing the start frame here too is the common misuse and fails on that count check. Requires <code>--image-path</code>; needs <code>--frames &gt;= head + 4</code>; composes with <code>--last-image</code>; rejected on TI2V-5B (<code>expand_timesteps</code>), Wan VACE, and text/video-to-video — CLI rejects before weight load. All frames map through the same canvas and <code>--resize-mode</code> as the first frame. Recorded in metadata (<code>context_image_paths</code>), replayed by <code>--config-from-metadata</code>, advertised as <code>supports_context_frames</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 6; the current capabilities payload is schema 16. Measured zero-shot on a Lightning 4-step continuation pair (backlog 0102): the K=5 head carried the source clip's motion speed (seam magnitude ratio 0.90 vs the single-frame baseline's 1.90 = double-speed restart) with a mild ~2-frame flare/exposure step at the conditioned-to-free boundary (luma delta ~3.2/255 vs the source clip's own max 1.15; visually mild, structurally clean). Treat as a storyboard continue-seam tool, not a validated general feature.</td>
+<td>Wan A14B image-to-video only (EXPERIMENTAL zero-shot): the ordered frames that FOLLOW <code>--image-path</code> in the motion being continued. The conditioned head becomes <code>[--image-path, *--context-frames]</code>, so a continuation clip inherits the predecessor's real momentum instead of restarting from one frozen frame (the multi-frame handover used by SkyReels-V2/SVI-class pipelines). Pass 4, 8, or 12 frames — the head must fill whole 4x VAE latent groups (5, 9, or 13 conditioned frames); passing the start frame here too is the common misuse and fails on that count check. Requires <code>--image-path</code>; needs <code>--frames &gt;= head + 4</code>; composes with <code>--last-image</code>; rejected on TI2V-5B (<code>expand_timesteps</code>), Wan VACE, and text/video-to-video — CLI rejects before weight load. All frames map through the same canvas and <code>--resize-mode</code> as the first frame. Recorded in metadata (<code>context_image_paths</code>), replayed by <code>--config-from-metadata</code>, advertised as <code>supports_context_frames</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 6; the current capabilities payload is schema 17. Measured zero-shot on a Lightning 4-step continuation pair (backlog 0102): the K=5 head carried the source clip's motion speed (seam magnitude ratio 0.90 vs the single-frame baseline's 1.90 = double-speed restart) with a mild ~2-frame flare/exposure step at the conditioned-to-free boundary (luma delta ~3.2/255 vs the source clip's own max 1.15; visually mild, structurally clean). Treat as a storyboard continue-seam tool, not a validated general feature.</td>
 </tr>
 <tr>
 <td><code>--context-noise</code></td>
@@ -2888,7 +2905,7 @@ and the source duration plus requested fps may resolve fewer <code>4n+1</code> f
 </tr>
 <tr>
 <td><code>--svi-anchor-image</code></td>
-<td>Wan A14B image-to-video only (EXPERIMENTAL): SVI 2.0 Pro chain conditioning (Stable Video Infinity, ICLR'26, trained for Wan 2.2 A14B i2v). One persistent anchor image is re-injected into EVERY clip of a chain as <code>[anchor_latent, motion_latent?, zero-latents]</code> — identity from the anchor, momentum from the previous clip's exported latent, TRUE zero-latent padding (not the stock zero-frame VAE encode; the conventions are mutually unintelligible, which is why the mode and the LoRA pair gate each other loudly in both directions). Replaces <code>--image-path</code>; conflicts with <code>--image-path</code>, <code>--last-image</code>, <code>--context-frames</code>, <code>--video-path</code>; rejected on TI2V-5B and VACE before weight load. Requires <code>--svi-lora-high</code>/<code>--svi-lora-low</code>. Every SVI run exports <code>&lt;output&gt;.svi_latent.safetensors</code> for the next clip and records <code>svi_*</code> metadata including <code>svi_assembly_trim_frames</code> (drop that many frames of every CONTINUATION clip at assembly: <code>1 + 4 x count</code>). Use a unique seed per clip. Advertised as <code>supports_svi</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 7; the current capabilities payload is schema 16.</td>
+<td>Wan A14B image-to-video only (EXPERIMENTAL): SVI 2.0 Pro chain conditioning (Stable Video Infinity, ICLR'26, trained for Wan 2.2 A14B i2v). One persistent anchor image is re-injected into EVERY clip of a chain as <code>[anchor_latent, motion_latent?, zero-latents]</code> — identity from the anchor, momentum from the previous clip's exported latent, TRUE zero-latent padding (not the stock zero-frame VAE encode; the conventions are mutually unintelligible, which is why the mode and the LoRA pair gate each other loudly in both directions). Replaces <code>--image-path</code>; conflicts with <code>--image-path</code>, <code>--last-image</code>, <code>--context-frames</code>, <code>--video-path</code>; rejected on TI2V-5B and VACE before weight load. Requires <code>--svi-lora-high</code>/<code>--svi-lora-low</code>. Every SVI run exports <code>&lt;output&gt;.svi_latent.safetensors</code> for the next clip and records <code>svi_*</code> metadata including <code>svi_assembly_trim_frames</code> (drop that many frames of every CONTINUATION clip at assembly: <code>1 + 4 x count</code>). Use a unique seed per clip. Advertised as <code>supports_svi</code> on the <code>wan.first-frame</code> capability row. The field was introduced in schema 7; the current capabilities payload is schema 17.</td>
 </tr>
 <tr>
 <td><code>--svi-motion-latent</code></td>
