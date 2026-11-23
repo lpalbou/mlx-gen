@@ -13,6 +13,10 @@
         <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/minimax-h3-memory/">
       
       
+        <link rel="prev" href="../minimax-h3/">
+      
+      
+        <link rel="next" href="../upscaling/">
       
       
         
@@ -23,7 +27,7 @@
     
     
       
-        <title>MiniMax-H3 Memory, Speed And Quantization - MLX-Gen</title>
+        <title>MiniMax-H3 memory, speed and quantization - MLX-Gen</title>
       
     
     
@@ -110,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              MiniMax-H3 Memory, Speed And Quantization
+              MiniMax-H3 memory, speed and quantization
             
           </span>
         </div>
@@ -336,8 +340,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -348,11 +354,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
@@ -373,7 +379,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -631,6 +637,247 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 memory, speed and quantization
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 memory, speed and quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-a-run-holds-in-memory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What A Run Holds In Memory
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What A Run Holds In Memory">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-conditioner-is-read-for-the-length-of-an-encode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Conditioner Is Read For The Length Of An Encode
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adaln-projections-become-tables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        AdaLN Projections Become Tables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vaes-are-read-at-their-first-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VAEs Are Read At Their First Use
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#-low-ram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        --low-ram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#-stream-blocks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        --stream-blocks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#speed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Speed
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tested-machine-sizes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tested Machine Sizes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quality-by-width" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quality By Width
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quality By Width">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-8-bit-weights-are-chosen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How The 8-bit Weights Are Chosen
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-the-results-were-validated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How The Results Were Validated
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limits
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1349,14 +1596,15 @@ whole-process physical footprint on an Apple M5 Max with 128 GB:</p>
 <ul>
 <li><strong>Same clip in every mode.</strong> The three modes write byte-identical MP4 files for the same weights,
   prompt and seed. The modes change where weights wait between uses, not what is computed.</li>
-<li><strong>Speed.</strong> <code>--stream-blocks</code> adds about 3% to a step and <code>--low-ram</code> 8 to 10%; see
-  <a href="#speed">Speed</a>.</li>
-<li><strong>Quality.</strong> The 8-bit package is within the 16-bit model's own numerical noise by a factor of
-  1.2 to 2.0 and keeps the sharpness of the 16-bit clips. The mixed 4-bit package is further away
+<li><strong>Speed.</strong> <code>--stream-blocks</code> adds about 3% to a step on average and <code>--low-ram</code> roughly 5 to
+  13%; see <a href="#speed">Speed</a>.</li>
+<li><strong>Quality.</strong> The 8-bit package's video velocity differs from the 16-bit prediction 1.2 to 2.0
+  times as much as a 0.1% change of the prompt embedding does (audio: 1.3 to 3.0 times), and it
+  keeps the sharpness of the 16-bit clips. The mixed 4-bit package is further away
   and measurably softer; see <a href="#quality-by-width">Quality By Width</a>.</li>
 </ul>
-<p>Smallest Mac memory each combination completed a clip on (see
-<a href="#tested-machine-sizes">Tested Machine Sizes</a> for how these were run):</p>
+<p>Smallest memory each combination completed a clip within, tested on the 128 GB Mac with the rest of
+its memory locked (see <a href="#tested-machine-sizes">Tested Machine Sizes</a> for how these were run):</p>
 <table>
 <thead>
 <tr>
@@ -1389,7 +1637,7 @@ whole-process physical footprint on an Apple M5 Max with 128 GB:</p>
 </table>
 <h2 id="what-a-run-holds-in-memory">What A Run Holds In Memory<a class="headerlink" href="#what-a-run-holds-in-memory" title="Permanent link">&para;</a></h2>
 <p>A clip is made in three stages, and each stage needs different weights:</p>
-<div class="highlight"><pre><span></span><code>flowchart LR
+<pre class="mermaid"><code>flowchart LR
     prompt["Prompt and optional keyframe"] --&gt; conditioner["Conditioner&lt;br/&gt;Qwen3-VL, 50 layers&lt;br/&gt;26 to 48 GiB on disk"]
     conditioner --&gt; embedding["Prompt embedding&lt;br/&gt;a few MB"]
     schedule["Timesteps of the schedule"] --&gt; adaln["AdaLN projections&lt;br/&gt;13 to 24 GiB on disk"]
@@ -1401,8 +1649,7 @@ whole-process physical footprint on an Apple M5 Max with 128 GB:</p>
         b1["Block 1"] --&gt; b2["Block 2"] --&gt; b3["..."] --&gt; b50["Block 50"]
     end
     denoise --&gt; vae["Video VAE and audio VAE&lt;br/&gt;5.4 GiB"]
-    vae --&gt; clip["MP4 with a stereo soundtrack"]
-</code></pre></div>
+    vae --&gt; clip["MP4 with a stereo soundtrack"]</code></pre>
 <table>
 <thead>
 <tr>
@@ -1418,7 +1665,7 @@ whole-process physical footprint on an Apple M5 Max with 128 GB:</p>
 <td>Conditioner (50 Qwen3-VL layers, token embeddings, vision tower)</td>
 <td style="text-align: right;">26.0 GiB</td>
 <td style="text-align: right;">48.0 GiB</td>
-<td>For under a second, to encode the prompt</td>
+<td>About 3 seconds per prompt, to encode it</td>
 <td>On disk; read one layer at a time during the encode</td>
 </tr>
 <tr>
@@ -1473,13 +1720,13 @@ train attention and feed-forward layers only.</p>
 <p>The video VAE encoder is read when a keyframe is encoded, and the decoders when the first clip is
 decoded. They stay in memory for the following clips.</p>
 <h3 id="-low-ram"><code>--low-ram</code><a class="headerlink" href="#-low-ram" title="Permanent link">&para;</a></h3>
-<p><code>--low-ram</code> lowers the MLX buffer cache from 8 GiB to 1 GB and frees the transformer before the
-decode. With several seeds in one command the transformer is read again for each seed.</p>
+<p><code>--low-ram</code> lowers the MLX buffer cache from its default (an eighth of the machine's memory, at
+most 8 GiB) to 1 GB and frees the transformer before the decode. With several seeds in one command the transformer is read again for each seed.</p>
 <h3 id="-stream-blocks"><code>--stream-blocks</code><a class="headerlink" href="#-stream-blocks" title="Permanent link">&para;</a></h3>
 <p>The transformer is a chain of 50 blocks. At every denoise step the packed sequence goes through
 block 1, then block 2, and so on to block 50, and each block is used once per step. While one block
 runs, the weights of the other 49 are idle.</p>
-<div class="highlight"><pre><span></span><code>flowchart LR
+<pre class="mermaid"><code>flowchart LR
     subgraph disk["On disk"]
         direction LR
         d1["Block 1"]
@@ -1489,17 +1736,16 @@ runs, the weights of the other 49 are idle.</p>
         d50["Block 50"]
     end
     subgraph memory["In memory during one step"]
-        running["The block that is running&lt;br/&gt;0.4 GiB at 8-bit, 0.75 GiB at 16-bit"]
+        running["The block that is running&lt;br/&gt;0.4 GiB at 8-bit, 0.7 GiB at 16-bit"]
     end
     d1 -. "read, run, release" .-&gt; running
     d2 -. "then read, run, release" .-&gt; running
     d3 -. "then" .-&gt; running
-    d50 -. "last" .-&gt; running
-</code></pre></div>
+    d50 -. "last" .-&gt; running</code></pre>
 <p>By default all 50 blocks are in memory for the whole run. With <code>--stream-blocks</code> each block is read
 from disk just before it runs and released right after, so the transformer costs one block of
 memory instead of 20 GiB (8-bit) or 37.5 GiB (16-bit). The blocks are read again at every step:
-20 GiB per step at 8-bit and 36 GiB at 16-bit. Every block still runs at every step, and the result
+19 GiB per step at 8-bit and 36 GiB at 16-bit. Every block still runs at every step, and the result
 is the same to the last bit.</p>
 <ul>
 <li>Streaming works from a prepared package, or from the source snapshot without <code>--quantize</code>. A
@@ -1579,7 +1825,8 @@ mean of three or four calls).</p>
 </tr>
 </tbody>
 </table>
-<p>The default 8 GiB MLX cache against the 1 GB cache of <code>--low-ram</code>, 8-bit package:</p>
+<p>The default MLX cache (8 GiB on the 128 GB test machine) against the 1 GB cache of <code>--low-ram</code>,
+8-bit package:</p>
 <table>
 <thead>
 <tr>
@@ -1601,10 +1848,11 @@ mean of three or four calls).</p>
 </tr>
 </tbody>
 </table>
+<p>The two tables come from different sessions, so compare values within a table, not across them.</p>
 <ul>
-<li><code>--stream-blocks</code> adds about 3% to a step at <code>960x544</code>: 3 to 4 seconds at 16-bit and 1.5 to 3
-  seconds at 8-bit, with the weight files in the system file cache.</li>
-<li><code>--low-ram</code> adds 8 to 10% to a step through its smaller cache. Freeing the transformer before the
+<li><code>--stream-blocks</code> adds about 3% to a step on average at <code>960x544</code>; across paired calls the
+  difference ranges from none to about 14%, with the weight files in the system file cache.</li>
+<li><code>--low-ram</code> adds roughly 5 to 13% to a step at <code>960x544</code> through its smaller cache. Freeing the transformer before the
   decode costs one more read of the transformer for the next clip of the same process, a few
   seconds.</li>
 <li>The 16-bit and 8-bit transformers take the same time per step at <code>960x544</code>.</li>
@@ -1613,7 +1861,7 @@ mean of three or four calls).</p>
 <li>A new prompt costs one read of the conditioner (about 3 seconds from the file cache); a new
   schedule costs one pass over the AdaLN projections (about 3 seconds).</li>
 </ul>
-<p>Whole clips at <code>960x544</code>, 124 frames and 8 steps took 887 to 1100 seconds from the 8-bit package
+<p>Whole clips at <code>960x544</code>, 124 frames and 8 steps took 887 to 1096 seconds from the 8-bit package
 and 967 to 1260 seconds from the 16-bit weights on the test machine, in its Automatic power mode
 on mains power. Consecutive runs get slower as the machine warms up: the same 16-bit run took 967
 seconds early in a session and 1260 seconds as the fifth run in a row. Whole-clip times therefore
@@ -1624,6 +1872,12 @@ process held the stated amount of RAM locked for the whole run. Locked memory ca
 compressed, so the run sees a machine with that much less memory, including less room for the
 system file cache. Every clip completed and is byte-identical to the clip of the same weights
 generated without a lock.</p>
+<p>The 16-bit rows ran from the source snapshot, whose weights the 16-bit package repacks unchanged;
+the 8-bit rows ran from the 8-bit package as first published, which differs from the current one
+only in the choice of each weight's level and has the same size; the mixed 4-bit row ran from the
+source snapshot with <code>--quantize 4</code>, which gives the package's clips. The lock removes memory; a Mac
+of that size also sets its default MLX cache and its memory checks from its own size, which the
+emulation does not reproduce.</p>
 <table>
 <thead>
 <tr>
@@ -1694,7 +1948,7 @@ generated without a lock.</p>
 </tr>
 </tbody>
 </table>
-<p>The 8-bit <code>--low-ram</code> run at 36 GB took 60% longer than the same run without a lock: at that size
+<p>The 8-bit <code>--low-ram</code> run at 36 GB took about 55% longer than the same run without a lock: at that size
 the transformer and the rest of the system compete for memory. At 36 GB and below,
 <code>--stream-blocks --low-ram</code> is the faster choice. Other applications' memory counts on a real
 machine; close memory-heavy ones before a run near the low end of a range.</p>
@@ -1707,9 +1961,9 @@ width with the released 16-bit weights.</p>
 snow, and the fox from a keyframe; <code>640x352</code>, 124 frames, 8 steps, seed 42), and its transformer
 inputs are recorded at steps 1, 4 and 7. Each candidate then predicts the velocity on those same
 inputs, with its own conditioner's embedding of the prompt, and the result is compared with the
-16-bit prediction as a relative RMS error. The noise floor is the 16-bit model itself with its
-prompt embedding perturbed by 0.1%: it shows how much the prediction moves for a change far smaller
-than any quantization.</p>
+16-bit prediction as a relative RMS error. The noise floor is the error of the 16-bit model itself
+when its prompt embedding is changed by 0.1%: it shows how much the prediction moves for a change
+far smaller than any quantization.</p>
 <p>Video error / audio error at each recorded step:</p>
 <table>
 <thead>
@@ -1806,12 +2060,14 @@ fine detail of the frames (variance of the Laplacian, as a percentage of the 16-
 </tbody>
 </table>
 <ul>
-<li>The noise floor is 3 to 7% of video velocity: the model amplifies any small change, so two runs
+<li>The noise floor is 2 to 7% of video velocity: the model amplifies any small change, so two runs
   that differ slightly drift apart over the steps. Same-seed PSNR therefore measures how far two
   clips diverge, not which one is better.</li>
-<li>The 8-bit package is 1.2 to 2.0 times the noise floor and keeps the fine detail of the 16-bit
-  clips (98 to 101%).</li>
-<li>The mixed 4-bit package is 2.4 to 5.3 times the noise floor, diverges further at clip level, and
+<li>The 8-bit package's video velocity differs from the 16-bit prediction 1.2 to 2.0 times as much
+  as a 0.1% change of the prompt embedding does (audio: 1.3 to 3.0 times), and the package keeps
+  the fine detail of the 16-bit clips (98 to 101%).</li>
+<li>The mixed 4-bit package's video velocity differs 2.4 to 5.3 times as much (audio: 3.3 to 6.0
+  times); it diverges further at clip level, and
   loses 12 to 20% of the fine detail on the two text-to-video clips.</li>
 <li>The measurements cover three clips at one seed and one canvas.</li>
 </ul>
@@ -1823,7 +2079,9 @@ step, so about one weight in five is then one level away from its nearest. MLX-G
 again on the grid that is stored. The size, the memory and the speed are unchanged, and the weight
 error of a layer falls by about a quarter (0.78% to 0.59% on a sampled attention layer). At 6 bits
 and below a step is too wide for the rounding to matter, so those widths are quantized as MLX does
-it.</p>
+it. On whole clips the effect is within the variation between runs: the package's mean video
+velocity error is 6.2% with this choice against 6.3% with MLX's, three of nine recorded inputs
+score slightly worse, and the same-seed clips sit 0.2 to 2.7 dB further from the 16-bit clips.</p>
 <h2 id="how-the-results-were-validated">How The Results Were Validated<a class="headerlink" href="#how-the-results-were-validated" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1835,7 +2093,7 @@ it.</p>
 <tbody>
 <tr>
 <td>The staged loading does not change the output</td>
-<td>Clips from the 8-bit package and from load-time <code>--quantize 4</code> are byte-identical MP4 files to the clips mlx-gen 0.39 wrote from the same weights, at <code>640x352</code> and <code>960x544</code>, text-to-video and image-to-video</td>
+<td>Clips from the 8-bit weights at <code>640x352</code>, <code>960x544</code> and <code>1344x768</code> and from the mixed 4-bit weights at <code>640x352</code> and <code>960x544</code>, text-to-video and image-to-video, are byte-identical MP4 files to the clips the whole-model loading path wrote from the same weights</td>
 </tr>
 <tr>
 <td>A streamed conditioner equals one held in memory</td>
@@ -1854,7 +2112,7 @@ it.</p>
 <td>Byte-identical MP4 files against the default mode, for 8-bit and 16-bit</td>
 </tr>
 <tr>
-<td>A package equals load-time quantization</td>
+<td>A package gives the clip of load-time quantization</td>
 <td>The clip from <code>AbstractFramework/minimax-h3-8bit</code> is byte-identical to the clip from the source snapshot with <code>--quantize 8</code></td>
 </tr>
 <tr>
@@ -1879,15 +2137,20 @@ velocity error, per-call timing and <code>mlxgen generate</code> run behind this
 <h2 id="limits">Limits<a class="headerlink" href="#limits" title="Permanent link">&para;</a></h2>
 <ul>
 <li>A weight file must not be replaced while a model that reads from it is loaded. Weights that have
-  not been read yet would come from the new file, so MLX-Gen checks the files before each deferred
-  read and stops with an error when one changed.</li>
-<li><code>--stream-blocks</code> reads 20 to 36 GiB from disk at every step. It was measured on an internal SSD;
+  not been read yet would come from the new file, so MLX-Gen checks the files before it reads
+  streamed transformer blocks, the AdaLN projections and the VAEs, and stops with an error when one
+  changed. The conditioner is read in full at each encode, so it is not part of that check.</li>
+<li><code>--stream-blocks</code> reads 19 to 36 GiB from disk at every step. It was measured on an internal SSD;
   a slower disk lengthens every step by the time of those reads.</li>
 <li>An adapter that trains the per-block AdaLN projections keeps them in memory (12.9 GiB at 8-bit,
   24.2 GiB at 16-bit) and disables <code>--stream-blocks</code>.</li>
-<li><code>mlxgen prepare</code> writes a package one component at a time and needs the memory of the largest
-  one: 33 GiB for an 8-bit package, 62 GiB for the 16-bit one.</li>
+<li><code>mlxgen prepare</code> writes a package one component at a time and holds one component in memory at
+  a time; the largest is the transformer, 33 GiB at 8-bit and 62 GiB at 16-bit.</li>
 <li>The machine sizes were emulated on one 128 GB machine; they were not run on Macs of those sizes.</li>
+<li>Byte-identical clips are a property of one environment. Another MLX version changes the
+  arithmetic slightly, and the same seed then gives a clip that differs as much as the 8-bit and
+  16-bit clips differ from each other (28.9 dB median frame PSNR between MLX 0.31.0 and a later
+  release, same package and seed).</li>
 </ul>
 
 

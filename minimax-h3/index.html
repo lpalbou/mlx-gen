@@ -16,7 +16,7 @@
         <link rel="prev" href="../wan-video/">
       
       
-        <link rel="next" href="../upscaling/">
+        <link rel="next" href="../minimax-h3-memory/">
       
       
         
@@ -906,6 +906,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../minimax-h3-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 memory, speed and quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../upscaling/" class="md-nav__link">
         
   
@@ -1673,7 +1701,7 @@ internally. All three entries resolve to the <code>MiniMaxAI/MiniMax-H3</code> r
 entries add their adapter automatically.</p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>
 <p>MiniMax-H3 is large: a 33B-parameter transformer, a 32B-parameter Qwen3-VL conditioner (of which
-MLX-Gen reads the 50 layers the model conditions on, 25.7B parameters), a 2.4B-parameter video VAE
+MLX-Gen reads the 50 layers the model conditions on, 25.7B parameters), a 2.6B-parameter video VAE
 and an audio VAE. A run holds only part of them in memory: the transformer without its per-block
 AdaLN projections. The conditioner is read from disk layer by layer for the length of an encode,
 the AdaLN projections are read once per schedule to compute modulation tables, and the VAEs are
@@ -1689,7 +1717,7 @@ read at their first use. The released 16-bit weights and the quantized packages 
 <tbody>
 <tr>
 <td>Memory</td>
-<td>The 8-bit package completes a <code>960x544</code> clip on a 48 GB Mac with default settings, on 36 GB with <code>--low-ram</code> and on 24 GB with <code>--stream-blocks --low-ram</code>. The released 16-bit weights complete it on 96 GB, 64 GB and 32 GB in the same three modes. See <a href="#memory-by-machine">Memory By Machine</a>.</td>
+<td>The 8-bit package completes a <code>960x544</code> clip within 48 GB with default settings, within 36 GB with <code>--low-ram</code> and within 24 GB with <code>--stream-blocks --low-ram</code> (tested on a 128 GB Mac with the rest of its memory locked). The released 16-bit weights complete it within 96 GB, 64 GB and 32 GB in the same three modes. See <a href="#memory-by-machine">Memory By Machine</a>.</td>
 </tr>
 <tr>
 <td>Disk</td>
@@ -1707,7 +1735,8 @@ read at their first use. The released 16-bit weights and the quantized packages 
 </table>
 <h3 id="published-packages">Published Packages<a class="headerlink" href="#published-packages" title="Permanent link">&para;</a></h3>
 <p>Three packages hold the base weights. Each memory cell is the peak of one <code>960x544</code>, 124-frame,
-8-step clip and, where it was tested, the smallest Mac memory the run completed on:</p>
+8-step clip and, where it was tested, the smallest memory the run completed within (tested on the
+128 GB Mac with the rest of its memory locked):</p>
 <table>
 <thead>
 <tr>
@@ -1724,24 +1753,24 @@ read at their first use. The released 16-bit weights and the quantized packages 
 <td><a href="https://huggingface.co/AbstractFramework/minimax-h3-bf16"><code>AbstractFramework/minimax-h3-bf16</code></a></td>
 <td>16-bit, as released</td>
 <td style="text-align: right;">115 GiB</td>
-<td>54.4 GiB, ran on 96 GB</td>
-<td>44.0 GiB, ran on 64 GB</td>
-<td>11.7 GiB, ran on 32 GB</td>
+<td>54.4 GiB, within 96 GB</td>
+<td>44.0 GiB, within 64 GB</td>
+<td>11.7 GiB, within 32 GB</td>
 </tr>
 <tr>
 <td><a href="https://huggingface.co/AbstractFramework/minimax-h3-8bit"><code>AbstractFramework/minimax-h3-8bit</code></a></td>
 <td>8-bit transformer and conditioner</td>
 <td style="text-align: right;">64.3 GiB</td>
-<td>37.0 GiB, ran on 48 GB</td>
-<td>26.3 GiB, ran on 36 GB</td>
-<td>11.1 GiB, ran on 24 GB</td>
+<td>37.0 GiB, within 48 GB</td>
+<td>26.3 GiB, within 36 GB</td>
+<td>11.1 GiB, within 24 GB</td>
 </tr>
 <tr>
 <td><a href="https://huggingface.co/AbstractFramework/minimax-h3-4bit"><code>AbstractFramework/minimax-h3-4bit</code></a></td>
 <td>Mixed: 4-bit conditioner, 6-bit transformer</td>
 <td style="text-align: right;">44.9 GiB</td>
 <td>32.5 GiB</td>
-<td>21.9 GiB, ran on 32 GB</td>
+<td>21.9 GiB, within 32 GB</td>
 <td>not measured</td>
 </tr>
 </tbody>
@@ -1751,10 +1780,13 @@ package by quality and disk space, and the mode by the memory of your Mac; the t
 the same clip. <a href="#memory-by-machine">Memory By Machine</a> says what each mode does.</p>
 <ul>
 <li>The 16-bit package holds the released weights, repacked: only the 50 conditioner layers the model
-  reads, and the video VAE at the 16-bit precision it runs at.</li>
-<li>The 8-bit package is within 1.2 to 2.0 times the 16-bit model's own noise floor and keeps the
-  sharpness of the 16-bit clips. Each 8-bit weight's level is chosen on the grid that is stored;
-  see <a href="../minimax-h3-memory/#how-the-8-bit-weights-are-chosen">How The 8-bit Weights Are Chosen</a>.</li>
+  reads, the video VAE stored in the BF16 it runs at (the release holds it in fp32) and the fp32
+  audio VAE.</li>
+<li>The 8-bit package's video velocity differs from the 16-bit prediction 1.2 to 2.0 times as much as
+  a 0.1% change of the prompt embedding does (audio: 1.3 to 3.0 times), and the package keeps the
+  sharpness of the 16-bit clips. Each 8-bit weight's level is chosen on the grid that is stored; on
+  whole clips the difference is within the variation between runs. See
+  <a href="../minimax-h3-memory/#how-the-8-bit-weights-are-chosen">How The 8-bit Weights Are Chosen</a>.</li>
 <li>The mixed 4-bit package is further from the 16-bit weights and loses 12 to 20% of fine detail on
   text-to-video clips, in 19 GiB less disk and about 4.5 GiB less memory than the 8-bit package. Its
   transformer is 6-bit because no part of the transformer tolerates 4-bit better than another.</li>
@@ -1780,7 +1812,8 @@ soundtrack.</p>
 <p>The packages are distributed under the MiniMax H3 Community License, with its <code>LICENSE</code> and <code>NOTICE</code>
 files inside. Read <a href="#current-limits">Current Limits</a> before downloading.</p>
 <h3 id="memory-by-machine">Memory By Machine<a class="headerlink" href="#memory-by-machine" title="Permanent link">&para;</a></h3>
-<p>Three modes trade memory for 3 to 10% of a clip's time, and write the same clip:</p>
+<p>Three modes trade memory for time and write the same clip: <code>--stream-blocks</code> adds about 3% to a
+step on average and <code>--low-ram</code> roughly 5 to 13%; together they add both.</p>
 <table>
 <thead>
 <tr>
@@ -1791,7 +1824,7 @@ files inside. Read <a href="#current-limits">Current Limits</a> before downloadi
 <tbody>
 <tr>
 <td>Default</td>
-<td>The transformer stays in memory without its AdaLN projections. The MLX buffer cache holds up to 8 GiB.</td>
+<td>The transformer stays in memory without its AdaLN projections. The MLX buffer cache keeps its default limit: an eighth of the machine's memory, at most 8 GiB.</td>
 </tr>
 <tr>
 <td><code>--low-ram</code></td>
@@ -1847,13 +1880,13 @@ files inside. Read <a href="#current-limits">Current Limits</a> before downloadi
 </tbody>
 </table>
 <ul>
-<li>The 8-bit package also completes on 36 GB with <code>--low-ram</code> alone, 60% slower than on a larger
-  machine; <code>--stream-blocks --low-ram</code> is the faster choice at 36 GB and below.</li>
-<li>The mixed 4-bit package completes on 32 GB with <code>--low-ram</code>.</li>
+<li>The 8-bit package also completes within 36 GB with <code>--low-ram</code> alone, taking about 55% longer
+  than on a larger machine; <code>--stream-blocks --low-ram</code> is the faster choice at 36 GB and below.</li>
+<li>The mixed 4-bit package completes within 32 GB with <code>--low-ram</code>.</li>
 <li>The sizes were tested on the 128 GB machine with the difference in RAM locked by a second process
   for the whole run; they were not run on Macs of those sizes. Other applications' memory counts:
   close memory-heavy ones before a run near the low end of a range.</li>
-<li><code>--stream-blocks</code> reads 20 GiB (8-bit) to 36 GiB (16-bit) from disk at every step. The figures
+<li><code>--stream-blocks</code> reads 19 GiB (8-bit) to 36 GiB (16-bit) from disk at every step. The figures
   are from an internal SSD; a slower disk lengthens every step.</li>
 <li>At <code>1344x768</code>, 124 frames, the default mode peaks at 38.3 GiB with the 8-bit package and
   55.7 GiB with the 16-bit weights. Longer clips need more; see
@@ -1873,10 +1906,10 @@ mlxgen<span class="w"> </span>prepare<span class="w"> </span>--model<span class=
 <p>Prepare from <code>minimax-h3</code> so the package carries no adapter; a Turbo entry is refused. The package
 gets the source tokenizer files, the <code>LICENSE</code> and <code>NOTICE</code> files and each layer at the width the
 policy assigns it; loading reads those widths back from the files. <code>prepare</code> writes one component
-at a time and needs the memory of the largest one: 33 GiB for an 8-bit package and 62 GiB for the
-16-bit one. MiniMax-H3 accepts <code>--quantize 8</code> and <code>--quantize 4</code> only. The same two values on
-<code>mlxgen generate</code> quantize the source snapshot at load time, and the 8-bit package equals load-time
-<code>--quantize 8</code> byte for byte.</p>
+at a time and holds one component in memory at a time; the largest is the transformer, 33 GiB at
+8-bit and 62 GiB at 16-bit. MiniMax-H3 accepts <code>--quantize 8</code> and <code>--quantize 4</code> only. The same two
+values on <code>mlxgen generate</code> quantize the source snapshot at load time, and the 8-bit package gives
+the same clip, byte for byte, as load-time <code>--quantize 8</code>.</p>
 <h2 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>AbstractFramework/minimax-h3-8bit<span class="w"> </span>--base-model<span class="w"> </span>minimax-h3-turbo-544p
 
@@ -1998,7 +2031,8 @@ prompts.</p>
 <li>Audio length follows the video: 40 audio latents per second, trimmed to the clip duration.</li>
 </ul>
 <h2 id="measured-runtime">Measured Runtime<a class="headerlink" href="#measured-runtime" title="Permanent link">&para;</a></h2>
-<p>Apple M5 Max, 128 GB, 8-bit weights, 124 frames, MLX 0.31:</p>
+<p>Apple M5 Max, 128 GB, in its Automatic power mode, 124 frames, MLX 0.31. Consecutive runs get
+slower as the machine warms up, so each row gives the range of the measured runs:</p>
 <table>
 <thead>
 <tr>
@@ -2013,27 +2047,27 @@ prompts.</p>
 <td><code>minimax-h3-turbo-544p</code></td>
 <td><code>960x544</code></td>
 <td>8</td>
-<td>11 to 17 min per clip (650 to 1011 s over eight clips; a fresh process is fastest, later clips in one process run slower as the machine warms up)</td>
+<td>15 to 18 min from the 8-bit package (887 to 1096 s); 16 to 21 min from the 16-bit weights (967 to 1260 s)</td>
 </tr>
 <tr>
 <td><code>minimax-h3</code> (base)</td>
 <td><code>960x544</code></td>
 <td>50</td>
-<td>62 min (3741 s)</td>
+<td>62 min (3741 s, 8-bit weights)</td>
 </tr>
 <tr>
 <td><code>minimax-h3-turbo</code></td>
 <td><code>1344x768</code></td>
 <td>8</td>
-<td>34 min (2035 s; about 4.2 min per transformer evaluation)</td>
+<td>45 to 48 min (2679 s from the 16-bit weights, 2860 s from the 8-bit package; about 5.5 to 6 min per transformer evaluation)</td>
 </tr>
 </tbody>
 </table>
 <p>Step time is set by attention over the packed sequence, not by the weight width: a 6-bit
 projection costs no more than an 8-bit one, so the 4-bit package runs at the speed of the 8-bit
 one, and the 16-bit transformer takes the same time per step as the 8-bit one at <code>960x544</code>.
-<code>--low-ram</code> and <code>--stream-blocks</code> each cost 3 to 10% of a clip's time; see
-<a href="../minimax-h3-memory/#speed">Speed</a>. Times assume the machine is otherwise idle; a clip takes about
+<code>--stream-blocks</code> adds about 3% to a step on average and <code>--low-ram</code> roughly 5 to 13%; together
+they add both. See <a href="../minimax-h3-memory/#speed">Speed</a>. Times assume the machine is otherwise idle; a clip takes about
 twice as long while another process shares the CPU. The 768p step is dominated by attention over a
 37,900-row packed sequence;
 the 544p canvas is the practical iteration setting on Apple Silicon, and the 768p canvas is the
@@ -2271,9 +2305,9 @@ against the original checkpoint's names (<code>blocks.N.attn.qkv_proj</code>, <c
 <code>mlp.fc2</code>, <code>token_refiner.blocks.N</code>, the <code>final_layer</code> and patch projections), with or without a
 <code>diffusion_model.</code> prefix, in PEFT (<code>lora_A</code>/<code>lora_B</code>) or kohya (<code>lora_down</code>/<code>lora_up</code> plus
 <code>.alpha</code>) naming, and in musubi-tuner's flattened <code>lora_unet_</code> form. The runtime maps them onto
-our modules the way the diffusers converter does: the fused QKV shares one <code>lora_A</code> and splits
-<code>lora_B</code> into <code>to_q</code>/<code>to_k</code>/<code>to_v</code> row thirds, and <code>fc1</code>'s <code>[gate; value]</code> halves swap to our
-SwiGLU's <code>[value; gate]</code>. Scale follows the file: PEFT metadata <code>alpha</code> gives <code>alpha / rank</code>,
+MLX-Gen's modules the way the diffusers converter does: the fused QKV shares one <code>lora_A</code> and
+splits <code>lora_B</code> into <code>to_q</code>/<code>to_k</code>/<code>to_v</code> row thirds, and <code>fc1</code>'s <code>[gate; value]</code> halves swap to
+the MLX-Gen SwiGLU's <code>[value; gate]</code>. Scale follows the file: PEFT metadata <code>alpha</code> gives <code>alpha / rank</code>,
 kohya <code>.alpha</code> tensors are folded per module, and a PEFT file with neither (how ai-toolkit exports)
 runs at <code>alpha == rank</code>, the same as ComfyUI and diffusers. The one layout refused is
 DiffSynth-Studio's (<code>.lora_A.default.</code> over <code>attn.qkv_proj</code>), whose fused QKV rows keep the raw
@@ -2284,23 +2318,26 @@ counts (<code>lora_application_reports</code>).</p>
 <ul>
 <li><strong>Reference-to-video (Ref2VA) and the closing keyframe (<code>last_image</code>) are not available yet.</strong>
   Text-to-video and first-frame image-to-video are.</li>
-<li>The 768p canvas is slow on Apple Silicon (about 5 minutes per step); use the 544p adapter to
-  iterate.</li>
+<li>The 768p canvas is slow on Apple Silicon (about 5.5 to 6 minutes per step); use the 544p adapter
+  to iterate.</li>
 <li><code>--quantize</code> accepts 8 and 4 for this model; without it the released 16-bit weights run. Clips
   longer than 124 frames need more memory than the measured profiles; the runtime estimates the
   peak before a run and refuses what cannot fit.</li>
-<li>A weight file must not be replaced while a model that reads from it is loaded. The conditioner,
-  the AdaLN projections, the VAEs and streamed blocks are read after the load, so MLX-Gen checks
-  the files before each of those reads and stops with an error when one changed. Load the model
-  again after replacing a package.</li>
+<li>A weight file must not be replaced while a model that reads from it is loaded. MLX-Gen checks the
+  files before it reads streamed transformer blocks, the AdaLN projections and the VAEs, and stops
+  with an error when one changed. The conditioner is read in full at each encode, so it is not part
+  of that check. Load the model again after replacing a package.</li>
 <li>An adapter that trains the per-block AdaLN projections keeps them in memory (12.9 GiB at 8-bit,
   24.2 GiB at 16-bit) and disables <code>--stream-blocks</code>. The lightx2v Turbo adapters train attention
   and feed-forward layers only.</li>
-<li><code>--stream-blocks</code> reads 20 to 36 GiB from disk at every step. It was measured on an internal SSD;
+<li><code>--stream-blocks</code> reads 19 to 36 GiB from disk at every step. It was measured on an internal SSD;
   a slower disk lengthens every step by the time of those reads. From a source snapshot loaded
   with <code>--quantize</code> the option does not apply, and the runtime says so on stderr.</li>
 <li>The machine sizes in <a href="#memory-by-machine">Memory By Machine</a> were tested on one 128 GB Mac with
   RAM locked, not on Macs of those sizes.</li>
+<li>Byte-identical clips are a property of one environment: another MLX version changes the
+  arithmetic slightly, and the same seed then gives a clip that differs as much as the 8-bit and
+  16-bit clips differ from each other; see <a href="../minimax-h3-memory/#limits">Limits</a>.</li>
 <li>MiniMax-H3 and the packages derived from it are under the MiniMax H3 Community License. Its grant
   covers the whole world except the European Union, the United Kingdom, the Republic of Korea and the
   United States of America, and its use restrictions follow the weights and the outputs. The package
@@ -2414,7 +2451,7 @@ envelope at a 0.54 correlation. Dialogue is generated speech, not a voice you su
 references belong to the unported reference-to-video route.</p>
 <p><img alt="Spoken dialogue" src="../assets/minimax-h3/sheet_speech_turbo544_q8_seed42.jpg" /></p>
 <p><strong>Fox at 768p, seed 42</strong> (<a href="../assets/minimax-h3/fox_turbo768_q8_seed42.mp4">clip</a>): the same prompt
-through <code>minimax-h3-turbo</code> on its native <code>1344x768</code> canvas (8 steps, 34 min). Denser fur and snow
+through <code>minimax-h3-turbo</code> on its native <code>1344x768</code> canvas (8 steps). Denser fur and snow
 detail than the 544p clips, the same walk-then-look-at-camera staging, and a quiet stereo track with
 the paw crunches tracking the motion.</p>
 <p><img alt="Fox 768p seed 42" src="../assets/minimax-h3/sheet_fox_turbo768_q8_seed42.jpg" /></p>

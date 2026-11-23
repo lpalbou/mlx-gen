@@ -647,6 +647,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../minimax-h3-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 memory, speed and quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../upscaling/" class="md-nav__link">
         
   
@@ -1350,7 +1378,7 @@
 <h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
 <p>MLX-Gen is an independent package forked from mflux. It keeps the MLX-native model runtime from mflux while exposing a cleaner <code>mlxgen</code> command surface for new users and applications. The video paths include Wan2.2 TI2V-5B text-to-video, TI2V-5B first-frame image-to-video, Wan2.2 A14B text-to-video, Wan2.2 A14B image-to-video and video-to-video, Wan2.1-VACE-1.3B conditioning, MiniMax-H3 text-to-video with synchronized stereo audio (with lightx2v Turbo adapters), and an experimental Bernini-R 1.3B role-aware reference renderer whose current visual validation fails. SeedVR2 image and video restoration use <code>mlxgen upscale</code>.</p>
 <h2 id="system-overview">System Overview<a class="headerlink" href="#system-overview" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code>flowchart TD
+<pre class="mermaid"><code>flowchart TD
     U[User or application] --&gt;|mlxgen generate / upscale / capabilities / download / prepare| R[mlxgen CLI router]
     U --&gt;|"load_generation_model(...) / generate_outputs(...)"| P[Python runtime helpers]
     R --&gt; TI[Task inference and capability planner]
@@ -1359,8 +1387,7 @@
     B --&gt; M[Model runtime variants&lt;br/&gt;FLUX.2 Klein, Qwen, Z-Image, ERNIE, FIBO, Bonsai, Wan, MiniMax-H3, SeedVR2]
     M --&gt; W[Weight loading&lt;br/&gt;single or factored pinned sources / local packages]
     M --&gt; CB[Progress callbacks and runtime memory telemetry]
-    M --&gt; O[Saved images and videos with metadata]
-</code></pre></div>
+    M --&gt; O[Saved images and videos with metadata]</code></pre>
 <p>The router consumes routing options such as <code>--model</code>, primary images/videos, semantic
 <code>--reference-image</code> values, <code>--mask-path</code>, and
 strength/padding flags, resolves one generation plan through the capability planner, and forwards
@@ -1393,13 +1420,12 @@ image-to-video inputs. This durable boundary is recorded in
 <li>Cache the source files with <code>mlxgen download</code> and run by alias or repository id.</li>
 <li>Create a reusable local MLX-Gen model package with <code>mlxgen prepare --model ... --path ... --quantize ...</code>.</li>
 </ol>
-<div class="highlight"><pre><span></span><code>flowchart LR
+<pre class="mermaid"><code>flowchart LR
     HF[Hugging Face source repositories] --&gt;|mlxgen download| C[Local Hugging Face cache]
     HF --&gt;|mlxgen prepare --quantize| PKG[Local MLX-Gen model package&lt;br/&gt;optionally q4/q8 + generated model card]
     C --&gt; G[mlxgen generate / mlxgen upscale]
     PKG --&gt; G
-    G --&gt; OUT[Images and videos with embedded or sidecar metadata]
-</code></pre></div>
+    G --&gt; OUT[Images and videos with embedded or sidecar metadata]</code></pre>
 <p>MLX-Gen model packages use the MLX/mflux saved-weight layout. They may contain MLX quantization tensors and generated Hugging Face model cards. They are intended for MLX-Gen and compatible mflux code, not direct Diffusers or Transformers loading.</p>
 <p>Video support follows the same setup/runtime boundary. Wan2.2 loads local source files and writes MP4 output. Text-to-video starts from random video latents. TI2V-5B image-to-video VAE-encodes the first frame, masks first-frame timesteps, keeps the condition active during denoising, and reinserts the condition before decode. A14B uses Diffusers-compatible two-transformer boundary routing and, for the separate I2V model, concatenated image-condition latents. MiniMax-H3 packs text, audio and video rows into one sequence for a single dense transformer, steps two rectified-flow schedules (video and audio) in lockstep, and decodes the video rows with its ViT VAE and the audio rows with its fp32 audio VAE before muxing the stereo track into the MP4; its 30B-class components load shard by shard and quantize as they land.</p>
 <p>Bernini is a dedicated single-transformer renderer variant rather than a VACE or first-frame-I2V

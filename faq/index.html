@@ -647,6 +647,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../minimax-h3-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 memory, speed and quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../upscaling/" class="md-nav__link">
         
   
@@ -3049,7 +3077,7 @@ sheets rather than relying only on MP4 existence.</p>
 (<code>--image-path</code>), and saves both in one MP4 with an AAC track. Describe the picture with <code>--prompt</code>, the diegetic sound with <code>--soundscape</code>, and the score
 with <code>--music</code>; spoken lines go into the description as <code>The woman (S1) says: &lt;d&gt;[English] ...&lt;/d&gt;</code>
 (see <a href="../minimax-h3/#prompting">Prompting</a> for speaker ids, voice-over and the supported languages); run
-it from the 8-bit package (<code>AbstractFramework/minimax-h3-8bit</code>): a <code>960x544</code>, 124-frame clip completes on a 48 GB Mac with default settings, on 36 GB with <code>--low-ram</code>, and on 24 GB with <code>--stream-blocks --low-ram</code>. The released 16-bit weights (<code>AbstractFramework/minimax-h3-bf16</code>) complete it on 96 GB, 64 GB and 32 GB in the same three modes. See <a href="../minimax-h3/">MiniMax-H3 video with audio</a> and <a href="../minimax-h3-memory/">its memory page</a>. Wan and Bernini clips stay silent; Wan
+it from the 8-bit package (<code>AbstractFramework/minimax-h3-8bit</code>): a <code>960x544</code>, 124-frame clip completes within 48 GB with default settings, within 36 GB with <code>--low-ram</code>, and within 24 GB with <code>--stream-blocks --low-ram</code> (tested on a 128 GB Mac with the rest of its memory locked). The released 16-bit weights (<code>AbstractFramework/minimax-h3-bf16</code>) complete it within 96 GB, 64 GB and 32 GB in the same three modes. See <a href="../minimax-h3/">MiniMax-H3 video with audio</a> and <a href="../minimax-h3-memory/">its memory page</a>. Wan and Bernini clips stay silent; Wan
 video-to-video copies the source clip's audio through.</p>
 <h2 id="why-did-minimax-h3-give-me-a-longer-clip-than-i-asked-for">Why Did MiniMax-H3 Give Me A Longer Clip Than I Asked For?<a class="headerlink" href="#why-did-minimax-h3-give-me-a-longer-clip-than-i-asked-for" title="Permanent link">&para;</a></h2>
 <p>Its video autoencoder decodes frame counts of the form <code>17n + 5</code>, so <code>--frames</code> rounds up to the

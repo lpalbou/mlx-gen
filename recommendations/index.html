@@ -649,6 +649,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../minimax-h3-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 memory, speed and quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../upscaling/" class="md-nav__link">
         
   
@@ -1321,7 +1349,7 @@ more memory than the example profile shown here.</p>
 <td><code>24 GB</code></td>
 <td>Add <code>AbstractFramework/fibo-8bit</code>, <code>AbstractFramework/z-image-turbo-8bit</code>, and <code>AbstractFramework/qwen-image-2512-8bit</code> text-only runs.</td>
 <td><code>z-image-turbo-8bit</code> latent and native inpaint become practical. <code>flux.2-klein-4b-8bit</code> remains the lighter edit default.</td>
-<td>No conservative Wan A14B recommendation since the 2026-06-12 q8 runtime-precision fix (A14B now needs BF16-class memory, ~33 GiB physical peak). Video with a synchronized stereo soundtrack runs here with <code>AbstractFramework/minimax-h3-8bit</code> and <code>--stream-blocks --low-ram</code> (11.1 GiB peak at <code>960x544</code>, 124 frames; each transformer block is read from disk at every step, and the package needs 64.3 GiB of disk, see <a href="../minimax-h3/#memory-by-machine">MiniMax-H3</a>).</td>
+<td>No conservative Wan A14B recommendation since the 2026-06-12 q8 runtime-precision fix (A14B now needs BF16-class memory, ~33 GiB physical peak). Video with a synchronized stereo soundtrack runs here with <code>AbstractFramework/minimax-h3-8bit</code> and <code>--stream-blocks --low-ram</code> (11.1 GiB peak at <code>960x544</code>, 124 frames, completed within 24 GB, tested on a 128 GB Mac with the rest of its memory locked; each transformer block is read from disk at every step, and the package needs 64.3 GiB of disk, see <a href="../minimax-h3/#memory-by-machine">MiniMax-H3</a>).</td>
 <td>SeedVR2 image upscaling remains easy. The published five-second video-restore profile still needs more headroom than this tier.</td>
 </tr>
 <tr>

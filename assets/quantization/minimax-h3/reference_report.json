@@ -1387,5 +1387,93 @@
       "mlx_peak_bytes": 49876930964,
       "generation_seconds": 1260.39
     }
+  ],
+  "eight_bit_level_choice_weight_error": {
+    "note": "relative RMS error of the dequantized layer against the released bf16 weights, group size 64",
+    "layers": {
+      "transformer_blocks.0.attn.to_v.weight": {
+        "mlx_default_relative_error": 0.007782,
+        "stored_grid_relative_error": 0.005894,
+        "shape": [
+          7168,
+          5376
+        ]
+      },
+      "transformer_blocks.24.attn.to_q.weight": {
+        "mlx_default_relative_error": 0.007213,
+        "stored_grid_relative_error": 0.005551,
+        "shape": [
+          7168,
+          5376
+        ]
+      },
+      "transformer_blocks.49.attn.to_out.0.weight": {
+        "mlx_default_relative_error": 0.007003,
+        "stored_grid_relative_error": 0.005397,
+        "shape": [
+          5376,
+          7168
+        ]
+      },
+      "transformer_blocks.24.ff.net.2.weight": {
+        "mlx_default_relative_error": 0.007343,
+        "stored_grid_relative_error": 0.005743,
+        "shape": [
+          5376,
+          14336
+        ]
+      }
+    }
+  },
+  "environment_note": "Clips are byte-identical within one environment (MLX 0.31.0). With MLX 0.32.4 the same package and seed give a clip at 28.9 dB median frame PSNR from the MLX 0.31.0 clip.",
+  "byte_identical_clip_checks": [
+    {
+      "weights": "8-bit package as first published",
+      "against": "the whole-model loading path (0.39)",
+      "cases": [
+        "640x352 text-to-video",
+        "960x544 text-to-video",
+        "1344x768 text-to-video"
+      ]
+    },
+    {
+      "weights": "source, --quantize 4",
+      "against": "the 4-bit package through the whole-model loading path (0.39)",
+      "cases": [
+        "640x352 text-to-video",
+        "640x352 image-to-video",
+        "960x544 text-to-video"
+      ]
+    },
+    {
+      "weights": "8-bit package",
+      "against": "source, --quantize 8",
+      "cases": [
+        "640x352 text-to-video"
+      ]
+    },
+    {
+      "weights": "16-bit package",
+      "against": "16-bit source",
+      "cases": [
+        "640x352 text-to-video"
+      ]
+    },
+    {
+      "weights": "8-bit package, 16-bit source",
+      "against": "their default-mode clips",
+      "cases": [
+        "--low-ram",
+        "--stream-blocks --low-ram",
+        "RAM locked"
+      ]
+    },
+    {
+      "weights": "8-bit package from the Hub with mlx-gen 0.40.0 from PyPI and MLX 0.31.0, --stream-blocks --low-ram",
+      "against": "the package's default-mode clip",
+      "cases": [
+        "640x352 text-to-video"
+      ]
+    }
   ]
 }

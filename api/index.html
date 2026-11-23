@@ -647,6 +647,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../minimax-h3-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 memory, speed and quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../upscaling/" class="md-nav__link">
         
   
@@ -2801,7 +2829,7 @@ mode, the cost of each mode in time, and the tested machine sizes.</p>
 </tr>
 <tr>
 <td><code>--stream-blocks</code></td>
-<td>Read each transformer block from disk for the length of its call instead of holding the transformer in memory. The peak drops by the size of the blocks, and every step reads them again (20 GiB per step at 8-bit, 36 GiB at 16-bit). Works from a prepared package, or from the source snapshot without <code>--quantize</code>; a request that cannot be met is reported on stderr and the transformer stays in memory. The clip is the same file as without the option. Python: <code>MiniMaxH3(..., stream_blocks=True)</code>. Published as <code>supports_block_streaming</code>.</td>
+<td>Read each transformer block from disk for the length of its call instead of holding the transformer in memory. The peak drops by the size of the blocks, and every step reads them again (19 GiB per step at 8-bit, 36 GiB at 16-bit). Works from a prepared package, or from the source snapshot without <code>--quantize</code>; a request that cannot be met is reported on stderr and the transformer stays in memory. The clip is the same file as without the option. Python: <code>MiniMaxH3(..., stream_blocks=True)</code>. Published as <code>supports_block_streaming</code>.</td>
 </tr>
 <tr>
 <td><code>--release-text-encoder</code></td>

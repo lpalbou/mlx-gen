@@ -802,6 +802,34 @@
   
   
     <li class="md-nav__item">
+      <a href="minimax-h3-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 memory, speed and quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="upscaling/" class="md-nav__link">
         
   
@@ -1481,11 +1509,11 @@ long-running local jobs.</p>
   sound, a score, and spoken dialogue with the speaker's mouth animated to match. A run holds the
   transformer in memory and reads the conditioner, the AdaLN projections and the VAEs from disk
   when they are needed, so a <code>960x544</code>, 124-frame clip from <code>AbstractFramework/minimax-h3-8bit</code>
-  (64 GiB on disk) peaks at 37.0 GiB and completes on a 48 GB Mac, at 26.3 GiB with <code>--low-ram</code>
-  (36 GB Macs), and at 11.1 GiB with <code>--stream-blocks --low-ram</code> (24 GB Macs), which reads each
-  transformer block from disk at every step. The released 16-bit weights run from
-  <code>AbstractFramework/minimax-h3-bf16</code> (115 GiB on disk; 54.4, 44.0 and 11.7 GiB peak in the same
-  three modes, on 96, 64 and 32 GB Macs), and the mixed-width <code>AbstractFramework/minimax-h3-4bit</code>
+  (64 GiB on disk) peaks at 37.0 GiB and completes within 48 GB (tested on a 128 GB Mac with the
+  rest of its memory locked), at 26.3 GiB with <code>--low-ram</code> (within 36 GB), and at 11.1 GiB with
+  <code>--stream-blocks --low-ram</code> (within 24 GB), which reads each transformer block from disk at every
+  step. The released 16-bit weights run from <code>AbstractFramework/minimax-h3-bf16</code> (115 GiB on disk;
+  54.4, 44.0 and 11.7 GiB peak in the same three modes, within 96, 64 and 32 GB), and the mixed-width <code>AbstractFramework/minimax-h3-4bit</code>
   (45 GiB on disk) is the smallest download. See <code>docs/minimax-h3.md</code> and
   <code>docs/minimax-h3-memory.md</code>;</li>
 <li>ByteDance Bernini-R 1.3B renderer support (<code>bernini-r-1.3b</code>): generate video from one to eight
@@ -1847,8 +1875,8 @@ The 0.18.11 release also validates the published A14B q8 T2V/I2V handles on a 41
 run from model files already on disk, apps can inspect supported modes before loading weights, and
 progress callbacks make long runs observable.</p>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
-<p>Release notes are in the <a href="CHANGELOG.md">changelog</a>; release 0.40.0 lowers MiniMax-H3's peak memory
-to 37.0 GiB with the 8-bit package (11.1 GiB with <code>--stream-blocks --low-ram</code>), runs the released
+<p>Release notes are in the <a href="CHANGELOG.md">changelog</a>; the 0.40 releases lower MiniMax-H3's peak
+memory to 37.0 GiB with the 8-bit package (11.1 GiB with <code>--stream-blocks --low-ram</code>), runs the released
 16-bit weights, and publishes them as <code>AbstractFramework/minimax-h3-bf16</code>.</p>
 <ul>
 <li><a href="getting-started/">Getting started</a>: installation, first runs, SeedVR2 upscaling, and Wan video.</li>
