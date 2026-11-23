@@ -329,8 +329,8 @@ class ModelCardSaver:
         return "\n".join([lead, "", *layers, "", why])
 
     @staticmethod
-    def _minimax_h3_package_name(bits: int | None) -> str:
-        return f"{ModelCardSaver.DEFAULT_NAMESPACE}/minimax-h3-{'bf16' if bits is None else f'{bits}bit'}"
+    def _minimax_h3_weights_label(bits: int | None) -> str:
+        return f"`{ModelCardSaver.DEFAULT_NAMESPACE}/minimax-h3-{'bf16' if bits is None else f'{bits}bit'}`"
 
     @staticmethod
     def _minimax_h3_memory_note(bits: int | None) -> list[str]:
@@ -366,7 +366,7 @@ class ModelCardSaver:
         # Widest first: the 16-bit package, then 8-bit, then the mixed 4-bit one.
         widths = sorted(MINIMAX_H3_PACKAGE_WEIGHT_BYTES, key=lambda width: -(width or 16))
         rows = [
-            f"| `{ModelCardSaver._minimax_h3_package_name(width)}`{' (this package)' if width == bits else ''} "
+            f"| {ModelCardSaver._minimax_h3_weights_label(width)}{' (this package)' if width == bits else ''} "
             f"| {MINIMAX_H3_PACKAGE_WEIGHT_BYTES[width] / gib:.1f} GiB | "
             + " | ".join(cell(width, mode) for mode in MINIMAX_H3_MODES)
             + " |"

@@ -2196,15 +2196,22 @@ MINIMAX_H3_MEASURED_RUNS: tuple[MemoryMeasurement, ...] = (
 )
 
 
-# The published packages by `--quantize` width (None is the 16-bit package): weight bytes on disk.
-MINIMAX_H3_PACKAGE_WEIGHT_BYTES: dict[int | None, int] = {8: 69_010_605_065, 4: 48_164_094_121}
+# Weight bytes on disk of the published packages by `--quantize` width; None is the 16-bit package. The
+# released files that `mlxgen download --model minimax-h3` fetches from `MiniMaxAI/MiniMax-H3` are larger:
+# they hold all 64 layers of Qwen3-VL-32B and the video VAE in fp32.
+MINIMAX_H3_PACKAGE_WEIGHT_BYTES: dict[int | None, int] = {
+    None: 123_596_000_000,
+    8: 69_010_605_065,
+    4: 48_164_094_121,
+}
+MINIMAX_H3_SOURCE_WEIGHT_BYTES = 144_016_405_316
 # The smallest machine each width completed a `960x544`, 124-frame clip on, per mode, in GB of unified
 # memory. Tested on the 128 GiB Mac with the difference in RAM locked by a second process for the whole run,
 # which also keeps the system from caching the weight files.
 MINIMAX_H3_MODES: tuple[str, ...] = ("default", "low_ram", "stream_blocks")
 MINIMAX_H3_SMALLEST_TESTED_MACHINE: dict[int | None, dict[str, int]] = {
-    None: {"low_ram": 64, "stream_blocks": 32},
-    8: {},
+    None: {"default": 96, "low_ram": 64, "stream_blocks": 32},
+    8: {"default": 48, "low_ram": 36, "stream_blocks": 24},
     4: {"low_ram": 32},
 }
 

@@ -452,35 +452,59 @@ def test_minimax_h3_card_states_the_widths_the_policy_assigns(tmp_path):
     assert "mlxgen download --model AbstractFramework/minimax-h3-4bit --base-model minimax-h3-turbo-544p" in mixed
 
 
-def test_minimax_h3_cards_show_both_packages_with_the_machines_they_run_on(tmp_path):
-    from mflux.task_inference import MINIMAX_H3_MEASURED_RUNS, MINIMAX_H3_SMALLEST_TESTED_MACHINE
+def test_minimax_h3_cards_show_every_width_with_its_modes_and_the_machines_they_ran_on(tmp_path):
+    from mflux.task_inference import (
+        MINIMAX_H3_MEASURED_RUNS,
+        MINIMAX_H3_PACKAGE_WEIGHT_BYTES,
+        MINIMAX_H3_SMALLEST_TESTED_MACHINE,
+    )
 
-    assert MINIMAX_H3_SMALLEST_TESTED_MACHINE == {8: (96, False), 4: (64, True)}
+    assert MINIMAX_H3_SMALLEST_TESTED_MACHINE == {
+        None: {"default": 96, "low_ram": 64, "stream_blocks": 32},
+        8: {"default": 48, "low_ram": 36, "stream_blocks": 24},
+        4: {"low_ram": 32},
+    }
     gib = 1024**3
     footprints = {
-        (run.quantize, run.release_text_encoder): f"{run.footprint_bytes / gib:.1f} GiB"
+        (run.quantize, run.low_ram, run.stream_blocks): f"{run.footprint_bytes / gib:.1f} GiB"
         for run in MINIMAX_H3_MEASURED_RUNS
         if (run.width, run.height) == (960, 544)
     }
-    eight = (
-        f"`AbstractFramework/minimax-h3-8bit`{{}} | 64.3 GiB | 96 GB Macs and up "
-        f"| {footprints[(8, False)]} | {footprints[(8, True)]} |"
-    )
-    four = (
-        f"`AbstractFramework/minimax-h3-4bit`{{}} | 44.9 GiB | 64 GB Macs and up; add `--low-ram` at 64 GB "
-        f"| {footprints[(4, False)]} | {footprints[(4, True)]} |"
-    )
-    card8 = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-8bit"), MiniMaxH3(), 8)
-    card4 = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-4bit"), MiniMaxH3(), 4)
-    # Each card shows both packages, so a reader on the wrong one for their Mac sees the other.
-    assert eight.format(" (this package)") in card8 and four.format("") in card8
-    assert eight.format("") in card4 and four.format(" (this package)") in card4
-    for card in (card8, card4):
+
+    def row(bits, name, marker):
+        tested = MINIMAX_H3_SMALLEST_TESTED_MACHINE[bits]
+        cells = []
+        for mode, key in (("default", (False, False)), ("low_ram", (True, False)), ("stream_blocks", (True, True))):
+            peak = footprints.get((bits, *key))
+            ran_on = f", ran on {tested[mode]} GB" if mode in tested else ""
+            cells.append(f"{peak}{ran_on}" if peak else "not measured")
+        disk = f"{MINIMAX_H3_PACKAGE_WEIGHT_BYTES[bits] / gib:.1f} GiB"
+        return f"| `AbstractFramework/minimax-h3-{name}`{marker} | {disk} | " + " | ".join(cells) + " |"
+
+    names = {None: "bf16", 8: "8bit", 4: "4bit"}
+    for bits, name in names.items():
+        card = ModelCardSaver.render_model_card(str(tmp_path / f"minimax-h3-{name}"), MiniMaxH3(), bits)
+        # Every card shows the three packages, so a reader on the wrong one for their Mac sees the others.
+        for other, other_name in names.items():
+            assert row(other, other_name, " (this package)" if other == bits else "") in card
+        assert "| Package | Disk | Default | `--low-ram` | `--stream-blocks --low-ram` |" in card
         assert "The smaller machines were tested on that Mac with the difference in RAM locked away" in card
+        assert "The three modes produce the same clip." in card
         assert "This repository is gated" in card and "hf auth login" in card
-    # The command of the 64 GB package carries the option that makes it fit there.
-    assert "  --low-ram \\" in card4 and "you can omit it on a 96 GB or larger Mac" in card4
-    assert "--low-ram \\" not in card8
+        # The command is the default mode; the two options are named for a Mac with less memory.
+        assert "--low-ram \\" not in card and "--stream-blocks \\" not in card
+        assert "add `--low-ram`, and then `--stream-blocks`" in card
+    eight = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-8bit"), MiniMaxH3(), 8)
+    assert "37.0 GiB, ran on 48 GB | 26.3 GiB, ran on 36 GB | 11.1 GiB, ran on 24 GB" in eight
+    assert "54.4 GiB, ran on 96 GB | 44.0 GiB, ran on 64 GB | 11.7 GiB, ran on 32 GB" in eight
+
+
+def test_the_16_bit_card_describes_the_released_weights(tmp_path):
+    card = ModelCardSaver.render_model_card(str(tmp_path / "minimax-h3-bf16"), MiniMaxH3(), None)
+    assert "- bf16" in card and "- 8-bit" not in card and "- mixed-q8-bf16" not in card
+    assert "holds the MiniMax-H3 weights as released" in card and "without quantization" in card
+    assert "mlxgen download --model AbstractFramework/minimax-h3-bf16 --base-model minimax-h3-turbo-544p" in card
+    assert "prepared derivative" in card
 
 
 def test_card_version_lines_name_the_release_that_wrote_the_weights(tmp_path):
@@ -492,8 +516,8 @@ def test_card_version_lines_name_the_release_that_wrote_the_weights(tmp_path):
         str(package / "transformer" / "0.safetensors"), {"w": mx.zeros((2, 2))}, {"mflux_version": "0.39.0"}
     )
     card = ModelCardSaver.render_model_card(str(package), MiniMaxH3(), 8)
-    # The floor is the first release that loads the packages and saves their output, whatever wrote the card.
-    assert "Requires `mlx-gen >= 0.39.1`." in card and "Generated with `mlx-gen 0.39.0`." in card
+    # The floor is the release whose memory figures the card quotes, whatever wrote the weights.
+    assert "Requires `mlx-gen >= 0.40.0`:" in card and "Generated with `mlx-gen 0.39.0`." in card
 
     current = VersionUtil.get_mflux_version()
     fresh = ModelCardSaver.render_model_card(str(tmp_path / "not-written-yet"), MiniMaxH3(), 8)
