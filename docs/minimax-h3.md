@@ -41,7 +41,7 @@ package, or quantize the source snapshot at load time.
 | Memory | 96 GB or more for the 8-bit package; 64 GB for the 4-bit package with `--low-ram`. See [Memory By Machine](#memory-by-machine). |
 | Disk | 64.3 GiB for the 8-bit package or 44.9 GiB for the 4-bit package, plus 1.4 GB per Turbo adapter. The source snapshot is about 140 GB. |
 | Download | `mlxgen download` fetches a package or the source snapshot together with the Turbo adapter of the `--base-model` you name. Generation never downloads. |
-| mlx-gen | 0.39.0 or later for the published packages. |
+| mlx-gen | 0.39.1 or later for the published packages. |
 
 ### Published Packages
 
