@@ -609,9 +609,10 @@ mlxgen generate \
   --metadata
 ```
 
-This `960x544`, 124-frame clip peaks at 37.0 GiB of memory and completes on a 48 GB Mac. Add
-`--low-ram` on a 36 GB Mac (26.3 GiB peak), or `--stream-blocks --low-ram` from 24 GB (11.1 GiB
-peak, with each transformer block read from disk at every step). The clip is the same file in
+This `960x544`, 124-frame clip peaks at 37.0 GiB of memory and completes within 48 GB (tested on a
+128 GB Mac with the rest of its memory locked). Add `--low-ram` within 36 GB (26.3 GiB peak), or
+`--stream-blocks --low-ram` within 24 GB (11.1 GiB peak, with each transformer block read from disk
+at every step). The clip is the same file in
 every mode. See [Memory By Machine](minimax-h3.md#memory-by-machine) for the 16-bit weights and the
 other machine sizes.
 

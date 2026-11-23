@@ -318,10 +318,33 @@ def test_weights_not_read_yet_refuse_a_file_that_changed(tmp_path):
     with pytest.raises(RuntimeError, match="changed on disk after the model was loaded"):
         tables.for_schedule(model.transformer, [mx.array([0.5], dtype=mx.float32)])
 
-    model.deferred_weight_bytes = 1
+    # The VAEs are checked the same way, and at every use: after a first decode the video encoder and, for
+    # clips without sound, the audio decoder are still unread. Checked directly: a whole clip would evaluate
+    # the block's pending reads against the rewritten file.
     model.decoder_signatures = stream.signatures
-    with pytest.raises(RuntimeError, match="changed on disk after the model was loaded"):
-        model.generate_video(seed=1, prompt="A fox", num_frames=124, width=96, height=64, num_inference_steps=1)
+    for deferred_weight_bytes in (1, 0):
+        model.deferred_weight_bytes = deferred_weight_bytes
+        with pytest.raises(RuntimeError, match="changed on disk after the model was loaded"):
+            model._require_decoder_files()
+    model.decoder_signatures = {}
+    model._require_decoder_files()
+
+
+@pytest.mark.fast
+def test_every_use_of_a_vae_checks_its_files(monkeypatch):
+    model = _tiny_model()
+    checks = []
+    monkeypatch.setattr(
+        StreamingWeightLoader, "require_unchanged", staticmethod(lambda signatures: checks.append(signatures))
+    )
+    clip = {"seed": 1, "prompt": "A fox", "num_frames": 124, "width": 96, "height": 64, "num_inference_steps": 1}
+    model.generate_video(**clip)
+    # The video decode and the audio decode of the first clip, and both again for the second.
+    assert len(checks) == 2
+    model.generate_video(**clip)
+    assert len(checks) == 4
+    model.generate_video(**clip, generate_audio=False)
+    assert len(checks) == 5
 
 
 @pytest.mark.fast

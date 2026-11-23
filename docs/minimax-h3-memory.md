@@ -20,14 +20,15 @@ whole-process physical footprint on an Apple M5 Max with 128 GB:
 
 - **Same clip in every mode.** The three modes write byte-identical MP4 files for the same weights,
   prompt and seed. The modes change where weights wait between uses, not what is computed.
-- **Speed.** `--stream-blocks` adds about 3% to a step and `--low-ram` 8 to 10%; see
-  [Speed](#speed).
-- **Quality.** The 8-bit package is within the 16-bit model's own numerical noise by a factor of
-  1.2 to 2.0 and keeps the sharpness of the 16-bit clips. The mixed 4-bit package is further away
+- **Speed.** `--stream-blocks` adds about 3% to a step on average and `--low-ram` roughly 5 to
+  13%; see [Speed](#speed).
+- **Quality.** The 8-bit package's video velocity differs from the 16-bit prediction 1.2 to 2.0
+  times as much as a 0.1% change of the prompt embedding does (audio: 1.3 to 3.0 times), and it
+  keeps the sharpness of the 16-bit clips. The mixed 4-bit package is further away
   and measurably softer; see [Quality By Width](#quality-by-width).
 
-Smallest Mac memory each combination completed a clip on (see
-[Tested Machine Sizes](#tested-machine-sizes) for how these were run):
+Smallest memory each combination completed a clip within, tested on the 128 GB Mac with the rest of
+its memory locked (see [Tested Machine Sizes](#tested-machine-sizes) for how these were run):
 
 | Weights | Default | `--low-ram` | `--stream-blocks --low-ram` |
 | --- | --- | --- | --- |
@@ -57,7 +58,7 @@ flowchart LR
 
 | Part | 8-bit | 16-bit | When it is needed | Where it waits |
 | --- | ---: | ---: | --- | --- |
-| Conditioner (50 Qwen3-VL layers, token embeddings, vision tower) | 26.0 GiB | 48.0 GiB | For under a second, to encode the prompt | On disk; read one layer at a time during the encode |
+| Conditioner (50 Qwen3-VL layers, token embeddings, vision tower) | 26.0 GiB | 48.0 GiB | About 3 seconds per prompt, to encode it | On disk; read one layer at a time during the encode |
 | AdaLN projections (one per block, 13B parameters) | 12.9 GiB | 24.2 GiB | Once per schedule, to compute the modulation tables | On disk; read block by block for that one pass |
 | Transformer blocks, token refiner, heads | 20.0 GiB | 37.5 GiB | At every denoise step | In memory, or on disk with `--stream-blocks` |
 | Turbo adapter | 1.3 GiB | 1.3 GiB | At every denoise step | In memory |
@@ -94,8 +95,8 @@ decoded. They stay in memory for the following clips.
 
 ### `--low-ram`
 
-`--low-ram` lowers the MLX buffer cache from 8 GiB to 1 GB and frees the transformer before the
-decode. With several seeds in one command the transformer is read again for each seed.
+`--low-ram` lowers the MLX buffer cache from its default (an eighth of the machine's memory, at
+most 8 GiB) to 1 GB and frees the transformer before the decode. With several seeds in one command the transformer is read again for each seed.
 
 ### `--stream-blocks`
 
@@ -114,7 +115,7 @@ flowchart LR
         d50["Block 50"]
     end
     subgraph memory["In memory during one step"]
-        running["The block that is running<br/>0.4 GiB at 8-bit, 0.75 GiB at 16-bit"]
+        running["The block that is running<br/>0.4 GiB at 8-bit, 0.7 GiB at 16-bit"]
     end
     d1 -. "read, run, release" .-> running
     d2 -. "then read, run, release" .-> running
@@ -125,7 +126,7 @@ flowchart LR
 By default all 50 blocks are in memory for the whole run. With `--stream-blocks` each block is read
 from disk just before it runs and released right after, so the transformer costs one block of
 memory instead of 20 GiB (8-bit) or 37.5 GiB (16-bit). The blocks are read again at every step:
-20 GiB per step at 8-bit and 36 GiB at 16-bit. Every block still runs at every step, and the result
+19 GiB per step at 8-bit and 36 GiB at 16-bit. Every block still runs at every step, and the result
 is the same to the last bit.
 
 - Streaming works from a prepared package, or from the source snapshot without `--quantize`. A
@@ -193,16 +194,19 @@ Blocks in memory against blocks read from disk:
 | `640x352` | 37.5 s | 40.7 s | 40.7 s | 42.1 s |
 | `960x544` | 116.6 s | 120.6 s | 120.1 s | 123.1 s |
 
-The default 8 GiB MLX cache against the 1 GB cache of `--low-ram`, 8-bit package:
+The default MLX cache (8 GiB on the 128 GB test machine) against the 1 GB cache of `--low-ram`,
+8-bit package:
 
 | Canvas | Default cache | 1 GB cache |
 | --- | ---: | ---: |
 | `640x352` | 41.0 s | 45.2 s |
 | `960x544` | 106.4 s | 115.3 s |
 
-- `--stream-blocks` adds about 3% to a step at `960x544`: 3 to 4 seconds at 16-bit and 1.5 to 3
-  seconds at 8-bit, with the weight files in the system file cache.
-- `--low-ram` adds 8 to 10% to a step through its smaller cache. Freeing the transformer before the
+The two tables come from different sessions, so compare values within a table, not across them.
+
+- `--stream-blocks` adds about 3% to a step on average at `960x544`; across paired calls the
+  difference ranges from none to about 14%, with the weight files in the system file cache.
+- `--low-ram` adds roughly 5 to 13% to a step at `960x544` through its smaller cache. Freeing the transformer before the
   decode costs one more read of the transformer for the next clip of the same process, a few
   seconds.
 - The 16-bit and 8-bit transformers take the same time per step at `960x544`.
@@ -211,7 +215,7 @@ The default 8 GiB MLX cache against the 1 GB cache of `--low-ram`, 8-bit package
 - A new prompt costs one read of the conditioner (about 3 seconds from the file cache); a new
   schedule costs one pass over the AdaLN projections (about 3 seconds).
 
-Whole clips at `960x544`, 124 frames and 8 steps took 887 to 1100 seconds from the 8-bit package
+Whole clips at `960x544`, 124 frames and 8 steps took 887 to 1096 seconds from the 8-bit package
 and 967 to 1260 seconds from the 16-bit weights on the test machine, in its Automatic power mode
 on mains power. Consecutive runs get slower as the machine warms up: the same 16-bit run took 967
 seconds early in a session and 1260 seconds as the fifth run in a row. Whole-clip times therefore
@@ -225,6 +229,13 @@ compressed, so the run sees a machine with that much less memory, including less
 system file cache. Every clip completed and is byte-identical to the clip of the same weights
 generated without a lock.
 
+The 16-bit rows ran from the source snapshot, whose weights the 16-bit package repacks unchanged;
+the 8-bit rows ran from the 8-bit package as first published, which differs from the current one
+only in the choice of each weight's level and has the same size; the mixed 4-bit row ran from the
+source snapshot with `--quantize 4`, which gives the package's clips. The lock removes memory; a Mac
+of that size also sets its default MLX cache and its memory checks from its own size, which the
+emulation does not reproduce.
+
 | Weights | Mode | RAM locked | Mac size emulated | Peak footprint | Time |
 | --- | --- | ---: | ---: | ---: | ---: |
 | 16-bit | default | 32 GiB | 96 GB | 54.9 GiB | 1008 s |
@@ -235,7 +246,7 @@ generated without a lock.
 | 8-bit | `--stream-blocks --low-ram` | 104 GiB | 24 GB | 10.9 GiB | 1010 s |
 | Mixed 4-bit | `--low-ram` | 96 GiB | 32 GB | 21.6 GiB | 1262 s |
 
-The 8-bit `--low-ram` run at 36 GB took 60% longer than the same run without a lock: at that size
+The 8-bit `--low-ram` run at 36 GB took about 55% longer than the same run without a lock: at that size
 the transformer and the rest of the system compete for memory. At 36 GB and below,
 `--stream-blocks --low-ram` is the faster choice. Other applications' memory counts on a real
 machine; close memory-heavy ones before a run near the low end of a range.
@@ -252,9 +263,9 @@ width with the released 16-bit weights.
 snow, and the fox from a keyframe; `640x352`, 124 frames, 8 steps, seed 42), and its transformer
 inputs are recorded at steps 1, 4 and 7. Each candidate then predicts the velocity on those same
 inputs, with its own conditioner's embedding of the prompt, and the result is compared with the
-16-bit prediction as a relative RMS error. The noise floor is the 16-bit model itself with its
-prompt embedding perturbed by 0.1%: it shows how much the prediction moves for a change far smaller
-than any quantization.
+16-bit prediction as a relative RMS error. The noise floor is the error of the 16-bit model itself
+when its prompt embedding is changed by 0.1%: it shows how much the prediction moves for a change
+far smaller than any quantization.
 
 Video error / audio error at each recorded step:
 
@@ -279,12 +290,14 @@ fine detail of the frames (variance of the Laplacian, as a percentage of the 16-
 | Fox | 28.2 dB, 101% | 24.2 dB, 80% |
 | Fox, image-to-video | 21.0 dB, 98% | 16.0 dB, 109% |
 
-- The noise floor is 3 to 7% of video velocity: the model amplifies any small change, so two runs
+- The noise floor is 2 to 7% of video velocity: the model amplifies any small change, so two runs
   that differ slightly drift apart over the steps. Same-seed PSNR therefore measures how far two
   clips diverge, not which one is better.
-- The 8-bit package is 1.2 to 2.0 times the noise floor and keeps the fine detail of the 16-bit
-  clips (98 to 101%).
-- The mixed 4-bit package is 2.4 to 5.3 times the noise floor, diverges further at clip level, and
+- The 8-bit package's video velocity differs from the 16-bit prediction 1.2 to 2.0 times as much
+  as a 0.1% change of the prompt embedding does (audio: 1.3 to 3.0 times), and the package keeps
+  the fine detail of the 16-bit clips (98 to 101%).
+- The mixed 4-bit package's video velocity differs 2.4 to 5.3 times as much (audio: 3.3 to 6.0
+  times); it diverges further at clip level, and
   loses 12 to 20% of the fine detail on the two text-to-video clips.
 - The measurements cover three clips at one seed and one canvas.
 
@@ -297,18 +310,20 @@ step, so about one weight in five is then one level away from its nearest. MLX-G
 again on the grid that is stored. The size, the memory and the speed are unchanged, and the weight
 error of a layer falls by about a quarter (0.78% to 0.59% on a sampled attention layer). At 6 bits
 and below a step is too wide for the rounding to matter, so those widths are quantized as MLX does
-it.
+it. On whole clips the effect is within the variation between runs: the package's mean video
+velocity error is 6.2% with this choice against 6.3% with MLX's, three of nine recorded inputs
+score slightly worse, and the same-seed clips sit 0.2 to 2.7 dB further from the 16-bit clips.
 
 ## How The Results Were Validated
 
 | Claim | Test |
 | --- | --- |
-| The staged loading does not change the output | Clips from the 8-bit package and from load-time `--quantize 4` are byte-identical MP4 files to the clips mlx-gen 0.39 wrote from the same weights, at `640x352` and `960x544`, text-to-video and image-to-video |
+| The staged loading does not change the output | Clips from the 8-bit weights at `640x352`, `960x544` and `1344x768` and from the mixed 4-bit weights at `640x352` and `960x544`, text-to-video and image-to-video, are byte-identical MP4 files to the clips the whole-model loading path wrote from the same weights |
 | A streamed conditioner equals one held in memory | The prompt embeddings of three prompts, one with a keyframe, are bit-identical |
 | AdaLN tables equal the projections | The 16-bit transformer with tables predicts exactly the velocity of the 16-bit transformer with its projections in memory (relative error 0.0 on nine recorded inputs) |
 | Streamed blocks equal blocks in memory | Bit-identical transformer output at `640x352` and `960x544`, at 16-bit and 8-bit, and byte-identical clips |
 | `--low-ram` and `--stream-blocks` do not change the clip | Byte-identical MP4 files against the default mode, for 8-bit and 16-bit |
-| A package equals load-time quantization | The clip from `AbstractFramework/minimax-h3-8bit` is byte-identical to the clip from the source snapshot with `--quantize 8` |
+| A package gives the clip of load-time quantization | The clip from `AbstractFramework/minimax-h3-8bit` is byte-identical to the clip from the source snapshot with `--quantize 8` |
 | The memory figures | The peak physical footprint the operating system reports for the whole `mlxgen generate` process, from each run's metadata sidecar |
 | The machine sizes | Runs with RAM locked by a second process, listed in [Tested Machine Sizes](#tested-machine-sizes) |
 
@@ -326,12 +341,17 @@ velocity error, per-call timing and `mlxgen generate` run behind this page.
 ## Limits
 
 - A weight file must not be replaced while a model that reads from it is loaded. Weights that have
-  not been read yet would come from the new file, so MLX-Gen checks the files before each deferred
-  read and stops with an error when one changed.
-- `--stream-blocks` reads 20 to 36 GiB from disk at every step. It was measured on an internal SSD;
+  not been read yet would come from the new file, so MLX-Gen checks the files before it reads
+  streamed transformer blocks, the AdaLN projections and the VAEs, and stops with an error when one
+  changed. The conditioner is read in full at each encode, so it is not part of that check.
+- `--stream-blocks` reads 19 to 36 GiB from disk at every step. It was measured on an internal SSD;
   a slower disk lengthens every step by the time of those reads.
 - An adapter that trains the per-block AdaLN projections keeps them in memory (12.9 GiB at 8-bit,
   24.2 GiB at 16-bit) and disables `--stream-blocks`.
-- `mlxgen prepare` writes a package one component at a time and needs the memory of the largest
-  one: 33 GiB for an 8-bit package, 62 GiB for the 16-bit one.
+- `mlxgen prepare` writes a package one component at a time and holds one component in memory at
+  a time; the largest is the transformer, 33 GiB at 8-bit and 62 GiB at 16-bit.
 - The machine sizes were emulated on one 128 GB machine; they were not run on Macs of those sizes.
+- Byte-identical clips are a property of one environment. Another MLX version changes the
+  arithmetic slightly, and the same seed then gives a clip that differs as much as the 8-bit and
+  16-bit clips differ from each other (28.9 dB median frame PSNR between MLX 0.31.0 and a later
+  release, same package and seed).

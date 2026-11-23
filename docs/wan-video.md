@@ -2,7 +2,7 @@
 
 MLX-Gen supports Wan2.2 text-to-video and image-to-video through `mlxgen generate`, plus
 prompt-guided video-to-video on `Wan2.2-T2V-A14B` in plain form or with `--video-mask-path`. Use
-this page for practical size, frame, and runtime guidance; use [API and CLI](api.md#wan-video) for
+this page for practical size, frame, and runtime guidance; use [API and CLI](api.md#wan-video-parameters) for
 the full command surface.
 
 For ordinary reference-image-to-video and reference-guided source-video editing, use the separate

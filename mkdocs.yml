@@ -36,7 +36,11 @@ markdown_extensions:
   - tables
   - toc:
       permalink: true
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight
 
 nav:
@@ -53,6 +57,7 @@ nav:
       - Reframe & Outpaint: reframe-outpaint.md
       - Wan Video: wan-video.md
       - MiniMax-H3 Video With Audio: minimax-h3.md
+      - MiniMax-H3 memory, speed and quantization: minimax-h3-memory.md
       - Image & Video Upscaling: upscaling.md
       - Bernini-R 1.3B: bernini.md
       - LoRA: lora.md

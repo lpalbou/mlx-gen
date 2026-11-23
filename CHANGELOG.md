@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.40.1] - 2026-11-23
+
+### Fixed
+
+- **MiniMax-H3 checks its VAE files at every use.** 0.40.0 stopped checking them after the first decode, while the video encoder (unread until a keyframe is given) and the audio decoder (unread while clips are generated with `--no-audio`) could still be read later from a file replaced in the meantime.
+- **MiniMax-H3 model cards and `NOTICE` files state every change to the released weights**: the conditioner kept to the 50 layers the model reads, and the video VAE stored in BF16 where the release holds it in fp32. The cards describe the tested machine sizes as emulations and give the quality figures for video and audio separately.
+
+### Documentation
+
+- Corrections to the 0.40.0 MiniMax-H3 pages: `--stream-blocks` reads 19 GiB per step at 8-bit (not 20); the 8-bit `--low-ram` run within 36 GB took about 55% longer (not 60%); `mlxgen prepare` holds one component at a time, and its peak was not measured; `960x544` clips take 15 to 21 minutes and `1344x768` clips 45 to 48 minutes with this release; "less than half the memory" in the 0.40.0 summary holds for the 8-bit package and the 16-bit weights, and the mixed 4-bit package's default peak is 56% of its 0.39 figure. The memory page is in the site navigation, and the site renders its diagrams and those of the architecture page. The pages state that byte-identical clips hold within one MLX version: MLX 0.31.0 and 0.32.4 give clips of the same scene 28.9 dB apart from the same package and seed.
+
 ## [0.40.0] - 2026-11-23
 
 MiniMax-H3 runs in less than half the memory it needed in 0.39, on Macs from 24 GB, and the

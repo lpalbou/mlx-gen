@@ -22,7 +22,7 @@ The current quantized-model compatibility surface is:
 | FIBO | Supported with mixed q8/BF16 when source access is available | Supported with mixed q4/BF16 when source access is available | Base FIBO text-to-image only. FIBO Edit is a separate model family and is not exposed as a public unified generation capability in this release. |
 | SeedVR2 3B/7B | Supported | Supported | Image super-resolution through `mlxgen upscale`. Published q8/q4 packages are generated from the official `ByteDance-Seed/SeedVR2-3B` and `ByteDance-Seed/SeedVR2-7B` source models. |
 | Wan2.2 | Supported with mixed q8/BF16 | Not published | MLX-Gen keeps Wan conditioning/output projection linears BF16 and quantizes the bulky transformer block linears at q8. |
-| MiniMax-H3 | Supported: `minimax-h3-8bit`, 64.3 GiB | Supported as a mixed-width package: `minimax-h3-4bit`, 44.9 GiB | `--quantize 8` is 8-bit for the transformer and the Qwen3-VL conditioner. `--quantize 4` is a 4-bit conditioner with a 6-bit transformer. The conditioner's vision tower, the transformer's fp32 heads and both VAEs are stored as released. Other widths are not accepted. Without `--quantize` the released 16-bit weights run, from the source snapshot or from `minimax-h3-bf16` (115 GiB). Prepare from `minimax-h3` and select a Turbo schedule at run time with `--base-model`. See [MiniMax-H3 q8 And Mixed q4](#minimax-h3-q8-and-mixed-q4). |
+| MiniMax-H3 | Supported: `minimax-h3-8bit`, 64.3 GiB | Supported as a mixed-width package: `minimax-h3-4bit`, 44.9 GiB | `--quantize 8` is 8-bit for the transformer and the Qwen3-VL conditioner. `--quantize 4` is a 4-bit conditioner with a 6-bit transformer. The conditioner's vision tower and the transformer's fp32 heads are stored as released, the video VAE in the BF16 it runs at (the release holds it in fp32) and the audio VAE in fp32. Other widths are not accepted. Without `--quantize` the released 16-bit weights run, from the source snapshot or from `minimax-h3-bf16` (115 GiB). Prepare from `minimax-h3` and select a Turbo schedule at run time with `--base-model`. See [MiniMax-H3 q8 And Mixed q4](#minimax-h3-q8-and-mixed-q4). |
 | Bernini-R 1.3B | Rejected | Rejected | BF16-only. Generic Wan q4 failed transformer/video gates; nominal q8 quantized zero Bernini transformer linears and mislabeled BF16-equivalent execution. |
 
 MLX-Gen treats low-bit quality as model-specific, not automatic. Qwen and ERNIE use mixed q4/q8 policies to preserve generation quality. FIBO uses mixed q8/BF16 and q4/BF16 policies that keep precision-sensitive conditioning and output paths at BF16. Bonsai uses Prism's pre-packed ternary 2-bit transformer plus a 4-bit Qwen3 text encoder rather than MLX-Gen's `prepare` flow. q8 remains the closest optimized-package option to BF16 when memory allows.
@@ -93,7 +93,7 @@ package size is the published AbstractFramework repository total.
 | Wan2.2 TI2V-5B | T2V and first-frame I2V | 31.9 GiB | `wan2.2-ti2v-5b-diffusers-bf16`<br>`wan2.2-ti2v-5b-diffusers-8bit` | 21.2 GiB<br>16.9 GiB | BF16 package plus q8/BF16 package. BF16 reduces storage/download size versus the FP32/BF16 source snapshot but does not reduce measured runtime memory. q8 further reduces storage and MLX model/allocator footprint in the documented 1280x704 benchmark. No q4 or mixed q4/q8 package is published. |
 | Wan2.2 T2V-A14B | T2V | 117.5 GiB | `wan2.2-t2v-a14b-diffusers-bf16`<br>`wan2.2-t2v-a14b-diffusers-8bit` | 64.1 GiB<br>39.5 GiB | BF16 package plus mixed q8/BF16 package. Runtime measurements are below. |
 | Wan2.2 I2V-A14B | I2V | 117.5 GiB | `wan2.2-i2v-a14b-diffusers-bf16`<br>`wan2.2-i2v-a14b-diffusers-8bit` | 64.1 GiB<br>39.5 GiB | BF16 package plus mixed q8/BF16 package. Runtime measurements are below. |
-| MiniMax-H3 | T2V and first-frame I2V with a generated stereo soundtrack | 125.0 GiB generation files | `minimax-h3-bf16`<br>`minimax-h3-8bit`<br>`minimax-h3-4bit` | 115 GiB<br>64.3 GiB<br>44.9 GiB | 16-bit package with the released weights (the 50 conditioner layers the model reads, and the video VAE at 16-bit), 8-bit package, and a mixed-width package with a 4-bit conditioner and a 6-bit transformer. All three hold the base weights; `--base-model` attaches a lightx2v Turbo adapter at run time. Memory by package and mode is in [MiniMax-H3 q8 And Mixed q4](#minimax-h3-q8-and-mixed-q4). Distributed under the MiniMax H3 Community License, whose grant excludes the EU, the UK, the Republic of Korea and the USA; the repositories are gated. |
+| MiniMax-H3 | T2V and first-frame I2V with a generated stereo soundtrack | 125.0 GiB generation files | `minimax-h3-bf16`<br>`minimax-h3-8bit`<br>`minimax-h3-4bit` | 115 GiB<br>64.3 GiB<br>44.9 GiB | 16-bit package with the released weights (the 50 conditioner layers the model reads, and the video VAE stored in BF16 where the release holds it in fp32), 8-bit package, and a mixed-width package with a 4-bit conditioner and a 6-bit transformer. All three hold the base weights; `--base-model` attaches a lightx2v Turbo adapter at run time. Memory by package and mode is in [MiniMax-H3 q8 And Mixed q4](#minimax-h3-q8-and-mixed-q4). Distributed under the MiniMax H3 Community License, whose grant excludes the EU, the UK, the Republic of Korea and the USA; the repositories are gated. |
 | Bernini-R 1.3B | R2V, RV2V, V2V renderer | 26.94 GiB selected pinned files (FP32) | `bernini-r-1.3B-diffusers-bf16` | 15.60 GiB | BF16-only route. `mlxgen download --model bernini-r-1.3b-bf16` fetches the BF16 package and `mlxgen download --model bernini-r-1.3b` the FP32 source; both run at the same precision. No quantized package is published. |
 
 Runtime memory and timing measurements are currently complete in this document for SeedVR2 3B/7B,
@@ -281,10 +281,11 @@ mlxgen prepare --model minimax-h3 --quantize 4 --path models/minimax-h3-4bit
 
 The widths apply to the conditioner's 50 decoder layers and token embeddings, and to the
 transformer's attention and feed-forward linears, text projection, token refiner and per-block
-AdaLN projections. Every package stores the rest as released: the conditioner's vision tower, the
-transformer's fp32 input and output heads, timestep MLP and final modulation, the BF16 video VAE and
-the fp32 audio VAE. The 16-bit package holds the released weights, repacked: only the 50
-conditioner layers the model reads, and the video VAE at the 16-bit precision it runs at.
+AdaLN projections. Every package stores the conditioner's vision tower and the transformer's fp32
+input and output heads, timestep MLP and final modulation as released, the video VAE stored in the
+BF16 it runs at (the release holds it in fp32) and the fp32 audio VAE. The 16-bit package holds the
+released weights, repacked: only the 50 conditioner layers the model reads, and the video VAE in
+BF16.
 MiniMax-H3 accepts `--quantize 8` and `--quantize 4` only; without `--quantize` the weights stay at
 16-bit.
 
@@ -295,8 +296,9 @@ At 8-bit, each weight's level is chosen on the grid that is stored. MLX stores a
 groups of 64 weights, each with a grid of 256 levels kept at the layer's 16-bit precision, and
 picks the levels on a float32 grid; choosing them again on the stored grid lowers the weight error
 of a layer by about a quarter at the same size, memory and speed. Load-time `--quantize 8` and
-`mlxgen prepare --quantize 8` do this, and the 8-bit package equals load-time `--quantize 8` byte
-for byte. Widths of 6 bits and below are quantized as MLX does it. See
+`mlxgen prepare --quantize 8` do this, and the 8-bit package gives the same clip, byte for byte, as
+load-time `--quantize 8`. On whole clips the difference is within the variation between runs.
+Widths of 6 bits and below are quantized as MLX does it. See
 [How The 8-bit Weights Are Chosen](minimax-h3-memory.md#how-the-8-bit-weights-are-chosen).
 
 ### Memory
@@ -315,16 +317,18 @@ metadata sidecar.
 | 8-bit (`minimax-h3-8bit`) | 37.0 GiB | 26.3 GiB | 11.1 GiB |
 | Mixed 4-bit (`minimax-h3-4bit`) | 32.5 GiB | 21.9 GiB | not measured |
 
-`--low-ram` tightens the MLX cache from 8 GiB to 1 GB and frees the transformer before the decode.
+`--low-ram` lowers the MLX buffer cache from its default (an eighth of the machine's memory, at
+most 8 GiB) to 1 GB and frees the transformer before the decode.
 `--stream-blocks` reads each transformer block from disk for the length of its call, so the
 transformer costs one block of memory; it works from a prepared package, or from the source
 snapshot without `--quantize`. The three modes write the same clip for the same weights, prompt and
-seed, and each option costs 3 to 10% of a clip's time
-([Speed](minimax-h3-memory.md#speed)).
+seed. `--stream-blocks` adds about 3% to a step on average and `--low-ram` roughly 5 to 13%;
+together they add both ([Speed](minimax-h3-memory.md#speed)).
 
 Smaller machines were tested on the same Mac by locking the difference in RAM in a second process
-for the whole run (`tools/minimax_h3_quant_probe.py ballast`). The smallest Mac memory each
-combination completed a clip on:
+for the whole run (`tools/minimax_h3_quant_probe.py ballast`); they were not run on Macs of those
+sizes. The smallest memory each combination completed a `960x544` clip within, tested on a 128 GB
+Mac with the rest of its memory locked:
 
 | Weights | Default | `--low-ram` | `--stream-blocks --low-ram` |
 | --- | --- | --- | --- |
@@ -332,7 +336,7 @@ combination completed a clip on:
 | 8-bit | 48 GB | 36 GB | 24 GB |
 | Mixed 4-bit | not tested | 32 GB | not tested |
 
-The 8-bit `--low-ram` run at 36 GB takes 60% longer than on a larger machine; at 36 GB and below
+The 8-bit `--low-ram` run at 36 GB takes about 55% longer than on a larger machine; at 36 GB and below
 `--stream-blocks --low-ram` is the faster choice.
 [Tested Machine Sizes](minimax-h3-memory.md#tested-machine-sizes) lists every run with its peak and
 time.
@@ -345,13 +349,18 @@ not depend on the width; see [MiniMax-H3](minimax-h3.md#measured-runtime) for ti
 ### Error Against The 16-bit Weights
 
 [Quality By Width](minimax-h3-memory.md#quality-by-width) compares each package with the released
-16-bit weights on three reference clips, as velocity error against the 16-bit model's own noise
-floor and as same-seed clips. The 8-bit package is within 1.2 to 2.0 times that noise floor and
-keeps the sharpness of the 16-bit clips. The mixed 4-bit package is further away and loses 12 to
-20% of fine detail on text-to-video clips. The tables below are the per-layer measurements behind
+16-bit weights on three reference clips, as velocity error and as same-seed clips. The 8-bit
+package's video velocity differs from the 16-bit prediction 1.2 to 2.0 times as much as a 0.1%
+change of the prompt embedding does (audio: 1.3 to 3.0 times), and the package keeps the sharpness
+of the 16-bit clips. The mixed 4-bit package differs 2.4 to 5.3 times as much on video (audio: 3.3
+to 6.0 times) and loses 12 to 20% of fine detail on text-to-video clips. The tables below are the per-layer measurements behind
 the two quantized policies.
 
 ### Measured Error By Width
+
+These tables were measured with MLX's own choice of 8-bit levels and compare candidates on inputs
+captured from an 8-bit run; the figures of the published packages against the 16-bit weights are in
+[Quality By Width](minimax-h3-memory.md#quality-by-width).
 
 Each number is the relative RMS error of the predicted velocity against the BF16 weights, video rows
 then audio rows, in percent. The inputs are real transformer inputs captured from the 8-bit package
@@ -420,7 +429,9 @@ The conditioner is measured twice: the per-token error of its output against BF1
 The same seed, prompt and `640x352` canvas through four policies, with the 544p Turbo adapter and
 8 steps. Top to bottom: the 8-bit package, the 4-bit package (6-bit transformer, 4-bit
 conditioner), a 4-bit/8-bit transformer mix of the same size with the same conditioner, and a 4-bit
-transformer with the same conditioner.
+transformer with the same conditioner. The 8-bit clip, the reference of the table below, comes from
+MLX's own choice of 8-bit levels; [Quality By Width](minimax-h3-memory.md#quality-by-width) compares
+the published packages with the 16-bit clips.
 
 ![MiniMax-H3 dialogue clip across quantization policies](assets/quantization/minimax-h3/sheet_speech_candidates.jpg)
 
