@@ -29,6 +29,22 @@ _LORA_DOWN_KEY = re.compile(r"\.lora_(A|down)(\.[^.]+)?\.weight$")
 
 
 class MiniMaxH3Initializer:
+    # The markers MiniMax-H3 adds to the Qwen vocabulary: dialogue tags, the cutoff, lyrics and captions.
+    MARKER_TOKENS = (
+        "<d>",
+        "</d>",
+        "<|cutoff|>",
+        "<|lyrics_start|>",
+        "<|lyrics_end|>",
+        "<|caption_start|>",
+        "<|caption_end|>",
+    )
+    # Above this share of physical memory the weights alone leave no room for the rest of a run: activations,
+    # the MLX cache and the OS want roughly 18 GiB, which is 14% of a 128 GiB machine.
+    WEIGHT_BUDGET_SHARE = 0.85
+    # A quantized group of 64 weights also stores a bf16 scale and a bf16 bias: half a bit per weight.
+    QUANTIZATION_OVERHEAD_BITS = 0.5
+
     @staticmethod
     def init(
         model,
@@ -39,6 +55,7 @@ class MiniMaxH3Initializer:
         lora_scales: list[float] | None = None,
     ) -> None:
         disable_tf32()
+        MiniMaxH3WeightDefinition.require_supported_bits(quantize)
         weight_definition = MiniMaxH3WeightDefinition.for_config(model_config)
         source = model_path if model_path else model_config.model_name
         root_path = PathResolution.resolve(path=source, patterns=weight_definition.get_download_patterns())
@@ -56,25 +73,35 @@ class MiniMaxH3Initializer:
             definitions=weight_definition.get_tokenizers(), model_path=str(root_path)
         )
 
+        MiniMaxH3Initializer._require_marker_tokens(model.tokenizers, root_path)
         MiniMaxH3Initializer._preflight_memory(root_path, weight_definition, quantize)
         MiniMaxH3Initializer._init_models(model, root_path)
         model.bits = MiniMaxH3Initializer._load_weights(model, root_path, quantize, weight_definition)
         MiniMaxH3Initializer._apply_lora(model, lora_paths=lora_paths, lora_scales=lora_scales)
 
-    # Above this share of physical memory the weights alone leave no room for the rest of a run. The
-    # measured q8 960x544 clip peaks at 88.2 GiB over ~70 GiB of weights, so activations, the MLX
-    # cache and the OS want roughly 18 GiB, which is 14% of a 128 GiB machine.
-    WEIGHT_BUDGET_SHARE = 0.85
+    @staticmethod
+    def _require_marker_tokens(tokenizers: dict, root_path: Path) -> None:
+        # A tokenizer that splits these markers still runs, and every dialogue prompt is then conditioned on
+        # tokens the model never saw in that role. A re-serialized tokenizer can lose them: they are declared
+        # in tokenizer_config.json only.
+        tokenizer = tokenizers[MiniMaxH3WeightDefinition.TOKENIZER_NAME].tokenizer
+        split = [
+            marker
+            for marker in MiniMaxH3Initializer.MARKER_TOKENS
+            if len(tokenizer(marker, add_special_tokens=False)["input_ids"]) != 1
+        ]
+        if split:
+            raise ValueError(
+                f"The tokenizer in {str(root_path)!r} splits {', '.join(split)} into several tokens, so dialogue "
+                "prompts would be conditioned incorrectly. Prepare the package again with "
+                "`mlxgen prepare --model minimax-h3 --quantize <bits> --path <folder>`."
+            )
 
     @staticmethod
     def _preflight_memory(root_path: Path, weight_definition, quantize: int | None) -> None:
-        """Refuse a load whose weights alone cannot leave room for the run.
-
-        MiniMax-H3 is the one catalog model whose released weights do not fit a 128 GiB machine
-        unquantized, and the failure without this is the OS killing the process partway through the
-        load with nothing said. Never quantizes on the caller's behalf: ADR 0002 forbids substituting
-        a quantization policy that was not asked for, so this reports and stops.
-        """
+        # Unquantized, the released weights do not fit a 128 GiB machine, and without this the OS kills the
+        # process partway through the load with nothing said. Reports and stops; never quantizes on the caller's
+        # behalf (ADR 0002).
         physical_bytes = RuntimeMemory.total_physical_memory_bytes()
         if physical_bytes <= 0:
             # Unknown physical memory: a preflight that guesses would refuse runs that fit.
@@ -83,20 +110,15 @@ class MiniMaxH3Initializer:
         if weight_bytes <= 0 or weight_bytes <= physical_bytes * MiniMaxH3Initializer.WEIGHT_BUDGET_SHARE:
             return
         gib = 1024**3
-        remedy = (
-            "Pass --quantize 8 (the validated setting for this model), or load a prepared q8 package."
-            if quantize is None
-            else "Use a machine with more memory, or a prepared q8 package."
-        )
+        widths = " or ".join(f"--quantize {bits}" for bits in sorted(MiniMaxH3WeightDefinition.QUANTIZATION_BITS))
         raise MemoryError(
-            f"MiniMax-H3 needs about {weight_bytes / gib:.0f} GiB of resident weights"
-            f"{'' if quantize is None else f' at q{quantize}'}, and this machine has "
-            f"{physical_bytes / gib:.0f} GiB. The weights alone would leave no room for the run. {remedy}"
+            f"MiniMax-H3 needs about {weight_bytes / gib:.0f} GiB of resident weights from {str(root_path)!r}, and "
+            f"this machine has {physical_bytes / gib:.0f} GiB. The weights alone would leave no room for the run. "
+            f"From the source snapshot, pass {widths}; or load a smaller prepared package."
         )
 
     @staticmethod
     def _estimate_resident_weight_bytes(root_path: Path, weight_definition, quantize: int | None) -> int:
-        """Resident bytes for the shards this model actually loads, at the requested quantization."""
         total = 0
         for component in weight_definition.get_components():
             component_root = root_path / component.hf_subdir
@@ -109,16 +131,18 @@ class MiniMaxH3Initializer:
                 names = MiniMaxH3Initializer._text_encoder_shards(component_root) or names
             paths = [component_root / name for name in names] if names else list(component_root.glob("*.safetensors"))
             component_bytes = sum(path.stat().st_size for path in paths if path.is_file())
-            if quantize is not None and not component.skip_quantization:
-                # bf16 source to `quantize` bits, plus the scales and biases each group carries.
-                component_bytes = int(component_bytes * (quantize / 16) * 1.06)
+            # A prepared package is already at its stored widths; only a bf16 source shrinks under --quantize.
+            is_source = not StreamingWeightLoader._prepared_shards(component_root)
+            if quantize is not None and is_source and not component.skip_quantization:
+                bits = MiniMaxH3WeightDefinition.component_bits(component.name, quantize)
+                component_bytes = int(component_bytes * (bits + MiniMaxH3Initializer.QUANTIZATION_OVERHEAD_BITS) / 16)
             total += component_bytes
         return total
 
     @staticmethod
     def _init_models(model, root_path: Path) -> None:
         # Every constructor defaults to the released configuration; the component config.json files refine
-        # them when present (they are not part of a prepared MLX-Gen package).
+        # them when present.
         model.text_encoder = Qwen3VLModel(language_model=Qwen3VLTextModel(num_hidden_layers=TEXT_ENCODER_NUM_LAYERS))
         model.transformer = MiniMaxH3Transformer()
         vae_config = MiniMaxH3Initializer._read_json(root_path / "vae" / "config.json")

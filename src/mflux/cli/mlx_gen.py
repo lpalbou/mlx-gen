@@ -692,8 +692,14 @@ def _download_model(argv: list[str]) -> None:
     elif model_config is not None and _is_minimax_h3(
         set(model_config.aliases), _model_key(repo_id, model_config.base_model)
     ):
+        # A prepared package is addressed by its own repo id, with the schedule chosen by --base-model;
+        # the source snapshot is addressed by the catalog alias that carries the schedule.
+        is_package = repo_id != ModelConfig.minimax_h3().model_name
+        model_option = shlex.quote(repo_id if is_package else model_config.aliases[0])
+        if is_package and args.base_model:
+            model_option += f" --base-model {shlex.quote(args.base_model)}"
         print(
-            f"  mlxgen generate --model {shlex.quote(model_config.aliases[0])} "
+            f"  mlxgen generate --model {model_option} "
             "--prompt 'A red fox trots through fresh snow at dawn' --soundscape 'Snow crunching, distant crows' "
             "--output video.mp4"
         )
@@ -861,6 +867,10 @@ def _download_patterns(model_config: ModelConfig | None, repo_id: str) -> list[s
         patterns = list(weight_definition.get_download_patterns())
     for tokenizer in weight_definition.get_tokenizers():
         patterns.extend(tokenizer.download_patterns or [f"{tokenizer.hf_subdir}/**"])
+    # Files worth fetching that path resolution must not require (a license, scheduler configs).
+    optional_patterns = getattr(weight_definition, "get_optional_download_patterns", None)
+    if optional_patterns is not None:
+        patterns.extend(optional_patterns())
     return sorted(set(patterns))
 
 

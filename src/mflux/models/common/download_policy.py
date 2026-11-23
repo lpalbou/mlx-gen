@@ -25,7 +25,7 @@ class DownloadRequiredError(FileNotFoundError):
             self.prepare_command = prepare_command
         elif message is not None:
             self.prepare_command = None
-        elif _is_prepacked_bonsai(repo_id):
+        elif _is_prepacked_bonsai(repo_id) or _is_published_package(repo_id):
             self.prepare_command = None
         elif artifact.lower() != "lora":
             self.prepare_command = explicit_prepare_command(repo_id, path=path)
@@ -59,6 +59,13 @@ def explicit_download_hint(repo_id: str, *, path: str | None = None, artifact: s
             f"MLX-Gen will not download {artifact} files during generation.\n"
             "Bonsai checkpoints are already packed MLX artifacts and should not be prepared.\n"
             "Download the required files before starting the workflow:\n"
+            f"  {download_command}\n"
+            f"Then run generation again with --model {shlex.quote(repo_id)}."
+        )
+    if _is_published_package(repo_id) and artifact.lower() != "lora":
+        return (
+            f"MLX-Gen will not download {artifact} files during generation.\n"
+            "Download the package before starting the workflow, with the same --base-model if you pass one:\n"
             f"  {download_command}\n"
             f"Then run generation again with --model {shlex.quote(repo_id)}."
         )
@@ -127,6 +134,11 @@ def _local_model_dir_name(repo_id: str) -> str:
 def _is_prepacked_bonsai(repo_id: str) -> bool:
     model_name = Path(repo_id).name.lower()
     return model_name.startswith("bonsai-image-") and "mlx-" in model_name
+
+
+def _is_published_package(repo_id: str) -> bool:
+    # The AbstractFramework repositories are MLX-Gen packages already: there is nothing to prepare.
+    return is_huggingface_repo_id(repo_id) and repo_id.split("/")[0].lower() == "abstractframework"
 
 
 def _component_display_name(component_name: str) -> str:

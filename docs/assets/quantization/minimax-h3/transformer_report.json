@@ -1,0 +1,1634 @@
+{
+  "bf16": {
+    "load_seconds": 7.0,
+    "weights_gib": 61.73,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.0,
+          "cosine": 1.0
+        },
+        "audio": {
+          "relative_rms": 0.0,
+          "cosine": 1.0
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.0,
+          "cosine": 1.0
+        },
+        "audio": {
+          "relative_rms": 0.0,
+          "cosine": 1.0
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.0,
+          "cosine": 1.0
+        },
+        "audio": {
+          "relative_rms": 0.0,
+          "cosine": 1.0
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.0,
+          "cosine": 1.0
+        },
+        "audio": {
+          "relative_rms": 0.0,
+          "cosine": 1.0
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.0,
+          "cosine": 1.0
+        },
+        "audio": {
+          "relative_rms": 0.0,
+          "cosine": 1.0
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q8": {
+    "load_seconds": 5.6,
+    "weights_gib": 32.85,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q8:adaln=0": {
+    "load_seconds": 4.5,
+    "weights_gib": 44.21,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.062367,
+          "cosine": 0.998053
+        },
+        "audio": {
+          "relative_rms": 0.029863,
+          "cosine": 0.999554
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.045447,
+          "cosine": 0.998967
+        },
+        "audio": {
+          "relative_rms": 0.036908,
+          "cosine": 0.99932
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.085993,
+          "cosine": 0.996319
+        },
+        "audio": {
+          "relative_rms": 0.01873,
+          "cosine": 0.999827
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.075861,
+          "cosine": 0.997129
+        },
+        "audio": {
+          "relative_rms": 0.025755,
+          "cosine": 0.999671
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.038275,
+          "cosine": 0.999268
+        },
+        "audio": {
+          "relative_rms": 0.018045,
+          "cosine": 0.999838
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q8:adaln=6": {
+    "load_seconds": 6.6,
+    "weights_gib": 29.83,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.066307,
+          "cosine": 0.997802
+        },
+        "audio": {
+          "relative_rms": 0.034106,
+          "cosine": 0.999419
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.0476,
+          "cosine": 0.998868
+        },
+        "audio": {
+          "relative_rms": 0.037387,
+          "cosine": 0.999306
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.113764,
+          "cosine": 0.993549
+        },
+        "audio": {
+          "relative_rms": 0.019749,
+          "cosine": 0.999807
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.083587,
+          "cosine": 0.996519
+        },
+        "audio": {
+          "relative_rms": 0.023938,
+          "cosine": 0.999714
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.042627,
+          "cosine": 0.999092
+        },
+        "audio": {
+          "relative_rms": 0.020162,
+          "cosine": 0.999797
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q8:adaln=4": {
+    "load_seconds": 5.1,
+    "weights_gib": 26.8,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.074729,
+          "cosine": 0.997205
+        },
+        "audio": {
+          "relative_rms": 0.040961,
+          "cosine": 0.999164
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.062485,
+          "cosine": 0.998046
+        },
+        "audio": {
+          "relative_rms": 0.045462,
+          "cosine": 0.998969
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.096542,
+          "cosine": 0.995333
+        },
+        "audio": {
+          "relative_rms": 0.021969,
+          "cosine": 0.999759
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.136164,
+          "cosine": 0.990734
+        },
+        "audio": {
+          "relative_rms": 0.033895,
+          "cosine": 0.999428
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.05668,
+          "cosine": 0.998393
+        },
+        "audio": {
+          "relative_rms": 0.031693,
+          "cosine": 0.999512
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q6": {
+    "load_seconds": 7.4,
+    "weights_gib": 25.15,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.116844,
+          "cosine": 0.993172
+        },
+        "audio": {
+          "relative_rms": 0.104446,
+          "cosine": 0.994544
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.099786,
+          "cosine": 0.995017
+        },
+        "audio": {
+          "relative_rms": 0.114976,
+          "cosine": 0.99337
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.110712,
+          "cosine": 0.993857
+        },
+        "audio": {
+          "relative_rms": 0.061506,
+          "cosine": 0.998111
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.151997,
+          "cosine": 0.988439
+        },
+        "audio": {
+          "relative_rms": 0.062183,
+          "cosine": 0.998068
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.064173,
+          "cosine": 0.99794
+        },
+        "audio": {
+          "relative_rms": 0.043083,
+          "cosine": 0.999072
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q5": {
+    "load_seconds": 6.1,
+    "weights_gib": 21.3,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.195961,
+          "cosine": 0.980906
+        },
+        "audio": {
+          "relative_rms": 0.150144,
+          "cosine": 0.988873
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.16009,
+          "cosine": 0.987281
+        },
+        "audio": {
+          "relative_rms": 0.166925,
+          "cosine": 0.98617
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.207581,
+          "cosine": 0.9785
+        },
+        "audio": {
+          "relative_rms": 0.101002,
+          "cosine": 0.995012
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.189347,
+          "cosine": 0.982119
+        },
+        "audio": {
+          "relative_rms": 0.129017,
+          "cosine": 0.991686
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.100685,
+          "cosine": 0.994943
+        },
+        "audio": {
+          "relative_rms": 0.078915,
+          "cosine": 0.996892
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q4:adaln=6": {
+    "load_seconds": 4.4,
+    "weights_gib": 20.48,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.294569,
+          "cosine": 0.956097
+        },
+        "audio": {
+          "relative_rms": 0.328096,
+          "cosine": 0.946468
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.246844,
+          "cosine": 0.969461
+        },
+        "audio": {
+          "relative_rms": 0.37845,
+          "cosine": 0.930302
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.493951,
+          "cosine": 0.875194
+        },
+        "audio": {
+          "relative_rms": 0.186985,
+          "cosine": 0.982381
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.298602,
+          "cosine": 0.955229
+        },
+        "audio": {
+          "relative_rms": 0.180654,
+          "cosine": 0.983687
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.165625,
+          "cosine": 0.986235
+        },
+        "audio": {
+          "relative_rms": 0.155923,
+          "cosine": 0.987983
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q4:adaln=0": {
+    "load_seconds": 3.4,
+    "weights_gib": 34.86,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.294494,
+          "cosine": 0.956109
+        },
+        "audio": {
+          "relative_rms": 0.329735,
+          "cosine": 0.946015
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.244718,
+          "cosine": 0.969975
+        },
+        "audio": {
+          "relative_rms": 0.374859,
+          "cosine": 0.931567
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.5092,
+          "cosine": 0.867852
+        },
+        "audio": {
+          "relative_rms": 0.182614,
+          "cosine": 0.983196
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.297616,
+          "cosine": 0.955517
+        },
+        "audio": {
+          "relative_rms": 0.179652,
+          "cosine": 0.983869
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.165233,
+          "cosine": 0.9863
+        },
+        "audio": {
+          "relative_rms": 0.159195,
+          "cosine": 0.98744
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q8:attn_qk=4": {
+    "load_seconds": 5.4,
+    "weights_gib": 30.99,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.141105,
+          "cosine": 0.990088
+        },
+        "audio": {
+          "relative_rms": 0.159604,
+          "cosine": 0.987219
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.12491,
+          "cosine": 0.992202
+        },
+        "audio": {
+          "relative_rms": 0.122851,
+          "cosine": 0.99243
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.180082,
+          "cosine": 0.983802
+        },
+        "audio": {
+          "relative_rms": 0.06543,
+          "cosine": 0.997893
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.184249,
+          "cosine": 0.983128
+        },
+        "audio": {
+          "relative_rms": 0.081485,
+          "cosine": 0.996685
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.083751,
+          "cosine": 0.996506
+        },
+        "audio": {
+          "relative_rms": 0.054146,
+          "cosine": 0.998542
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q8:attn_v=4": {
+    "load_seconds": 6.5,
+    "weights_gib": 31.92,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.207485,
+          "cosine": 0.978371
+        },
+        "audio": {
+          "relative_rms": 0.209956,
+          "cosine": 0.97875
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.169232,
+          "cosine": 0.985665
+        },
+        "audio": {
+          "relative_rms": 0.256004,
+          "cosine": 0.967123
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.188236,
+          "cosine": 0.982214
+        },
+        "audio": {
+          "relative_rms": 0.087909,
+          "cosine": 0.996161
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.239786,
+          "cosine": 0.971267
+        },
+        "audio": {
+          "relative_rms": 0.130701,
+          "cosine": 0.991449
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.106402,
+          "cosine": 0.99433
+        },
+        "audio": {
+          "relative_rms": 0.090607,
+          "cosine": 0.99591
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q8:attn_out=4": {
+    "load_seconds": 5.8,
+    "weights_gib": 31.92,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.162055,
+          "cosine": 0.986822
+        },
+        "audio": {
+          "relative_rms": 0.138366,
+          "cosine": 0.990404
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.140239,
+          "cosine": 0.990164
+        },
+        "audio": {
+          "relative_rms": 0.154189,
+          "cosine": 0.988101
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.152865,
+          "cosine": 0.988364
+        },
+        "audio": {
+          "relative_rms": 0.062245,
+          "cosine": 0.998087
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.180734,
+          "cosine": 0.983684
+        },
+        "audio": {
+          "relative_rms": 0.077093,
+          "cosine": 0.997069
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.088971,
+          "cosine": 0.996044
+        },
+        "audio": {
+          "relative_rms": 0.068614,
+          "cosine": 0.997657
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q8:ff_in=4": {
+    "load_seconds": 6.6,
+    "weights_gib": 29.12,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.20633,
+          "cosine": 0.978671
+        },
+        "audio": {
+          "relative_rms": 0.19911,
+          "cosine": 0.979978
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.150703,
+          "cosine": 0.988614
+        },
+        "audio": {
+          "relative_rms": 0.159839,
+          "cosine": 0.9873
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.236822,
+          "cosine": 0.971847
+        },
+        "audio": {
+          "relative_rms": 0.074055,
+          "cosine": 0.997298
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.189894,
+          "cosine": 0.981959
+        },
+        "audio": {
+          "relative_rms": 0.099894,
+          "cosine": 0.99502
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.107875,
+          "cosine": 0.994166
+        },
+        "audio": {
+          "relative_rms": 0.094757,
+          "cosine": 0.995525
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q8:ff_out=4": {
+    "load_seconds": 5.9,
+    "weights_gib": 30.99,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.159242,
+          "cosine": 0.987262
+        },
+        "audio": {
+          "relative_rms": 0.110055,
+          "cosine": 0.993956
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.136579,
+          "cosine": 0.990675
+        },
+        "audio": {
+          "relative_rms": 0.100365,
+          "cosine": 0.994951
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.210529,
+          "cosine": 0.977796
+        },
+        "audio": {
+          "relative_rms": 0.060157,
+          "cosine": 0.998191
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.164243,
+          "cosine": 0.986501
+        },
+        "audio": {
+          "relative_rms": 0.103739,
+          "cosine": 0.994684
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.087227,
+          "cosine": 0.996194
+        },
+        "audio": {
+          "relative_rms": 0.057877,
+          "cosine": 0.998343
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q8:ff_in=4,attn_out=4,adaln=6": {
+    "load_seconds": 8.2,
+    "weights_gib": 25.16,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.248192,
+          "cosine": 0.969059
+        },
+        "audio": {
+          "relative_rms": 0.231049,
+          "cosine": 0.972981
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.180697,
+          "cosine": 0.983622
+        },
+        "audio": {
+          "relative_rms": 0.239924,
+          "cosine": 0.971747
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.232639,
+          "cosine": 0.972851
+        },
+        "audio": {
+          "relative_rms": 0.088477,
+          "cosine": 0.996115
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.225453,
+          "cosine": 0.974526
+        },
+        "audio": {
+          "relative_rms": 0.102862,
+          "cosine": 0.994715
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.127362,
+          "cosine": 0.991863
+        },
+        "audio": {
+          "relative_rms": 0.123989,
+          "cosine": 0.992365
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q8:ff_in=4,ff_out=4,attn_qk=4,adaln=6": {
+    "load_seconds": 4.9,
+    "weights_gib": 22.36,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.257678,
+          "cosine": 0.966568
+        },
+        "audio": {
+          "relative_rms": 0.266933,
+          "cosine": 0.963789
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.188225,
+          "cosine": 0.982261
+        },
+        "audio": {
+          "relative_rms": 0.256964,
+          "cosine": 0.968257
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.394626,
+          "cosine": 0.920079
+        },
+        "audio": {
+          "relative_rms": 0.14883,
+          "cosine": 0.988907
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.245448,
+          "cosine": 0.969879
+        },
+        "audio": {
+          "relative_rms": 0.154135,
+          "cosine": 0.98825
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.136243,
+          "cosine": 0.9907
+        },
+        "audio": {
+          "relative_rms": 0.120644,
+          "cosine": 0.992774
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  },
+  "q4:adaln=6,edge10=8": {
+    "load_seconds": 6.0,
+    "weights_gib": 24.07,
+    "rows": {
+      "capture_fox_step3": {
+        "video": {
+          "relative_rms": 0.274729,
+          "cosine": 0.96219
+        },
+        "audio": {
+          "relative_rms": 0.24747,
+          "cosine": 0.969352
+        },
+        "q8_package_video": {
+          "relative_rms": 0.064059,
+          "cosine": 0.997947
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035544,
+          "cosine": 0.999368
+        }
+      },
+      "capture_image_step3": {
+        "video": {
+          "relative_rms": 0.219042,
+          "cosine": 0.976023
+        },
+        "audio": {
+          "relative_rms": 0.272616,
+          "cosine": 0.963283
+        },
+        "q8_package_video": {
+          "relative_rms": 0.047857,
+          "cosine": 0.998855
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.035066,
+          "cosine": 0.999386
+        }
+      },
+      "capture_speech_step0": {
+        "video": {
+          "relative_rms": 0.301727,
+          "cosine": 0.954569
+        },
+        "audio": {
+          "relative_rms": 0.156588,
+          "cosine": 0.987664
+        },
+        "q8_package_video": {
+          "relative_rms": 0.107292,
+          "cosine": 0.994267
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.016396,
+          "cosine": 0.999868
+        }
+      },
+      "capture_speech_step3": {
+        "video": {
+          "relative_rms": 0.270306,
+          "cosine": 0.963429
+        },
+        "audio": {
+          "relative_rms": 0.154621,
+          "cosine": 0.987976
+        },
+        "q8_package_video": {
+          "relative_rms": 0.088984,
+          "cosine": 0.996046
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.025107,
+          "cosine": 0.999685
+        }
+      },
+      "capture_speech_step6": {
+        "video": {
+          "relative_rms": 0.14094,
+          "cosine": 0.990045
+        },
+        "audio": {
+          "relative_rms": 0.1083,
+          "cosine": 0.994119
+        },
+        "q8_package_video": {
+          "relative_rms": 0.040807,
+          "cosine": 0.999168
+        },
+        "q8_package_audio": {
+          "relative_rms": 0.020315,
+          "cosine": 0.999794
+        }
+      }
+    }
+  }
+}

@@ -13,6 +13,18 @@ class ModelCardSaver:
     FLUX_NON_COMMERCIAL_LICENSE_DISPLAY_NAME = "FLUX Non-Commercial License"
     FLUX_NON_COMMERCIAL_LICENSE_LINK = "https://huggingface.co/black-forest-labs/FLUX.2-klein-9B/blob/main/LICENSE.md"
     FLUX_ACCEPTABLE_USE_POLICY_LINK = "https://bfl.ai/legal/usage-policy"
+    MINIMAX_H3_LICENSE_NAME = "minimax-h3-community-license-agreement"
+    MINIMAX_H3_LICENSE_DISPLAY_NAME = "MiniMax H3 Community License Agreement"
+    MINIMAX_H3_LICENSE_LINK = "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE"
+    MINIMAX_H3_DOC_URL = "https://github.com/lpalbou/mlx-gen/blob/main/docs/minimax-h3.md"
+    # Section III.4 of the license: the text every distribution carries in a `NOTICE` file.
+    MINIMAX_H3_NOTICE = (
+        "MiniMax H3 is licensed under the MiniMax H3 Community License Agreement, "
+        "Copyright © 2026 MiniMax. All Rights Reserved."
+    )
+    MINIMAX_H3_EXCLUDED_TERRITORIES = (
+        "the European Union, the United Kingdom, the Republic of Korea and the United States of America"
+    )
 
     @staticmethod
     def save_model_card(base_path: str, model: Any, bits: int | None) -> None:
@@ -25,6 +37,24 @@ class ModelCardSaver:
                 bits=bits,
             ),
             encoding="utf-8",
+        )
+
+    @staticmethod
+    def render_minimax_h3_notice(model_name: str, bits: int | None) -> str:
+        change = (
+            "converted to the MLX-Gen saved-weight layout"
+            if bits is None
+            else f"converted to the MLX-Gen saved-weight layout and quantized ({bits}-bit package)"
+        )
+        return "\n".join(
+            [
+                ModelCardSaver.MINIMAX_H3_NOTICE,
+                "",
+                f"Modification notice: the weight files in this distribution are modified from `{model_name}`. "
+                f"They were {change} with mlx-gen {VersionUtil.get_mflux_version()} "
+                f"({ModelCardSaver.PROJECT_URL}). The `LICENSE` file is the unmodified agreement.",
+                "",
+            ]
         )
 
     @staticmethod
@@ -69,7 +99,7 @@ class ModelCardSaver:
             "",
             "## Usage",
             "",
-            *ModelCardSaver._usage_note(terms, bits),
+            *ModelCardSaver._usage_note(terms, bits, base_path),
             *ModelCardSaver._usage_block(repo_id, pipeline_tag, terms, bits),
             "",
             "## Attribution",
@@ -103,6 +133,22 @@ class ModelCardSaver:
 
     @staticmethod
     def _license_frontmatter(model_name: str, terms: str) -> list[str]:
+        if ModelCardSaver._is_minimax_h3(model_name, terms):
+            return [
+                "license: other",
+                f"license_name: {ModelCardSaver.MINIMAX_H3_LICENSE_NAME}",
+                f"license_link: {ModelCardSaver.MINIMAX_H3_LICENSE_LINK}",
+                (
+                    'extra_gated_prompt: "This repository is a quantized derivative of MiniMaxAI/MiniMax-H3, '
+                    f"distributed under the {ModelCardSaver.MINIMAX_H3_LICENSE_DISPLAY_NAME}. That license applies "
+                    f"only within its Applicable Territory, which excludes {ModelCardSaver.MINIMAX_H3_EXCLUDED_TERRITORIES}, "
+                    'and it includes use restrictions and an Acceptable Use Policy."'
+                ),
+                "extra_gated_fields:",
+                "  I have read and agree to the MiniMax H3 Community License Agreement and its Acceptable Use Policy: checkbox",
+                "  I will use this model and its outputs only within the Applicable Territory of that license: checkbox",
+            ]
+
         if ModelCardSaver._is_fibo_model(model_name, terms):
             return [
                 "license: other",
@@ -149,6 +195,50 @@ class ModelCardSaver:
 
     @staticmethod
     def _license_section(model_name: str, terms: str, bits: int | None) -> list[str]:
+        if ModelCardSaver._is_minimax_h3(model_name, terms):
+            derivative = "prepared derivative" if bits is None else "quantized derivative"
+            return [
+                "## License and Access",
+                "",
+                (
+                    f"This checkpoint is a {derivative} (a Model Derivative) of `MiniMaxAI/MiniMax-H3` and is "
+                    f"distributed under the [{ModelCardSaver.MINIMAX_H3_LICENSE_DISPLAY_NAME}]"
+                    f"({ModelCardSaver.MINIMAX_H3_LICENSE_LINK}). A copy of the agreement is included as "
+                    "`LICENSE`, with the required `NOTICE` file. The agreement governs; the points below are a "
+                    "reading aid, not legal advice."
+                ),
+                "",
+                (
+                    "- **Territory.** The license applies only within its Applicable Territory: worldwide, "
+                    f"excluding {ModelCardSaver.MINIMAX_H3_EXCLUDED_TERRITORIES}. Using, reproducing or "
+                    "distributing the model, its derivatives or its outputs there is not covered by the "
+                    "agreement; MiniMax offers a separate licensing path for those territories."
+                ),
+                (
+                    "- **Use restrictions.** Section V and the Acceptable Use Policy (Exhibit A) apply to this "
+                    "checkpoint and to what it generates, including the rule against using the model or its "
+                    "outputs to improve another AI model and the duty to disclose machine-generated content."
+                ),
+                (
+                    '- **Commercial use.** Section IV requires displaying "MiniMax H3" in a commercial product '
+                    "that uses it, and prior written authorization from MiniMax above USD 20 million of yearly "
+                    "revenue."
+                ),
+                (
+                    "- **Redistribution.** Pass on the `LICENSE` and `NOTICE` files, state your own modifications, "
+                    "and bind recipients to the same restrictions."
+                ),
+                (
+                    "- **Modified files.** The weight files here are not the original release: they were converted "
+                    "to the MLX-Gen saved-weight layout"
+                    + (" and quantized as described below." if bits is not None else ".")
+                ),
+                "",
+                "The Qwen3-VL-32B conditioner inside MiniMax-H3 is licensed under Apache 2.0. The lightx2v Turbo "
+                "adapters are not part of this repository; `mlxgen download` fetches them from "
+                "[`lightx2v/Minimax-h3-Turbo`](https://huggingface.co/lightx2v/Minimax-h3-Turbo) under their own terms.",
+            ]
+
         if ModelCardSaver._is_fibo_model(model_name, terms):
             derivative = "prepared derivative" if bits is None else "quantized derivative"
             return [
@@ -193,7 +283,82 @@ class ModelCardSaver:
         return []
 
     @staticmethod
+    def _minimax_h3_quantization_section(bits: int | None) -> str:
+        from mflux.models.minimax_h3.weights.h3_weight_definition import MiniMaxH3WeightDefinition
+
+        if bits is None:
+            return "This checkpoint stores the MiniMax-H3 weights in the MLX-Gen layout without quantization."
+        transformer_bits = MiniMaxH3WeightDefinition.component_bits("transformer", bits)
+        conditioner_bits = MiniMaxH3WeightDefinition.component_bits("text_encoder", bits)
+        layers = [
+            f"- q{transformer_bits} for the transformer attention and feed-forward linears, the text projection, "
+            "the token refiner and the per-block AdaLN projections (`adaln_proj`).",
+            f"- q{conditioner_bits} for the Qwen3-VL conditioner's 50 decoder layers and token embeddings.",
+            "- As released: the conditioner's vision tower, which image-to-video depends on, the transformer's "
+            "fp32 input and output heads, timestep MLP and final modulation (`norm_out`), the BF16 video VAE "
+            "and the fp32 audio VAE.",
+            "",
+            f"See the [MLX-Gen quantization docs]({ModelCardSaver.QUANTIZATION_DOC_URL}) for the measurements "
+            "behind this policy.",
+        ]
+        if transformer_bits == conditioner_bits:
+            lead = (
+                f"This is an MLX {bits}-bit checkpoint for MiniMax-H3 video generation with audio: the two large "
+                "components are quantized, the small precision-critical parts are not."
+            )
+            return "\n".join([lead, "", *layers])
+        lead = (
+            "This is the low-memory MLX checkpoint for MiniMax-H3 video generation with audio. It is a "
+            f"mixed-width package: a {conditioner_bits}-bit conditioner and a {transformer_bits}-bit transformer."
+        )
+        why = (
+            f"The transformer is {transformer_bits}-bit, not {bits}-bit. No layer family in it tolerates 4-bit "
+            "better than another, so a 4-bit/8-bit mix has no sensitive family to protect; the mix measured at "
+            f"the same size is about twice as far from the released weights as uniform {transformer_bits}-bit. "
+            "The 8-bit package ([`AbstractFramework/minimax-h3-8bit`]"
+            "(https://huggingface.co/AbstractFramework/minimax-h3-8bit)) is the closest to the released weights; "
+            "this one trades some fidelity for memory."
+        )
+        return "\n".join([lead, "", *layers, "", why])
+
+    @staticmethod
+    def _minimax_h3_memory_note(base_path: str | None, bits: int | None) -> list[str]:
+        from mflux.task_inference import MINIMAX_H3_MEASURED_RUNS
+
+        # The reference profile of the published measurements; a width without one gets no memory sentence.
+        runs = [
+            run
+            for run in MINIMAX_H3_MEASURED_RUNS
+            if run.outcome == "completed"
+            and run.quantize == bits
+            and (run.width, run.height, run.frames, run.steps) == (960, 544, 124, 8)
+        ]
+        default = next((run for run in runs if not run.release_text_encoder), None)
+        if default is None or default.mlx_peak_bytes is None:
+            return []
+        gib = 1024**3
+        package_bytes = sum(file.stat().st_size for file in Path(base_path or "").rglob("*.safetensors"))
+        size = f" ({package_bytes / gib:.1f} GiB of weights)" if base_path and package_bytes else ""
+        low_ram = next((run for run in runs if run.release_text_encoder), None)
+        low_ram_sentence = (
+            f"With `--low-ram`, which releases the conditioner once the prompt is encoded, the footprint peaks at "
+            f"{low_ram.footprint_bytes / gib:.1f} GiB. "
+            if low_ram is not None
+            else ""
+        )
+        return [
+            f"Measured on an Apple M5 Max with 128 GB, `960x544`, 124 frames, 8 Turbo steps: this package{size} "
+            f"peaks at {default.mlx_peak_bytes / gib:.1f} GiB of MLX memory inside a "
+            f"{default.footprint_bytes / gib:.1f} GiB process footprint. {low_ram_sentence}Leave room for the "
+            "system and other applications, and expect more for longer clips and larger canvases.",
+            "",
+        ]
+
+    @staticmethod
     def _quantization_section(terms: str, bits: int | None) -> str:
+        if "minimax-h3" in terms:
+            return ModelCardSaver._minimax_h3_quantization_section(bits)
+
         if bits == 8 and "fibo" in terms:
             return "\n".join(
                 [
@@ -399,7 +564,28 @@ class ModelCardSaver:
         return f"Original model reference: `{model_name}`."
 
     @staticmethod
-    def _usage_note(terms: str, bits: int | None) -> list[str]:
+    def _usage_note(terms: str, bits: int | None, base_path: str | None = None) -> list[str]:
+        if "minimax-h3" in terms:
+            return [
+                "The package holds the base MiniMax-H3 weights and no adapter. `--base-model` selects the schedule "
+                "at run time:",
+                "",
+                "| `--base-model` | Schedule | Default canvas | Steps |",
+                "| --- | --- | --- | --- |",
+                "| `minimax-h3-turbo-544p` | lightx2v 8-step Turbo adapter trained at 544p (recommended) | `960x544` | 8 |",
+                "| `minimax-h3-turbo` | lightx2v 8-step Turbo adapter trained at 768p | `1344x768` | 8 |",
+                "| omitted | Base model, no adapter | `1344x768` | 50 |",
+                "",
+                "Pass the same `--base-model` to `mlxgen download` so the matching Turbo adapter is cached; "
+                "generation never downloads. Do not pass `--quantize` when loading this package. Add "
+                "`--image-path keyframe.png` for first-frame image-to-video. Each run writes one MP4 with 24 fps "
+                "video and a synchronized stereo AAC track.",
+                "",
+                *ModelCardSaver._minimax_h3_memory_note(base_path, bits),
+                f"See the [MiniMax-H3 guide]({ModelCardSaver.MINIMAX_H3_DOC_URL}) for prompting, sizing, "
+                "measured runtime and limits.",
+                "",
+            ]
         if "wan" in terms and "a14b" in terms and bits == 8:
             return [
                 "The q8 A14B example below is intentionally validation-sized. Do not use this card to claim "
@@ -432,6 +618,25 @@ class ModelCardSaver:
 
     @staticmethod
     def _usage_block(repo_id: str, pipeline_tag: str, terms: str, bits: int | None) -> list[str]:
+        if "minimax-h3" in terms:
+            return [
+                "```bash",
+                "python -m pip install -U mlx-gen",
+                "",
+                f"mlxgen download --model {repo_id} --base-model minimax-h3-turbo-544p",
+                "",
+                "mlxgen generate \\",
+                f"  --model {repo_id} \\",
+                "  --base-model minimax-h3-turbo-544p \\",
+                '  --prompt "A red fox trots through fresh powder snow in a birch forest at dawn. Halfway through '
+                'the clip it stops, ears twitching toward the camera, then bounds forward." \\',
+                '  --soundscape "Soft crunch of paws in dry snow, a faint wind, two distant crow caws." \\',
+                '  --music "Sparse, gentle piano notes, slow tempo." \\',
+                "  --seed 42 \\",
+                "  --metadata \\",
+                "  --output fox.mp4",
+                "```",
+            ]
         if "seedvr2" in terms:
             return [
                 "```bash",
@@ -478,11 +683,7 @@ class ModelCardSaver:
                     "  --guidance-2 3.5 \\",
                     "  --fps 8 \\",
                     "  --seed 4242 \\",
-                    *(
-                        ["  --low-ram \\"]
-                        if bits == 8 and "a14b" in terms
-                        else []
-                    ),
+                    *(["  --low-ram \\"] if bits == 8 and "a14b" in terms else []),
                     "  --metadata \\",
                     "  --output video.mp4",
                 ]
@@ -596,6 +797,19 @@ class ModelCardSaver:
             tags.append("z-image")
         if "ernie" in terms:
             tags.extend(["ernie", "ernie-image", "ernie-image-turbo"])
+        if "minimax-h3" in terms:
+            if bits is not None:
+                tags.extend(["mixed-q8-bf16"] if bits >= 8 else ["mixed-q4", "mixed-precision"])
+            tags.extend(
+                [
+                    "minimax-h3",
+                    "video-generation",
+                    "text-to-video",
+                    "image-to-video",
+                    "audio-video-generation",
+                    "synchronized-audio-video",
+                ]
+            )
         if "wan" in terms:
             tags.extend(["wan", "wan2.2", "video-generation"])
             if ModelCardSaver._wan_supports_text_to_video(terms):
@@ -612,6 +826,8 @@ class ModelCardSaver:
 
     @staticmethod
     def _pipeline_tag(terms: str) -> str:
+        if "minimax-h3" in terms:
+            return "text-to-video"
         if "wan" in terms:
             if ModelCardSaver._wan_is_i2v_only(terms):
                 return "image-to-video"
@@ -687,6 +903,10 @@ class ModelCardSaver:
     def _is_flux2_9b(model_name: str, terms: str) -> bool:
         normalized = f"{model_name} {terms}".lower()
         return "flux.2-klein" in normalized and "9b" in normalized
+
+    @staticmethod
+    def _is_minimax_h3(model_name: str, terms: str) -> bool:
+        return "minimax-h3" in f"{model_name} {terms}".lower()
 
     @staticmethod
     def _is_fibo_model(model_name: str, terms: str) -> bool:

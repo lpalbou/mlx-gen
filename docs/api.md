@@ -24,6 +24,12 @@ The public workflows are:
 The package also installs compatibility entry points from the mflux codebase. New workflows should
 prefer the `mlxgen` commands above when a matching command exists.
 
+`mlxgen` exits with status `0` on success and non-zero on failure. Usage errors exit with `2`: an
+invalid or conflicting option, a `--model` that cannot be resolved to a backend, an unknown
+validation profile, or a download that fails the disk-space preflight. Runtime failures in `mlxgen
+generate`, such as model files that are not available locally, exit with `1`. `mlxgen upscale`
+reports missing model files with `2`, or with `1` under `--json-events`.
+
 Reader-first workflow split:
 
 | You have | You want | Current command |
@@ -47,7 +53,7 @@ and runtime examples, see [Wan Video](wan-video.md). For role-aware reference vi
 
 ## Generation Router
 
-`mlxgen generate` chooses the backend from `--model`, optional `--family`, and image or video
+`mlxgen generate` chooses the backend from `--model`, optional `--base-model`, and image or video
 inputs. Public tasks are media directions: `text-to-image`, `image-to-image`, `text-to-video`,
 `image-to-video`, and `video-to-video`. Edit/reference behavior is an internal image-to-image mode,
 not a separate public task.
@@ -161,6 +167,22 @@ mlxgen validation \
   --profile lora_qwen_edit_q8_ghibli_edit_2026_06_11
 ```
 
+`mlxgen validation` prints one JSON object in one of three shapes:
+
+| Invocation | Top-level keys |
+| --- | --- |
+| `--model <model>` (optional `--profile <id>`) | `profile_id`, `model`, `status`, `records` |
+| `--profile <id>`, or no option | `id`, `title`, `canonical_source`, `description`, `records` |
+| `--list` | `profiles`, each with `id`, `title`, `canonical_source`, `description`, `record_count` |
+
+Each record carries `profile_id`, `model`, `family`, `package_variant`, `step`, `step_label`,
+`public_task`, `mode`, `status`, `artifact_path`, `source_images`, `prompt`, `reviewer_notes`,
+`evidence_date`, and `evidence_type`. Record statuses are `PASS`, `PARTIAL`, `FAIL`, `STALE`,
+`UNREVIEWED`, and `N/A`; the model-level `status` is the weakest status among its records. A model
+with no record in the profile returns `"status": "NOT_AVAILABLE"` with an empty `records` array and
+exit status `0`: it means no evidence is recorded, not that the model failed. An unknown `--profile`
+is a usage error.
+
 ### Runtime Memory Defaults
 
 MLX-Gen applies two machine-derived runtime-memory behaviors by default. Both are visible,
@@ -194,6 +216,24 @@ next steps, failed events also include a nested `remediation` object. `DownloadR
 emits `kind=download-required` with `download_command` and optional `prepare_command`; CLI usage
 failures under `--json-events` emit `kind=cli-usage` with the relevant usage string.
 
+Each line is one JSON object. A field whose value is null is omitted, so test for a key's presence
+before reading it.
+
+| Field | Content |
+| --- | --- |
+| `type` | Always `"runtime"`. |
+| `command`, `model`, `seed` | The routed command (`mlxgen generate` or `mlxgen upscale`), the model, and the seed of the current output. |
+| `phase` | `start`, `denoise`, `decode`, `convert`, `generated`, `save`, `complete`, `failed`, or `interrupted`, depending on the route. |
+| `task`, `step`, `total_steps`, `progress` | Public task and step-based progress (`progress` is `0.0`-`1.0`). |
+| `frame`, `total_frames`, `frame_progress`, `timestep`, `fps`, `width`, `height`, `health_check` | Present when the route reports them. |
+| `output_path` | On `save`, `complete`, and `failed` events. |
+| `error`, `error_type` | On `failed` events: the message and the exception class name, such as `DownloadRequiredError` or `CliArgumentError`. |
+| `diagnostics_path` | On `failed` events when a failure manifest was written. |
+| `remediation.kind` | `download-required` or `cli-usage`. |
+| `remediation.repo_id`, `remediation.artifact`, `remediation.download_command` | With `download-required`: the missing repository, what is missing (for example `model` or `LoRA`), and the command to run. |
+| `remediation.prepare_command` | With `download-required`, only when preparing a local package applies. |
+| `remediation.usage` | With `cli-usage`: the usage string of the command. |
+
 For image routes, model progress `complete` means the in-memory image object is ready. The CLI
 maps that to `generated`, then emits `save` and reserves terminal `complete` for the point where
 the output file has actually been written. Wan video routes also accept `--failure-diagnostics`;
@@ -209,6 +249,9 @@ The public CLI uses seeds as the shared multi-output contract.
 - Each seed produces one saved image or one saved video.
 - Duplicate explicit seeds are rejected because they would target the same artifact path.
 - `--auto-seeds` must be greater than zero.
+- With neither `--seed` nor `--auto-seeds`, the run uses one seed taken from the clock (the current
+  Unix time in seconds), so repeated runs produce different outputs. Pass `--seed` to reproduce a
+  result; `--metadata` records the seed that was used.
 
 When one invocation processes several seeds, MLX-Gen appends `_seed_<seed>` to the output stem
 automatically unless your `--output` pattern already contains `{seed}`.
@@ -266,6 +309,26 @@ rejected when `--replace true`.
 For Python integrations on the unified `mlxgen generate` families, use
 `load_generation_model(...).generate_outputs(...)` for the same serial multi-output reuse
 contract. SeedVR2/upscale remains outside that wrapper and stays on direct `SeedVR2` methods.
+
+### Default Image Steps
+
+When `--steps` is omitted, image routes use the default of the resolved model. Prepared packages
+of a model share its default.
+
+| Model alias | Default `--steps` |
+| --- | ---: |
+| `qwen-image`, `qwen-image-edit` | 20 |
+| `qwen-image-edit-2509`, `qwen-image-edit-2511` | 40 |
+| `flux2-klein-4b`, `flux2-klein-9b` | 4 |
+| `flux2-klein-base-4b`, `flux2-klein-base-9b` | 50 |
+| `z-image` | 50 |
+| `z-image-turbo` | 9 |
+| `ernie-image-turbo` | 8 |
+| `fibo` | 50 |
+| `fibo-lite` | 8 |
+| `bonsai-image-ternary` | 4 |
+
+Video defaults are listed with each video route below.
 
 ### Image Metadata And Finalization
 
@@ -649,14 +712,27 @@ capability field.
 For Wan, omitting the option uses the model's official default negative prompt. Pass
 `--negative ""` or `--negative-prompt ""` to intentionally run without a negative prompt.
 
-Supported router families are `qwen`, `flux2`, `bonsai`, `fibo`, `z-image`, `ernie-image`, `wan`, and `minimax-h3`:
+`--family` checks the model family; it does not identify a model. `mlxgen generate --family`
+accepts `qwen`, `flux2`, `fibo`, `z-image`, `ernie-image`, `wan`, and `bonsai`. `mlxgen
+capabilities --family` accepts those values plus `minimax-h3`, `seedvr2`, and `swiftvr`. A value
+that differs from the family resolved from `--model` is a usage error. For a local folder or custom
+repository name, state the model with `--base-model`:
 
 ```sh
 mlxgen generate \
-  --model ./models/qwen-image-8bit \
-  --family qwen \
-  --prompt "A clean studio product photo"
+  --model ./models/my-qwen-edit-package \
+  --base-model qwen-image-edit-2511 \
+  --image input.png \
+  --prompt "Turn the room into a pencil sketch"
 ```
+
+See [Prepare A Local MLX-Gen Package](model-management.md#prepare-a-local-mlx-gen-package) for how
+`--model` values are identified.
+
+`--battery-percentage-stop-limit` / `-B` (default `5`, range `1`-`99`) applies to image routes on a
+MacBook running on battery: when the charge is at or below the limit, the run prints `Battery below
+5% threshold: <charge>%` before denoising, writes no image, and exits with status `0`. Wan video
+routes accept the option and do not act on it.
 
 Use `--config-from-metadata` / `-C` when you want the router to read fields such as `model`, `image_path`, or `image_paths` from an existing metadata file.
 
@@ -923,7 +999,7 @@ and the source duration plus requested fps may resolve fewer `4n+1` frames. Use
 | `--width`, `--height` | Accepted values are model-specific. Text-to-video and video-to-video values are adjusted up to the selected Wan VAE/patch multiple. For image-to-video, these values are a size target by default: MLX-Gen resolves the final canvas from the source image aspect ratio and the selected model's spatial multiple before conditioning the model (see `--canvas-policy`). Bernini source-video modes also treat them as a size target and preserve the source aspect ratio. |
 | `--canvas-policy` | How the output canvas is resolved from a source input. Default keeps each route's behavior: image-to-video resolves a source-ratio canvas near the requested size; text/video-to-video honor the requested (multiple-adjusted) canvas. `exact-resize` honors the requested canvas on image-to-video, with the source mapped per `--resize-mode`; `source-aspect` on video-to-video derives a source-ratio canvas from the clip. Bernini source-video modes require `source-aspect`; its reference-only R2V mode has no source canvas. Recorded in metadata and replayed by `--config-from-metadata`. With `--json-events`, the `start` event carries the resolved `width`/`height`. |
 | `--resize-mode` | How source pixels (image-to-video first frame, video-to-video frames, VACE conditioning, and their masks) map onto the canvas: `resize` stretches to fill (default), `crop` center-crops without distortion, `pad` letterboxes the full source without distortion (black bars). Masks always follow the same geometry as the source pixels; letterboxed borders are preserved regions. Bernini video/reference conditions support resize only. Recorded in metadata and replayed by `--config-from-metadata`. |
-| `--frames` | Requested output frames. Wan requires `4n + 1`; other values are adjusted to `4 * floor(frames / 4) + 1`. On Bernini source-video routes this is a maximum and may resolve lower from source duration/fps; metadata `output_frames` is authoritative. TI2V-5B default: `121`; A14B and Bernini default: `81`. |
+| `--frames` | Requested output frames. Wan requires `4n + 1`; other values are adjusted to `4 * floor(frames / 4) + 1`. On Bernini source-video routes this is a maximum and may resolve lower from source duration/fps; metadata `output_frames` is authoritative. Default: `81` on TI2V-5B, A14B, and Bernini. TI2V-5B supports up to `121` frames; pass `--frames 121` for its full-length shots. |
 | `--fps` | MP4 playback frame rate. Any positive integer is accepted. TI2V-5B default/recommended value: `24`; A14B and Bernini default/recommended value: `16`. |
 | `--steps` | Denoising steps. TI2V-5B default/recommended quality value: `50`; A14B and Bernini default/recommended value: `40`. Lower values run faster but reduce quality. Mutually exclusive with `--denoising-step-list`. |
 | `--denoising-step-list` | Explicit denoising timestep grid (strictly decreasing integers in `[1, 1000]`), e.g. `--denoising-step-list 1000 750 500 250` for the LightX2V distill contract. The transformer sees exactly these timesteps; sigma follows `t / 1000`. Grid entries are final, already-shifted timesteps, so this flag is mutually exclusive with `--steps` and `--flow-shift`, and rejected for video-to-video (strength truncation would drop grid points), Wan VACE, and Bernini. Works on both `unipc` and `euler` solvers where accepted. Recorded in metadata (`denoising_step_list`, with `steps` set to the grid length and `flow_shift` null) and replayed by `--config-from-metadata`. Python callers use `denoising_step_list=[...]`. |

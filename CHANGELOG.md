@@ -7,6 +7,69 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.39.0] - 2026-11-23
+
+MiniMax-H3 has published packages: `AbstractFramework/minimax-h3-8bit` (64.3 GiB) and the
+mixed-width `AbstractFramework/minimax-h3-4bit` (44.9 GiB). Both need mlx-gen 0.39.0 or later.
+
+### Added
+
+- **Published MiniMax-H3 packages.** `mlxgen download --model AbstractFramework/minimax-h3-8bit
+  --base-model minimax-h3-turbo-544p` fetches the package and the Turbo adapter;
+  `mlxgen generate` runs it with the same two options. At `960x544`, 124 frames, the 8-bit package
+  peaks at a 77.0 GiB process footprint and the 4-bit package at 57.6 GiB (45.6 GiB with
+  `--low-ram`). The 8-bit package runs on 96 GB and the 4-bit package on 64 GB with `--low-ram`, both tested with
+  the difference in RAM locked away; see [MiniMax-H3](docs/minimax-h3.md#memory-by-machine).
+- **`--quantize 4` for MiniMax-H3** is a mixed policy: a 4-bit Qwen3-VL conditioner and a 6-bit
+  transformer. The measurements behind it are in
+  [Quantization](docs/quantization.md#minimax-h3-q8-and-mixed-q4).
+- **Package agent skill.** `skills/mlx-gen/` teaches AI agents to use `mlxgen` and the Python
+  runtime: what to check before an expensive run, the download-first contract, model ids, and
+  recipes per task.
+- **Context7 refresh.** A release asks Context7 to re-index `docs/`, `README.md`, `llms.txt` and
+  `llms-full.txt` after PyPI publishes; `gh workflow run context7-refresh.yml` does the same by hand.
+- **`tools/minimax_h3_quant_probe.py`** measures any per-layer width assignment of MiniMax-H3
+  against the BF16 weights and renders same-seed clips for it.
+
+### Changed
+
+- **MiniMax-H3 `--quantize 8` uses about 12 GiB less memory.** The per-block AdaLN projections are
+  quantized with the other linears, and the conditioner's vision tower is left as released. A
+  same-seed clip differs from one made with 0.38.0: the same scene, at a 28.2 dB median frame
+  PSNR on the reference fox clip.
+- **MiniMax-H3 accepts `--quantize 8` and `--quantize 4` only.** Other widths are refused with the
+  two supported policies named.
+- **A prepared MiniMax-H3 package loads each layer at the width stored in its files**, and a
+  package that is incomplete or was written for another layout is refused at load. Packages
+  prepared with 0.34.0 to 0.38.0 keep loading.
+- **`mlxgen prepare` for MiniMax-H3** copies the source tokenizer files, `LICENSE` and the scheduler
+  configs into the package and writes the `NOTICE` file the MiniMax H3 Community License requires.
+  It needs the `LICENSE` file in the source snapshot (`mlxgen download --model minimax-h3` fetches
+  it) and must start from `minimax-h3`, not from a Turbo entry.
+- **The MiniMax-H3 model card** describes a video package: task, license and territory, the
+  `--base-model` schedule table, a working command, the package's widths and its measured memory.
+- **MiniMax-H3 memory preflight** estimates `--quantize 4` and prepared packages from their real
+  widths.
+- **`mlxgen generate` names the folder a package was loaded from**, since `./models/<repo-name>`
+  resolves before the Hugging Face cache.
+
+### Fixed
+
+- **A MiniMax-H3 package downloaded from Hugging Face is found in the cache.** Path resolution
+  required scheduler configs that a prepared package did not carry, so generation asked for a
+  download that had already happened.
+- **MiniMax-H3 dialogue markers in prepared packages.** Loading refuses a tokenizer that splits
+  `<d>`, `</d>`, `<|cutoff|>` or the lyric and caption markers, and names the command that
+  rebuilds the package.
+- **Adapters on 3-, 5- and 6-bit linears** are no longer rejected as incompatible.
+- **`bernini-r-1.3b-bf16` routes** through `mlxgen generate` and `mlxgen capabilities`.
+- **A missing `AbstractFramework/*` package** is reported with its `mlxgen download` command only;
+  the message no longer suggests preparing a package from a package.
+- **The download hint for a MiniMax-H3 package** names the package and its `--base-model`.
+- **Documentation corrections:** `--base-model`, not `--family`, identifies a local folder or
+  custom repository name; Wan routes default to 81 frames; the capability schema version is 16;
+  Bernini download sizes are 26.94 GiB for the source and 15.60 GiB for the BF16 package.
+
 ## [0.38.0] - 2026-09-21
 
 MLX 0.32.x is now supported: `mlx>=0.27.0,<0.33.0` on darwin and `mlx[cuda13]>=0.30.3,<0.33.0` on

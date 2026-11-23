@@ -20,6 +20,7 @@ AGENTS.md
 *.pyc
 *.safetensors
 *.json
+!context7.json
 !src/mflux/models/common/training/_example/train.json
 !tests/training/config/train.json
 !docs/assets/**/*.json

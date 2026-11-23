@@ -1168,6 +1168,8 @@ AVAILABLE_MODELS = {
         aliases=[
             "bernini-r-1.3b-bf16",
             "bernini-r-1-3b-bf16",
+            # Family routing reads the `wan` prefix off an alias, as it does for `wan-bernini-r-1.3b`.
+            "wan-bernini-r-1.3b-bf16",
             "bernini-bf16",
         ],
         inference_aliases=["bernini-r-1.3b-diffusers-bf16"],

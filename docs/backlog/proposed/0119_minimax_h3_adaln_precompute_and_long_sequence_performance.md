@@ -20,6 +20,14 @@ hundred KB) and the projection weights dropped from memory. Separately, a 768p c
 rows and the fused attention kernel falls from ~48 TFLOPS at 15.5k rows to ~17 TFLOPS there,
 making a 768p step ~5 minutes (8-step Turbo ~40 minutes).
 
+## Update - 2026-11-22
+
+Since 0.39.0 the AdaLN projections are quantized with the other linears
+([item 0128](../completed/0128_minimax_h3_quantized_packages.md)): 12.9 GiB at 8-bit and 9.8 GiB in
+the 4-bit package, instead of the 24 GiB of BF16 described above. Precomputing the tables would free
+that smaller amount; it would matter most for the 4-bit package on 64 GB machines, where the load
+peak is the limit.
+
 ## Proposed direction
 
 1. Precompute the AdaLN tables per generation and release the projection weights (reload from the

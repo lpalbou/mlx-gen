@@ -470,7 +470,8 @@ class LoRALoader:
 
         output_dims, input_dims = base_linear.weight.shape
         if isinstance(base_linear, nn.QuantizedLinear):
-            input_dims *= 32 // base_linear.bits
+            # Packed columns hold `inputs * bits / 32`; `32 // bits` would be wrong for 3, 5 and 6 bits.
+            input_dims = input_dims * 32 // base_linear.bits
 
         rank = lora_A.shape[1] if len(lora_A.shape) == 2 else None
         expected_a0 = input_dims

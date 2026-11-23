@@ -14,6 +14,7 @@ from typing import Callable
 import mlx.core as mx
 from mlx import nn
 from mlx.utils import tree_flatten, tree_unflatten
+from safetensors import safe_open
 
 from mflux.models.common.weights.loading.weight_applier import WeightApplier
 from mflux.models.common.weights.loading.weight_definition import ComponentDefinition
@@ -38,9 +39,7 @@ class StreamingWeightLoader:
         component_path = Path(component_root) / component.hf_subdir
         prepared_shards = StreamingWeightLoader._prepared_shards(component_path)
         if prepared_shards:
-            return StreamingWeightLoader._load_prepared(
-                model, component, prepared_shards, quantize_arg, quantization_predicate
-            )
+            return StreamingWeightLoader._load_prepared(model, component, prepared_shards, quantize_arg)
 
         files = WeightLoader._resolve_weight_files(component_path, component.weight_files, "*.safetensors")
         bits = None
@@ -106,32 +105,27 @@ class StreamingWeightLoader:
         metadata = WeightLoader._load_safetensors_metadata(shards[0])
         return shards if "mflux_version" in metadata or "quantization_level" in metadata else []
 
+    # MLX's default affine group size, which every MLX-Gen package is written with.
+    PREPARED_GROUP_SIZE = 64
+
     @staticmethod
     def _load_prepared(
         model: nn.Module,
         component: ComponentDefinition,
         shards: list[Path],
         quantize_arg: int | None,
-        quantization_predicate: Callable | None,
     ) -> int | None:
-        """A prepared MLX-Gen package already holds the module's own tensors (quantized or not); stream its shards.
-
-        The whole-component path would hold a 75 GB MiniMax-H3 package in memory twice over while applying it.
-        """
-        metadata = WeightLoader._load_safetensors_metadata(shards[0])
-        stored = metadata.get("quantization_level")
-        stored_bits = None if stored in (None, "None") else int(stored)
-        if component.skip_quantization:
-            stored_bits = None
-        elif quantize_arg is not None and stored_bits is not None and int(quantize_arg) != stored_bits:
+        # A prepared package already holds the module's own tensors, so its shards stream one at a time (the
+        # whole-component path would hold a 64 GiB package twice). Each module is rebuilt at the width its
+        # tensors were stored with, read from the shard headers, so a mixed-width package loads as written
+        # whatever the current quantization policy says.
+        stored = WeightLoader._load_safetensors_metadata(shards[0]).get("quantization_level")
+        stored_bits = None if stored in (None, "", "None", "null") or component.skip_quantization else int(stored)
+        if quantize_arg is not None and stored_bits is not None and int(quantize_arg) != stored_bits:
             print(f"⚠️  {component.name}: stored q{stored_bits} package; ignoring --quantize {quantize_arg}.")
-        if stored_bits is not None:
-            predicate = quantization_predicate or (lambda path, module: hasattr(module, "to_quantized"))
-            nn.quantize(
-                model,
-                class_predicate=WeightApplier.quantization_predicate_for_bits(predicate, stored_bits),
-                bits=stored_bits,
-            )
+        shapes = StreamingWeightLoader._stored_shapes(shards)
+        StreamingWeightLoader._quantize_as_stored(model, component, shapes)
+        StreamingWeightLoader._require_stored_parameters(model, component, shapes)
         for shard in shards:
             weights = dict(mx.load(str(shard)).items())
             model.update(tree_unflatten(list(weights.items())), strict=False)
@@ -140,3 +134,64 @@ class StreamingWeightLoader:
             gc.collect()
             mx.clear_cache()
         return stored_bits
+
+    @staticmethod
+    def _stored_shapes(shards: list[Path]) -> dict[str, tuple[int, ...]]:
+        shapes: dict[str, tuple[int, ...]] = {}
+        for shard in shards:
+            with safe_open(str(shard), framework="numpy") as handle:
+                for key in handle.keys():
+                    shapes[key] = tuple(handle.get_slice(key).get_shape())
+        return shapes
+
+    @staticmethod
+    def _quantize_as_stored(
+        model: nn.Module, component: ComponentDefinition, shapes: dict[str, tuple[int, ...]]
+    ) -> None:
+        group_size = StreamingWeightLoader.PREPARED_GROUP_SIZE
+        stored_paths = {key[: -len(".scales")] for key in shapes if key.endswith(".scales")}
+        matched: set[str] = set()
+
+        def as_stored(path: str, module):
+            if path not in stored_paths or not hasattr(module, "to_quantized"):
+                return False
+            packed, scales = shapes.get(f"{path}.weight"), shapes[f"{path}.scales"]
+            inputs = module.weight.shape[-1]
+            # Packed uint32 columns hold `inputs * bits / 32`; the scales hold one column per group of inputs.
+            if packed is None or scales[-1] * group_size != inputs or (packed[-1] * 32) % inputs:
+                raise ValueError(
+                    f"{component.name}: the stored tensors of {path!r} (weight {packed}, scales {scales}) do not fit "
+                    f"its {inputs} inputs at a group size of {group_size}. The package was written for a different "
+                    "model layout."
+                )
+            matched.add(path)
+            return {"bits": packed[-1] * 32 // inputs, "group_size": group_size}
+
+        nn.quantize(model, class_predicate=as_stored)
+        unknown = sorted(stored_paths - matched)
+        if unknown:
+            raise ValueError(
+                f"{component.name}: the package stores quantized tensors for {len(unknown)} modules this model "
+                f"does not have (first: {unknown[0]!r}). The package was written for a different model layout."
+            )
+
+    @staticmethod
+    def _require_stored_parameters(
+        model: nn.Module, component: ComponentDefinition, shapes: dict[str, tuple[int, ...]]
+    ) -> None:
+        # `update(strict=False)` would leave a parameter the package lacks at its random initial value, and
+        # take one of another shape as it comes.
+        expected = {key: tuple(value.shape) for key, value in tree_flatten(model.parameters())}
+        missing = sorted(key for key in expected if key not in shapes)
+        if missing:
+            raise ValueError(
+                f"{component.name}: the package is missing {len(missing)} tensors this model needs "
+                f"(first: {missing[0]!r}). It is incomplete or was written for a different model layout."
+            )
+        mismatched = sorted(key for key, shape in expected.items() if shapes[key] != shape)
+        if mismatched:
+            key = mismatched[0]
+            raise ValueError(
+                f"{component.name}: {key!r} is stored as {shapes[key]} and this model expects {expected[key]}. "
+                "The package was written for a different model layout."
+            )

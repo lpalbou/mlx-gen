@@ -1,0 +1,33 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "MLX-Gen",
+  "description": "Local image and video generation runtime for Apple Silicon and MLX: one mlxgen command and Python API for text-to-image, image editing, text-to-video and image-to-video (Qwen Image, FLUX.2 Klein, Z-Image, ERNIE Image, FIBO, Wan2.2, MiniMax-H3 with audio, Bernini), SeedVR2 and SwiftVR upscaling, quantized model packages, LoRA, capabilities and progress callbacks.",
+  "folders": ["docs"],
+  "excludeFolders": [
+    "docs/backlog",
+    "docs/adr",
+    "docs/assets",
+    "docs-site",
+    "site",
+    "src",
+    "tests",
+    "tools",
+    "untracked",
+    "validation_outputs",
+    "models",
+    "logs",
+    "out",
+    "dist",
+    ".github"
+  ],
+  "excludeFiles": [
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "SECURITY.md",
+    "ACKNOWLEDGEMENTS.md",
+    "CONTRIBUTING.md",
+    "AGENTS.md",
+    "release.md",
+    "mkdocs.yml"
+  ]
+}

@@ -22,12 +22,12 @@
 - `docs/reframe-outpaint.md`: reframe/outpaint workflows, per-side padding and how to extend one side, one axis, or all four in a single call, the `--outpaint-fill` conditioning-canvas modes and how `auto` resolves them, padding guidance including the automatic two-pass split of deep two-axis requests (`--outpaint-passes`), the measured corner-depth sweep and its remedies, exact commands, strict FLUX.2 Klein outpaint on distilled 4B/9B (guidance 1.0) and base 4B/9B (guidance 4.0), the cross-route outpaint matrix running every supported route on one source with per-route timings and source drift, the 2026-09-02 axis-coverage sheets across three source aspect ratios and eight padding configurations, and the three related validation profile ids.
 - `docs/lora.md`: route-specific LoRA capability fields, explicit adapter download, strict scale matching, exact adapter/base-model compatibility, source/no-LoRA/with-LoRA validation, exact public proof rows for current Qwen, Z-Image, FLUX.2, ERNIE, and Wan routes, including base Qwen latent, the exact `AbstractFramework/z-image-turbo-8bit` latent children's-drawing row, Qwen 2511 multi-reference/reframe/outpaint, FLUX.2 Klein 9B multi-reference, FLUX.2 Klein base 4B outpaint, direct `lightx2v/Wan2.2-Lightning` download, MiniMax-H3 adapters in both the diffusers and the original-checkpoint key layouts stacked on the Turbo adapter, and explicit guidance that the validated Lightning target is the MLX-Gen q8 package rather than an arbitrary external FP8 checkpoint.
 - `docs/wan-video.md`: practical Wan2.2 T2V/I2V guidance, plain and masked prompt-guided A14B video-to-video with the exact reproducible proof commands and included artifacts, output canvas and source mapping (`--canvas-policy`, `--resize-mode`), repeat-run and application performance options (prompt-embed disk cache, resident text encoder, health-check opt-out, opt-in compiled transformer, A14B inactive-expert release), broader A14B target size families, and `101`-frame, 20 fps M5 Max comparison clips for A14B and TI2V-5B.
-- `docs/minimax-h3.md`: MiniMax-H3 text-to-video and first-frame image-to-video (`--image-path`) with a synchronized stereo AAC soundtrack in one MP4: `minimax-h3`, `minimax-h3-turbo`, `minimax-h3-turbo-544p`, lightx2v Turbo adapters, the structured prompt sections, frame and canvas rules, `--quantize 8` load-time quantization, measured M5 Max runtime and memory, the `audio_*` metadata contract, Python usage, verification summary, and current limits, and community LoRA adapters in the original-checkpoint key layout stacked on the Turbo adapter with `--lora-paths`, with the included with/without evidence clips.
+- `docs/minimax-h3.md`: MiniMax-H3 text-to-video and first-frame image-to-video (`--image-path`) with a synchronized stereo AAC soundtrack in one MP4: `minimax-h3`, `minimax-h3-turbo`, `minimax-h3-turbo-544p`, lightx2v Turbo adapters, the structured prompt sections, frame and canvas rules, the published `AbstractFramework/minimax-h3-8bit` and `AbstractFramework/minimax-h3-4bit` packages, load-time `--quantize 8` / `--quantize 4`, measured M5 Max runtime and memory by machine size, the `audio_*` metadata contract, Python usage, verification summary, and current limits, and community LoRA adapters in the original-checkpoint key layout stacked on the Turbo adapter with `--lora-paths`, with the included with/without evidence clips.
 - `docs/bernini.md`: experimental Bernini-R 1.3B reference-to-video and video-edit routes, pinned BF16 runtime setup and download sizes, the committed official public parity bundle with full prompts and contact sheets per upstream example row, and task-specific recipes for many-reference binding and structure-changing edits.
 - `docs/recommendations.md`: conservative model recommendations for `18 GB`, `24 GB`, `32 GB`, `64 GB`, and `128+ GB` Macs based on published MLX-Gen memory measurements.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
 - `docs/model-management.md`: explicit `download` and `prepare`, local packages, factored Bernini setup and disk preflight, matching Hugging Face handle resolution, and `DownloadRequiredError`.
-- `docs/quantization.md`: published package matrix, model-specific q8/q4/BF16 policies, Wan storage/runtime behavior, Bernini's BF16-only gate, and Bonsai ternary support.
+- `docs/quantization.md`: published package matrix, model-specific q8/q4/BF16 policies, the measured MiniMax-H3 policy (8-bit; mixed 4-bit with a 6-bit transformer; memory by machine size), Wan storage/runtime behavior, Bernini's BF16-only gate, and Bonsai ternary support.
 - `docs/huggingface-publishing.md`: generated model cards and AbstractFramework Hugging Face upload guidance.
 - `docs/python-integration.md`: embedding MLX-Gen, route-resolved runtime loading, `model_kwargs` constructor passthrough (resident text encoder, prompt-cache opt-out), runtime memory defaults for hosts (`MFLUX_MLX_CACHE_LIMIT_GB`, `-1` unlimited opt-out, host-managed `mx.set_cache_limit` detection, `MFLUX_NO_WEIGHT_PREFETCH`), Wan `last_image_path`, `context_image_paths`/`context_noise`, and `denoising_step_list` generation kwargs, `save_kwargs` including `validate_health=False`, serial multi-output reuse for unified `mlxgen generate` families, overwrite/collision behavior, the outpaint/reframe pipeline (`run_outpaint`, `prepare_outpaint`, `prepare_reframe`, and the `post_process` before-save hook on `generate_outputs`), SeedVR2's direct-model boundary, progress callbacks, AbstractVision/AbstractCore integration, and threading behavior.
 - `docs/faq.md`: common conceptual questions, I2I mode selection and output sizing, SeedVR2 image/video sizing and default audio-preservation behavior, Qwen edit variants, negative prompts, reframe/outpaint, Wan resolutions, long image-to-video shot guidance (81-frame budget and continuation routes), prompting guidance, usage limits, and why MLX-Gen q8 Lightning guidance should not be generalized to arbitrary FP8 checkpoints.
@@ -38,6 +38,7 @@
 - `SECURITY.md`: vulnerability reporting and safety guidance.
 - `CODE_OF_CONDUCT.md`: participation expectations.
 - `CHANGELOG.md`: user-visible release history.
+- `skills/mlx-gen/SKILL.md`: agent skill that teaches AI agents to use `mlxgen` and the Python runtime.
 
 ---
 
@@ -534,7 +535,7 @@ and text/video-to-video before the weight load. `--context-noise <0-1000>` (Pyth
 head in latent space, deterministic per seed. Both are recorded in metadata
 (`context_image_paths`, `context_noise`), replayed by `--config-from-metadata`, and advertised
 as the additive `supports_context_frames` field on the `wan.first-frame` capability row
-(introduced in capabilities schema 6; current payload schema 11). EXPERIMENTAL zero-shot behavior with a measured probe
+(introduced in capabilities schema 6; current payload schema 16). EXPERIMENTAL zero-shot behavior with a measured probe
 (backlog 0102): the K=5 head carried seam motion speed (magnitude ratio 0.90 vs the
 single-frame baseline's 1.90 double-speed restart) at the cost of a mild ~2-frame
 flare/exposure step at the conditioned-to-free boundary; hosts assembling films should trim
@@ -553,7 +554,7 @@ aborts; the pack is likewise rejected on non-SVI runs). Conflicts with `--image-
 load; continuations >65 frames warn. Metadata records `svi_*` truth including
 `svi_assembly_trim_frames` (drop that many leading frames of each continuation at assembly:
 `1 + 4 x count`); hosts gate on the additive `supports_svi` capability field (capabilities
-schema 7; current payload schema 11). Use a unique seed per clip; author-documented Lightning coexistence sets
+schema 7; current payload schema 16). Use a unique seed per clip; author-documented Lightning coexistence sets
 lightx2v HIGH scale 0.5-0.6, LOW 1.0.
 
 `--denoising-step-list 1000 750 500 250` (Python: `denoising_step_list=[...]`) runs an exact
@@ -663,16 +664,30 @@ Frames round up to `17n + 5` (fourteen counts, 124 to 345, 5.17 to 14.375 s) and
 `audio_channels`, `audio_sample_rate`, `audio_duration_seconds`, `audio_muxed`, `audio_codec`,
 `audio_mux_mode` (a sidecar `<output>.wav` and `audio_sidecar_path` when muxing fails).
 
-Requirements and cost: about 140 GB of disk for the snapshot plus 1.4 GB per adapter; run with
-`--quantize 8` (shard-by-shard load-time quantization) on a 128 GB Mac, or prepare a local 75 GB
-mixed q8/BF16 package once with `mlxgen prepare --model minimax-h3 --quantize 8 --path
-models/minimax-h3-8bit` and load it with `--model <path>` plus `--base-model minimax-h3-turbo-544p`
-(or `minimax-h3-turbo`) for a Turbo schedule; prepared packages stream shard by shard too. The MLX
-free-buffer cache follows the process default (up to 8 GiB), adjustable with `--mlx-cache-limit-gb`.
-Measured on an Apple M5 Max with 124 frames: `960x544` Turbo 8 steps at ~55 s per step (about 8
-minutes of denoise and decode, 80 GB MLX peak, 88 GB process footprint); `1344x768` Turbo 8 steps at
-about 5 minutes per step (93 GB footprint). The first load reads 133 GB of shards (a few minutes); later loads from the page cache take
-seconds.
+Requirements and cost: two published, gated packages hold the base weights already quantized, with
+the source tokenizer, `LICENSE` and `NOTICE` inside. `AbstractFramework/minimax-h3-8bit` (64.3 GiB)
+is 8-bit for the transformer and the conditioner. `AbstractFramework/minimax-h3-4bit` (44.9 GiB) is
+mixed-width: a 4-bit Qwen3-VL conditioner and a 6-bit transformer, because no part of the
+transformer tolerates 4-bit better than another (a 4-bit/8-bit mix of the same size has about twice
+the error of uniform 6-bit). Both leave the conditioner's vision tower, the transformer's fp32 heads
+and the two VAEs as released. Download with
+`mlxgen download --model AbstractFramework/minimax-h3-8bit --base-model minimax-h3-turbo-544p` and
+run with `--model AbstractFramework/minimax-h3-8bit --base-model minimax-h3-turbo-544p` (or
+`minimax-h3-turbo`; omit `--base-model` for the base 50-step schedule); never pass `--quantize` to a
+package. Both need mlx-gen 0.39.0 or later and a Hugging Face sign-in with the license accepted on
+the model page. The source snapshot (about 140 GB of disk plus 1.4 GB per adapter) runs with
+load-time `--quantize 8` or `--quantize 4`, the only two widths this model accepts, and
+`mlxgen prepare --model minimax-h3 --quantize <8|4> --path <folder>` writes the same packages
+locally. Measured on an Apple M5 Max at `960x544`, 124 frames, 8 Turbo steps, as whole-process
+footprint: the 8-bit package peaks at 77.0 GiB (65.0 GiB with `--low-ram`) and the 4-bit package at
+57.6 GiB (45.6 GiB with `--low-ram`); the 8-bit package at `1344x768` peaks at 82.0 GiB. The 8-bit package runs on 96 GB and the 4-bit package on 64 GB
+with `--low-ram`; both were tested on the 128 GB machine with the difference in RAM locked away.
+The MLX free-buffer cache follows the process default (up to 8 GiB), adjustable with
+`--mlx-cache-limit-gb`. A clip takes 11 to 17 minutes at `960x544` and about 34 minutes at
+`1344x768` on an otherwise idle machine, at either width. The first source load reads 134 GB of
+shards (a few minutes); later loads from the page cache take seconds. The weights and packages are
+under the MiniMax H3 Community License, whose grant excludes the European Union, the United
+Kingdom, the Republic of Korea and the United States of America.
 
 Driving it from an application: `mlxgen capabilities` publishes everything needed to build controls
 without hardcoding the model — `generates_audio`, `audio_channels`, `audio_sample_rate`, the
@@ -688,15 +703,15 @@ that route uses, so a host emits the right one without a per-family table; both 
 payload's `universal_options` names the options every generate route in this build accepts, so an
 application reads the build instead of gating on the release number.
 It also publishes the precision and memory contract in bytes: `weight_precision` bf16,
-`unquantized_weights_bytes` (125 GiB, which is 97% of a 128 GiB Mac, so `--quantize 8` is required
-rather than optional there and the runtime refuses an impossible load with an explanatory error),
-`recommended_quantize` 8, `validated_quantization_bits` [8], and `measured_runs`: measured runs with
-their outcome, the highest process footprint observed, and the conditions that make each reproducible.
+`unquantized_weights_bytes` (115 GiB, more than a 128 GiB Mac can run, so a width is required and the
+runtime refuses an impossible load with an explanatory error), `recommended_quantize` 8,
+`validated_quantization_bits` [4, 8], and `measured_runs`: measured runs of both widths, with and
+without `--low-ram`, each with its process footprint and the conditions that make it reproducible.
 Peak memory follows the packed sequence length rather than the canvas and frame count separately, and
-`peak_bytes_fixed` / `peak_bytes_per_packed_row` publish the measured line through it;
-`max_validated_frames` says how far the evidence goes, where `max_frames` is the decode grid. Runs
-that the OS killed are published too, and before a long run the runtime estimates the peak, refuses
-what cannot fit and warns when a request is close enough that other resident processes decide it.
+`peak_bytes_fixed` / `peak_bytes_per_packed_row` publish the measured line through it for the 8-bit
+policy; `max_validated_frames` says how far the evidence goes, where `max_frames` is the decode grid.
+Before a long run the runtime estimates the peak, refuses what cannot fit and warns when a request
+is close enough that other resident processes decide it.
 `supports_guidance` is published separately from `supports_negative_prompt`, since the two diverge in
 both directions across the catalog.
 Progress phases are `start`, `denoise`, `decode`, `generated`, then the CLI's `save` and `complete`,
