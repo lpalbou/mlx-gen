@@ -57,6 +57,7 @@ class Qwen3VLModel(nn.Module):
         image_patches: list[np.ndarray] | None = None,
         image_grids: list[tuple[int, int, int]] | None = None,
         image_token_id: int = IMAGE_TOKEN_ID,
+        release_layers: bool = False,
     ) -> mx.array:
         """`(1, L, hidden)` hidden state after the last loaded decoder layer, with image tokens filled in."""
         ids = mx.array(np.asarray(token_ids, dtype=np.int32))[None]
@@ -86,4 +87,5 @@ class Qwen3VLModel(nn.Module):
             inputs_embeds=embeds,
             deepstack_visual_embeds=deepstack,
             visual_positions=visual_positions,
+            release_layers=release_layers,
         )

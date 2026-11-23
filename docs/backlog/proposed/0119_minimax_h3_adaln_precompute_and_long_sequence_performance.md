@@ -30,6 +30,12 @@ peak is the limit.
 
 ## Proposed direction
 
+Direction 1 shipped on 2026-11-23 as item
+[0130](../completed/0130_minimax_h3_staged_loading_and_reindexed_8bit.md): the tables are computed
+per schedule from disk and the projections are never held; the 16-bit transformer fits (54.4 GiB
+peak at `960x544`), and at that canvas 16-bit and 8-bit steps take the same time. Directions 2 and
+3 remain.
+
 1. Precompute the AdaLN tables per generation and release the projection weights (reload from the
    shards for a schedule change); measure the memory win and whether a bf16 transformer then fits
    with the q8 conditioner on 128 GB (bf16 GEMMs were ~1.4x faster than q8 at this size).

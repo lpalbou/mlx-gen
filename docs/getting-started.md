@@ -589,30 +589,37 @@ Spatial-scale sanity outputs at 1280x704, 17 frames, and 20 steps:
 
 ### Generate A Video With Sound (MiniMax-H3)
 
-MiniMax-H3 generates the clip and a synchronized stereo soundtrack together. The published
-packages are the practical way to run it: `AbstractFramework/minimax-h3-8bit` (64.3 GiB, for 96 GB
-Macs and up) and the mixed-width `AbstractFramework/minimax-h3-4bit` (44.9 GiB, for 64 GB Macs with
-`--low-ram`); see [MiniMax-H3 video with audio](minimax-h3.md#published-packages) for their
-commands. The example below runs the same weights from the source snapshot, which needs about
-140 GB of disk and quantizes at load time.
+MiniMax-H3 generates the clip and a synchronized stereo soundtrack together. Three published
+packages hold its weights: `AbstractFramework/minimax-h3-8bit` (64.3 GiB on disk, the recommended
+one), the released 16-bit weights as `AbstractFramework/minimax-h3-bf16` (115 GiB) and the
+mixed-width `AbstractFramework/minimax-h3-4bit` (44.9 GiB). The repositories are gated: sign in
+with `hf auth login` and accept the license terms on the model page first.
 
 ```sh
-mlxgen download --model minimax-h3-turbo-544p
+mlxgen download --model AbstractFramework/minimax-h3-8bit --base-model minimax-h3-turbo-544p
 
 mlxgen generate \
-  --model minimax-h3-turbo-544p \
+  --model AbstractFramework/minimax-h3-8bit \
+  --base-model minimax-h3-turbo-544p \
   --prompt "A red fox trots through fresh snow in a birch forest at dawn; halfway through it stops and looks at the camera." \
   --soundscape "Soft crunch of paws in dry snow, faint wind, two distant crow caws." \
   --music "Sparse piano, slow tempo." \
   --seed 42 \
-  --quantize 8 \
   --output fox.mp4 \
   --metadata
 ```
 
+This `960x544`, 124-frame clip peaks at 37.0 GiB of memory and completes on a 48 GB Mac. Add
+`--low-ram` on a 36 GB Mac (26.3 GiB peak), or `--stream-blocks --low-ram` from 24 GB (11.1 GiB
+peak, with each transformer block read from disk at every step). The clip is the same file in
+every mode. See [Memory By Machine](minimax-h3.md#memory-by-machine) for the 16-bit weights and the
+other machine sizes.
+
 The MP4 carries an AAC stereo track; `--no-audio` writes a silent clip, and `--image-path` starts the
 clip from a keyframe. See
-[MiniMax-H3 video with audio](minimax-h3.md) for prompting, sizing, and runtime cost.
+[MiniMax-H3 video with audio](minimax-h3.md) for prompting, sizing, and runtime cost, and
+[MiniMax-H3 memory, speed and quantization](minimax-h3-memory.md) for how a run keeps most of the
+weights out of memory.
 
 ## Next Steps
 

@@ -220,7 +220,7 @@ def test_capability_rows_publish_the_audio_duration_and_default_contract():
     """A host builds H3 controls from the row alone, without importing ModelConfig or hardcoding the family."""
     from mflux.task_inference import CAPABILITIES_SCHEMA_VERSION, get_model_capabilities
 
-    assert CAPABILITIES_SCHEMA_VERSION == 16
+    assert CAPABILITIES_SCHEMA_VERSION == 17
     payload = get_model_capabilities(model="minimax-h3-turbo-544p").to_dict()
     rows = {row["id"]: row for row in payload["capabilities"]}
     assert set(rows) == {"minimax-h3.text-video", "minimax-h3.first-frame"}
@@ -230,7 +230,7 @@ def test_capability_rows_publish_the_audio_duration_and_default_contract():
         assert row["generates_audio"] is True
         assert row["audio_channels"] == 2 and row["audio_sample_rate"] == 32000
         assert row["supports_audio_shift"] is True and row["supports_flow_shift"] is True
-        assert row["supports_text_encoder_release"] is True
+        assert row["supports_text_encoder_release"] is False and row["supports_block_streaming"] is True
         # The duration contract: the grid, the real bounds, and the rate the route writes.
         assert (row["min_frames"], row["max_frames"]) == (124, 345)
         assert (row["frame_multiple"], row["frame_remainder"]) == (17, 5)
@@ -286,21 +286,23 @@ def test_rows_publish_the_precision_and_memory_contract():
     """A host decides whether a run fits from the row, in bytes, without parsing prose."""
     from mflux.task_inference import CAPABILITIES_SCHEMA_VERSION, get_model_capabilities
 
-    assert CAPABILITIES_SCHEMA_VERSION == 16
+    assert CAPABILITIES_SCHEMA_VERSION == 17
     for alias in ("minimax-h3-turbo-544p", "minimax-h3-turbo"):
         for row in get_model_capabilities(model=alias).to_dict()["capabilities"]:
             assert row["weight_precision"] == "bf16"
             assert row["recommended_quantize"] == 8
             assert row["validated_quantization_bits"] == [4, 8]
-            # Unquantized the weights are 115 GiB resident, more than a 128 GiB machine can run, which is
-            # why a width is part of running the model. Published in bytes so a host never has to guess
-            # GB versus GiB.
-            assert 0.85 * 128 < row["unquantized_weights_bytes"] / 1024**3 < 128
+            # Unquantized, what stands in memory is the transformer without its AdaLN projections and the
+            # VAEs: 43 GiB. Published in bytes so a host never has to guess GB versus GiB.
+            assert 40 < row["unquantized_weights_bytes"] / 1024**3 < 46
+            # The conditioner is read for the length of an encode, so there is nothing to release; the
+            # transformer blocks can be read from disk at every step.
+            assert row["supports_text_encoder_release"] is False and row["supports_block_streaming"] is True
             runs = row["measured_runs"]
-            assert {run["quantize"] for run in runs} == {4, 8}
+            assert {run["quantize"] for run in runs} == {None, 4, 8}
             for run in runs:
                 assert run["outcome"] == "completed" and run["frames"] == 124 and run["steps"] == 8
-                assert 40 * 1024**3 < run["footprint_bytes"] < 128 * 1024**3
+                assert 10 * 1024**3 < run["footprint_bytes"] < 60 * 1024**3
 
 
 @pytest.mark.fast
@@ -557,7 +559,7 @@ def test_request_preflight_warns_near_the_limit_and_refuses_the_impossible(capsy
 
     model._preflight_request(plan(960, 544, 345))
     warning = capsys.readouterr().err
-    assert "345 frames" in warning and "killed" in warning and "--release-text-encoder" in warning
+    assert "345 frames" in warning and "killed" in warning and "--stream-blocks" in warning
 
     # A request larger than the whole machine is refused rather than warned about.
     monkeypatch.setattr(RuntimeMemory, "total_physical_memory_bytes", staticmethod(lambda: 64 * gib))
@@ -581,25 +583,38 @@ def test_measured_runs_publish_their_conditions_and_order_as_the_policy_predicts
     for row in get_model_capabilities(model="minimax-h3-turbo-544p").to_dict()["capabilities"]:
         runs = row["measured_runs"]
         reference = {
-            (run["quantize"], run["release_text_encoder"]): run
+            (run["quantize"], run["low_ram"], run["stream_blocks"]): run
             for run in runs
             if (run["width"], run["height"]) == (960, 544)
         }
-        assert set(reference) == {(8, False), (8, True), (4, False), (4, True)}
-        for (_, low_ram), run in reference.items():
+        resident = {(bits, low_ram, False) for bits in (None, 8, 4) for low_ram in (False, True)}
+        assert set(reference) == resident | {(None, True, True), (8, True, True)}
+        for (_, low_ram, _), run in reference.items():
             assert run["machine_total_ram_bytes"] == 128 * 1024**3
             # `--low-ram` tightens the cache to 1 GB; the default is 8 GiB.
             assert run["cache_limit_bytes"] == (1_000_000_000 if low_ram else 8 * 1024**3)
             assert run["mlx_peak_bytes"] < run["footprint_bytes"]
-        for bits in (4, 8):
-            assert reference[(bits, True)]["footprint_bytes"] < reference[(bits, False)]["footprint_bytes"]
-        assert reference[(4, False)]["footprint_bytes"] < reference[(8, False)]["footprint_bytes"]
+            # The name the field had before schema 17, for hosts written against it.
+            assert run["release_text_encoder"] == low_ram
+        for bits in (None, 8, 4):
+            assert (
+                reference[(bits, True, False)]["footprint_bytes"] < reference[(bits, False, False)]["footprint_bytes"]
+            )
+        assert (
+            reference[(4, False, False)]["footprint_bytes"]
+            < reference[(8, False, False)]["footprint_bytes"]
+            < reference[(None, False, False)]["footprint_bytes"]
+        )
+        # With the blocks read from disk the width of the weights no longer decides the peak.
+        streamed = [reference[(bits, True, True)]["footprint_bytes"] for bits in (None, 8)]
+        assert max(streamed) < 0.5 * reference[(4, True, False)]["footprint_bytes"] * 1.2
+        assert abs(streamed[0] - streamed[1]) < 1024**3
         # The grid bound and the evidence bound are different questions.
         assert row["max_frames"] == 345 and row["max_validated_frames"] == 124
         # The published line passes through the default 8-bit run.
         rows = packed_sequence_length(960, 544, 124)
         line = row["peak_bytes_fixed"] + row["peak_bytes_per_packed_row"] * rows
-        assert abs(line - reference[(8, False)]["footprint_bytes"]) < 0.01 * line
+        assert abs(line - reference[(8, False, False)]["footprint_bytes"]) < 0.01 * line
 
 
 def _write_h3_package_layout(root: Path) -> None:
@@ -638,6 +653,9 @@ class _PackagedModel:
     from mflux.models.minimax_h3.variants.minimax_h3 import MiniMaxH3 as _H3
 
     save_model = _H3.save_model
+    _load_component = _H3._load_component
+    transformer = None
+    release_transformer = _H3.release_transformer
     _require_packageable_source = _H3._require_packageable_source
     _copy_source_files = _H3._copy_source_files
     PACKAGED_SOURCE_FILES = _H3.PACKAGED_SOURCE_FILES
@@ -663,14 +681,14 @@ def _stub_model_saver(monkeypatch) -> list[str]:
 
     saved: list[str] = []
 
-    def save_model(model, bits, base_path, weight_definition):
+    def save_components(model, bits, base_path, weight_definition, load_component):
         # What the shared saver leaves behind: a re-serialized tokenizer without the vocabulary files.
         saved.append(base_path)
         (Path(base_path) / "tokenizer").mkdir(parents=True)
         (Path(base_path) / "tokenizer" / "tokenizer.json").write_text("re-saved")
         (Path(base_path) / "tokenizer" / "chat_template.jinja").write_text("re-saved")
 
-    monkeypatch.setattr(ModelSaver, "save_model", staticmethod(save_model))
+    monkeypatch.setattr(ModelSaver, "save_components", staticmethod(save_components))
     return saved
 
 
@@ -796,7 +814,7 @@ def test_init_checks_the_width_and_the_tokenizer_before_reading_any_weights(tmp_
     monkeypatch.setattr(PathResolution, "resolve", staticmethod(lambda path, patterns: tmp_path))
     monkeypatch.setattr(TokenizerLoader, "load_all", staticmethod(lambda definitions, model_path: split))
     monkeypatch.setattr(MiniMaxH3Initializer, "_preflight_memory", staticmethod(unreachable))
-    monkeypatch.setattr(MiniMaxH3Initializer, "_load_weights", staticmethod(unreachable))
+    monkeypatch.setattr(MiniMaxH3Initializer, "load_transformer", staticmethod(unreachable))
 
     with pytest.raises(ValueError, match="splits </d>"):
         MiniMaxH3Initializer.init(SimpleNamespace(), ModelConfig.minimax_h3(), quantize=8)
@@ -806,10 +824,12 @@ def test_init_checks_the_width_and_the_tokenizer_before_reading_any_weights(tmp_
 
 def _write_component(path: Path, megabytes: int, metadata: dict | None = None) -> int:
     path.mkdir(parents=True)
-    mx.save_safetensors(
-        str(path / "0.safetensors"), {"w": mx.zeros((megabytes, 1024, 512), dtype=mx.bfloat16)}, metadata
-    )
-    return (path / "0.safetensors").stat().st_size
+    tensors = {"w": mx.zeros((megabytes, 1024, 512), dtype=mx.bfloat16)}
+    if path.name == "transformer":
+        # As large again as the rest: read once per schedule for its tables, never held.
+        tensors["transformer_blocks.0.adaln_proj.linear.weight"] = mx.zeros((megabytes, 1024, 512), dtype=mx.bfloat16)
+    mx.save_safetensors(str(path / "0.safetensors"), tensors, metadata)
+    return megabytes * 1024 * 512 * 2
 
 
 @pytest.mark.fast
@@ -819,16 +839,19 @@ def test_weight_estimate_follows_the_policy_and_leaves_packages_as_stored(tmp_pa
     source.update({name: _write_component(tmp_path / "source" / name, 1) for name in ("vae", "audio_vae")})
     estimate = MiniMaxH3Initializer._estimate_resident_weight_bytes
 
-    assert estimate(tmp_path / "source", definition, None) == sum(source.values())
-    unquantized = source["vae"] + source["audio_vae"]
-    # 8-bit everywhere; at 4 the conditioner is 4-bit and the transformer 6-bit. Half a bit of scales and biases.
-    assert estimate(tmp_path / "source", definition, 8) == unquantized + 2 * int(source["transformer"] * 8.5 / 16)
-    assert estimate(tmp_path / "source", definition, 4) == unquantized + int(source["text_encoder"] * 4.5 / 16) + int(
-        source["transformer"] * 6.5 / 16
-    )
+    # What stays in memory: the transformer without its AdaLN projections, and the two VAEs. The conditioner is
+    # read for the length of an encode.
+    decoders = source["vae"] + source["audio_vae"]
+    assert estimate(tmp_path / "source", definition, None) == decoders + source["transformer"]
+    # An adapter that trains the projections keeps them resident.
+    assert estimate(tmp_path / "source", definition, None, True) == decoders + 2 * source["transformer"]
+    # 8-bit at 8; at 4 the transformer is 6-bit. Half a bit of scales and biases.
+    assert estimate(tmp_path / "source", definition, 8) == decoders + int(source["transformer"] * 8.5 / 16)
+    assert estimate(tmp_path / "source", definition, 4) == decoders + int(source["transformer"] * 6.5 / 16)
 
     # A prepared package is already at its stored widths: --quantize must not shrink the estimate again.
     stored = {"quantization_level": "8", "mflux_version": "test"}
     package = {name: _write_component(tmp_path / "package" / name, 1, stored) for name in source}
-    assert estimate(tmp_path / "package", definition, 8) == sum(package.values())
-    assert estimate(tmp_path / "package", definition, None) == sum(package.values())
+    resident = package["transformer"] + package["vae"] + package["audio_vae"]
+    assert estimate(tmp_path / "package", definition, 8) == resident
+    assert estimate(tmp_path / "package", definition, None) == resident

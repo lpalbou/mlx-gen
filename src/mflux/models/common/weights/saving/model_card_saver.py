@@ -17,8 +17,10 @@ class ModelCardSaver:
     MINIMAX_H3_LICENSE_DISPLAY_NAME = "MiniMax H3 Community License Agreement"
     MINIMAX_H3_LICENSE_LINK = "https://huggingface.co/MiniMaxAI/MiniMax-H3/blob/main/LICENSE"
     MINIMAX_H3_DOC_URL = "https://github.com/lpalbou/mlx-gen/blob/main/docs/minimax-h3.md"
+    MINIMAX_H3_MEMORY_DOC_URL = "https://github.com/lpalbou/mlx-gen/blob/main/docs/minimax-h3-memory.md"
     # The first release that both loads the published packages and saves their output on a fresh install.
-    MINIMAX_H3_MIN_VERSION = "0.39.1"
+    # The release that reads the conditioner for the length of an encode and can hold the 16-bit weights.
+    MINIMAX_H3_MIN_VERSION = "0.40.0"
     # Section III.4 of the license: the text every distribution carries in a `NOTICE` file.
     MINIMAX_H3_NOTICE = (
         "MiniMax H3 is licensed under the MiniMax H3 Community License Agreement, "
@@ -67,7 +69,7 @@ class ModelCardSaver:
         repo_id = f"{ModelCardSaver.DEFAULT_NAMESPACE}/{repo_name}"
         pipeline_tag = ModelCardSaver._pipeline_tag(terms)
         tags = ModelCardSaver._tags(terms, bits, pipeline_tag)
-        frontmatter = ModelCardSaver._frontmatter(model_name, terms, pipeline_tag, tags)
+        frontmatter = ModelCardSaver._frontmatter(model_name, terms, pipeline_tag, tags, bits)
 
         sections = [
             frontmatter,
@@ -114,11 +116,11 @@ class ModelCardSaver:
         return "\n".join(sections)
 
     @staticmethod
-    def _frontmatter(model_name: str, terms: str, pipeline_tag: str, tags: list[str]) -> str:
+    def _frontmatter(model_name: str, terms: str, pipeline_tag: str, tags: list[str], bits: int | None = None) -> str:
         lines = [
             "---",
         ]
-        lines.extend(ModelCardSaver._license_frontmatter(model_name, terms))
+        lines.extend(ModelCardSaver._license_frontmatter(model_name, terms, bits))
         lines.extend(
             [
                 f"base_model: {model_name}",
@@ -132,14 +134,15 @@ class ModelCardSaver:
         return "\n".join(lines)
 
     @staticmethod
-    def _license_frontmatter(model_name: str, terms: str) -> list[str]:
+    def _license_frontmatter(model_name: str, terms: str, bits: int | None = None) -> list[str]:
         if ModelCardSaver._is_minimax_h3(model_name, terms):
+            derivative = "an unquantized derivative" if bits is None else "a quantized derivative"
             return [
                 "license: other",
                 f"license_name: {ModelCardSaver.MINIMAX_H3_LICENSE_NAME}",
                 f"license_link: {ModelCardSaver.MINIMAX_H3_LICENSE_LINK}",
                 (
-                    'extra_gated_prompt: "This repository is a quantized derivative of MiniMaxAI/MiniMax-H3, '
+                    f'extra_gated_prompt: "This repository is {derivative} of MiniMaxAI/MiniMax-H3, '
                     f"distributed under the {ModelCardSaver.MINIMAX_H3_LICENSE_DISPLAY_NAME}. That license applies "
                     f"only within its Applicable Territory, which excludes {ModelCardSaver.MINIMAX_H3_EXCLUDED_TERRITORIES}, "
                     'and it includes use restrictions and an Acceptable Use Policy."'
@@ -287,7 +290,13 @@ class ModelCardSaver:
         from mflux.models.minimax_h3.weights.h3_weight_definition import MiniMaxH3WeightDefinition
 
         if bits is None:
-            return "This checkpoint stores the MiniMax-H3 weights in the MLX-Gen layout without quantization."
+            return (
+                "This checkpoint holds the MiniMax-H3 weights as released, in the MLX-Gen layout and without "
+                "quantization: the 16-bit transformer, the 50 Qwen3-VL conditioner layers the model conditions "
+                "on with their vision tower, the BF16 video VAE and the fp32 audio VAE. It is the reference the "
+                "quantized packages are measured against.\n\n"
+                f"See the [MLX-Gen quantization docs]({ModelCardSaver.QUANTIZATION_DOC_URL}) for those measurements."
+            )
         transformer_bits = MiniMaxH3WeightDefinition.component_bits("transformer", bits)
         conditioner_bits = MiniMaxH3WeightDefinition.component_bits("text_encoder", bits)
         layers = [
@@ -306,7 +315,13 @@ class ModelCardSaver:
                 f"This is an MLX {bits}-bit checkpoint for MiniMax-H3 video generation with audio: the two large "
                 "components are quantized, the small precision-critical parts are not."
             )
-            return "\n".join([lead, "", *layers])
+            measured = (
+                "Measured against the released 16-bit weights, its predicted velocity is within 1.2 to 2.0 times "
+                "the 16-bit model's own numerical noise, and its clips keep the fine detail of the 16-bit clips "
+                "(98 to 101%). Each 8-bit weight takes the nearest level of the grid that is stored, which "
+                "lowers a layer's weight error by about a quarter against MLX's default choice at the same size."
+            )
+            return "\n".join([lead, "", *layers, "", measured])
         lead = (
             "This is the low-memory MLX checkpoint for MiniMax-H3 video generation with audio. It is a "
             f"mixed-width package: a {conditioner_bits}-bit conditioner and a {transformer_bits}-bit transformer."
@@ -315,71 +330,80 @@ class ModelCardSaver:
             f"The transformer is {transformer_bits}-bit, not {bits}-bit. No layer family in it tolerates 4-bit "
             "better than another, so a 4-bit/8-bit mix has no sensitive family to protect; the mix measured at "
             f"the same size is about twice as far from the released weights as uniform {transformer_bits}-bit. "
-            "The 8-bit package ([`AbstractFramework/minimax-h3-8bit`]"
-            "(https://huggingface.co/AbstractFramework/minimax-h3-8bit)) is the closest to the released weights; "
-            "this one trades some fidelity for memory."
+            "Measured against the released 16-bit weights, this package's predicted velocity is 2.4 to 5.3 times "
+            "the 16-bit model's own numerical noise, and its text-to-video clips keep 80 to 88% of the fine "
+            "detail of the 16-bit clips. The 8-bit package ([`AbstractFramework/minimax-h3-8bit`]"
+            "(https://huggingface.co/AbstractFramework/minimax-h3-8bit)) stays within 1.2 to 2.0 times that noise "
+            "and keeps the detail; this one trades fidelity for memory and disk."
         )
         return "\n".join([lead, "", *layers, "", why])
+
+    @staticmethod
+    def _minimax_h3_weights_label(bits: int | None) -> str:
+        return f"`{ModelCardSaver.DEFAULT_NAMESPACE}/minimax-h3-{'bf16' if bits is None else f'{bits}bit'}`"
 
     @staticmethod
     def _minimax_h3_memory_note(bits: int | None) -> list[str]:
         from mflux.task_inference import (
             MINIMAX_H3_MEASURED_RUNS,
+            MINIMAX_H3_MODES,
             MINIMAX_H3_PACKAGE_WEIGHT_BYTES,
             MINIMAX_H3_SMALLEST_TESTED_MACHINE,
         )
 
         gib = 1024**3
+        if bits not in MINIMAX_H3_PACKAGE_WEIGHT_BYTES:
+            return []
 
-        def footprint(width: int, low_ram: bool) -> str:
-            # The reference profile of the published measurements.
+        def cell(width: int | None, mode: str) -> str:
+            # The reference profile of the published measurements, and the smallest machine that mode ran on.
             run = next(
                 (
                     run
                     for run in MINIMAX_H3_MEASURED_RUNS
                     if run.outcome == "completed"
                     and run.quantize == width
-                    and run.release_text_encoder == low_ram
+                    and (run.low_ram, run.stream_blocks) == (mode != "default", mode == "stream_blocks")
                     and (run.width, run.height, run.frames, run.steps) == (960, 544, 124, 8)
                 ),
                 None,
             )
-            return f"{run.footprint_bytes / gib:.1f} GiB" if run else "not measured"
+            if run is None:
+                return "not measured"
+            machine = MINIMAX_H3_SMALLEST_TESTED_MACHINE.get(width, {}).get(mode)
+            return f"{run.footprint_bytes / gib:.1f} GiB" + (f", ran on {machine} GB" if machine else "")
 
-        rows = []
-        for width in sorted(MINIMAX_H3_SMALLEST_TESTED_MACHINE, reverse=True):
-            machine_gb, needs_low_ram = MINIMAX_H3_SMALLEST_TESTED_MACHINE[width]
-            machines = f"{machine_gb} GB Macs and up" + (
-                f"; add `--low-ram` at {machine_gb} GB" if needs_low_ram else ""
-            )
-            name = f"`{ModelCardSaver.DEFAULT_NAMESPACE}/minimax-h3-{width}bit`"
-            rows.append(
-                f"| {name}{' (this package)' if width == bits else ''} "
-                f"| {MINIMAX_H3_PACKAGE_WEIGHT_BYTES[width] / gib:.1f} GiB | {machines} "
-                f"| {footprint(width, False)} | {footprint(width, True)} |"
-            )
-        if bits not in MINIMAX_H3_SMALLEST_TESTED_MACHINE:
-            return []
+        # Widest first: the 16-bit package, then 8-bit, then the mixed 4-bit one.
+        widths = sorted(MINIMAX_H3_PACKAGE_WEIGHT_BYTES, key=lambda width: -(width or 16))
+        rows = [
+            f"| {ModelCardSaver._minimax_h3_weights_label(width)}{' (this package)' if width == bits else ''} "
+            f"| {MINIMAX_H3_PACKAGE_WEIGHT_BYTES[width] / gib:.1f} GiB | "
+            + " | ".join(cell(width, mode) for mode in MINIMAX_H3_MODES)
+            + " |"
+            for width in widths
+        ]
         return [
-            "Choose the package by the unified memory of the Mac:",
+            "Choose the package and the mode by the unified memory of the Mac. Each cell is the peak memory of a "
+            "run and, where it was tested, the smallest Mac memory the run completed on:",
             "",
-            "| Package | Disk | Runs on | Peak memory | Peak memory with `--low-ram` |",
-            "| --- | ---: | --- | ---: | ---: |",
+            "| Package | Disk | Default | `--low-ram` | `--stream-blocks --low-ram` |",
+            "| --- | ---: | --- | --- | --- |",
             *rows,
             "",
             "Peak memory is the whole-process footprint of one `960x544`, 124-frame, 8-step clip, measured on an "
             "Apple M5 Max with 128 GB. The smaller machines were tested on that Mac with the difference in RAM "
-            "locked away for the whole run. `--low-ram` releases the conditioner once the prompt is encoded. On a "
-            "machine at the low end of a package's range, close other memory-heavy applications first; longer "
-            "clips and larger canvases need more.",
+            "locked away for the whole run. `--low-ram` tightens the MLX cache and frees the transformer before "
+            "the decode. `--stream-blocks` reads each transformer block from disk for the length of its call "
+            "instead of holding the transformer in memory; every step then reads the blocks again, which added "
+            "about 3% to the step time from an internal SSD. The three modes produce the same clip. Close other "
+            "memory-heavy applications on a machine at the low end of a range; longer clips and larger canvases "
+            "need more.",
+            "",
+            f"[MiniMax-H3 memory, speed and quantization]({ModelCardSaver.MINIMAX_H3_MEMORY_DOC_URL}) explains "
+            "what a run holds in memory, lists every tested machine size, and compares each width with the "
+            "16-bit weights.",
             "",
         ]
-
-    @staticmethod
-    def _minimax_h3_needs_low_ram(bits: int | None) -> bool:
-        from mflux.task_inference import MINIMAX_H3_SMALLEST_TESTED_MACHINE
-
-        return MINIMAX_H3_SMALLEST_TESTED_MACHINE.get(bits, (0, False))[1]
 
     @staticmethod
     def _generated_with_version(base_path: str) -> str:
@@ -398,8 +422,8 @@ class ModelCardSaver:
         generated_with = ModelCardSaver._generated_with_version(base_path)
         if ModelCardSaver._is_minimax_h3(model_name, terms):
             required = (
-                f"Requires `mlx-gen >= {ModelCardSaver.MINIMAX_H3_MIN_VERSION}`. The package loads from 0.39.0, but "
-                "0.39.0 cannot save its output when installed with Pillow 13."
+                f"Requires `mlx-gen >= {ModelCardSaver.MINIMAX_H3_MIN_VERSION}`: the memory figures and the "
+                "`--stream-blocks` option on this card are those of that release."
             )
         else:
             required = f"Requires `mlx-gen >= {generated_with}`."
@@ -685,15 +709,11 @@ class ModelCardSaver:
                 '  --soundscape "Soft crunch of paws in dry snow, a faint wind, two distant crow caws." \\',
                 '  --music "Sparse, gentle piano notes, slow tempo." \\',
                 "  --seed 42 \\",
-                *(["  --low-ram \\"] if ModelCardSaver._minimax_h3_needs_low_ram(bits) else []),
                 "  --metadata \\",
                 "  --output fox.mp4",
                 "```",
-                *(
-                    ["", "`--low-ram` is what fits this package in 64 GB; you can omit it on a 96 GB or larger Mac."]
-                    if ModelCardSaver._minimax_h3_needs_low_ram(bits)
-                    else []
-                ),
+                "",
+                "On a Mac with less memory than the default mode needs, add `--low-ram`, and then `--stream-blocks`.",
             ]
         if "seedvr2" in terms:
             return [
@@ -858,6 +878,8 @@ class ModelCardSaver:
         if "minimax-h3" in terms:
             if bits is not None:
                 tags.extend(["mixed-q8-bf16"] if bits >= 8 else ["mixed-q4", "mixed-precision"])
+            else:
+                tags.append("bf16")
             tags.extend(
                 [
                     "minimax-h3",

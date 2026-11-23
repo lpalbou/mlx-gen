@@ -1,0 +1,1391 @@
+{
+  "machine": "Apple M5 Max, 128 GB, MLX 0.31.0",
+  "reference": "16-bit weights; clips at 640x352, 124 frames, 8 steps, seed 42, minimax-h3-turbo-544p",
+  "velocity_error_against_16bit": {
+    "noise_floor_16bit_conditioning_perturbed_0.1pct": {
+      "speech": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.059009,
+            "cosine": 0.998258
+          },
+          "audio": {
+            "relative_rms": 0.011125,
+            "cosine": 0.999938
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.06772,
+            "cosine": 0.997709
+          },
+          "audio": {
+            "relative_rms": 0.019652,
+            "cosine": 0.999807
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.030219,
+            "cosine": 0.999544
+          },
+          "audio": {
+            "relative_rms": 0.011249,
+            "cosine": 0.999937
+          }
+        }
+      },
+      "fox": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.042396,
+            "cosine": 0.999101
+          },
+          "audio": {
+            "relative_rms": 0.013581,
+            "cosine": 0.999911
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.04261,
+            "cosine": 0.999092
+          },
+          "audio": {
+            "relative_rms": 0.024229,
+            "cosine": 0.99971
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.029448,
+            "cosine": 0.999566
+          },
+          "audio": {
+            "relative_rms": 0.010141,
+            "cosine": 0.999949
+          }
+        }
+      },
+      "image": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.057098,
+            "cosine": 0.99837
+          },
+          "audio": {
+            "relative_rms": 0.015422,
+            "cosine": 0.99989
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.032678,
+            "cosine": 0.999466
+          },
+          "audio": {
+            "relative_rms": 0.016782,
+            "cosine": 0.999859
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.019667,
+            "cosine": 0.999807
+          },
+          "audio": {
+            "relative_rms": 0.010772,
+            "cosine": 0.999942
+          }
+        }
+      }
+    },
+    "conditioner_8bit_as_in_0.39_with_16bit_transformer": {
+      "speech": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.073618,
+            "cosine": 0.99729
+          },
+          "audio": {
+            "relative_rms": 0.016586,
+            "cosine": 0.999863
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.06912,
+            "cosine": 0.997614
+          },
+          "audio": {
+            "relative_rms": 0.024472,
+            "cosine": 0.999701
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.032696,
+            "cosine": 0.999466
+          },
+          "audio": {
+            "relative_rms": 0.013896,
+            "cosine": 0.999903
+          }
+        }
+      },
+      "fox": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.051865,
+            "cosine": 0.998654
+          },
+          "audio": {
+            "relative_rms": 0.014945,
+            "cosine": 0.999892
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.050312,
+            "cosine": 0.998734
+          },
+          "audio": {
+            "relative_rms": 0.06133,
+            "cosine": 0.998127
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.02995,
+            "cosine": 0.999551
+          },
+          "audio": {
+            "relative_rms": 0.016078,
+            "cosine": 0.999871
+          }
+        }
+      },
+      "image": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.121493,
+            "cosine": 0.992606
+          },
+          "audio": {
+            "relative_rms": 0.014397,
+            "cosine": 0.999897
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.037091,
+            "cosine": 0.999312
+          },
+          "audio": {
+            "relative_rms": 0.019792,
+            "cosine": 0.999805
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.02186,
+            "cosine": 0.999761
+          },
+          "audio": {
+            "relative_rms": 0.012262,
+            "cosine": 0.999925
+          }
+        }
+      }
+    },
+    "tables_16bit_against_projections_in_memory": {
+      "speech": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          },
+          "audio": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          },
+          "audio": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          },
+          "audio": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          }
+        }
+      },
+      "fox": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          },
+          "audio": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          },
+          "audio": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          },
+          "audio": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          }
+        }
+      },
+      "image": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          },
+          "audio": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          },
+          "audio": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          },
+          "audio": {
+            "relative_rms": 0.0,
+            "cosine": 1.0
+          }
+        }
+      }
+    },
+    "package_8bit_as_in_0.39": {
+      "speech": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.090108,
+            "cosine": 0.995957
+          },
+          "audio": {
+            "relative_rms": 0.02153,
+            "cosine": 0.99977
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.086745,
+            "cosine": 0.996249
+          },
+          "audio": {
+            "relative_rms": 0.028644,
+            "cosine": 0.999594
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.04063,
+            "cosine": 0.999175
+          },
+          "audio": {
+            "relative_rms": 0.0207,
+            "cosine": 0.999786
+          }
+        }
+      },
+      "fox": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.066987,
+            "cosine": 0.997765
+          },
+          "audio": {
+            "relative_rms": 0.025876,
+            "cosine": 0.999665
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.062264,
+            "cosine": 0.998061
+          },
+          "audio": {
+            "relative_rms": 0.062692,
+            "cosine": 0.998036
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.038934,
+            "cosine": 0.999242
+          },
+          "audio": {
+            "relative_rms": 0.019339,
+            "cosine": 0.999813
+          }
+        }
+      },
+      "image": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.103253,
+            "cosine": 0.994675
+          },
+          "audio": {
+            "relative_rms": 0.031065,
+            "cosine": 0.999542
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.050837,
+            "cosine": 0.998708
+          },
+          "audio": {
+            "relative_rms": 0.038971,
+            "cosine": 0.999241
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.027159,
+            "cosine": 0.999631
+          },
+          "audio": {
+            "relative_rms": 0.016723,
+            "cosine": 0.99986
+          }
+        }
+      }
+    },
+    "transformer_8bit_as_in_0.39_with_16bit_conditioner": {
+      "speech": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.090364,
+            "cosine": 0.995931
+          },
+          "audio": {
+            "relative_rms": 0.016505,
+            "cosine": 0.999864
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.088349,
+            "cosine": 0.996114
+          },
+          "audio": {
+            "relative_rms": 0.024898,
+            "cosine": 0.999691
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.039484,
+            "cosine": 0.999221
+          },
+          "audio": {
+            "relative_rms": 0.019118,
+            "cosine": 0.999817
+          }
+        }
+      },
+      "fox": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.065518,
+            "cosine": 0.997857
+          },
+          "audio": {
+            "relative_rms": 0.02468,
+            "cosine": 0.999696
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.06294,
+            "cosine": 0.998019
+          },
+          "audio": {
+            "relative_rms": 0.042024,
+            "cosine": 0.999118
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.038307,
+            "cosine": 0.999266
+          },
+          "audio": {
+            "relative_rms": 0.016119,
+            "cosine": 0.99987
+          }
+        }
+      },
+      "image": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.116439,
+            "cosine": 0.993235
+          },
+          "audio": {
+            "relative_rms": 0.029937,
+            "cosine": 0.999571
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.053882,
+            "cosine": 0.998549
+          },
+          "audio": {
+            "relative_rms": 0.038831,
+            "cosine": 0.999246
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.025586,
+            "cosine": 0.999673
+          },
+          "audio": {
+            "relative_rms": 0.015858,
+            "cosine": 0.999874
+          }
+        }
+      }
+    },
+    "transformer_8bit_regridded_with_16bit_conditioner": {
+      "speech": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.077147,
+            "cosine": 0.997026
+          },
+          "audio": {
+            "relative_rms": 0.018371,
+            "cosine": 0.999833
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.082545,
+            "cosine": 0.996594
+          },
+          "audio": {
+            "relative_rms": 0.024722,
+            "cosine": 0.999695
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.037978,
+            "cosine": 0.999279
+          },
+          "audio": {
+            "relative_rms": 0.017664,
+            "cosine": 0.999844
+          }
+        }
+      },
+      "fox": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.058451,
+            "cosine": 0.998293
+          },
+          "audio": {
+            "relative_rms": 0.016127,
+            "cosine": 0.999871
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.058195,
+            "cosine": 0.998306
+          },
+          "audio": {
+            "relative_rms": 0.040193,
+            "cosine": 0.999197
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.035147,
+            "cosine": 0.999382
+          },
+          "audio": {
+            "relative_rms": 0.015312,
+            "cosine": 0.999883
+          }
+        }
+      },
+      "image": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.0984,
+            "cosine": 0.99517
+          },
+          "audio": {
+            "relative_rms": 0.020434,
+            "cosine": 0.999794
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.050553,
+            "cosine": 0.998723
+          },
+          "audio": {
+            "relative_rms": 0.029021,
+            "cosine": 0.999579
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.024515,
+            "cosine": 0.999699
+          },
+          "audio": {
+            "relative_rms": 0.01463,
+            "cosine": 0.999893
+          }
+        }
+      }
+    },
+    "package_8bit": {
+      "speech": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.089292,
+            "cosine": 0.996015
+          },
+          "audio": {
+            "relative_rms": 0.024489,
+            "cosine": 0.999702
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.089841,
+            "cosine": 0.99597
+          },
+          "audio": {
+            "relative_rms": 0.028398,
+            "cosine": 0.999597
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.038246,
+            "cosine": 0.999269
+          },
+          "audio": {
+            "relative_rms": 0.019061,
+            "cosine": 0.999819
+          }
+        }
+      },
+      "fox": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.059683,
+            "cosine": 0.998217
+          },
+          "audio": {
+            "relative_rms": 0.019027,
+            "cosine": 0.999824
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.061975,
+            "cosine": 0.998079
+          },
+          "audio": {
+            "relative_rms": 0.071598,
+            "cosine": 0.997434
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.035381,
+            "cosine": 0.999374
+          },
+          "audio": {
+            "relative_rms": 0.02006,
+            "cosine": 0.9998
+          }
+        }
+      },
+      "image": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.112534,
+            "cosine": 0.993675
+          },
+          "audio": {
+            "relative_rms": 0.019689,
+            "cosine": 0.999807
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.047634,
+            "cosine": 0.998866
+          },
+          "audio": {
+            "relative_rms": 0.035849,
+            "cosine": 0.999357
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.025576,
+            "cosine": 0.999673
+          },
+          "audio": {
+            "relative_rms": 0.014595,
+            "cosine": 0.999894
+          }
+        }
+      }
+    },
+    "policy_mixed_4bit": {
+      "speech": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.158574,
+            "cosine": 0.987427
+          },
+          "audio": {
+            "relative_rms": 0.061563,
+            "cosine": 0.998115
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.160396,
+            "cosine": 0.987196
+          },
+          "audio": {
+            "relative_rms": 0.065343,
+            "cosine": 0.997868
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.074064,
+            "cosine": 0.997258
+          },
+          "audio": {
+            "relative_rms": 0.048248,
+            "cosine": 0.998836
+          }
+        }
+      },
+      "fox": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.123999,
+            "cosine": 0.992305
+          },
+          "audio": {
+            "relative_rms": 0.065127,
+            "cosine": 0.998078
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.13267,
+            "cosine": 0.991191
+          },
+          "audio": {
+            "relative_rms": 0.106729,
+            "cosine": 0.994317
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.070728,
+            "cosine": 0.997499
+          },
+          "audio": {
+            "relative_rms": 0.036458,
+            "cosine": 0.999339
+          }
+        }
+      },
+      "image": {
+        "step0": {
+          "video": {
+            "relative_rms": 0.303537,
+            "cosine": 0.953897
+          },
+          "audio": {
+            "relative_rms": 0.055668,
+            "cosine": 0.998496
+          }
+        },
+        "step3": {
+          "video": {
+            "relative_rms": 0.112225,
+            "cosine": 0.993698
+          },
+          "audio": {
+            "relative_rms": 0.099891,
+            "cosine": 0.99503
+          }
+        },
+        "step6": {
+          "video": {
+            "relative_rms": 0.050426,
+            "cosine": 0.998728
+          },
+          "audio": {
+            "relative_rms": 0.040492,
+            "cosine": 0.99918
+          }
+        }
+      }
+    }
+  },
+  "transformer_call_seconds_alternated": {
+    "bench_speed": {
+      "640x352": {
+        "rows": 8734,
+        "seconds": {
+          "bf16": [
+            30.79,
+            29.15,
+            31.22,
+            39.63
+          ],
+          "q8": [
+            33.59,
+            32.88,
+            36.19,
+            47.66
+          ]
+        }
+      },
+      "960x544": {
+        "rows": 19464,
+        "seconds": {
+          "bf16": [
+            130.77,
+            119.87,
+            122.27,
+            120.35
+          ],
+          "q8": [
+            125.7,
+            122.3,
+            122.37,
+            124.16
+          ]
+        }
+      }
+    },
+    "bench_streaming": {
+      "640x352": {
+        "rows": 8734,
+        "seconds": {
+          "bf16": [
+            33.77,
+            36.28,
+            42.34
+          ],
+          "q8": [
+            38.68,
+            37.93,
+            45.63
+          ],
+          "bf16_streamed": [
+            34.3,
+            45.2,
+            42.46
+          ],
+          "q8_streamed": [
+            39.4,
+            42.55,
+            44.26
+          ]
+        },
+        "bf16_streamed_equals_resident": true,
+        "q8_streamed_equals_resident": true
+      },
+      "960x544": {
+        "rows": 19464,
+        "seconds": {
+          "bf16": [
+            119.33,
+            115.91,
+            114.66
+          ],
+          "q8": [
+            125.25,
+            121.11,
+            113.83
+          ],
+          "bf16_streamed": [
+            116.08,
+            132.04,
+            113.75
+          ],
+          "q8_streamed": [
+            122.64,
+            121.84,
+            124.74
+          ]
+        },
+        "bf16_streamed_equals_resident": true,
+        "q8_streamed_equals_resident": true
+      }
+    },
+    "bench_lowcache": {
+      "640x352": {
+        "rows": 8734,
+        "seconds": {
+          "bf16": [
+            68.47,
+            49.03,
+            37.3,
+            36.03
+          ],
+          "q8": [
+            42.2,
+            47.96,
+            35.71,
+            38.28
+          ],
+          "q8_lowcache": [
+            46.48,
+            47.43,
+            40.23,
+            46.64
+          ]
+        }
+      },
+      "960x544": {
+        "rows": 19464,
+        "seconds": {
+          "bf16": [
+            125.18,
+            112.53,
+            92.59,
+            95.3
+          ],
+          "q8": [
+            126.39,
+            97.21,
+            102.43,
+            99.56
+          ],
+          "q8_lowcache": [
+            142.86,
+            101.86,
+            108.64,
+            107.74
+          ]
+        }
+      }
+    }
+  },
+  "conditioner_encode_phases": {
+    "encode_c16": {
+      "weights_gib": 47.97,
+      "conditioner_load": {
+        "seconds": 5.3,
+        "mlx_peak_gib": 47.97,
+        "mlx_active_gib": 47.97,
+        "footprint_peak_gib": 48.3,
+        "footprint_end_gib": 48.3
+      },
+      "encode_speech": {
+        "seconds": 0.4,
+        "mlx_peak_gib": 48.1,
+        "mlx_active_gib": 47.97,
+        "footprint_peak_gib": 48.58,
+        "footprint_end_gib": 48.58
+      },
+      "encode_fox": {
+        "seconds": 0.4,
+        "mlx_peak_gib": 48.08,
+        "mlx_active_gib": 47.97,
+        "footprint_peak_gib": 48.68,
+        "footprint_end_gib": 48.68
+      },
+      "encode_image": {
+        "seconds": 0.5,
+        "mlx_peak_gib": 48.88,
+        "mlx_active_gib": 47.98,
+        "footprint_peak_gib": 49.85,
+        "footprint_end_gib": 49.85
+      }
+    },
+    "encode_c8": {
+      "weights_gib": 26.0,
+      "conditioner_load": {
+        "seconds": 3.4,
+        "mlx_peak_gib": 26.0,
+        "mlx_active_gib": 26.0,
+        "footprint_peak_gib": 26.33,
+        "footprint_end_gib": 26.33
+      },
+      "encode_speech": {
+        "seconds": 0.3,
+        "mlx_peak_gib": 26.23,
+        "mlx_active_gib": 26.01,
+        "footprint_peak_gib": 26.71,
+        "footprint_end_gib": 26.71
+      },
+      "encode_fox": {
+        "seconds": 0.3,
+        "mlx_peak_gib": 26.18,
+        "mlx_active_gib": 26.01,
+        "footprint_peak_gib": 26.88,
+        "footprint_end_gib": 26.88
+      },
+      "encode_image": {
+        "seconds": 0.5,
+        "mlx_peak_gib": 26.92,
+        "mlx_active_gib": 26.01,
+        "footprint_peak_gib": 28.15,
+        "footprint_end_gib": 28.15
+      }
+    },
+    "encode_c16s": {
+      "encode_speech": {
+        "seconds": 3.7,
+        "mlx_peak_gib": 2.4,
+        "mlx_active_gib": 0.0,
+        "footprint_peak_gib": 3.22,
+        "footprint_end_gib": 1.41
+      },
+      "encode_fox": {
+        "seconds": 2.8,
+        "mlx_peak_gib": 2.39,
+        "mlx_active_gib": 0.0,
+        "footprint_peak_gib": 3.23,
+        "footprint_end_gib": 1.4
+      },
+      "encode_image": {
+        "seconds": 2.9,
+        "mlx_peak_gib": 3.72,
+        "mlx_active_gib": 0.0,
+        "footprint_peak_gib": 4.56,
+        "footprint_end_gib": 0.47
+      }
+    },
+    "encode_c8r": {
+      "weights_gib": 26.0,
+      "conditioner_load": {
+        "seconds": 3.4,
+        "mlx_peak_gib": 26.0,
+        "mlx_active_gib": 26.0,
+        "footprint_peak_gib": 26.33,
+        "footprint_end_gib": 26.33
+      },
+      "encode_speech": {
+        "seconds": 0.3,
+        "mlx_peak_gib": 26.23,
+        "mlx_active_gib": 26.01,
+        "footprint_peak_gib": 26.71,
+        "footprint_end_gib": 26.71
+      },
+      "encode_fox": {
+        "seconds": 0.3,
+        "mlx_peak_gib": 26.18,
+        "mlx_active_gib": 26.01,
+        "footprint_peak_gib": 26.89,
+        "footprint_end_gib": 26.89
+      },
+      "encode_image": {
+        "seconds": 0.5,
+        "mlx_peak_gib": 26.92,
+        "mlx_active_gib": 26.01,
+        "footprint_peak_gib": 28.15,
+        "footprint_end_gib": 28.15
+      }
+    },
+    "encode_c4": {
+      "weights_gib": 14.29,
+      "conditioner_load": {
+        "seconds": 5.5,
+        "mlx_peak_gib": 17.33,
+        "mlx_active_gib": 14.29,
+        "footprint_peak_gib": 18.25,
+        "footprint_end_gib": 16.59
+      },
+      "encode_speech": {
+        "seconds": 0.3,
+        "mlx_peak_gib": 14.58,
+        "mlx_active_gib": 14.29,
+        "footprint_peak_gib": 15.05,
+        "footprint_end_gib": 15.05
+      },
+      "encode_fox": {
+        "seconds": 1.9,
+        "mlx_peak_gib": 14.53,
+        "mlx_active_gib": 14.29,
+        "footprint_peak_gib": 15.28,
+        "footprint_end_gib": 15.28
+      },
+      "encode_image": {
+        "seconds": 1.7,
+        "mlx_peak_gib": 15.2,
+        "mlx_active_gib": 14.3,
+        "footprint_peak_gib": 16.68,
+        "footprint_end_gib": 16.68
+      }
+    }
+  },
+  "generate_runs": [
+    {
+      "run": "a1_pkg8_default",
+      "weights": "8-bit package as in 0.39",
+      "mode": "default",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 39679465288,
+      "mlx_peak_bytes": 31068819860,
+      "generation_seconds": 968.44
+    },
+    {
+      "run": "a2_pkg8_lowram",
+      "weights": "8-bit package as in 0.39",
+      "mode": "low_ram",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 28272248136,
+      "mlx_peak_bytes": 27057418318,
+      "generation_seconds": 1034.23
+    },
+    {
+      "run": "a3_pkg8_stream",
+      "weights": "8-bit package as in 0.39",
+      "mode": "stream_blocks+low_ram",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 11937259008,
+      "mlx_peak_bytes": 10592481812,
+      "generation_seconds": 1030.68
+    },
+    {
+      "run": "a4_bf16_default",
+      "weights": "16-bit source",
+      "mode": "default",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 58438371168,
+      "mlx_peak_bytes": 49876930964,
+      "generation_seconds": 967.37
+    },
+    {
+      "run": "a5_bf16_lowram",
+      "weights": "16-bit source",
+      "mode": "low_ram",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 47213312480,
+      "mlx_peak_bytes": 45865693262,
+      "generation_seconds": 999.68
+    },
+    {
+      "run": "a6_bf16_stream",
+      "weights": "16-bit source",
+      "mode": "stream_blocks+low_ram",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 12548593664,
+      "mlx_peak_bytes": 11340675604,
+      "generation_seconds": 1034.38
+    },
+    {
+      "run": "a7_q4_default",
+      "weights": "source, --quantize 4",
+      "mode": "default",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 34894207480,
+      "mlx_peak_bytes": 26052200340,
+      "generation_seconds": 1001.8
+    },
+    {
+      "run": "a8_q4_lowram",
+      "weights": "source, --quantize 4",
+      "mode": "low_ram",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 23487220544,
+      "mlx_peak_bytes": 22040965198,
+      "generation_seconds": 1051.32
+    },
+    {
+      "run": "c1_pkg8_768p",
+      "weights": "8-bit package as in 0.39",
+      "mode": "default",
+      "ram_locked_gib": 0,
+      "width": 1344,
+      "height": 768,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 41108903464,
+      "mlx_peak_bytes": 33761562508,
+      "generation_seconds": 2859.57
+    },
+    {
+      "run": "c2_bf16_768p",
+      "weights": "16-bit source",
+      "mode": "default",
+      "ram_locked_gib": 0,
+      "width": 1344,
+      "height": 768,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 59840202496,
+      "mlx_peak_bytes": 52569834892,
+      "generation_seconds": 2678.81
+    },
+    {
+      "run": "d1_bf16_default_96gb",
+      "weights": "16-bit source",
+      "mode": "default",
+      "ram_locked_gib": 32,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 58925745728,
+      "mlx_peak_bytes": 49876930964,
+      "generation_seconds": 1007.78
+    },
+    {
+      "run": "b3_bf16_lowram_64gb",
+      "weights": "16-bit source",
+      "mode": "low_ram",
+      "ram_locked_gib": 64,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 47252142632,
+      "mlx_peak_bytes": 45865693262,
+      "generation_seconds": 1035.71
+    },
+    {
+      "run": "b1_bf16_stream_32gb",
+      "weights": "16-bit source",
+      "mode": "stream_blocks+low_ram",
+      "ram_locked_gib": 96,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 12441704448,
+      "mlx_peak_bytes": 11340675604,
+      "generation_seconds": 1026.32
+    },
+    {
+      "run": "b2_pkg8_default_48gb",
+      "weights": "8-bit package as in 0.39",
+      "mode": "default",
+      "ram_locked_gib": 80,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 40001508808,
+      "mlx_peak_bytes": 31068787092,
+      "generation_seconds": 1010.48
+    },
+    {
+      "run": "b4_pkg8_lowram_36gb",
+      "weights": "8-bit package as in 0.39",
+      "mode": "low_ram",
+      "ram_locked_gib": 92,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 28222211520,
+      "mlx_peak_bytes": 27057418318,
+      "generation_seconds": 1612.58
+    },
+    {
+      "run": "b6_pkg8_stream_24gb",
+      "weights": "8-bit package as in 0.39",
+      "mode": "stream_blocks+low_ram",
+      "ram_locked_gib": 104,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 11677900240,
+      "mlx_peak_bytes": 10592481812,
+      "generation_seconds": 1010.46
+    },
+    {
+      "run": "b5_q4_lowram_32gb",
+      "weights": "source, --quantize 4",
+      "mode": "low_ram",
+      "ram_locked_gib": 96,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 23200910312,
+      "mlx_peak_bytes": 22040965198,
+      "generation_seconds": 1262.38
+    },
+    {
+      "run": "t1_pkg8_default",
+      "weights": "8-bit package",
+      "mode": "default",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 39890147384,
+      "mlx_peak_bytes": 31124628096,
+      "generation_seconds": 887.44
+    },
+    {
+      "run": "t2_pkg8_lowram",
+      "weights": "8-bit package",
+      "mode": "low_ram",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 28483732712,
+      "mlx_peak_bytes": 27057418318,
+      "generation_seconds": 1091.62
+    },
+    {
+      "run": "t3_pkg8_stream",
+      "weights": "8-bit package",
+      "mode": "stream_blocks",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 19673521976,
+      "mlx_peak_bytes": 10592486804,
+      "generation_seconds": 1059.07
+    },
+    {
+      "run": "t4_pkg8_stream_lowram",
+      "weights": "8-bit package",
+      "mode": "stream_blocks+low_ram",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 12030631400,
+      "mlx_peak_bytes": 10592481812,
+      "generation_seconds": 1095.94
+    },
+    {
+      "run": "t5_bf16_default",
+      "weights": "16-bit source",
+      "mode": "default",
+      "ram_locked_gib": 0,
+      "width": 960,
+      "height": 544,
+      "frames": 124,
+      "steps": 8,
+      "seed": 42,
+      "peak_footprint_bytes": 58928924344,
+      "mlx_peak_bytes": 49876930964,
+      "generation_seconds": 1260.39
+    }
+  ]
+}

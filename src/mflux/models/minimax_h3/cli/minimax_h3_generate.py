@@ -45,7 +45,14 @@ def main() -> None:
             model_path=model_path,
             lora_paths=args.lora_paths,
             lora_scales=args.lora_scales,
+            stream_blocks=args.stream_blocks,
         )
+        if model.block_stream is not None:
+            cli_print(
+                f"Transformer blocks are read from disk at every step: "
+                f"{model.block_stream.bytes_per_step / 1024**3:.1f} GiB per step from {model.root_path}.",
+                json_events=bool(args.json_events),
+            )
         if model_path is not None:
             # A repo id resolves to `./models/<name>` before the Hugging Face cache; name what was read.
             cli_print(f"Loaded weights from {model.root_path}.", json_events=bool(args.json_events))
@@ -72,8 +79,8 @@ def main() -> None:
                     audio_shift=args.audio_shift,
                     image_path=args.image_path,
                     generate_audio=not args.no_audio,
-                    # Low-RAM mode uses this model's own lever; the flag stays available on its own.
-                    release_text_encoder=args.release_text_encoder or args.low_ram,
+                    # Low-RAM mode frees the transformer before the decode; the next seed reads it again.
+                    release_transformer=args.low_ram,
                     progress_callback=events.handle_progress
                     if events.enabled
                     else (progress if args.progress else None),
@@ -170,13 +177,21 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--release-text-encoder",
         action="store_true",
-        help="Drop the Qwen3-VL conditioner once the prompt is encoded, lowering the peak by its resident size. "
-        "Cached prompt embeddings stay usable; a later run with a new prompt reloads it.",
+        help="Accepted for compatibility and has no effect: the Qwen3-VL conditioner is read from disk for "
+        "the length of an encode and is never held in memory.",
+    )
+    parser.add_argument(
+        "--stream-blocks",
+        action="store_true",
+        help="Read each transformer block from disk for the length of its call instead of holding the transformer "
+        "in memory. The peak drops by the size of the blocks, and every step then reads them again: fast from "
+        "the system file cache or an internal SSD, slow from a disk that is not. Works from a prepared package, "
+        "or from the source snapshot without --quantize.",
     )
     parser.add_argument(
         "--low-ram",
         action="store_true",
-        help="Low-RAM mode: tighten the MLX cache and release the conditioner after encoding. "
+        help="Low-RAM mode: tighten the MLX cache and free the transformer before the decode. "
         "Every other generate route accepts this option, so a host can offer one toggle for all of them.",
     )
     parser.add_argument("--seed", "-s", type=int, default=None, nargs="+", help="One or more random seeds.")

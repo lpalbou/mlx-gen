@@ -60,8 +60,12 @@ class H3AdaLayerNormModulation(nn.Module):
         self.linear = nn.Linear(time_embed_dim, 6 * hidden_size * modality_num, bias=True)
 
     def __call__(self, temb: mx.array) -> tuple[mx.array, ...]:
-        modulation = self.linear(nn.silu(temb.astype(mx.float32)).astype(linear_input_dtype(self.linear)))
-        modulation = modulation.reshape(-1, 6 * self.hidden_size)
+        return H3AdaLayerNormModulation.tables(self.linear, temb, self.hidden_size)
+
+    @staticmethod
+    def tables(linear, temb: mx.array, hidden_size: int) -> tuple[mx.array, ...]:
+        modulation = linear(nn.silu(temb.astype(mx.float32)).astype(linear_input_dtype(linear)))
+        modulation = modulation.reshape(-1, 6 * hidden_size)
         return tuple(mx.split(modulation, 6, axis=-1))
 
 

@@ -61,7 +61,11 @@ VALID_TASKS = {TASK_AUTO, EDIT, *PUBLIC_TASKS}
 # set changed in the same release: every outpaint route now publishes
 # `adaptive-content-aware-source-blend`, and `latent-locked-transition-band-no-postblend` is no
 # longer emitted.
-CAPABILITIES_SCHEMA_VERSION = 16
+# v17: MiniMax-H3 no longer holds its conditioner in memory, so `supports_text_encoder_release` is false on
+# its rows and the additive `supports_block_streaming` row field says whether `--stream-blocks` applies.
+# Measured runs gain `low_ram` and `stream_blocks`; `release_text_encoder` stays on them as the former name
+# of `low_ram`.
+CAPABILITIES_SCHEMA_VERSION = 17
 
 # Options every generate route in this build accepts, so a host can send them without checking the
 # route or the release. Published as a list rather than a per-row boolean: a flag accepted everywhere
@@ -242,7 +246,8 @@ class MemoryMeasurement:
     steps: int | None = None
     mlx_peak_bytes: int | None = None
     cache_limit_bytes: int | None = None
-    release_text_encoder: bool = False
+    low_ram: bool = False
+    stream_blocks: bool = False
     machine_total_ram_bytes: int | None = None
     terminated_at: str | None = None
 
@@ -257,7 +262,10 @@ class MemoryMeasurement:
             "steps": self.steps,
             "mlx_peak_bytes": self.mlx_peak_bytes,
             "cache_limit_bytes": self.cache_limit_bytes,
-            "release_text_encoder": self.release_text_encoder,
+            "low_ram": self.low_ram,
+            "stream_blocks": self.stream_blocks,
+            # The name `low_ram` had on runs published before schema 17.
+            "release_text_encoder": self.low_ram,
             "machine_total_ram_bytes": self.machine_total_ram_bytes,
             "terminated_at": self.terminated_at,
         }
@@ -368,6 +376,9 @@ class GenerationCapability:
     flow_shift_option: str | None = None
     flow_shift_parameter: str | None = None
     supports_text_encoder_release: bool = False
+    # Whether the route can read its transformer blocks from disk at every step instead of holding them
+    # (`--stream-blocks`): the peak drops by the size of the blocks, and step time then depends on the disk.
+    supports_block_streaming: bool = False
     # Per-entry defaults, so a host seeds its controls from the catalog instead of copying constants.
     default_steps: int | None = None
     default_width: int | None = None
@@ -430,6 +441,7 @@ class GenerationCapability:
             "flow_shift_option": self.flow_shift_option,
             "flow_shift_parameter": self.flow_shift_parameter,
             "supports_text_encoder_release": self.supports_text_encoder_release,
+            "supports_block_streaming": self.supports_block_streaming,
             "default_steps": self.default_steps,
             "default_width": self.default_width,
             "default_height": self.default_height,
@@ -2046,84 +2058,162 @@ MINIMAX_H3_PROMPT_SECTIONS = (
 )
 
 
-# Measured runs of the 0.39.0 packages on an Apple M5 Max with 128 GiB: one `mlxgen generate` process
-# each, 8 Turbo steps, footprint and MLX peak from the run's metadata sidecar. `--low-ram` releases the
-# conditioner after encoding and tightens the cache, so its peak is the load itself. Peak follows the
-# packed row count rather than the canvas or the frame count separately.
+# Measured runs on an Apple M5 Max with 128 GiB: one `mlxgen generate` process each, 8 Turbo steps,
+# footprint and MLX peak from the run's metadata sidecar. `quantize=None` is the released 16-bit weights.
+# What stands in memory is the transformer without its AdaLN projections; `--low-ram` tightens the cache and
+# frees the transformer before the decode, and `--stream-blocks` reads each block from disk for its call.
 _M5_MAX_RAM_BYTES = 128 * 1024**3
 _DEFAULT_CACHE_LIMIT_BYTES = 8 * 1024**3
 _LOW_RAM_CACHE_LIMIT_BYTES = 1_000_000_000
 MINIMAX_H3_MEASURED_RUNS: tuple[MemoryMeasurement, ...] = (
     MemoryMeasurement(
-        footprint_bytes=82_637_262_112,
+        footprint_bytes=39_679_465_288,
         outcome="completed",
         quantize=8,
         width=960,
         height=544,
         frames=124,
         steps=8,
-        mlx_peak_bytes=74_474_825_744,
+        mlx_peak_bytes=31_068_819_860,
         cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
         machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
     ),
     MemoryMeasurement(
-        footprint_bytes=69_757_306_344,
+        footprint_bytes=28_272_248_136,
         outcome="completed",
         quantize=8,
         width=960,
         height=544,
         frames=124,
         steps=8,
-        mlx_peak_bytes=69_202_931_608,
+        mlx_peak_bytes=27_057_418_318,
         cache_limit_bytes=_LOW_RAM_CACHE_LIMIT_BYTES,
-        release_text_encoder=True,
+        low_ram=True,
         machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
     ),
     MemoryMeasurement(
-        footprint_bytes=61_850_948_256,
+        footprint_bytes=11_937_259_008,
         outcome="completed",
-        quantize=4,
+        quantize=8,
         width=960,
         height=544,
         frames=124,
         steps=8,
-        mlx_peak_bytes=53_628_315_664,
+        mlx_peak_bytes=10_592_481_812,
+        cache_limit_bytes=_LOW_RAM_CACHE_LIMIT_BYTES,
+        low_ram=True,
+        stream_blocks=True,
+        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
+    ),
+    MemoryMeasurement(
+        footprint_bytes=58_438_371_168,
+        outcome="completed",
+        quantize=None,
+        width=960,
+        height=544,
+        frames=124,
+        steps=8,
+        mlx_peak_bytes=49_876_930_964,
         cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
         machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
     ),
     MemoryMeasurement(
-        footprint_bytes=48_963_570_632,
+        footprint_bytes=47_213_312_480,
+        outcome="completed",
+        quantize=None,
+        width=960,
+        height=544,
+        frames=124,
+        steps=8,
+        mlx_peak_bytes=45_865_693_262,
+        cache_limit_bytes=_LOW_RAM_CACHE_LIMIT_BYTES,
+        low_ram=True,
+        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
+    ),
+    MemoryMeasurement(
+        footprint_bytes=12_548_593_664,
+        outcome="completed",
+        quantize=None,
+        width=960,
+        height=544,
+        frames=124,
+        steps=8,
+        mlx_peak_bytes=11_340_675_604,
+        cache_limit_bytes=_LOW_RAM_CACHE_LIMIT_BYTES,
+        low_ram=True,
+        stream_blocks=True,
+        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
+    ),
+    MemoryMeasurement(
+        footprint_bytes=34_894_207_480,
         outcome="completed",
         quantize=4,
         width=960,
         height=544,
         frames=124,
         steps=8,
-        mlx_peak_bytes=48_419_903_212,
-        cache_limit_bytes=_LOW_RAM_CACHE_LIMIT_BYTES,
-        release_text_encoder=True,
+        mlx_peak_bytes=26_052_200_340,
+        cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
         machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
     ),
     MemoryMeasurement(
-        footprint_bytes=87_990_995_560,
+        footprint_bytes=23_487_220_544,
+        outcome="completed",
+        quantize=4,
+        width=960,
+        height=544,
+        frames=124,
+        steps=8,
+        mlx_peak_bytes=22_040_965_198,
+        cache_limit_bytes=_LOW_RAM_CACHE_LIMIT_BYTES,
+        low_ram=True,
+        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
+    ),
+    MemoryMeasurement(
+        footprint_bytes=41_108_903_464,
         outcome="completed",
         quantize=8,
         width=1344,
         height=768,
         frames=124,
         steps=8,
-        mlx_peak_bytes=79_342_938_190,
+        mlx_peak_bytes=33_761_562_508,
+        cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
+        machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
+    ),
+    MemoryMeasurement(
+        footprint_bytes=59_840_202_496,
+        outcome="completed",
+        quantize=None,
+        width=1344,
+        height=768,
+        frames=124,
+        steps=8,
+        mlx_peak_bytes=52_569_834_892,
         cache_limit_bytes=_DEFAULT_CACHE_LIMIT_BYTES,
         machine_total_ram_bytes=_M5_MAX_RAM_BYTES,
     ),
 )
 
 
-# The published packages by `--quantize` width: weight bytes on disk, and the smallest machine each was run
-# on (GB of unified memory, and whether that run needed `--low-ram`). The smaller machines were tested on
-# the 128 GiB Mac with the difference in RAM locked by a second process for the whole run.
-MINIMAX_H3_PACKAGE_WEIGHT_BYTES: dict[int, int] = {8: 69_010_605_065, 4: 48_164_094_121}
-MINIMAX_H3_SMALLEST_TESTED_MACHINE: dict[int, tuple[int, bool]] = {8: (96, False), 4: (64, True)}
+# Weight bytes on disk of the published packages by `--quantize` width; None is the 16-bit package. The
+# released files that `mlxgen download --model minimax-h3` fetches from `MiniMaxAI/MiniMax-H3` are larger:
+# they hold all 64 layers of Qwen3-VL-32B and the video VAE in fp32.
+MINIMAX_H3_PACKAGE_WEIGHT_BYTES: dict[int | None, int] = {
+    None: 123_599_877_029,
+    8: 69_010_605_065,
+    4: 48_164_094_121,
+}
+MINIMAX_H3_SOURCE_WEIGHT_BYTES = 144_016_405_316
+# The smallest machine each width completed a `960x544`, 124-frame clip on, per mode, in GB of unified
+# memory. Tested on the 128 GiB Mac with the difference in RAM locked by a second process for the whole run,
+# which also keeps the system from caching the weight files.
+MINIMAX_H3_MODES: tuple[str, ...] = ("default", "low_ram", "stream_blocks")
+MINIMAX_H3_SMALLEST_TESTED_MACHINE: dict[int | None, dict[str, int]] = {
+    None: {"default": 96, "low_ram": 64, "stream_blocks": 32},
+    8: {"default": 48, "low_ram": 36, "stream_blocks": 24},
+    4: {"low_ram": 32},
+}
 
 
 def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
@@ -2147,27 +2237,29 @@ def _minimax_h3_shared_capability_kwargs(overrides: dict) -> dict:
         "frame_remainder": 5,
         "frame_rounding": "up",
         "output_fps": float(FPS),
-        "supports_text_encoder_release": True,
+        "supports_text_encoder_release": False,
+        "supports_block_streaming": True,
         "default_steps": overrides.get("default_steps"),
         "default_width": overrides.get("default_width"),
         "default_height": overrides.get("default_height"),
         "default_frames": overrides.get("default_frames"),
         "default_audio_shift": overrides.get("default_audio_shift"),
-        # The released weights are bf16 and 115 GiB resident unquantized, more than a 128 GiB Mac can run, so
-        # a width is part of running the model. 8 is the policy closest to the released weights; 4 is the
-        # mixed low-memory policy (a 4-bit conditioner and a 6-bit transformer). A host with more memory can
-        # compare `unquantized_weights_bytes` against its own and decide for itself.
+        # The released weights are bf16. Unquantized, 43 GiB of them stand in memory during a run (the
+        # transformer without its AdaLN projections, and the VAEs), and a `960x544` clip peaks at 54 GiB.
+        # 8 is the recommended width: within the model's own numerical noise of the released weights in the
+        # published measurements, at 37 GiB. 4 is the mixed low-memory policy (a 4-bit conditioner and a
+        # 6-bit transformer). A host can compare `measured_runs` against its own memory and decide.
         "weight_precision": "bf16",
-        "unquantized_weights_bytes": 123_600_000_000,
+        "unquantized_weights_bytes": 46_074_000_000,
         "recommended_quantize": 8,
         "validated_quantization_bits": (4, 8),
         "measured_runs": MINIMAX_H3_MEASURED_RUNS,
         # Every measurement is at 124 frames; `max_frames` is the decode grid, not evidence.
         "max_validated_frames": 124,
-        # The line through the default 8-bit `960x544` run: footprint = fixed + per_row * packed rows. It
-        # predicts the measured `1344x768` run within 0.4 GB. The slope is activations, so it does not depend
-        # on the weight width; the 4-bit policy sits 20.8 GB lower.
-        "peak_bytes_fixed": 77_350_000_000,
+        # An upper line through the default 8-bit `960x544` run: footprint = fixed + per_row * packed rows.
+        # The slope is the denoise activations; at these canvases the decode is the peak, so the line is 3.6 GB
+        # above the measured `1344x768` run. The 4-bit policy sits 4.8 GB lower and 16-bit 18.8 GB higher.
+        "peak_bytes_fixed": 34_390_000_000,
         "peak_bytes_per_packed_row": 271_356,
     }
 
