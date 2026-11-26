@@ -10,18 +10,18 @@ from mflux.models.common.download_policy import DownloadRequiredError
 from mflux.models.common.vae.tiling_config import TilingConfig
 from mflux.models.seedvr2.cli import seedvr2_upscale
 from mflux.models.seedvr2.cli.seedvr2_upscale import (
-    _aligned_chunk_overlap,
-    _aligned_chunk_size,
     _expand_image_paths,
     _expand_video_paths,
-    _plan_seedvr2_video_restore,
     _resolve_seedvr2_model,
-    _seedvr2_memory_profile,
 )
 from mflux.models.seedvr2.seedvr2_initializer import SeedVR2Initializer
 from mflux.models.seedvr2.variants.upscale.seedvr2_util import SeedVR2Util
+from mflux.models.seedvr2.variants.upscale.seedvr2_video_restore_plan import (
+    SeedVR2VideoRestorePlan,
+    SeedVR2VideoRestoreRefused,
+)
 from mflux.utils.scale_factor import ScaleFactor
-from mflux.utils.video_util import DecodedVideoClip
+from mflux.utils.video_util import DecodedVideoClip, VideoUtil
 
 
 def _create_seedvr2_upscale_parser() -> CommandLineParser:
@@ -376,7 +376,7 @@ def test_seedvr2_main_routes_video_inputs_to_restore_video_to_path(monkeypatch, 
     monkeypatch.setattr(seedvr2_upscale, "SeedVR2", FakeSeedVR2)
     monkeypatch.setattr(seedvr2_upscale.CallbackManager, "register_callbacks", lambda **kwargs: None)
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -479,7 +479,7 @@ def test_seedvr2_main_routes_small_video_inputs_to_restore_video_to_path(monkeyp
     monkeypatch.setattr(seedvr2_upscale, "SeedVR2", FakeSeedVR2)
     monkeypatch.setattr(seedvr2_upscale.CallbackManager, "register_callbacks", lambda **kwargs: None)
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -561,7 +561,7 @@ def test_seedvr2_main_routes_drop_audio_opt_out(monkeypatch, tmp_path):
     monkeypatch.setattr(seedvr2_upscale, "SeedVR2", FakeSeedVR2)
     monkeypatch.setattr(seedvr2_upscale.CallbackManager, "register_callbacks", lambda **kwargs: None)
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -636,7 +636,7 @@ def test_seedvr2_main_disables_runtime_budget_enforcement_for_unsafe_video_overr
     monkeypatch.setattr(seedvr2_upscale, "SeedVR2", FakeSeedVR2)
     monkeypatch.setattr(seedvr2_upscale.CallbackManager, "register_callbacks", lambda **kwargs: None)
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -718,7 +718,7 @@ def test_seedvr2_main_preserves_zero_effective_overlap(monkeypatch, tmp_path):
     monkeypatch.setattr(seedvr2_upscale, "SeedVR2", FakeSeedVR2)
     monkeypatch.setattr(seedvr2_upscale.CallbackManager, "register_callbacks", lambda **kwargs: None)
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -761,7 +761,7 @@ def test_seedvr2_main_rejects_tiny_unsafe_streaming_chunk_profiles(monkeypatch, 
     video_path.touch()
 
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -803,7 +803,7 @@ def test_seedvr2_main_rejects_unsafe_13_frame_streaming_profile(monkeypatch, tmp
     video_path.touch()
 
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -843,7 +843,7 @@ def test_seedvr2_main_rejects_unaligned_explicit_streaming_chunk_size(monkeypatc
     video_path.touch()
 
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -916,7 +916,7 @@ def test_seedvr2_main_preserves_explicit_streaming_overlap(monkeypatch, tmp_path
     monkeypatch.setattr(seedvr2_upscale, "SeedVR2", FakeSeedVR2)
     monkeypatch.setattr(seedvr2_upscale.CallbackManager, "register_callbacks", lambda **kwargs: None)
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -1011,7 +1011,7 @@ def test_seedvr2_main_keeps_transformer_in_low_ram_for_video_input(monkeypatch, 
     monkeypatch.setattr(seedvr2_upscale, "SeedVR2", FakeSeedVR2)
     monkeypatch.setattr(seedvr2_upscale.CallbackManager, "register_callbacks", lambda **kwargs: saver)
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -1082,7 +1082,7 @@ def test_seedvr2_main_writes_failure_manifest_for_video_errors(monkeypatch, tmp_
     monkeypatch.setattr(seedvr2_upscale, "SeedVR2", FakeSeedVR2)
     monkeypatch.setattr(seedvr2_upscale.CallbackManager, "register_callbacks", lambda **kwargs: None)
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -1337,7 +1337,7 @@ def test_seedvr2_expands_directory_video_paths(tmp_path):
 
 
 @pytest.mark.fast
-def test_seedvr2_video_plan_rejects_safe_enlargement_profile():
+def test_seedvr2_video_plan_rejects_safe_enlargement_profile(monkeypatch):
     source_probe = DecodedVideoClip(
         frames=[],
         fps=29.97,
@@ -1350,27 +1350,22 @@ def test_seedvr2_video_plan_rejects_safe_enlargement_profile():
         clip_frame_count=1,
     )
 
-    plan = _plan_seedvr2_video_restore(
-        model_config=ModelConfig.seedvr2_3b(),
-        source_probe=source_probe,
-        requested_frames=130,
-        resolution=ScaleFactor(2),
-        temporal_chunk_size=49,
-        temporal_chunk_overlap=16,
-        chunk_size_was_explicit=True,
-        chunk_overlap_was_explicit=True,
-        low_ram_requested=True,
-        cache_limit_gb=8.0,
-        force_unsafe_memory_profile=False,
-    )
+    monkeypatch.setattr(VideoUtil, "read_video_clip", staticmethod(lambda *args, **kwargs: source_probe))
 
-    assert plan.restore_mode == "streaming"
-    assert plan.warnings
-    assert "source-size restoration" in plan.warnings[0]
+    with pytest.raises(SeedVR2VideoRestoreRefused) as refused:
+        SeedVR2VideoRestorePlan.for_video(
+            "source.mp4",
+            model_config=ModelConfig.seedvr2_3b(),
+            resolution=ScaleFactor(2),
+            temporal_chunk_size=49,
+            temporal_chunk_overlap=16,
+        )
+
+    assert "source-size restoration" in str(refused.value)
 
 
 @pytest.mark.fast
-def test_seedvr2_video_plan_requires_low_ram_for_7b_video():
+def test_seedvr2_video_plan_requires_low_ram_for_7b_video(monkeypatch):
     source_probe = DecodedVideoClip(
         frames=[],
         fps=29.97,
@@ -1383,22 +1378,23 @@ def test_seedvr2_video_plan_requires_low_ram_for_7b_video():
         clip_frame_count=1,
     )
 
-    plan = _plan_seedvr2_video_restore(
+    monkeypatch.setattr(VideoUtil, "read_video_clip", staticmethod(lambda *args, **kwargs: source_probe))
+
+    plan = SeedVR2VideoRestorePlan.for_video(
+        "source.mp4",
         model_config=ModelConfig.seedvr2_7b(),
-        source_probe=source_probe,
-        requested_frames=6,
-        resolution=720,
         temporal_chunk_size=49,
         temporal_chunk_overlap=16,
-        chunk_size_was_explicit=True,
-        chunk_overlap_was_explicit=True,
-        low_ram_requested=False,
-        cache_limit_gb=8.0,
-        force_unsafe_memory_profile=False,
     )
-
     assert plan.low_ram_required is True
-    assert plan.warnings
+    with pytest.raises(SeedVR2VideoRestoreRefused):
+        SeedVR2VideoRestorePlan.for_video(
+            "source.mp4",
+            model_config=ModelConfig.seedvr2_7b(),
+            resolution=720,
+            temporal_chunk_size=49,
+            temporal_chunk_overlap=16,
+        )
 
 
 @pytest.mark.fast
@@ -1423,22 +1419,17 @@ def test_seedvr2_video_plan_reserves_resident_weight_headroom_for_7b_chunks(monk
     )
     monkeypatch.setattr(SeedVR2Util, "_host_total_memory_bytes", staticmethod(lambda: 128 * (1000**3)))
     monkeypatch.setattr(SeedVR2Util, "_host_available_memory_bytes", staticmethod(lambda: 121 * (1000**3)))
+    monkeypatch.setattr(VideoUtil, "read_video_clip", staticmethod(lambda *args, **kwargs: source_probe))
 
-    plan = _plan_seedvr2_video_restore(
+    plan = SeedVR2VideoRestorePlan.for_video(
+        "source.mp4",
         model_config=ModelConfig.seedvr2_7b(),
-        source_probe=source_probe,
-        requested_frames=2908,
         resolution=ScaleFactor(1),
         temporal_chunk_size=49,
         temporal_chunk_overlap=16,
-        chunk_size_was_explicit=True,
-        chunk_overlap_was_explicit=True,
-        low_ram_requested=True,
-        cache_limit_gb=8.0,
-        force_unsafe_memory_profile=False,
     )
 
-    inner_dim, text_attention_mode = _seedvr2_memory_profile(ModelConfig.seedvr2_7b())
+    inner_dim, text_attention_mode = SeedVR2VideoRestorePlan._memory_profile(ModelConfig.seedvr2_7b())
     estimated_bytes = SeedVR2Util.estimate_video_restore_working_set_bytes(
         frame_count=SeedVR2Util.padded_video_frame_count(plan.effective_chunk_size or 1),
         height=240,
@@ -1454,7 +1445,7 @@ def test_seedvr2_video_plan_reserves_resident_weight_headroom_for_7b_chunks(monk
 
 
 @pytest.mark.fast
-def test_seedvr2_video_plan_unsafe_default_prefers_whole_shot_when_chunk_size_is_implicit():
+def test_seedvr2_video_plan_unsafe_default_prefers_whole_shot_when_chunk_size_is_implicit(monkeypatch):
     source_probe = DecodedVideoClip(
         frames=[],
         fps=29.97,
@@ -1467,17 +1458,12 @@ def test_seedvr2_video_plan_unsafe_default_prefers_whole_shot_when_chunk_size_is
         clip_frame_count=1,
     )
 
-    plan = _plan_seedvr2_video_restore(
+    monkeypatch.setattr(VideoUtil, "read_video_clip", staticmethod(lambda *args, **kwargs: source_probe))
+
+    plan = SeedVR2VideoRestorePlan.for_video(
+        "source.mp4",
         model_config=ModelConfig.seedvr2_7b(),
-        source_probe=source_probe,
-        requested_frames=149,
         resolution=ScaleFactor(1),
-        temporal_chunk_size=49,
-        temporal_chunk_overlap=16,
-        chunk_size_was_explicit=False,
-        chunk_overlap_was_explicit=False,
-        low_ram_requested=True,
-        cache_limit_gb=8.0,
         force_unsafe_memory_profile=True,
     )
 
@@ -1495,7 +1481,7 @@ def test_seedvr2_main_rejects_unsafe_safe_profile_before_model_load(monkeypatch,
 
     monkeypatch.setattr(seedvr2_upscale, "SeedVR2", fail_if_loaded)
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -1565,7 +1551,7 @@ def test_seedvr2_main_reloads_model_per_video_seed(monkeypatch, tmp_path):
     monkeypatch.setattr(seedvr2_upscale, "SeedVR2", FakeSeedVR2)
     monkeypatch.setattr(seedvr2_upscale.CallbackManager, "register_callbacks", lambda **kwargs: None)
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -1615,7 +1601,7 @@ def test_seedvr2_main_uses_unique_output_paths_for_multiple_video_inputs_and_see
         seedvr2_upscale, "_resolve_seedvr2_model", lambda *args, **kwargs: (ModelConfig.seedvr2_3b(), None)
     )
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -1631,7 +1617,7 @@ def test_seedvr2_main_uses_unique_output_paths_for_multiple_video_inputs_and_see
             )
         ),
     )
-    monkeypatch.setattr(seedvr2_upscale, "_plan_seedvr2_video_restore", lambda **kwargs: FakePlan())
+    monkeypatch.setattr(SeedVR2VideoRestorePlan, "for_video", staticmethod(lambda *args, **kwargs: FakePlan()))
     monkeypatch.setattr(seedvr2_upscale, "_apply_cache_limit_if_needed", lambda args: None)
 
     def fake_run_video_with_fresh_model(**kwargs):
@@ -1678,7 +1664,7 @@ def test_seedvr2_main_uses_unique_output_paths_for_expanded_video_directory(monk
         seedvr2_upscale, "_resolve_seedvr2_model", lambda *args, **kwargs: (ModelConfig.seedvr2_3b(), None)
     )
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -1694,7 +1680,7 @@ def test_seedvr2_main_uses_unique_output_paths_for_expanded_video_directory(monk
             )
         ),
     )
-    monkeypatch.setattr(seedvr2_upscale, "_plan_seedvr2_video_restore", lambda **kwargs: FakePlan())
+    monkeypatch.setattr(SeedVR2VideoRestorePlan, "for_video", staticmethod(lambda *args, **kwargs: FakePlan()))
     monkeypatch.setattr(seedvr2_upscale, "_apply_cache_limit_if_needed", lambda args: None)
 
     def fake_run_video_with_fresh_model(**kwargs):
@@ -1741,7 +1727,7 @@ def test_seedvr2_rejects_same_stem_video_collisions_with_replace_true(monkeypatc
         seedvr2_upscale, "_resolve_seedvr2_model", lambda *args, **kwargs: (ModelConfig.seedvr2_3b(), None)
     )
     monkeypatch.setattr(
-        seedvr2_upscale.VideoUtil,
+        VideoUtil,
         "read_video_clip",
         staticmethod(
             lambda path, start_seconds=0.0, max_frames=None: DecodedVideoClip(
@@ -1757,7 +1743,7 @@ def test_seedvr2_rejects_same_stem_video_collisions_with_replace_true(monkeypatc
             )
         ),
     )
-    monkeypatch.setattr(seedvr2_upscale, "_plan_seedvr2_video_restore", lambda **kwargs: FakePlan())
+    monkeypatch.setattr(SeedVR2VideoRestorePlan, "for_video", staticmethod(lambda *args, **kwargs: FakePlan()))
 
     monkeypatch.setattr(
         "sys.argv",
@@ -1775,15 +1761,15 @@ def test_seedvr2_rejects_same_stem_video_collisions_with_replace_true(monkeypatc
 
 @pytest.mark.fast
 def test_aligned_chunk_size_prefers_one_mod_four():
-    assert _aligned_chunk_size(49) == 49
-    assert _aligned_chunk_size(14) == 13
-    assert _aligned_chunk_size(2) == 1
+    assert SeedVR2VideoRestorePlan._aligned_chunk_size(49) == 49
+    assert SeedVR2VideoRestorePlan._aligned_chunk_size(14) == 13
+    assert SeedVR2VideoRestorePlan._aligned_chunk_size(2) == 1
 
 
 @pytest.mark.fast
 def test_aligned_chunk_overlap_returns_stride_aligned_values_only():
-    assert _aligned_chunk_overlap(29, 8) == 8
-    assert _aligned_chunk_overlap(9, 4) == 0
+    assert SeedVR2VideoRestorePlan._aligned_chunk_overlap(29, 8) == 8
+    assert SeedVR2VideoRestorePlan._aligned_chunk_overlap(9, 4) == 0
 
 
 @pytest.mark.fast

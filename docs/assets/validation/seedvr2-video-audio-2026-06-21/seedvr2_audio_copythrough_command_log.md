@@ -8,7 +8,7 @@ intentionally want a silent restored MP4.
 ```bash
 ffmpeg -y -v error \
   -ss 25 -t 10 \
-  -i "/Users/albou/Downloads/Air France Commercial 2011 - LEnvol - Mozart K488 Adagio.mp4" \
+  -i "air_france_commercial_2011.mp4" \
   -map 0:v:0 -map 0:a:0 \
   -c:v libx264 -pix_fmt yuv420p -c:a aac -movflags +faststart \
   validation_outputs/seedvr2_video_2026_06_21_audio/air_france_25s_10s_source_excerpt.mp4
@@ -17,7 +17,7 @@ ffmpeg -y -v error \
 ```bash
 ffmpeg -y -v error \
   -ss 25 -t 10 \
-  -i "/Users/albou/Downloads/Air France Commercial 2011 - LEnvol - Mozart K488 Adagio.mp4" \
+  -i "air_france_commercial_2011.mp4" \
   -map 0:v:0 -an \
   -c:v libx264 -pix_fmt yuv420p -movflags +faststart \
   validation_outputs/seedvr2_video_2026_06_21_audio/air_france_25s_10s_silent_video.mp4
@@ -34,7 +34,7 @@ copied = outdir / "air_france_25s_10s_audio_copied.mp4"
 
 print(
     VideoUtil.copy_source_audio_to_video(
-        source_video_path="/Users/albou/Downloads/Air France Commercial 2011 - LEnvol - Mozart K488 Adagio.mp4",
+        source_video_path="air_france_commercial_2011.mp4",
         restored_video_path=copied,
         clip_start_seconds=25.0,
         clip_duration_seconds=10.0,
@@ -48,7 +48,7 @@ PY
 ```bash
 ffmpeg -y -v error \
   -ss 25 -t 9 \
-  -i "/Users/albou/Downloads/Air France Commercial 2011 - LEnvol - Mozart K488 Adagio.mp4" \
+  -i "air_france_commercial_2011.mp4" \
   -map 0:v:0 -an \
   -c:v libx264 -pix_fmt yuv420p -movflags +faststart \
   validation_outputs/seedvr2_video_2026_06_21_audio/air_france_25s_9s_silent_video.mp4
@@ -60,7 +60,7 @@ from mflux.utils.video_util import VideoUtil
 
 print(
     VideoUtil.copy_source_audio_to_video(
-        source_video_path="/Users/albou/Downloads/Air France Commercial 2011 - LEnvol - Mozart K488 Adagio.mp4",
+        source_video_path="air_france_commercial_2011.mp4",
         restored_video_path="validation_outputs/seedvr2_video_2026_06_21_audio/air_france_25s_9s_silent_video.mp4",
         clip_start_seconds=25.0,
         clip_duration_seconds=10.0,

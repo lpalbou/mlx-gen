@@ -679,12 +679,25 @@ record — the 0.23.0 rerun reproduced the archived clip bit-identically):
 
 Options that matter when Wan runs repeatedly in one process or inside an application:
 
+- **Text encoder**: a new prompt is encoded by the UMT5-XXL encoder in float32 on the GPU, its
+  weights read from the safetensors one block at a time and dropped after use, at the length of
+  the longest real prompt rather than 512 tokens. On an M5 Max with 128 GB, a new prompt takes 1.2
+  to 3.9 s (2.4 s typical for the first prompt of a process) and adds about 1.2 GiB while it runs,
+  in every mode including `--low-ram`; a VACE 1.3B run (17 frames, 832x480) with a new prompt
+  reaches its first denoising step in 20 to 22 s. The embeddings are within 7.6e-6 of a CPU
+  float32 encode, so results for a given prompt and seed differ slightly from 0.40.1's, whose
+  bfloat16 CPU encoder took 72 to 87 s per new prompt. The mechanism, measurements, tests and
+  compatibility notes are in [Wan prompt encoding](wan-text-encoder.md).
 - **Prompt-embed disk cache (default on)**: identical prompt encodes are served from a small
-  on-disk cache instead of reloading the ~11 GB UMT5 text encoder. Opt out with
-  `--no-prompt-cache` or `prompt_embed_disk_cache=False`.
+  on-disk cache (64 entries, oldest dropped) instead of running the ~11 GB UMT5 text encoder. Its
+  key names the encode method, so entries written by 0.40.1 and earlier no longer match. Opt out
+  with `--no-prompt-cache` or `prompt_embed_disk_cache=False`; see
+  [The prompt-embedding cache](wan-text-encoder.md#the-prompt-embedding-cache) for its location and
+  how to clear it.
 - **Resident text encoder**: `--keep-text-encoder` / `keep_text_encoder_resident=True` keeps the
-  UMT5 encoder loaded between generations in one process, for hosts that chain scene generations
-  with new prompts. The default releases it after encoding.
+  UMT5 encoder between generations in one process. It holds only the encoder's structure and file
+  index (a few MB): the weights are read block by block for every new prompt either way. The
+  default releases it after encoding.
 - **`--no-validate-health`**: skips the post-save full-file health re-decode for applications that
   probe the saved file themselves. The skip is recorded as `health_check: "skipped"` in metadata
   and the `save` runtime event.

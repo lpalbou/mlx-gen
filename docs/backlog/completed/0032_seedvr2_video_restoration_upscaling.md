@@ -181,7 +181,7 @@ make test-fast
 ```sh
 uv run mlxgen upscale \
   --model ByteDance-Seed/SeedVR2-3B \
-  --video-path '/Users/albou/Downloads/Panorama of the Eiffel Tower in 1900 Thomas Edison Vintage Video.mp4' \
+  --video-path 'eiffel_tower_1900_edison.mp4' \
   --start-seconds 70 \
   --max-frames 149 \
   --resolution 1x \
@@ -201,7 +201,7 @@ uv run mlxgen upscale \
 ```sh
 uv run mlxgen upscale \
   --model ByteDance-Seed/SeedVR2-7B \
-  --video-path '/Users/albou/Downloads/Panorama of the Eiffel Tower in 1900 Thomas Edison Vintage Video.mp4' \
+  --video-path 'eiffel_tower_1900_edison.mp4' \
   --start-seconds 70 \
   --max-frames 149 \
   --resolution 1x \
@@ -221,7 +221,7 @@ uv run mlxgen upscale \
 ```sh
 uv run mlxgen upscale \
   --model ByteDance-Seed/SeedVR2-3B \
-  --video-path '/Users/albou/Downloads/Panorama of the Eiffel Tower in 1900 Thomas Edison Vintage Video.mp4' \
+  --video-path 'eiffel_tower_1900_edison.mp4' \
   --start-seconds 70 \
   --max-frames 149 \
   --resolution 2x \
@@ -242,7 +242,7 @@ uv run mlxgen upscale \
 ```sh
 uv run mlxgen upscale \
   --model ByteDance-Seed/SeedVR2-7B \
-  --video-path '/Users/albou/Downloads/Panorama of the Eiffel Tower in 1900 Thomas Edison Vintage Video.mp4' \
+  --video-path 'eiffel_tower_1900_edison.mp4' \
   --start-seconds 70 \
   --max-frames 149 \
   --resolution 2x \
@@ -307,7 +307,7 @@ quality comparison for this clip and shows `7B` slightly ahead of `3B`.
 
 Local limitation check:
 
-- a bounded q8 run on `/Users/albou/Movies/SF.mp4` completed successfully but over-smoothed the
+- a bounded q8 run on `SF.mp4` completed successfully but over-smoothed the
   already-clean modern source. The public docs now describe this as a fit limitation instead of a
   proof row.
 

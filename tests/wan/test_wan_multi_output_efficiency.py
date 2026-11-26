@@ -4,6 +4,7 @@ from PIL import Image
 
 from mflux.models.wan.prompt_embed_store import WanPromptEmbedStore
 from mflux.models.wan.variants.wan2_2_ti2v import Wan2_2_TI2V
+from mflux.models.wan.wan_text_encoder_loader import WanTextEncoderLoader
 
 
 def _fake_tokenize(self, *, cleaned, max_sequence_length):
@@ -135,49 +136,19 @@ def test_wan_prompt_embed_disk_key_varies_by_prompt(monkeypatch, tmp_path):
 
 def test_wan_resident_text_encoder_loads_once_across_prompts(monkeypatch, tmp_path):
     # keep_text_encoder_resident=True must reuse ONE encoder instance across
-    # different-prompt encodes (the storyboard scene-chaining case). The
-    # transformers package is replaced at the sys.modules level so the
-    # function-local `from transformers import UMT5EncoderModel` resolves to
-    # the fake regardless of lazy-module behavior, and no HF loading runs.
-    import sys
-    import types
-
-    import torch
-
-    class FakeEncoderOutput:
-        def __init__(self, batch, seq):
-            self.last_hidden_state = torch.zeros((batch, seq, 4), dtype=torch.bfloat16)
-
+    # different-prompt encodes (the storyboard scene-chaining case).
     created = []
 
     class FakeEncoder:
         def __init__(self):
             created.append(self)
-            self.forward_calls = 0
+            self.encode_calls = 0
 
-        def eval(self):
-            return self
+        def encode(self, input_ids, attention_mask):
+            self.encode_calls += 1
+            return np.zeros((input_ids.shape[0], input_ids.shape[1], 4), dtype=np.float32)
 
-        def __call__(self, input_ids, attention_mask):
-            self.forward_calls += 1
-            return FakeEncoderOutput(input_ids.shape[0], input_ids.shape[1])
-
-    class FakeUMT5:
-        @staticmethod
-        def from_pretrained(path, **kwargs):
-            return FakeEncoder()
-
-    fake_transformers = types.ModuleType("transformers")
-    fake_transformers.UMT5EncoderModel = FakeUMT5
-    fake_utils = types.ModuleType("transformers.utils")
-    fake_utils.logging = types.SimpleNamespace(
-        get_verbosity=lambda: 0,
-        set_verbosity_error=lambda: None,
-        set_verbosity=lambda level: None,
-    )
-    fake_transformers.utils = fake_utils
-    monkeypatch.setitem(sys.modules, "transformers", fake_transformers)
-    monkeypatch.setitem(sys.modules, "transformers.utils", fake_utils)
+    monkeypatch.setattr(WanTextEncoderLoader, "load", staticmethod(lambda *, text_encoder_path: FakeEncoder()))
 
     model = _bare_model(tmp_path)
     model._keep_text_encoder_resident = True
@@ -189,7 +160,7 @@ def test_wan_resident_text_encoder_loads_once_across_prompts(monkeypatch, tmp_pa
     model._get_t5_prompt_embeds(["scene two, different prompt"], max_sequence_length=8)
 
     assert len(created) == 1
-    assert created[0].forward_calls == 2
+    assert created[0].encode_calls == 2
     assert model._resident_text_encoder is created[0]
 
 

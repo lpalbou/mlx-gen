@@ -77,6 +77,7 @@ mlxgen validation --model "AbstractFramework/qwen-image-edit-8bit" \
 | 4-step Qwen Edit 2511 | `AbstractFramework/qwen-image-edit-2511-8bit` | `lightx2v/Qwen-Image-Edit-2511-Lightning:Qwen-Image-Edit-2511-Lightning-4steps-V1.0-bf16.safetensors` | 4 steps |
 | Viewpoint change on Qwen Edit 2511 | same | `fal/Qwen-Image-Edit-2511-Multiple-Angles-LoRA:qwen-image-edit-2511-multiple-angles-lora.safetensors` | on top of the Lightning adapter |
 | Realism on base Qwen latent | `AbstractFramework/qwen-image-8bit` | `prithivMLmods/Qwen-Image-Studio-Realism:qwen-studio-realism.safetensors` | scale 1.0 |
+| Consistent edits on Klein 9B (`flux2.edit`) | `AbstractFramework/flux.2-klein-9b-8bit` | `dx8152/Flux2-Klein-9B-Consistency:Flux2-Klein-9B-consistency-V2.safetensors` | `--steps 20 --guidance 1`, scale 0.8, no trigger word |
 | Outpaint on base Klein 4B | `AbstractFramework/flux.2-klein-base-4b-8bit` | `fal/flux-2-klein-4B-outpaint-lora:flux-outpaint-lora.safetensors` | `--steps 20 --guidance 4`, scale 1.0, prompt "Fill the green spaces according to the image" |
 | Style on Z-Image Turbo latent | `AbstractFramework/z-image-turbo-8bit` | `ostris/z_image_turbo_childrens_drawings:z_image_turbo_childrens_drawings.safetensors` | |
 | 4-step Wan A14B | `AbstractFramework/wan2.2-{t2v,i2v}-a14b-diffusers-8bit` | `lightx2v/Wan2.2-Lightning` paired high/low files | see below |

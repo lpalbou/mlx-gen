@@ -13,6 +13,7 @@ from mflux.models.flux2.model.flux2_transformer.transformer import Flux2Transfor
 from mflux.models.flux2.model.flux2_vae.vae import Flux2VAE
 from mflux.models.flux2.variants.edit.flux2_klein_edit_helpers import _Flux2KleinEditHelpers
 from mflux.utils.apple_silicon import AppleSiliconUtil
+from mflux.utils.compiled_predict_cache import CompiledPredictCache
 from mflux.utils.dimension_resolver import CANVAS_POLICY_SOURCE_ASPECT
 from mflux.utils.exceptions import StopImageGenerationException
 from mflux.utils.generated_image import GeneratedImage
@@ -242,7 +243,7 @@ class Flux2KleinEdit(nn.Module):
 
         if AppleSiliconUtil.is_m1_or_m2():
             return predict
-        return mx.compile(predict)
+        return CompiledPredictCache.compile_over_weights(predict, transformer)
 
     def _validate_guidance(self, guidance: float) -> None:
         _Flux2KleinEditHelpers.validate_guidance(model_config=self.model_config, guidance=guidance)

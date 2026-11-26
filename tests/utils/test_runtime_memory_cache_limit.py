@@ -1,5 +1,6 @@
 import argparse
 
+import mlx.core as mx
 import pytest
 
 from mflux.cli.parser.parsers import cache_limit_gb_value
@@ -201,3 +202,49 @@ class TestCacheLimitCliValue:
     def test_non_numeric_rejected(self):
         with pytest.raises(argparse.ArgumentTypeError):
             cache_limit_gb_value("unlimited")
+
+
+@pytest.fixture
+def restore_mlx_cache_limit():
+    in_force = mx.set_cache_limit(RuntimeMemory._PROBE_CACHE_LIMIT_BYTES)
+    mx.set_cache_limit(in_force)
+    original_record = RuntimeMemory._host_managed_limit_bytes
+    RuntimeMemory._host_managed_limit_bytes = None
+    yield
+    mx.set_cache_limit(in_force)
+    RuntimeMemory._host_managed_limit_bytes = original_record
+
+
+@pytest.mark.fast
+@pytest.mark.usefixtures("restore_mlx_cache_limit")
+class TestHostManagedCacheLimit:
+    def test_a_host_limit_is_reported_and_left_in_force(self):
+        mx.set_cache_limit(2 * GIB)
+
+        assert RuntimeMemory.host_managed_cache_limit_bytes() == 2 * GIB
+        assert mx.set_cache_limit(2 * GIB) == 2 * GIB
+
+    def test_mlx_untouched_default_is_not_host_managed(self):
+        mx.set_cache_limit(RuntimeMemory.total_physical_memory_bytes())
+
+        assert RuntimeMemory.host_managed_cache_limit_bytes() is None
+
+    def test_the_limit_the_engine_kept_for_the_host_stays_reported(self):
+        mx.set_cache_limit(3 * GIB)
+        RuntimeMemory.apply_default_cache_limit_once()
+
+        assert RuntimeMemory.host_managed_cache_limit_bytes() == 3 * GIB
+
+    def test_the_engine_default_is_not_host_managed(self):
+        mx.set_cache_limit(RuntimeMemory.total_physical_memory_bytes())
+        RuntimeMemory.apply_default_cache_limit_once()
+
+        assert RuntimeMemory._cache_limit_state == "default"
+        assert RuntimeMemory.host_managed_cache_limit_bytes() is None
+
+    def test_an_explicit_engine_limit_is_not_host_managed(self):
+        mx.set_cache_limit(3 * GIB)
+        RuntimeMemory.apply_default_cache_limit_once()
+        RuntimeMemory.apply_mlx_cache_limit(4.0)
+
+        assert RuntimeMemory.host_managed_cache_limit_bytes() is None

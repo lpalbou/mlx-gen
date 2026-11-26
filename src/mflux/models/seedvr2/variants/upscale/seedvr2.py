@@ -300,6 +300,7 @@ class SeedVR2(nn.Module):
             ctx.failed()
             raise
         ctx.complete()
+        self.seedvr2_weights_read = True
         del decoded
         mx.clear_cache()
         gc.collect()
@@ -896,6 +897,7 @@ class SeedVR2(nn.Module):
                 del style
                 del style_video
             mx.eval(decoded)
+            self.seedvr2_weights_read = True
         except Exception:
             if emit_progress and ctx is not None:
                 ctx.failed()
@@ -1057,7 +1059,6 @@ class SeedVR2(nn.Module):
         overrides = self.model_config.transformer_overrides or {}
         inner_dim = int(overrides.get("vid_dim", 2560))
         text_attention_mode = str(overrides.get("text_attention_mode", "window_pool"))
-        resident_weight_bytes = int(getattr(self, "seedvr2_resident_weight_bytes", 0))
         estimated_bytes = SeedVR2Util.estimate_video_restore_working_set_bytes(
             frame_count=SeedVR2Util.padded_video_frame_count(frame_count),
             height=true_height,
@@ -1065,7 +1066,10 @@ class SeedVR2(nn.Module):
             inner_dim=inner_dim,
             text_attention_mode=text_attention_mode,
         )
-        budget_bytes = SeedVR2Util.host_safe_video_memory_budget_bytes(reserve_bytes=resident_weight_bytes)
+        budget_bytes = SeedVR2Util.video_restore_budget_bytes(
+            weights_resident=bool(getattr(self, "seedvr2_weights_read", False)),
+            weight_bytes=int(getattr(self, "seedvr2_resident_weight_bytes", 0)),
+        )
         if estimated_bytes > budget_bytes:
             raise ValueError(
                 "SeedVR2 video restore chunk exceeds the supported host-safe memory budget. "
@@ -1084,7 +1088,10 @@ class SeedVR2(nn.Module):
     ) -> None:
         resident_weight_bytes = int(getattr(self, "seedvr2_resident_weight_bytes", 0))
         if enforce_peak_budget:
-            budget_bytes = SeedVR2Util.host_safe_video_memory_budget_bytes(reserve_bytes=resident_weight_bytes)
+            budget_bytes = SeedVR2Util.video_restore_budget_bytes(
+                weights_resident=bool(getattr(self, "seedvr2_weights_read", False)),
+                weight_bytes=resident_weight_bytes,
+            )
             peak_bytes = SeedVR2Util.mlx_peak_memory_bytes()
             working_peak_bytes = None if peak_bytes is None else max(0, peak_bytes - resident_weight_bytes)
             if working_peak_bytes is not None and working_peak_bytes > budget_bytes:

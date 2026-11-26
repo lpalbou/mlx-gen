@@ -2003,6 +2003,7 @@ class BerniniRenderer(Wan2_2_TI2V):
             "numpy_version": np.__version__,
             "python_executable": sys.executable,
             "text_encoder_precision_policy_id": WanTextEncoderLoader.BERNINI_PRECISION_POLICY_ID,
+            "text_encoder_encode_policy_id": WanTextEncoderLoader.ENCODE_POLICY_ID,
             "transformer_precision_policy_id": WanWeightDefinition.BERNINI_TRANSFORMER_PRECISION_POLICY_ID,
             "transformer_default_weight_precision": "bfloat16",
             "transformer_fp32_weight_keys": list(WanWeightDefinition.BERNINI_TRANSFORMER_FP32_KEYS),

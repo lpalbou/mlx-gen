@@ -294,6 +294,16 @@ Wan uses frame-count control rather than a separate duration flag. Duration is `
 
 If Wan generation or MP4 save validation fails, the CLI writes a failure manifest next to the intended output path, for example `video.failure.json` for `video.mp4`. The manifest includes the error, tensor-health report when available, seed, prompt, dimensions, frames, steps, guidance, fps, output path, and memory-related runtime flags.
 
+## A Wan Result Does Not Match One Made With 0.40.1
+
+For a given prompt and seed, Wan output from 0.40.2 differs slightly from 0.40.1's: the prompt is
+encoded in float32, where 0.40.1 encoded it in bfloat16, so the scene and composition match and
+details differ. This is expected and does not depend on any option. To reproduce a 0.40.1 clip
+exactly, install that version (`python -m pip install "mlx-gen==0.40.1"`) and rerun the
+recorded prompt, seed and settings. For new work, keep 0.40.2. Prompt embeddings cached by
+0.40.1 are not reused, so the first run of each prompt encodes it again, in seconds. See
+[Wan prompt encoding](wan-text-encoder.md#compatibility-with-0401-results).
+
 ## Bernini Rejects Quantization Or Produces Weak Reference Fidelity
 
 Bernini-R 1.3B is currently BF16-only. Omit `--quantize`. Generic Wan q4 was tested and produced
@@ -424,15 +434,21 @@ continuing without it. Download the LoRA repository or use a local `.safetensors
 mlxgen download --model RiverZ/normal-lora --all-files
 ```
 
-If a repository contains several `.safetensors` files, specify the file:
+If a repository contains several `.safetensors` files, specify the file, as in this validated
+FLUX.2 Klein 9B edit:
 
 ```sh
+mlxgen download --model dx8152/Flux2-Klein-9B-Consistency --all-files
+
 mlxgen generate \
-  --model <compatible-model> \
-  --prompt "<prompt>" \
-  --lora-paths owner/repo:adapter.safetensors \
-  --lora-scales 0.9 \
-  --output image.png
+  --model AbstractFramework/flux.2-klein-9b-8bit \
+  --image path/to/source.png \
+  --prompt "Make it a snowy evening. Keep the same subject, proportions, and camera angle." \
+  --steps 20 \
+  --guidance 1 \
+  --lora-paths dx8152/Flux2-Klein-9B-Consistency:Flux2-Klein-9B-consistency-V2.safetensors \
+  --lora-scales 0.8 \
+  --output with_lora.png
 ```
 
 `--lora-scales` must have exactly one value per adapter, and it cannot be used without

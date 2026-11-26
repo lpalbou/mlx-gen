@@ -49,7 +49,9 @@ mlxgen upscale \
 ## Video (SeedVR2)
 
 Confirm with the user first: SeedVR2 video is slow and memory-hungry. Validate on about five
-seconds of the real clip before a long run.
+seconds of the real clip before a long run. The plan admits output frames up to about 1.4
+megapixels on a 48 GB budget (1280x720 is admitted, 1920x1080 is refused before any load with the
+largest size that fits); see [SeedVR2 video memory](https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/seedvr2-video-memory.md).
 
 ```sh
 mlxgen upscale \
@@ -94,9 +96,10 @@ Measured on an Apple M5 Max with 128 GB, 149 frames of a 320x240 source, chunk 2
 | 3B `2x` | 542.3 s | 34.40 GB | 27.40 GB |
 | 7B `2x` | 460.6 s | 44.27 GB | 66.18 GB |
 
-Known limit: SeedVR2 video does not restore 480x360 sources correctly (the minimum chunk exceeds
-the safe memory budget there, and forcing it produces intermittent corrupted frames). 320x240 and
-384x288 are clean; use SwiftVR for 480x360.
+Known limit: SeedVR2 video is not validated for 480x360 sources (with 0.40.1, runs forced past the
+memory budget there produced intermittent corrupted frames; 0.40.2 fits the chunk in the budget,
+and the geometry has not been re-validated). 320x240 and 384x288 are clean; use SwiftVR for
+480x360.
 
 ## Video (SwiftVR)
 

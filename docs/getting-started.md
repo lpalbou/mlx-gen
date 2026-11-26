@@ -4,7 +4,8 @@ This guide covers the shortest path from a fresh MLX-Gen install to a local imag
 
 ## Install
 
-Install MLX-Gen as a `uv` tool:
+MLX-Gen needs Python 3.10 or newer; on macOS it installs MLX 0.32.4 or later
+(`mlx>=0.32.4,<0.33.0`). Install MLX-Gen as a `uv` tool:
 
 ```sh
 uv tool install --upgrade mlx-gen

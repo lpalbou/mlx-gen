@@ -1,3 +1,0 @@
-Warning: mflux-generate-flux2 is a legacy compatibility command. Use `mlxgen generate --model <model> ...` for new integrations.
-Applying default MLX cache limit: 8.0 GiB (total RAM / 8, clamped to [1, 8] GiB). Override with --mlx-cache-limit-gb or MFLUX_MLX_CACHE_LIMIT_GB; -1 disables the cap.
-  0%|          | 0/8 [00:00<?, ?it/s] 12%|█▎        | 1/8 [00:25<02:58, 25.56s/it] 25%|██▌       | 2/8 [01:02<03:13, 32.18s/it] 38%|███▊      | 3/8 [01:22<02:12, 26.50s/it] 50%|█████     | 4/8 [01:43<01:37, 24.45s/it] 62%|██████▎   | 5/8 [02:05<01:10, 23.60s/it] 75%|███████▌  | 6/8 [02:34<00:50, 25.28s/it] 88%|████████▊ | 7/8 [02:58<00:25, 25.15s/it]100%|██████████| 8/8 [03:13<00:00, 21.69s/it]100%|██████████| 8/8 [03:13<00:00, 24.15s/it]

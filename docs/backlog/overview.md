@@ -12,12 +12,12 @@ outside chat history.
 | State | Count |
 | --- | ---: |
 | Planned | 17 |
-| Proposed | 42 |
+| Proposed | 43 |
 | Completed | 69 |
 | Deprecated | 2 |
 | Recurrent | 1 |
 
-Counts are item files (recounted 2026-11-23 after item 0130 completed and follow-up 0131 was filed; 2026-11-23 after item 0128 completed and follow-up 0129 was filed; 2026-10-04 after planned items 0126 and 0127 were filed; 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
+Counts are item files (recounted 2026-11-26 after proposed item 0132 was filed; 2026-11-23 after item 0130 completed and follow-up 0131 was filed; 2026-11-23 after item 0128 completed and follow-up 0129 was filed; 2026-10-04 after planned items 0126 and 0127 were filed; 2026-09-09 after follow-up 0125 was filed; 2026-09-06 after item 0120 completed and follow-ups 0121-0123 were filed, which also corrected a drifted proposed count; recounted 2026-09-05 after item 0118 completed; 2026-09-04 after the MiniMax-H3 items 0117-0119 landed and 0104 moved to deprecated; previously recounted 2026-08-04 after adding item 0106; the
 2026-07-25 release hygiene had moved 0093-0095, 0097-0099, and release
 item 0101 to completed/), including topic-track items under
 `planned/memory/`; the completed `planned/runtime_contracts/` track holds only its index.
@@ -436,6 +436,7 @@ memory follow-up state.
 | 0125 | [MiniMax-H3 adapter layouts, validated one real file per producer](proposed/0125_minimax_h3_lora_layouts_validation.md) | MiniMax-H3, LoRA | Promote when a kohya / musubi-tuner or DiffSynth-Studio H3 adapter is at hand; the mapping ships for the original-checkpoint layout (validated with an ai-toolkit civitai file on 2026-09-09) and refuses DiffSynth's interleaved fused QKV until a real file proves the de-interleave. |
 | 0129 | [Router and docs follow-ups from the 0.39.0 documentation pass](proposed/0129_router_and_docs_followups_from_the_0_39_0_documentation_pass.md) | Router messages, local-folder routing, docs | Promote the message and routing items when the router is next touched; the documentation items can ride with any docs pass. Eleven findings from checking the agent skill against the code, none of which blocks a documented workflow. |
 | 0131 | [MiniMax-H3 memory follow-ups after staged loading](proposed/0131_minimax_h3_memory_followups.md) | MiniMax-H3, memory, block streaming, quantization, preflight | Promote the re-indexing of other families' 8-bit weights when another family's 8-bit package is next rebuilt; the read-rate report, the plan-based preflight, the working-memory and load-time-quantization items can ride with the next change to the MiniMax-H3 runtime; keeping several blocks in memory while streaming needs a report of slow streaming from a user first. Nine candidates left out of item 0130, none needed for the shipped behavior. |
+| 0132 | [Banded execution of the SeedVR2 video VAE](proposed/0132_seedvr2_banded_vae_execution.md) | SeedVR2, video VAE, memory, exactness | Promote when restoring frames above the 0.40.2 limit (about 1.4 megapixels on a 48 GB budget) is requested and results equal within rounding, not bitwise, are acceptable: banded execution measured 22.3 GB decode at 1280x720 (VAE only) and 57 to 61 dB against whole-frame execution. |
 
 ## Completed ledger
 

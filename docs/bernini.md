@@ -109,8 +109,8 @@ Each alias is its own model id: generate with the alias you downloaded (`--model
 bernini-r-1.3b-bf16` after the BF16 download). Both packages preflight with 2 GiB of free-space
 headroom (17.60 GiB free for the 15.60 GiB BF16 package, 28.94 GiB free for the 26.94 GiB FP32
 source), skip sources already present at their pinned revisions, and execute identically at run
-time: text encoder and transformer in BF16 (with
-small FP32 keep-sets), VAE in FP32, so resident memory is far below the download size.
+time: transformer in BF16 (with small FP32 keep-sets), the UMT5 text encoder in FP32 read one
+block at a time, VAE in FP32, so resident memory is far below the download size.
 
 On the 128 GB validation host, the bounded low-RAM profiles peaked at 9.45 GB whole-process
 physical footprint. A separate 33-frame, eight-reference 848-condition structural probe peaked at
@@ -235,9 +235,9 @@ Worked examples of both recipes, with contact sheets, are in the
 
 ## Precision And Quantization
 
-Bernini runs **BF16-only**; omit `--quantize`. The runtime executes the transformer and UMT5 text
-encoder in BF16 with a small FP32 keep-set for precision-sensitive transformer layers, and the VAE
-in FP32. Quantized (8-bit or 4-bit) Bernini variants are not supported: no low-bit policy has
+Bernini runs **BF16-only**; omit `--quantize`. The runtime executes the transformer in BF16 with a
+small FP32 keep-set for precision-sensitive transformer layers, the UMT5 text encoder in FP32 (its
+BF16 weights converted one block at a time, as on every Wan route), and the VAE in FP32. Quantized (8-bit or 4-bit) Bernini variants are not supported: no low-bit policy has
 passed this model's numeric and visual validation gates yet, so every `--quantize` value is
 rejected rather than silently degrading output.
 

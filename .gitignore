@@ -43,3 +43,6 @@ logs/
 untracked
 docs-site/
 site/
+
+# Local generation output
+out/

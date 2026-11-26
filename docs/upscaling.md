@@ -51,7 +51,11 @@ The public safe video profile is conservative by design:
 - `--mlx-cache-limit-gb 8` is an MLX cache setting, not a total process-memory cap;
 - the CLI uses sequential temporal chunking for video instead of the bounded in-memory direct path;
 - enlarged video output profiles are rejected in safe mode unless you pass
-  `--force-unsafe-video-memory`.
+  `--force-unsafe-video-memory`;
+- the output frame size is limited by the VAE's memory: about 1.4 megapixels per frame on the
+  48 GB budget of a large Mac (1280x720 is admitted), less when less memory is free. A larger frame
+  is refused before the model loads, with the largest size that fits. See
+  [SeedVR2 video memory](seedvr2-video-memory.md).
 
 `--vae-tiling` is for image runs only and is rejected on video input.
 
@@ -501,10 +505,12 @@ Rules of thumb:
 
 ### Known limitation on SeedVR2 at larger geometries
 
-SeedVR2 currently cannot restore sources at 480x360 correctly. The minimum permitted 29-frame chunk
-exceeds the host-safe memory budget at that geometry, and forcing it through with
-`--force-unsafe-video-memory` produces intermittent corrupted frames - one pixel frame in every
-latent group of four. 320x240 and 384x288 are clean. This is tracked in backlog item
+SeedVR2 video restoration is not validated for 480x360 sources. With 0.40.1, the minimum permitted
+29-frame chunk exceeded the host-safe memory budget at that geometry, and runs forced through with
+`--force-unsafe-video-memory` produced intermittent corrupted frames - one pixel frame in every
+latent group of four. 0.40.2 fits that chunk in the budget (see
+[SeedVR2 video memory](seedvr2-video-memory.md)), and the geometry has not been re-validated: check
+the output before relying on it. 320x240 and 384x288 are clean. The open item is backlog
 [0115](backlog/proposed/0115_seedvr2_video_decode_artifact_at_larger_geometries.md). SwiftVR is
 unaffected and restores the same source at native 480x360.
 

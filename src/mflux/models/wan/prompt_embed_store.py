@@ -10,7 +10,7 @@ import platformdirs
 
 class WanPromptEmbedStore:
     # Disk-backed EXACT cache for Wan UMT5 prompt embeds. A cache hit skips
-    # loading the ~11 GB torch text encoder entirely. Keys are derived from
+    # reading the ~11 GB text encoder entirely. Keys are derived from
     # the tokenized inputs (which capture prompt text AND tokenizer config)
     # plus a fingerprint of the text-encoder weight files, so any change to
     # the prompt, tokenizer, sequence length, precision, or encoder snapshot
@@ -32,8 +32,8 @@ class WanPromptEmbedStore:
         # Weight-file names, sizes, and mtimes identify the encoder snapshot
         # without reading gigabytes. Revision changes move the snapshot path;
         # local edits change size or mtime. The torch/transformers versions
-        # join the fingerprint because their CPU bf16 kernels define the
-        # exact embed values — an upgrade must invalidate, not serve stale.
+        # join the fingerprint because their kernels define the exact embed
+        # values — an upgrade must invalidate, not serve stale.
         # importlib.metadata keeps the no-torch-import-on-hit property.
         digest = hashlib.sha256()
         digest.update(str(text_encoder_path).encode("utf-8"))

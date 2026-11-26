@@ -14,10 +14,11 @@ it across sizes that are and are not already multiples of 16.
 import pytest
 from PIL import Image
 
-from mflux.models.seedvr2.cli.seedvr2_upscale import _estimate_seedvr2_output_size
 from mflux.models.seedvr2.variants.upscale.seedvr2 import SeedVR2
 from mflux.models.seedvr2.variants.upscale.seedvr2_util import SeedVR2Util
+from mflux.models.seedvr2.variants.upscale.seedvr2_video_restore_plan import SeedVR2VideoRestorePlan
 from mflux.utils.scale_factor import ScaleFactor
+from mflux.utils.video_util import DecodedVideoClip, VideoUtil
 
 # 480x360 is the shape that failed in the field: the width is already a multiple of 16 but
 # the height is not, so any independent rounding drifts on one axis only.
@@ -31,6 +32,23 @@ def _actual_preprocessed_size(width: int, height: int, resolution) -> tuple[int,
     return true_height, true_width
 
 
+def _planned_size(monkeypatch, width: int, height: int, resolution) -> tuple[int, int]:
+    probe = DecodedVideoClip(
+        frames=[],
+        fps=24.0,
+        source_width=width,
+        source_height=height,
+        source_frame_count=17,
+        source_duration_seconds=17 / 24.0,
+        audio_present=False,
+        clip_start_frame=0,
+        clip_frame_count=1,
+    )
+    monkeypatch.setattr(VideoUtil, "read_video_clip", staticmethod(lambda *args, **kwargs: probe))
+    plan = SeedVR2VideoRestorePlan.for_video("source.mp4", resolution=resolution, force_unsafe_memory_profile=True)
+    return plan.target_height, plan.target_width
+
+
 @pytest.mark.parametrize("width,height", SOURCE_SIZES)
 def test_runtime_estimate_matches_preprocessing(width, height):
     resolution = ScaleFactor(value=1)
@@ -40,24 +58,18 @@ def test_runtime_estimate_matches_preprocessing(width, height):
 
 
 @pytest.mark.parametrize("width,height", SOURCE_SIZES)
-def test_cli_estimate_matches_preprocessing(width, height):
+def test_plan_estimate_matches_preprocessing(monkeypatch, width, height):
     resolution = ScaleFactor(value=1)
-    assert _estimate_seedvr2_output_size(
-        source_width=width, source_height=height, resolution=resolution
-    ) == _actual_preprocessed_size(width, height, resolution)
+    assert _planned_size(monkeypatch, width, height, resolution) == _actual_preprocessed_size(width, height, resolution)
 
 
 @pytest.mark.parametrize("scale", [1, 2])
-def test_estimates_agree_with_each_other_across_scales(scale):
+def test_estimates_agree_with_each_other_across_scales(monkeypatch, scale):
     resolution = ScaleFactor(value=scale)
     for width, height in SOURCE_SIZES:
-        runtime = SeedVR2._estimate_output_size(
-            source_width=width, source_height=height, resolution=resolution
-        )
-        cli = _estimate_seedvr2_output_size(
-            source_width=width, source_height=height, resolution=resolution
-        )
-        assert runtime == cli, f"{width}x{height} at {scale}x: runtime {runtime} vs CLI {cli}"
+        runtime = SeedVR2._estimate_output_size(source_width=width, source_height=height, resolution=resolution)
+        planned = _planned_size(monkeypatch, width, height, resolution)
+        assert runtime == planned, f"{width}x{height} at {scale}x: runtime {runtime} vs plan {planned}"
 
 
 def test_estimated_size_yields_latent_dimensions_the_encoder_will_produce():

@@ -18,10 +18,12 @@
 - `docs/qwen-localized-editing.md`: plain-language guide to Qwen localized-edit routes, contrasting masked edit/inpaint, structured control, and shipped base-Qwen control-inpaint, defining ControlNet and “sidecar” in user terms, and linking the accepted proof assets.
 - `docs/previews.md`: step-wise generation previews rendered with published tiny autoencoders (`taef1` for the FLUX.1 latent space including Z-Image, `taef2` for the FLUX.2 latent space including ERNIE and Bonsai), reproducible tiny-versus-full command pairs with contact sheets, the `--preview-decoder auto|tiny|full` contract, the explicit per-latent-space availability table (mapping is never inferred from latent-channel count), measured fidelity and decode/wall-time costs on M5 Max, the `PreviewDecoder` + `ImageUtil.to_pil_image` application path for realtime preview frames, and the guarantee that final outputs are always full-VAE decoded.
 - `docs/upscaling.md`: SeedVR2 image and video restoration guide with official 3B/7B source usage, published 3B/7B q8/q4 package handles, shortest-edge and scale-factor sizing with exact-geometry image restoration (`1x` is pixel-identical to the input), automatic step selection that measures and refines the one-step noise residue on flat/dark content (`--steps` forces a fixed count), the conservative safe-video profile, the `29/8` multi-chunk video floor, accepted five-second Eiffel `1x` and `2x` 3B/7B proof bundles with readable mode labels, reproduction commands, timings/memory data, and real 5x source/output comparisons.
+- `docs/seedvr2-video-memory.md`: SeedVR2 video memory: what the VAE does in a restoration, why it cost about 190 KB per output pixel on MLX 0.32, the per-frame causal-convolution tap sums of 0.40.2 (bit-identical output), measured memory and time per frame size, the largest frame that fits, longer temporal chunks for long clips, usage examples, and the validating tests.
 - `docs/edit-capabilities.md`: image-edit and adjacent structured-control contact sheets, model/package status summaries, the published outpaint capability fields including `outpaint_preservation` and the per-route validated envelope, the cross-route outpaint matrix and the axis-coverage bundle, and exact command logs for Qwen Image Edit, Qwen Image Edit 2509/2511, base Qwen structured control, FLUX.2 Klein, latent I2I rows, and the masked-edit 5x5 matrix grading the FLUX.2 Klein, base-Qwen native, and Z-Image non-turbo masked routes. FIBO Edit is unsupported through unified `mlxgen generate`.
 - `docs/reframe-outpaint.md`: reframe/outpaint workflows, per-side padding and how to extend one side, one axis, or all four in a single call, the `--outpaint-fill` conditioning-canvas modes and how `auto` resolves them, padding guidance including the automatic two-pass split of deep two-axis requests (`--outpaint-passes`), the measured corner-depth sweep and its remedies, exact commands, strict FLUX.2 Klein outpaint on distilled 4B/9B (guidance 1.0) and base 4B/9B (guidance 4.0), the cross-route outpaint matrix running every supported route on one source with per-route timings and source drift, the 2026-09-02 axis-coverage sheets across three source aspect ratios and eight padding configurations, and the three related validation profile ids.
 - `docs/lora.md`: route-specific LoRA capability fields, explicit adapter download, strict scale matching, exact adapter/base-model compatibility, source/no-LoRA/with-LoRA validation, exact public proof rows for current Qwen, Z-Image, FLUX.2, ERNIE, and Wan routes, including base Qwen latent, the exact `AbstractFramework/z-image-turbo-8bit` latent children's-drawing row, Qwen 2511 multi-reference/reframe/outpaint, FLUX.2 Klein 9B multi-reference, FLUX.2 Klein base 4B outpaint, direct `lightx2v/Wan2.2-Lightning` download, MiniMax-H3 adapters in both the diffusers and the original-checkpoint key layouts stacked on the Turbo adapter, and explicit guidance that the validated Lightning target is the MLX-Gen q8 package rather than an arbitrary external FP8 checkpoint.
 - `docs/wan-video.md`: practical Wan2.2 T2V/I2V guidance, plain and masked prompt-guided A14B video-to-video with the exact reproducible proof commands and included artifacts, output canvas and source mapping (`--canvas-policy`, `--resize-mode`), repeat-run and application performance options (prompt-embed disk cache, resident text encoder, health-check opt-out, opt-in compiled transformer, A14B inactive-expert release), broader A14B target size families, and `101`-frame, 20 fps M5 Max comparison clips for A14B and TI2V-5B.
+- `docs/wan-text-encoder.md`: Wan prompt encoding on every Wan route: UMT5 in float32 on the GPU with weights read one block at a time, run and block-loop diagrams, measured time, memory and fidelity against 0.40.1, what changes for you (results for a given seed, the prompt-embedding cache, `--keep-text-encoder`), reproducing a 0.40.1 clip, cache location and clearing, usage examples, and the validating tests.
 - `docs/minimax-h3.md`: MiniMax-H3 text-to-video and first-frame image-to-video (`--image-path`) with a synchronized stereo AAC soundtrack in one MP4: `minimax-h3`, `minimax-h3-turbo`, `minimax-h3-turbo-544p`, lightx2v Turbo adapters, the structured prompt sections, frame and canvas rules, the published `AbstractFramework/minimax-h3-bf16`, `AbstractFramework/minimax-h3-8bit` and `AbstractFramework/minimax-h3-4bit` packages, the default, `--low-ram` and `--stream-blocks --low-ram` modes, the released 16-bit weights without `--quantize`, load-time `--quantize 8` / `--quantize 4`, measured M5 Max runtime and peak memory by mode and machine size, the `audio_*` metadata contract, Python usage, verification summary, and current limits, and community LoRA adapters in the original-checkpoint key layout stacked on the Turbo adapter with `--lora-paths`, with the included with/without evidence clips.
 - `docs/minimax-h3-memory.md`: how MiniMax-H3 runs in a fraction of the memory its weights occupy: what stays in memory and what is read from disk when needed, the `--low-ram` and `--stream-blocks` modes, peak memory and speed per mode, the machine sizes from 24 GB to 96 GB emulated on a 128 GB Mac, the quantized packages compared with the released 16-bit weights, how the 8-bit levels are chosen, the validation behind every figure, and limits.
 - `docs/bernini.md`: experimental Bernini-R 1.3B reference-to-video and video-edit routes, pinned BF16 runtime setup and download sizes, the committed official public parity bundle with full prompts and contact sheets per upstream example row, and task-specific recipes for many-reference binding and structure-changing edits.
@@ -31,7 +33,7 @@
 - `docs/quantization.md`: published package matrix, model-specific q8/q4/BF16 policies, the measured MiniMax-H3 packages (16-bit; 8-bit; mixed 4-bit with a 6-bit transformer; memory by mode and machine size), Wan storage/runtime behavior, Bernini's BF16-only gate, and Bonsai ternary support.
 - `docs/huggingface-publishing.md`: generated model cards and AbstractFramework Hugging Face upload guidance.
 - `docs/python-integration.md`: embedding MLX-Gen, route-resolved runtime loading, `model_kwargs` constructor passthrough (resident text encoder, prompt-cache opt-out), runtime memory defaults for hosts (`MFLUX_MLX_CACHE_LIMIT_GB`, `-1` unlimited opt-out, host-managed `mx.set_cache_limit` detection, `MFLUX_NO_WEIGHT_PREFETCH`), Wan `last_image_path`, `context_image_paths`/`context_noise`, and `denoising_step_list` generation kwargs, `save_kwargs` including `validate_health=False`, serial multi-output reuse for unified `mlxgen generate` families, overwrite/collision behavior, the outpaint/reframe pipeline (`run_outpaint`, `prepare_outpaint`, `prepare_reframe`, and the `post_process` before-save hook on `generate_outputs`), SeedVR2's direct-model boundary, progress callbacks, AbstractVision/AbstractCore integration, and threading behavior.
-- `docs/faq.md`: common conceptual questions, I2I mode selection and output sizing, SeedVR2 image/video sizing and default audio-preservation behavior, Qwen edit variants, negative prompts, reframe/outpaint, Wan resolutions, long image-to-video shot guidance (81-frame budget and continuation routes), prompting guidance, usage limits, and why MLX-Gen q8 Lightning guidance should not be generalized to arbitrary FP8 checkpoints.
+- `docs/faq.md`: common conceptual questions, I2I mode selection and output sizing, SeedVR2 image/video sizing and default audio-preservation behavior, Qwen edit variants, negative prompts, reframe/outpaint, Wan resolutions, long image-to-video shot guidance (81-frame budget and continuation routes), why Wan results for a given seed differ from 0.40.1 and why a new prompt's first run is slower, prompting guidance, usage limits, and why MLX-Gen q8 Lightning guidance should not be generalized to arbitrary FP8 checkpoints.
 - `docs/troubleshooting.md`: user-facing failure symptoms, diagnostics, fixes including how to choose the outpaint conditioning canvas when the padded area continues the border texture, and legacy `mflux-generate-*` migration guidance.
 - `docs/release.md`: release and publishing process.
 - `ACKNOWLEDGEMENTS.md`: upstream mflux credit and model/community acknowledgements.
@@ -70,6 +72,9 @@ The project focuses on practical Apple Silicon workflows:
 
 Some implementation internals still use the original `mflux.*` package layout. New user-facing
 commands and integrations should prefer `mlxgen`.
+
+Install with `uv tool install --upgrade mlx-gen` or `python -m pip install -U mlx-gen`. MLX-Gen
+needs Python 3.10 or newer; on macOS it installs MLX 0.32.4 or later (`mlx>=0.32.4,<0.33.0`).
 
 ---
 
@@ -407,6 +412,12 @@ restore stills, so a caller never has to match handle strings.
 In Python, both families expose `restore_video_to_path(...)` with an identical keyword-only core,
 and SeedVR2 additionally exposes `restore_image_to_path(...)` alongside the in-memory
 `generate_image(...)`. A caller selects a route by input kind rather than by model family.
+`SeedVR2VideoRestorePlan.for_video(...)` (from `mflux.models.seedvr2`) makes, without loading
+weights, the video plan the SeedVR2 CLI makes: chunk size and overlap, resolution, memory profile,
+or a `SeedVR2VideoRestoreRefused` error with a machine-readable `reason`. The SeedVR2 video VAE
+needs 28 to 32 KB per output pixel from about 320x192 up on MLX 0.32 (0.40.2 sums its causal convolution taps one frame
+at a time, bit-identical to 0.40.1), so the plan admits frames up to about 1.4 megapixels on a 48 GB
+budget (1280x720 admitted, 1920x1080 refused); see `docs/seedvr2-video-memory.md`.
 
 `--resolution` accepts either an integer shorter-edge target or a scale factor:
 
@@ -865,8 +876,8 @@ This alias selects the pinned `AbstractFramework/bernini-r-1.3B-diffusers-bf16` 
 `ByteDance/Bernini-R-1.3B-Diffusers` revision (approximately 27 GiB cold). The main
 `ByteDance/Bernini-R` A14B repository and similarly named third-party repositories fail closed;
 they are never silently rewritten to the 1.3B renderer. Both packages preflight with 2 GiB of
-free-space headroom and execute identically at run time: text encoder and transformer in BF16
-(with small FP32 keep-sets) and the VAE in FP32. Quantized variants are not supported:
+free-space headroom and execute identically at run time: transformer in BF16 (with small FP32
+keep-sets), the UMT5 text encoder in FP32 read one block at a time, and the VAE in FP32. Quantized variants are not supported:
 `--quantize` values are rejected for this model.
 
 Example R2V request (diagnostic bounded profile; see the parity bundle for official full prompts):
@@ -939,13 +950,31 @@ Image tiny decoders reject multi-frame latents rather than previewing only the f
 
 Options that matter when Wan runs repeatedly in one process or inside an application:
 
+- Text encoder: a new prompt is encoded by UMT5-XXL in float32 on the GPU (Metal; float32 on the
+  CPU without it), its weights read from the safetensors one block at a time (loaded just before
+  the block runs, dropped right after; only the embedding rows of the prompt's tokens are read),
+  at the length of the longest real prompt rather than 512 tokens, padded back with zeros.
+  Weights are rounded to bfloat16 as the packages store them (all but `.wo.`), so a float32
+  source and its package encode identically. On an M5 Max with 128 GB (files in the OS file
+  cache) a new prompt takes 1.2 to 3.9 s (2.4 s typical for the first prompt of a process, torch
+  import included) and adds about 1.2 GiB while it runs (0.3 to 0.4 GiB for later prompts), in
+  every mode including `--low-ram`; a VACE 1.3B run (17 frames, 832x480) with a new prompt
+  reaches its first denoising step in 20 to 22 s, run peaks unchanged. The encoder output is
+  within 7.6e-6 of a CPU float32 encode; the stored embeddings are bfloat16. Up to 0.40.1 the
+  encoder ran whole in bfloat16 on the CPU (72-87 s per new prompt, 88-105 s to the first VACE
+  step, embeddings up to 0.155 from float32), so for a given prompt and seed results differ
+  slightly from 0.40.1's (same scene and composition; about 25 to 27 dB PSNR apart on one VACE
+  clip). To reproduce a 0.40.1 clip exactly, install `mlx-gen==0.40.1`. See
+  `docs/wan-text-encoder.md`.
 - Prompt-embed disk cache (default on): identical prompt encodes are served from a small on-disk
-  safetensors cache (LRU-bounded) instead of reloading the ~11 GB UMT5 text encoder; a cache hit
-  does not import torch. Opt out with `--no-prompt-cache` (CLI) or
-  `prompt_embed_disk_cache=False` (constructor).
+  safetensors cache (`~/Library/Caches/mflux/prompt_embeds/wan`, 64 entries, LRU) instead of
+  running the ~11 GB UMT5 text encoder; a cache hit does not import torch. The key names the
+  encode method, so 0.40.1 entries no longer match and leave the cache as new prompts are stored.
+  Clear it by deleting that folder.
+  Opt out with `--no-prompt-cache` (CLI) or `prompt_embed_disk_cache=False` (constructor).
 - Resident text encoder: `--keep-text-encoder` / `keep_text_encoder_resident=True` keeps the UMT5
-  encoder loaded between generations in one process, for hosts that chain new-prompt scene
-  generations. The default releases it after encoding.
+  encoder between generations in one process; it holds only the encoder's structure and file
+  index (a few MB), the weights being read for every new prompt. The default releases it.
 - `--no-validate-health` (Wan video generation and SeedVR2 video restore): skips the post-save
   full-file health re-decode for applications that probe the saved file themselves. Recorded as
   `health_check: "skipped"` in metadata and the `save` runtime event.

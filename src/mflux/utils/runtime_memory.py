@@ -46,6 +46,10 @@ class RuntimeMemory:
     # A negative value (CLI -1 or env) means "explicitly unlimited" (ADR 0002 opt-out).
     CACHE_LIMIT_ENV_VAR = "MFLUX_MLX_CACHE_LIMIT_GB"
     _cache_limit_state: str = "unset"  # "unset" | "default" | "explicit"
+    # The pre-existing limit the engine found and kept, when it judged it host-managed.
+    _host_managed_limit_bytes: int | None = None
+    # Raising the limit never trims the cache, so this value reads the limit in force harmlessly.
+    _PROBE_CACHE_LIMIT_BYTES = 1 << 62
 
     @staticmethod
     def materialize_tensors(*tensors: mx.array) -> tuple[mx.array, ...]:
@@ -108,6 +112,7 @@ class RuntimeMemory:
                 # Explicit unlimited opt-out: remember it so the load-time default
                 # hook does not re-apply a cap behind the caller's back.
                 RuntimeMemory._cache_limit_state = "explicit"
+                RuntimeMemory._host_managed_limit_bytes = None
             return None
         if explicit:
             if low_ram and cache_limit_bytes > RuntimeMemory.resolve_cache_limit_bytes(None):
@@ -125,6 +130,7 @@ class RuntimeMemory:
             mx.clear_cache()
             mx.reset_peak_memory()
             RuntimeMemory._cache_limit_state = "explicit"
+            RuntimeMemory._host_managed_limit_bytes = None
             return cache_limit_bytes
         # Default path: a host embedding this process may have already capped the
         # cache directly through mx.set_cache_limit (BlackPixel's WorkerCachePolicy
@@ -136,6 +142,7 @@ class RuntimeMemory:
         if host_limit is not None:
             mx.set_cache_limit(host_limit)
             RuntimeMemory._cache_limit_state = "explicit"
+            RuntimeMemory._host_managed_limit_bytes = host_limit
             print(
                 f"Respecting pre-existing MLX cache limit: {host_limit / 1024**3:.1f} GiB "
                 "(host-managed); no machine-derived default applied.",
@@ -145,6 +152,7 @@ class RuntimeMemory:
         mx.clear_cache()
         mx.reset_peak_memory()
         RuntimeMemory._cache_limit_state = "default"
+        RuntimeMemory._host_managed_limit_bytes = None
         # ADR 0002: a new default must be visible, not silent. stderr keeps the
         # --json-events stdout stream machine-readable.
         print(
@@ -183,6 +191,18 @@ class RuntimeMemory:
         if RuntimeMemory._cache_limit_state != "unset":
             return None
         return RuntimeMemory.apply_mlx_cache_limit(None)
+
+    @staticmethod
+    def host_managed_cache_limit_bytes() -> int | None:
+        # The MLX cache limit in force when the host set it deliberately (the engine's rule: a
+        # limit already set at or below half of physical memory), None when the engine set it
+        # or none was set. Once the engine has applied a limit, its own record answers; before,
+        # the limit in force is read without changing it (MLX has no getter).
+        if RuntimeMemory._cache_limit_state != "unset":
+            return RuntimeMemory._host_managed_limit_bytes
+        in_force = mx.set_cache_limit(RuntimeMemory._PROBE_CACHE_LIMIT_BYTES)
+        mx.set_cache_limit(in_force)
+        return RuntimeMemory._deliberate_host_limit(in_force)
 
     @staticmethod
     def resolve_cache_limit_bytes(

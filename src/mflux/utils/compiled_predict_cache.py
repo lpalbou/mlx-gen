@@ -1,5 +1,8 @@
 from collections.abc import Callable, Hashable
 
+import mlx.core as mx
+from mlx import nn
+
 
 class CompiledPredictCache:
     # mx.compile bakes closed-over weight arrays into the traced graph as constants,
@@ -32,3 +35,15 @@ class CompiledPredictCache:
 
     def __len__(self) -> int:
         return len(self._entries)
+
+    @staticmethod
+    def compile_over_weights(predict: Callable, module: nn.Module) -> Callable:
+        # The evaluation must happen before the compiled function is first called. A trace
+        # (one per input shape) owns its own copy of every array that is not yet evaluated
+        # when it is taken, and keeps it for its lifetime. Weights are loaded lazily, so
+        # without this every canvas size held another copy of the transformer. Evaluated
+        # arrays are shared by all traces: one copy, the module's own. It moves the weight
+        # read out of the first step (about 0.35 s once per process on klein 9B); do not
+        # remove it or defer it into the denoise loop.
+        mx.eval(module.parameters())
+        return mx.compile(predict)

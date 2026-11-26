@@ -1262,7 +1262,7 @@ def _family_capabilities(identity: _ModelIdentity) -> ModelCapabilities:
 
 def _seedvr2_label(identity: _ModelIdentity) -> str:
     # Variant identity comes from trusted aliases only, mirroring
-    # seedvr2_upscale._seedvr2_variant_name. seedvr2-7b and seedvr2-7b-sharp share the
+    # SeedVR2VideoRestorePlan._variant_name. seedvr2-7b and seedvr2-7b-sharp share the
     # model_name "ByteDance-Seed/SeedVR2-7B", so model_name cannot tell them apart, and a
     # path substring is not evidence (ADR 0070). An unprovable variant degrades to the
     # bare family label; the rows are identical across variants, so nothing is claimed.

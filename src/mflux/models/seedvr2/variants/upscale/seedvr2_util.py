@@ -28,6 +28,24 @@ class SeedVR2Util:
     VIDEO_RUNTIME_SLACK_BYTES = 6 * (1000**3)
     VIDEO_MIN_PRODUCTION_STREAMING_CHUNK_FRAMES = 29
     VIDEO_MIN_PRODUCTION_STREAMING_OVERLAP_FRAMES = 8
+    # The video VAE (encode and decode in causal slices of whole frames) is most of a chunk's working memory and
+    # grows with the output frame area, not with the chunk length. Measured through the full restoration
+    # (`restore_video_to_path` with the plan's values) on MLX 0.32.5 with the per-frame convolution taps of
+    # CausalConv3d, on SeedVR2 3B (the 7B variants use the same VAE; their working set was not measured), table and
+    # fit in tests/seedvr2/test_seedvr2_video_vae_memory.py. Rows: (largest padded chunk frames, bytes per output
+    # pixel); above 49 frames the transformer terms of the estimate over-count, so the last row is lower. Where the
+    # per-pixel term is smaller, the floor applies instead (up to about 44,000 output pixels for 9 to 29 frames):
+    # under 16,384 pixels the decoder's half-resolution layers have frames under 4096 pixels and keep MLX's single
+    # call, which needs up to 1.32 GB (144x112). Re-measure before widening the MLX range.
+    VIDEO_VAE_MEMORY_MLX_RANGE = ((0, 32, 4), (0, 33, 0))
+    VIDEO_VAE_MEMORY_FLOOR_BYTES = 1_400_000_000
+    VIDEO_VAE_MEMORY_BUCKETS = (
+        (1, 12_000),
+        (5, 25_000),
+        (29, 32_000),
+        (49, 30_000),
+        (None, 28_000),
+    )
 
     @staticmethod
     def preprocess_image(
@@ -291,7 +309,20 @@ class SeedVR2Util:
         decoded_video_bytes = frame_count * height * width * 3 * 2
         latent_bytes = frame_count * latent_height * latent_width * 16 * 2
 
-        return int((qkv_bytes * attention_multiplier) + processed_video_bytes + decoded_video_bytes + (latent_bytes * 4))
+        return int(
+            (qkv_bytes * attention_multiplier)
+            + processed_video_bytes
+            + decoded_video_bytes
+            + (latent_bytes * 4)
+            + SeedVR2Util.estimate_video_vae_working_set_bytes(frame_count=frame_count, height=height, width=width)
+        )
+
+    @staticmethod
+    def estimate_video_vae_working_set_bytes(*, frame_count: int, height: int, width: int) -> int:
+        for max_frames, per_pixel in SeedVR2Util.VIDEO_VAE_MEMORY_BUCKETS:
+            if max_frames is None or frame_count <= max_frames:
+                return max(SeedVR2Util.VIDEO_VAE_MEMORY_FLOOR_BYTES, int(height * width * per_pixel))
+        raise AssertionError("the last VAE memory bucket has no frame limit")
 
     @staticmethod
     def estimate_video_restore_total_bytes(
@@ -313,6 +344,16 @@ class SeedVR2Util:
                 text_attention_mode=text_attention_mode,
             )
         )
+
+    @staticmethod
+    def video_restore_budget_bytes(*, weights_resident: bool, weight_bytes: int = 0) -> int:
+        # The one working-memory budget for video restore: the plan and every run-time check
+        # use it. Available memory is read now, and weights already read in this process are
+        # missing from it, so they are reserved only while they are still to be read: a plan
+        # made before the load, and a fresh model's first chunk (its weights are bound lazily).
+        # Once read (weights_resident=True), reserving them again would refuse chunks the plan
+        # admitted.
+        return SeedVR2Util.host_safe_video_memory_budget_bytes(reserve_bytes=0 if weights_resident else weight_bytes)
 
     @staticmethod
     def host_safe_video_memory_budget_bytes(*, reserve_bytes: int = 0) -> int:

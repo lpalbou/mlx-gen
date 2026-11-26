@@ -1102,7 +1102,7 @@ class Wan2_2_TI2V(nn.Module):
             self._prompt_embed_fingerprint = WanPromptEmbedStore.compute_text_encoder_fingerprint(
                 self._component_subdir_path("text_encoder")
             )
-        encoder_fingerprint = self._prompt_embed_fingerprint
+        encoder_fingerprint = f"{self._prompt_embed_fingerprint}:{WanTextEncoderLoader.ENCODE_POLICY_ID}"
         precision_policy_id = WanTextEncoderLoader.precision_policy_id(getattr(self, "model_config", None))
         if precision_policy_id is not None:
             encoder_fingerprint = f"{encoder_fingerprint}:{precision_policy_id}"
@@ -1118,7 +1118,7 @@ class Wan2_2_TI2V(nn.Module):
 
     def _load_t5_prompt_embeds(self, *, text_inputs, max_sequence_length: int) -> mx.array:
         try:
-            import torch
+            import torch  # noqa: F401  (the encoder runs in torch; checked here for the error message)
             from transformers.utils import logging as transformers_logging
         except ImportError as exc:
             raise RuntimeError("Wan prompt encoding requires torch and transformers.") from exc
@@ -1130,8 +1130,8 @@ class Wan2_2_TI2V(nn.Module):
                 f"Run `mlxgen download --model {self.model_config.model_name}` first."
             )
 
-        input_ids = torch.from_numpy(np.ascontiguousarray(text_inputs["input_ids"]))
-        attention_mask = torch.from_numpy(np.ascontiguousarray(text_inputs["attention_mask"]))
+        input_ids = np.ascontiguousarray(text_inputs["input_ids"])
+        attention_mask = np.ascontiguousarray(text_inputs["attention_mask"])
 
         text_encoder = self._resident_text_encoder
         if text_encoder is None:
@@ -1139,42 +1139,19 @@ class Wan2_2_TI2V(nn.Module):
             try:
                 transformers_logging.set_verbosity_error()
                 with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
-                    text_encoder = WanTextEncoderLoader.load(
-                        text_encoder_path=text_encoder_path,
-                        torch_dtype=torch.bfloat16,
-                        bernini_compatibility=(
-                            WanTextEncoderLoader.precision_policy_id(getattr(self, "model_config", None)) is not None
-                        ),
-                    )
+                    text_encoder = WanTextEncoderLoader.load(text_encoder_path=text_encoder_path)
             finally:
                 transformers_logging.set_verbosity(transformers_verbosity)
-            text_encoder.eval()
-            if hasattr(text_encoder, "shared") and hasattr(text_encoder, "encoder"):
-                text_encoder.encoder.embed_tokens = text_encoder.shared
 
-        with torch.no_grad():
-            output = text_encoder(
-                input_ids,
-                attention_mask,
-            ).last_hidden_state
-        seq_lens = attention_mask.gt(0).sum(dim=1).long()
-        padded = torch.stack(
-            [
-                torch.cat(
-                    [
-                        hidden[:seq_len_int],
-                        hidden.new_zeros(max_sequence_length - seq_len_int, hidden.size(1)),
-                    ]
-                )
-                for hidden, seq_len in zip(output, seq_lens)
-                for seq_len_int in [int(seq_len.item())]
-            ],
-            dim=0,
-        )
-        embeds = mx.array(padded.float().cpu().numpy()).astype(ModelConfig.precision)
+        hidden = text_encoder.encode(input_ids, attention_mask)
+        # The real tokens of each row, then zeros up to max_sequence_length (the reference pipeline's layout).
+        padded = np.zeros((hidden.shape[0], max_sequence_length, hidden.shape[2]), dtype=np.float32)
+        for row, seq_len in enumerate((attention_mask > 0).sum(axis=1)):
+            padded[row, :seq_len] = hidden[row, :seq_len]
+        embeds = mx.array(padded).astype(ModelConfig.precision)
         if self._keep_text_encoder_resident:
-            # Opt-in residency for hosts that chain new-prompt generations:
-            # trades ~11 GB resident RAM for skipping a per-prompt reload.
+            # Opt-in for hosts that chain new-prompt generations: keeps the encoder's structure and file index
+            # (a few MB); its weights are read again for every new prompt.
             self._resident_text_encoder = text_encoder
         else:
             del text_encoder
