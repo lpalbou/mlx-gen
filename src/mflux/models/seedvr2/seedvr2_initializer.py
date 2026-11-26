@@ -32,6 +32,9 @@ class SeedVR2Initializer:
             root_path=root_path,
             weight_definition=weight_definition,
         )
+        # The weights are bound lazily and read by the first restoration; the run-time memory
+        # checks count them as resident only from then on.
+        model.seedvr2_weights_read = False
         weights = SeedVR2Initializer._load_weights(root_path, weight_definition)
         SeedVR2Initializer._init_text_embedding(model, weights)
         SeedVR2Initializer._init_models(model, runtime_config)

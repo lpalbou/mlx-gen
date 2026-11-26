@@ -56,9 +56,11 @@ nav:
       - Qwen Route Matrix: qwen-route-matrix.md
       - Reframe & Outpaint: reframe-outpaint.md
       - Wan Video: wan-video.md
+      - Wan Prompt Encoding: wan-text-encoder.md
       - MiniMax-H3 Video With Audio: minimax-h3.md
       - MiniMax-H3 memory, speed and quantization: minimax-h3-memory.md
       - Image & Video Upscaling: upscaling.md
+      - SeedVR2 Video Memory: seedvr2-video-memory.md
       - Bernini-R 1.3B: bernini.md
       - LoRA: lora.md
       - Quantization: quantization.md

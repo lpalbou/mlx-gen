@@ -123,13 +123,23 @@ Then reference either:
 The file part can include a subdirectory:
 
 ```sh
+mlxgen download --model dx8152/Flux2-Klein-9B-Consistency --all-files
+
 mlxgen generate \
-  --model <compatible-model> \
-  --prompt "<prompt from the adapter model card>" \
-  --lora-paths owner/repo:adapter.safetensors \
-  --lora-scales 0.9 \
+  --model AbstractFramework/flux.2-klein-9b-8bit \
+  --image path/to/source.png \
+  --prompt "Make it a snowy evening. Keep the same subject, proportions, and camera angle." \
+  --steps 20 \
+  --guidance 1 \
+  --lora-paths dx8152/Flux2-Klein-9B-Consistency:Flux2-Klein-9B-consistency-V2.safetensors \
+  --lora-scales 0.8 \
   --output with_lora.png
 ```
+
+That is the validated FLUX.2 Klein 9B `flux2.edit` row (profile
+`lora_flux2_klein9b_q8_consistency_edit_2026_06_11`): an image-to-image LoRA for
+`black-forest-labs/FLUX.2-klein-9B` that keeps edits consistent with the source, with no trigger
+word, validated at scale 0.8.
 
 The number of `--lora-scales` values must match the number of `--lora-paths` values exactly.
 Passing scales without paths fails before model load.
@@ -188,6 +198,34 @@ Validated rows:
 
 These rows are validated route-by-route. The Lightning adapter is the fast baseline; the
 multi-angle adapter is what changes the viewpoint behavior on top of that exact route.
+
+### FLUX.2 Klein 9B edit
+
+Validated row (profile `lora_flux2_klein9b_q8_consistency_edit_2026_06_11`):
+
+- model: `AbstractFramework/flux.2-klein-9b-8bit`
+- route: `flux2.edit`
+- adapter: `dx8152/Flux2-Klein-9B-Consistency:Flux2-Klein-9B-consistency-V2.safetensors`
+
+An image-to-image LoRA for `black-forest-labs/FLUX.2-klein-9B` (apache-2.0) that keeps Klein edits
+consistent with the source; it has no trigger word. Validated command:
+
+```sh
+mlxgen generate \
+  --model AbstractFramework/flux.2-klein-9b-8bit \
+  --image docs/assets/examples/spaceship-snow/01_t2i_spaceship_snow.png \
+  --prompt "Edit the source into the same spaceship after a hard landing in the snow at blue hour. Preserve the same spaceship design, hull proportions, cockpit shape, engine placement, snowy canyon layout, and wide camera angle. Add disturbed snow, bent landing struts, a shallow scrape trail, broken ice chunks, and a thin smoke plume. Keep the ship solid, sharp, and consistent." \
+  --width 432 \
+  --height 240 \
+  --steps 20 \
+  --guidance 1 \
+  --seed 9801 \
+  --lora-paths dx8152/Flux2-Klein-9B-Consistency:Flux2-Klein-9B-consistency-V2.safetensors \
+  --lora-scales 0.8 \
+  --output flux2_klein9b_q8_with_lora_edit.png
+```
+
+A/B evidence: [contact sheet](assets/validation/lora-2026-06-11/flux2_klein9b_q8_consistency_ab_contact_sheet.png).
 
 ### FLUX.2 Klein base 4B outpaint
 

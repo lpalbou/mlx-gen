@@ -822,6 +822,23 @@ of 16. Plain A14B video-to-video follows that same requested-canvas rule. For TI
 route checks only. Use the
 recommended/native size, frame count, and step count when judging visual quality.
 
+## Why Does My Wan Video Differ From The One 0.40.1 Made With The Same Seed?
+
+Since 0.40.2, every Wan route encodes the prompt with the UMT5 text encoder in float32, which
+gives the reference encoder's embeddings; 0.40.1 and earlier encoded in bfloat16 on the CPU, up
+to 0.155 away. The same prompt and seed give the same scene and composition with small
+differences in details (about 25 to 27 dB PSNR apart on a measured VACE clip). Results are
+reproducible within 0.40.2. To reproduce a 0.40.1 clip exactly, install `mlx-gen==0.40.1`. See
+[Wan prompt encoding](wan-text-encoder.md#what-changes-for-you).
+
+## Why Is The First Wan Run With A New Prompt Slower Than A Repeat?
+
+A new prompt runs the UMT5 text encoder, which takes 1.2 to 3.9 s on an M5 Max (the first prompt
+of a process also imports torch); a prompt already used is served from the on-disk
+prompt-embedding cache in hundredths of a second. After upgrading from 0.40.1, every prompt is
+new once, because cache entries written by earlier versions are not reused. See
+[The prompt-embedding cache](wan-text-encoder.md#the-prompt-embedding-cache).
+
 ## Why Does A Long Image-To-Video Clip Return To Its First Frame?
 
 Wan 2.2 image-to-video is trained at 81 frames, and the conditioning image is the trajectory's

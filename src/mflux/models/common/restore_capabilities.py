@@ -344,7 +344,7 @@ def _seedvr2_variant(model: str | None) -> str:
 
     ``seedvr2-7b`` and ``seedvr2-7b-sharp`` share ``model_name``
     ``"ByteDance-Seed/SeedVR2-7B"``, so the alias is the only trustworthy discriminator -
-    the same rule ``_seedvr2_variant_name`` already applies. An unprovable handle degrades
+    the same rule ``SeedVR2VideoRestorePlan._variant_name`` already applies. An unprovable handle degrades
     to ``"3b"``, the resolver's own default, which is a label difference and never a
     capability difference: all three variants declare identical rows.
     """

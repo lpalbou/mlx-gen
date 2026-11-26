@@ -294,7 +294,7 @@ def test_bernini_text_encoder_load_uses_text_encoder_component_root(monkeypatch,
     class StopLoad(RuntimeError):
         pass
 
-    def fail_after_capture(*, text_encoder_path, torch_dtype, bernini_compatibility):
+    def fail_after_capture(*, text_encoder_path):
         calls["path"] = text_encoder_path
         raise StopLoad("captured")
 

@@ -2,9 +2,9 @@
 name: mlx-gen
 description: Run local image and video generation on Apple Silicon with MLX through the `mlxgen` CLI (PyPI `mlx-gen`, Python imports `mlxgen` and `mflux`). Covers text-to-image, image editing (latent img2img, instruction edit, masked edit, multi-reference, reframe, outpaint), text-, image- and video-to-video (Wan2.2, Bernini-R, MiniMax-H3 with a generated soundtrack), SeedVR2 and SwiftVR image/video restoration and upscaling, explicit model download, quantized package preparation, and progress events for host applications. Use when a task mentions mlx-gen, mlxgen, mflux, MLX image or video generation on a Mac, `AbstractFramework/*-8bit` or `-4bit` Hugging Face packages, FLUX.2 Klein, Qwen Image, Z-Image, ERNIE Image, Bonsai, FIBO, Wan2.2, MiniMax-H3, SeedVR2, `mlxgen capabilities`, `DownloadRequiredError`, or `.metadata.json` generation sidecars.
 license: MIT
-compatibility: macOS on Apple Silicon with MLX; Python 3.10 or newer. Runs locally from model files on disk. Network access is needed only for `mlxgen download` (and for `mlxgen prepare` when the source model is not cached). Models need from a few GiB to more than 100 GiB of disk and of unified memory.
+compatibility: macOS on Apple Silicon with MLX 0.32.4 or newer (`mlx>=0.32.4,<0.33.0`, installed with the package); Python 3.10 or newer. Runs locally from model files on disk. Network access is needed only for `mlxgen download` (and for `mlxgen prepare` when the source model is not cached). Models need from a few GiB to more than 100 GiB of disk and of unified memory.
 metadata:
-  package-version: "0.40.1"
+  package-version: "0.40.2"
 ---
 
 # mlx-gen

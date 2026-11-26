@@ -205,6 +205,15 @@ print(path)
   color_correction_mode="wavelet", drop_audio=False, export_json_metadata=False, overwrite=True,
   validate_health=True, ...)`, which returns the written `Path` and follows the same chunk and
   audio rules as the CLI ([restoration.md](restoration.md)).
+- `SeedVR2VideoRestorePlan.for_video(video_path, *, model_config=ModelConfig.seedvr2_3b(), model_path=None,
+  start_seconds=0.0, max_frames=None, resolution=None, temporal_chunk_size=None,
+  temporal_chunk_overlap=None, force_unsafe_memory_profile=False, weights_resident=False)` (same
+  package, no weights loaded; pass `weights_resident=True` when the process already holds the model)
+  makes the plan `mlxgen upscale --video-path` makes, or raises `SeedVR2VideoRestoreRefused` (a
+  `ValueError` with `.reason`). Pass its `resolution`, `start_seconds`, `max_frames`,
+  `effective_chunk_size`, `effective_chunk_overlap` and `enforce_memory_budget` to
+  `restore_video_to_path`, and register `MemorySaver(model, keep_transformer=plan.keep_transformer,
+  cache_limit_bytes=plan.cache_limit_bytes)` when `plan.low_ram_required`.
 - Other families follow the same shape, for example
   `from mlxgen.models.z_image import ZImageTurbo`, then `ZImageTurbo(quantize=8)` and
   `model.generate_image(seed=..., prompt=..., width=..., height=..., num_inference_steps=...)`.

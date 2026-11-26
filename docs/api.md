@@ -101,15 +101,23 @@ Generation does not download LoRA files. Download LoRA repositories explicitly, 
 inside the adapter repository:
 
 ```sh
-mlxgen download --model lovis93/Flux-2-Multi-Angles-LoRA-v2 --all-files
+mlxgen download --model dx8152/Flux2-Klein-9B-Consistency --all-files
 
 mlxgen generate \
-  --model <compatible-model> \
-  --prompt "<prompt from the LoRA model card>" \
-  --lora-paths owner/repo:adapter.safetensors \
-  --lora-scales 0.9 \
+  --model AbstractFramework/flux.2-klein-9b-8bit \
+  --image path/to/source.png \
+  --prompt "Make it a snowy evening. Keep the same subject, proportions, and camera angle." \
+  --steps 20 \
+  --guidance 1 \
+  --lora-paths dx8152/Flux2-Klein-9B-Consistency:Flux2-Klein-9B-consistency-V2.safetensors \
+  --lora-scales 0.8 \
   --output with_lora.png
 ```
+
+This is the validated FLUX.2 Klein 9B edit row (`flux2.edit`, profile
+`lora_flux2_klein9b_q8_consistency_edit_2026_06_11`): `dx8152/Flux2-Klein-9B-Consistency` is an
+image-to-image LoRA for `black-forest-labs/FLUX.2-klein-9B` that keeps edits consistent with the
+source, with no trigger word; 0.8 is the scale it was validated at.
 
 The adapter must match the selected model architecture. For example,
 `lovis93/Flux-2-Multi-Angles-LoRA-v2` targets `black-forest-labs/FLUX.2-dev`; MLX-Gen currently
@@ -1036,8 +1044,8 @@ and the source duration plus requested fps may resolve fewer `4n+1` frames. Use
 | `--seed` | Deterministic seed. Repeat with multiple values to create multiple videos. |
 | `--progress`, `--no-progress` | Show or disable the CLI video progress bar. The bar advances by denoising step and keeps the requested frame count as context. Default: `--progress true`. |
 | `--low-ram` | For Wan CLI runs, clear MLX cache between transformer blocks and denoise steps, release denoisers before decode when the model instance will not be reused for another seed, and clear cache between VAE temporal decode slices. This is intended for memory pressure, not speed. |
-| `--keep-text-encoder` | Keep the UMT5 text encoder resident between generations in one process (~11 GB resident RAM) instead of reloading it per prompt encode — for hosts that chain scene generations. Default: load-and-release. |
-| `--no-prompt-cache` | Disable the exact on-disk prompt-embed cache. By default, identical (encoder snapshot, tokenized prompt, length, precision) encodes are served from a small safetensors cache instead of reloading the text encoder. |
+| `--keep-text-encoder` | Keep the UMT5 text encoder between generations in one process instead of building and releasing it per new prompt. It holds only the encoder's structure and file index (a few MB); its weights are read block by block for every new prompt either way, so it saves well under a second. Default: build-and-release. |
+| `--no-prompt-cache` | Disable the exact on-disk prompt-embed cache. By default, identical (encoder snapshot, tokenized prompt, length, precision) encodes are served from a small safetensors cache instead of running the text encoder. |
 | `--no-validate-health` | Skip the post-save full-file health re-decode (~0.3-0.8 s at storyboard sizes) for hosts that probe the saved file themselves. The skip is recorded as `health_check: "skipped"` in metadata and the save event. Default: validation ON. |
 | `--compile-transformer` | Opt-in `mx.compile` of the Wan denoiser(s) (~2-6% per step, output differs from eager by ~5e-4 — never a silent default). Ineligible with `--low-ram` per-block clearing or block-health diagnostics; those runs print a notice and stay eager. |
 | `--release-inactive-denoiser`, `--no-release-inactive-denoiser` | Explicit control of the A14B dual-expert release. Default: single-seed CLI runs release the inactive expert (the process exits after one item); multi-seed and Python-API runs use the model-owned default — auto-release with lazy reload (~0.3-0.7 s warm) on disk-prequantized checkpoints, resident otherwise. |
@@ -1219,6 +1227,72 @@ Python callers using `SeedVR2.restore_video_to_path(...)` follow the same contra
 rejects multi-chunk video profiles below 29 source frames or 8 overlap frames for the same
 temporal-continuity reason as the CLI. Source audio is preserved by default, and `drop_audio=True`
 is the explicit opt-out for intentionally silent saved output.
+
+#### Planning the CLI's video profile from Python
+
+`SeedVR2VideoRestorePlan.for_video(...)` makes the same plan `mlxgen upscale --video-path` makes,
+without loading weights: it reads the clip's first frame, sizes the temporal chunks against this
+Mac's memory, and either returns a frozen plan or raises `SeedVR2VideoRestoreRefused`, a
+`ValueError` whose message is the one the CLI prints and whose `reason` is
+`scale_above_safe_profile`, `beyond_memory_profile` or `below_temporal_quality_floor`. The CLI
+calls this function, so the two cannot drift.
+
+| Argument | Default | Meaning |
+| --- | --- | --- |
+| `video_path` | required | Source clip. |
+| `model_config`, `model_path` | `ModelConfig.seedvr2_3b()`, `None` | The model the run will load; sets the variant and the resident-weight reserve. |
+| `start_seconds`, `max_frames` | `0.0`, `None` | Clip window, as on `restore_video_to_path`. |
+| `resolution` | `None` (`1x`) | Shorter-edge pixels (`720` or `"720"`) or a scale factor (`"2x"`, `ScaleFactor(2)`). |
+| `temporal_chunk_size`, `temporal_chunk_overlap` | `None` (`49`/`16`, sized to memory) | An explicit value is validated and kept, as `--temporal-chunk-size`/`--temporal-chunk-overlap`. A size below 1, a negative overlap, or an overlap not smaller than the size raises `ValueError` with the CLI's message. |
+| `force_unsafe_memory_profile` | `False` | `--force-unsafe-video-memory`: returns a plan instead of refusing enlargement or a chunk beyond the memory profile. The temporal quality floor still refuses. |
+| `weights_resident` | `False` | `True` when this process already holds the loaded model. The plan reads the memory available now; by default it also reserves the model's weights, which is right before a load (as in the CLI). Once they are loaded, available memory already excludes them, and reserving them again shrinks the chunks or refuses a clip the CLI runs. |
+
+The plan carries what the call needs: `resolution`, `start_seconds`, `max_frames`,
+`effective_chunk_size`, `effective_chunk_overlap` and `enforce_memory_budget` go to
+`restore_video_to_path`; `low_ram_required`, `keep_transformer` and `cache_limit_bytes`
+(`8 * 1000**3`) describe the memory profile the CLI applies through `MemorySaver`. It also reports
+`requested_frames`, the source and target sizes, `audio_present`, `chunk_frame_limit` and
+`risk_level`. The CLI loads a fresh model for every clip and seed.
+
+The chunk size is the largest that fits the memory budget (half of the memory available when the
+plan is made, at most 48 GB), so a long clip often runs as one chunk. The VAE works on whole
+frames, which bounds the output frame size whatever the chunk: about 1.4 megapixels on a 48 GB
+budget (1280x720 is admitted). A larger frame raises `SeedVR2VideoRestoreRefused` with reason
+`beyond_memory_profile` and a message naming the largest output that fits and the `resolution` to
+ask for. The measurements behind the estimate are in
+[SeedVR2 video memory](seedvr2-video-memory.md).
+
+```python
+from mflux.callbacks.instances.memory_saver import MemorySaver
+from mflux.models.common.config.model_config import ModelConfig
+from mflux.models.seedvr2 import SeedVR2, SeedVR2VideoRestorePlan, SeedVR2VideoRestoreRefused
+
+model_config = ModelConfig.seedvr2_3b()
+try:
+    plan = SeedVR2VideoRestorePlan.for_video("clip.mp4", model_config=model_config)
+except SeedVR2VideoRestoreRefused as refused:
+    raise SystemExit(f"{refused.reason}: {refused}")
+
+model = SeedVR2(model_config=model_config)
+if plan.low_ram_required:
+    model.callbacks.register(
+        MemorySaver(model, keep_transformer=plan.keep_transformer, cache_limit_bytes=plan.cache_limit_bytes)
+    )
+model.restore_video_to_path(
+    seed=42,
+    video_path="clip.mp4",
+    output_path="clip_restored.mp4",
+    resolution=plan.resolution,
+    start_seconds=plan.start_seconds,
+    max_frames=plan.max_frames,
+    temporal_chunk_size=plan.effective_chunk_size,
+    temporal_chunk_overlap=plan.effective_chunk_overlap,
+    enforce_memory_budget=plan.enforce_memory_budget,
+)
+
+# A second clip on the same, already loaded instance: its weights are in memory.
+next_plan = SeedVR2VideoRestorePlan.for_video("next_clip.mp4", model_config=model_config, weights_resident=True)
+```
 
 ## Model Management Commands
 

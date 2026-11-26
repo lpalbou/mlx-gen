@@ -182,9 +182,9 @@ as `health_check: "skipped"` in the video metadata) and `export_json_metadata=Tr
 `load_generation_model(...)` also accepts `model_kwargs={...}`: host-provided constructor extras
 forwarded to the resolved model class (merged last, and reflected in the returned `cache_key` so
 hosts that dedupe loaded models see them as part of the identity). The current Wan options are
-`keep_text_encoder_resident=True` (keep the UMT5 text encoder resident between generations in one
-process, ~11 GB resident RAM for skipping the per-prompt reload — built for hosts that chain
-scene generations) and `prompt_embed_disk_cache=False` (opt out of the exact on-disk prompt-embed
+`keep_text_encoder_resident=True` (keep the UMT5 text encoder between generations in one process;
+it holds only the encoder's structure and file index, a few MB, since its weights are read block
+by block for every new prompt) and `prompt_embed_disk_cache=False` (opt out of the exact on-disk prompt-embed
 cache). Passing a kwarg the resolved model class does not accept raises `TypeError` at load time.
 
 Generation keywords are checked the same way. `generate_output(...)` and `generate_outputs(...)`
@@ -204,7 +204,9 @@ Runtime memory defaults for Python hosts: the first weight load in a process app
 machine-derived MLX buffer-cache limit (`total RAM / 8`, clamped to `[1 GiB, 8 GiB]`) unless a
 limit was already applied, and announces it on stderr. Hosts that call `mx.set_cache_limit`
 directly are safe: a pre-existing limit at or below half of physical RAM is recognized as
-host-managed, preserved, and announced instead of overridden. Export
+host-managed, preserved, and announced instead of overridden;
+`RuntimeMemory.host_managed_cache_limit_bytes()` (`mflux.utils.runtime_memory`) returns that limit, or `None` when the
+engine set the limit in force or none was set. Export
 `MFLUX_MLX_CACHE_LIMIT_GB=<gb>` to pick the cap yourself, or `-1` to keep the cache
 unlimited. Weight files loaded from HF-repo layouts are sequentially prefetched into the page
 cache at load (prepared MLX-Gen packages materialize near-sequentially on their own and are

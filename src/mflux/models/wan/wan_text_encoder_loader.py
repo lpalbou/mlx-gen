@@ -1,26 +1,17 @@
-from collections.abc import Iterator
-from contextlib import contextmanager
 from pathlib import Path
-from threading import RLock
-from typing import Any
+
+from mflux.models.wan.wan_text_encoder import WanTextEncoder
 
 
 class WanTextEncoderLoader:
     BERNINI_PRECISION_POLICY_ID = "bernini-umt5-official-v2"
+    # Part of every prompt-embedding cache key, so embeddings encoded another way (0.40.1 and earlier: the whole
+    # encoder in bfloat16 on the CPU) never match and are never served for this encoder.
+    ENCODE_POLICY_ID = "umt5-float32-block-streamed-v1"
 
-    _load_lock = RLock()
-    _missing = object()
-
-    @classmethod
-    def load(cls, *, text_encoder_path: Path, torch_dtype: Any, bernini_compatibility: bool) -> Any:
-        from transformers import UMT5EncoderModel
-
-        with cls._precision_scope(UMT5EncoderModel, bernini_compatibility=bernini_compatibility):
-            return UMT5EncoderModel.from_pretrained(
-                text_encoder_path,
-                torch_dtype=torch_dtype,
-                local_files_only=True,
-            )
+    @staticmethod
+    def load(*, text_encoder_path: Path) -> WanTextEncoder:
+        return WanTextEncoder(text_encoder_path)
 
     @classmethod
     def precision_policy_id(cls, model_config) -> str | None:
@@ -29,9 +20,3 @@ class WanTextEncoderLoader:
         ):
             return cls.BERNINI_PRECISION_POLICY_ID
         return None
-
-    @classmethod
-    @contextmanager
-    def _precision_scope(cls, model_class, *, bernini_compatibility: bool) -> Iterator[None]:
-        with cls._load_lock:
-            yield

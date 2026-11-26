@@ -2,6 +2,7 @@ from types import SimpleNamespace
 
 import mlx.core as mx
 import pytest
+from mlx import nn
 
 import mflux.models.flux2.variants.txt2img.flux2_klein as flux2_klein_module
 from mflux.callbacks.callback_registry import CallbackRegistry
@@ -30,6 +31,11 @@ class _FakeTextEncoder:
         return mx.ones((1, 8, 16), dtype=mx.float32)
 
 
+class _ZeroTransformer(nn.Module):
+    def __call__(self, **kwargs):
+        return mx.zeros_like(kwargs["hidden_states"])
+
+
 class _FakeVAE:
     def decode_packed_latents(self, packed_latents):
         # Identity decode keeps the final latents observable for equality checks.
@@ -48,7 +54,7 @@ def _install_fake_flux2(monkeypatch):
         model.tokenizers = {"qwen3": _FakeTokenizer()}
         model.text_encoder = text_encoder
         model.vae = _FakeVAE()
-        model.transformer = lambda **kwargs: mx.zeros_like(kwargs["hidden_states"])
+        model.transformer = _ZeroTransformer()
         model.bits = None
         model.lora_paths = None
         model.lora_scales = None
@@ -165,7 +171,7 @@ class TestFlux2CompiledPredictReuse:
 
         _generate(model, seed=1)
         first_entries = dict(model.compiled_predict_cache._entries)
-        model.transformer = lambda **kwargs: mx.zeros_like(kwargs["hidden_states"])
+        model.transformer = _ZeroTransformer()
         _generate(model, seed=2)
         second_entries = dict(model.compiled_predict_cache._entries)
 

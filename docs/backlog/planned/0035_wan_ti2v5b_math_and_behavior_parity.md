@@ -185,7 +185,7 @@ mismatch, users will waste long video runs and may draw the wrong conclusion abo
 
 ## 2026-06-10 Findings
 
-- User-provided TI2V-5B clips under `/Users/albou/Desktop/vidgen/wan*` show a consistent practical
+- User-provided TI2V-5B clips under `vidgen/wan*` show a consistent practical
   pattern: very small outputs such as `448x256` and `480x256` are not useful for quality assessment,
   while `832x480` and `1280x704` can produce coherent scenes but weak main-subject translation for
   the starship-takeoff prompt.

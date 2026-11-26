@@ -175,9 +175,14 @@ fast but does not preserve source motion. See [lora.md](lora.md).
 
 ## Repeat runs and applications
 
-- Identical prompts are served from an on-disk prompt-embedding cache; `--no-prompt-cache`
-  disables it. `--keep-text-encoder` keeps the roughly 11 GB text encoder resident between
-  generations in one process.
+- Identical prompts are served from an on-disk prompt-embedding cache
+  (`~/Library/Caches/mflux/prompt_embeds/wan`, 64 entries); `--no-prompt-cache` disables it. A new
+  prompt takes 1.2 to 3.9 s to encode (UMT5 in float32 on the GPU, read one block at a time, about
+  1.2 GiB while it runs). `--keep-text-encoder` keeps the encoder's structure between generations
+  in one process; its weights are read for every new prompt.
+- For a given prompt and seed, Wan output differs slightly from 0.40.1's (exact float32
+  embeddings since 0.40.2), and cache entries written by 0.40.1 are not reused. To reproduce a
+  0.40.1 clip exactly, install `mlx-gen==0.40.1`. See [Wan prompt encoding](https://raw.githubusercontent.com/lpalbou/mlx-gen/main/docs/wan-text-encoder.md).
 - `--no-validate-health` skips the post-save re-decode (recorded as `health_check: "skipped"`).
 - Several seeds in one command reuse the loaded model and write one MP4 per seed.
 - Experimental A14B image-to-video continuation controls (`--last-image`, `--context-frames`,

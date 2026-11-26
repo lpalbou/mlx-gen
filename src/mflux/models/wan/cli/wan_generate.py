@@ -602,9 +602,9 @@ def _parser() -> argparse.ArgumentParser:
         "--keep-text-encoder",
         action="store_true",
         help=(
-            "Keep the UMT5 text encoder resident between generations in this process instead of "
-            "loading and releasing it per prompt encode. Trades ~11 GB resident RAM for skipping "
-            "the reload on every new prompt (useful for hosts that chain scene generations)."
+            "Keep the UMT5 text encoder between generations in this process instead of building and "
+            "releasing it per new prompt. It holds only the encoder's structure and file index (a few MB): "
+            "its weights are read block by block for every new prompt either way."
         ),
     )
     parser.add_argument(

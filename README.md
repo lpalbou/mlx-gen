@@ -128,6 +128,9 @@ MLX-Gen optimized package passed a visual release gate. Release evidence should 
 
 ## Install
 
+MLX-Gen needs Python 3.10 or newer. On macOS it installs MLX 0.32.4 or later
+(`mlx>=0.32.4,<0.33.0`).
+
 Install with `uv`:
 
 ```sh
@@ -453,7 +456,11 @@ progress callbacks make long runs observable.
 
 Release notes are in the [changelog](CHANGELOG.md); the 0.40 releases lower MiniMax-H3's peak
 memory to 37.0 GiB with the 8-bit package (11.1 GiB with `--stream-blocks --low-ram`), runs the released
-16-bit weights, and publishes them as `AbstractFramework/minimax-h3-bf16`.
+16-bit weights, and publishes them as `AbstractFramework/minimax-h3-bf16`. 0.40.2 requires MLX
+0.32.4 or later on macOS, encodes a new Wan prompt in seconds in float32 (for a given prompt and
+seed, Wan output differs slightly from 0.40.1's; see [Wan prompt encoding](docs/wan-text-encoder.md)),
+and runs the SeedVR2 video VAE in a fraction of the memory with identical output, up to about
+1.4 megapixels per frame on a 48 GB budget (see [SeedVR2 video memory](docs/seedvr2-video-memory.md)).
 
 - [Getting started](docs/getting-started.md): installation, first runs, SeedVR2 upscaling, and Wan video.
 - [API and CLI](docs/api.md): command surface, router behavior, image-to-image modes, generative reframe, backend-specific outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.
