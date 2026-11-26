@@ -621,6 +621,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../wan-text-encoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Prompt Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../minimax-h3/" class="md-nav__link">
         
   
@@ -685,6 +713,34 @@
     
   
     Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seedvr2-video-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SeedVR2 Video Memory
   
 
     
@@ -875,6 +931,17 @@
     <span class="md-ellipsis">
       
         Qwen Image Edit 2511 reframe/outpaint/multi-reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flux2-klein-9b-edit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FLUX.2 Klein 9B edit
       
     </span>
   </a>
@@ -1429,6 +1496,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#flux2-klein-9b-edit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FLUX.2 Klein 9B edit
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#flux2-klein-base-4b-outpaint" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1663,13 +1741,22 @@ yet passed a visible accepted-adapter A/B proof.</p>
 <li>a cached Hugging Face adapter id in <code>owner/repo:file.safetensors</code> form.</li>
 </ul>
 <p>The file part can include a subdirectory:</p>
-<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--model<span class="w"> </span>&lt;compatible-model&gt;<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"&lt;prompt from the adapter model card&gt;"</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--lora-paths<span class="w"> </span>owner/repo:adapter.safetensors<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>dx8152/Flux2-Klein-9B-Consistency<span class="w"> </span>--all-files
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>path/to/source.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Make it a snowy evening. Keep the same subject, proportions, and camera angle."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>dx8152/Flux2-Klein-9B-Consistency:Flux2-Klein-9B-consistency-V2.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.8<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>with_lora.png
 </code></pre></div>
+<p>That is the validated FLUX.2 Klein 9B <code>flux2.edit</code> row (profile
+<code>lora_flux2_klein9b_q8_consistency_edit_2026_06_11</code>): an image-to-image LoRA for
+<code>black-forest-labs/FLUX.2-klein-9B</code> that keeps edits consistent with the source, with no trigger
+word, validated at scale 0.8.</p>
 <p>The number of <code>--lora-scales</code> values must match the number of <code>--lora-paths</code> values exactly.
 Passing scales without paths fails before model load.</p>
 <h2 id="adapter-compatibility">Adapter Compatibility<a class="headerlink" href="#adapter-compatibility" title="Permanent link">&para;</a></h2>
@@ -1717,6 +1804,29 @@ latent, multi-reference, reframe, or outpaint route.</p>
 </ul>
 <p>These rows are validated route-by-route. The Lightning adapter is the fast baseline; the
 multi-angle adapter is what changes the viewpoint behavior on top of that exact route.</p>
+<h3 id="flux2-klein-9b-edit">FLUX.2 Klein 9B edit<a class="headerlink" href="#flux2-klein-9b-edit" title="Permanent link">&para;</a></h3>
+<p>Validated row (profile <code>lora_flux2_klein9b_q8_consistency_edit_2026_06_11</code>):</p>
+<ul>
+<li>model: <code>AbstractFramework/flux.2-klein-9b-8bit</code></li>
+<li>route: <code>flux2.edit</code></li>
+<li>adapter: <code>dx8152/Flux2-Klein-9B-Consistency:Flux2-Klein-9B-consistency-V2.safetensors</code></li>
+</ul>
+<p>An image-to-image LoRA for <code>black-forest-labs/FLUX.2-klein-9B</code> (apache-2.0) that keeps Klein edits
+consistent with the source; it has no trigger word. Validated command:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>docs/assets/examples/spaceship-snow/01_t2i_spaceship_snow.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Edit the source into the same spaceship after a hard landing in the snow at blue hour. Preserve the same spaceship design, hull proportions, cockpit shape, engine placement, snowy canyon layout, and wide camera angle. Add disturbed snow, bent landing struts, a shallow scrape trail, broken ice chunks, and a thin smoke plume. Keep the ship solid, sharp, and consistent."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">432</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">240</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">9801</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>dx8152/Flux2-Klein-9B-Consistency:Flux2-Klein-9B-consistency-V2.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.8<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>flux2_klein9b_q8_with_lora_edit.png
+</code></pre></div>
+<p>A/B evidence: <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/lora-2026-06-11/flux2_klein9b_q8_consistency_ab_contact_sheet.png">contact sheet</a>.</p>
 <h3 id="flux2-klein-base-4b-outpaint">FLUX.2 Klein base 4B outpaint<a class="headerlink" href="#flux2-klein-base-4b-outpaint" title="Permanent link">&para;</a></h3>
 <p>Validated row:</p>
 <ul>

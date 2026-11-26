@@ -1,0 +1,1871 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/seedvr2-video-memory/">
+      
+      
+        <link rel="prev" href="../upscaling/">
+      
+      
+        <link rel="next" href="../bernini/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>SeedVR2 Video Memory - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#seedvr2-video-memory" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              SeedVR2 Video Memory
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../previews/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generation Previews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wan-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wan-text-encoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Prompt Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../minimax-h3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../minimax-h3-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 memory, speed and quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upscaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SeedVR2 Video Memory
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SeedVR2 Video Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-vae-does-in-a-restoration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What The VAE Does In A Restoration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-it-cost-so-much-on-mlx-032" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why It Cost So Much On MLX 0.32
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-0402-runs-a-causal-3d-convolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How 0.40.2 Runs A Causal 3D Convolution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#measured-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured Impact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#identical-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identical Output
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-changes-for-you" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Changes For You
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-is-validated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Is Validated
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-vae-does-in-a-restoration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What The VAE Does In A Restoration
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-it-cost-so-much-on-mlx-032" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why It Cost So Much On MLX 0.32
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-0402-runs-a-causal-3d-convolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How 0.40.2 Runs A Causal 3D Convolution
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#measured-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured Impact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#identical-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Identical Output
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-changes-for-you" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Changes For You
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-is-validated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Is Validated
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="seedvr2-video-memory">SeedVR2 Video Memory<a class="headerlink" href="#seedvr2-video-memory" title="Permanent link">&para;</a></h1>
+<p>A SeedVR2 video restoration spends most of its working memory in the VAE, the network that turns
+frames into latents and latents back into frames. This page explains what the VAE does in a
+restoration, why it needed so much memory on MLX 0.32, how MLX-Gen 0.40.2 runs it, what that
+changes in memory, speed and output, and what limits the frame size now. It complements
+<a href="../upscaling/">Image and video upscaling</a>, which covers commands, models and quality proofs, and
+<a href="../api/#planning-the-clis-video-profile-from-python">API and CLI</a>, which covers planning a run from
+Python.</p>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Routes</strong>: SeedVR2 video restoration (<code>mlxgen upscale --video-path</code>,
+  <code>SeedVR2.restore_video_to_path</code>) and, through the same layers, SeedVR2 image restoration.</li>
+<li><strong>How it runs</strong>: each causal 3D convolution of the VAE sums its temporal taps one output frame
+  at a time, evaluates every convolution as it completes, and keeps its causal memory as a copy of
+  two frames.</li>
+<li><strong>Output</strong>: identical, bit for bit. Restored MP4s and images have the same SHA-256 as with
+  0.40.1's VAE.</li>
+<li><strong>Memory</strong>: a 17-frame 640x352 restoration works in 7.0 GB instead of 62.5 GB. From about
+  320x192 up, the VAE needs 28 to 32 KB per output pixel instead of about 190 KB, little dependent
+  on the chunk length; below about 128x128 (16,384 pixels) part of the decoder keeps MLX's single
+  call and the VAE needs up to 1.3 GB whatever the size.</li>
+<li><strong>Speed</strong>: the same or faster: 640x352 x 17 restores in 14.9 s instead of 20.5 s.</li>
+<li><strong>Largest frame</strong>: on the safe profile's 48 GB budget, about 1.4 megapixels per frame
+  (1552x880 for a 17-frame 16:9 clip); 1280x720 is admitted, a larger frame is refused before the
+  model loads. 0.40.1 left the VAE out of its plan and let such frames swap: a 49-frame 720p chunk
+  peaked at 172 GB.</li>
+<li><strong>What changes for you</strong>: 640x352 to 1280x720 restorations run on the safe profile, and the plan
+  counts the VAE when it sizes temporal chunks, which keeps long clips in long chunks. There is no
+  new option.</li>
+</ul>
+<h2 id="what-the-vae-does-in-a-restoration">What The VAE Does In A Restoration<a class="headerlink" href="#what-the-vae-does-in-a-restoration" title="Permanent link">&para;</a></h2>
+<p>A restoration processes the clip in temporal chunks. For each chunk, the VAE encoder turns the
+frames into latents (8 times smaller in height and width, 4 times fewer frames), the SeedVR2
+transformer restores the latents in one step, and the VAE decoder turns them back into frames,
+which are colour-corrected and written to the MP4.</p>
+<pre class="mermaid"><code>flowchart LR
+    S["Source frames&lt;br/&gt;(one temporal chunk)"] --&gt; E["VAE encoder&lt;br/&gt;causal 3D convolutions"]
+    E --&gt; L["Latents&lt;br/&gt;H/8 x W/8, (T-1)/4+1 frames"]
+    L --&gt; D["SeedVR2 transformer&lt;br/&gt;one step"]
+    D --&gt; V["VAE decoder&lt;br/&gt;causal 3D convolutions"]
+    V --&gt; C["Colour correction&lt;br/&gt;and MP4 write"]</code></pre>
+<p>Both halves of the VAE are stacks of causal 3D convolutions: each output frame depends on its own
+input frame and the two before it (three temporal taps). The encoder and decoder walk through a
+chunk in temporal slices of four to five frames, and each causal convolution keeps the frames the
+next slice needs (its causal memory): two frames, one for the stride-2 temporal downsamplers.
+Every layer works on whole frames: the largest tensors are the decoder's last blocks at the full
+output size.</p>
+<h2 id="why-it-cost-so-much-on-mlx-032">Why It Cost So Much On MLX 0.32<a class="headerlink" href="#why-it-cost-so-much-on-mlx-032" title="Permanent link">&para;</a></h2>
+<p>Measured on MLX 0.32.5 with 0.40.1's VAE code, which handed each causal convolution to MLX as one
+3D convolution call:</p>
+<ul>
+<li><strong>Per-tap scratch.</strong> MLX 0.32 runs a 3D convolution as one batched 2D convolution per temporal
+  tap and keeps every tap's scratch until the whole call completes. One call peaks at about 20
+  times its input: 6.13 GB for a 256-channel, 5-frame call at 320x192, against 0.45 GB on MLX 0.31.</li>
+<li><strong>Stacked lazy evaluation.</strong> MLX evaluates lazily and frees a convolution's scratch only when the
+  command buffer that ran it completes, so the scratch of several convolutions sharing a buffer was
+  alive at once.</li>
+<li><strong>Pinned causal memory.</strong> The causal memory was a view of the convolution's padded input, which
+  kept that whole input alive until the next slice.</li>
+</ul>
+<p>Together they made the VAE about 190 KB per output pixel: 62 GB for a 17-frame 640x352 chunk, and
+an estimated 251 GB at 1280x720. 0.40.1 did not count the VAE in its plan, so such frames were
+planned as safe and swapped; counted with these convolutions, the plan could only have admitted
+frames up to about 560x304 on a 48 GB budget.</p>
+<h2 id="how-0402-runs-a-causal-3d-convolution">How 0.40.2 Runs A Causal 3D Convolution<a class="headerlink" href="#how-0402-runs-a-causal-3d-convolution" title="Permanent link">&para;</a></h2>
+<p><code>CausalConv3d</code> in
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/src/mflux/models/seedvr2/model/seedvr2_vae/common/conv3d.py"><code>src/mflux/models/seedvr2/model/seedvr2_vae/common/conv3d.py</code></a>
+computes the same sums itself, one output frame at a time:</p>
+<pre class="mermaid"><code>flowchart TD
+    I["Input slice: frames 0..T-1&lt;br/&gt;(+ causal memory, or the first frame&lt;br/&gt;repeated twice at the clip start)"] --&gt; F["Padded frames p0 .. p(T+1)"]
+    F --&gt; O["Output frame t"]
+    O --&gt; T0["2D convolution of p(t) with tap 0"]
+    T0 --&gt; E0["evaluate"]
+    E0 --&gt; T1["+ 2D convolution of p(t+1) with tap 1"]
+    T1 --&gt; E1["evaluate"]
+    E1 --&gt; T2["+ 2D convolution of p(t+2) with tap 2, + bias"]
+    T2 --&gt; E2["evaluate output frame t"]
+    E2 --&gt; N{"t &lt; T-1?"}
+    N -- "yes: t + 1" --&gt; O
+    N -- "no" --&gt; M["Stack the output frames&lt;br/&gt;keep p(T), p(T+1) as an evaluated copy&lt;br/&gt;(the causal memory)"]</code></pre>
+<ul>
+<li>The taps are summed in the order MLX sums them, and each 2D convolution is the one MLX would run
+  for that tap, so the result is bit-identical; only one tap's scratch is alive at a time.</li>
+<li>Every convolution's output is evaluated before the next layer runs, so scratch cannot stack in
+  one command buffer.</li>
+<li>The causal memory is an evaluated copy of the two frames the next slice needs, not a view of the
+  whole padded input.</li>
+</ul>
+<p>The per-frame sums are used only in the cases verified bit-identical to MLX's single call on MLX
+0.32.5: batch 1, unit stride, input channels a multiple of 16, output channels at most 16 or a
+multiple of 16, and frames of at least 4096 pixels. These are the cases measured, not MLX's own
+rule: with a batch of 2, with 17 to 31 or 100 output channels, or with smaller frames the sums
+differ. Every other convolution keeps the single 3D call, still evaluated as it completes; in
+SeedVR2 that is the 3-channel input layer, the strided downsamplers, and frames under 4096 pixels,
+which for the decoder's half-resolution layers means outputs under 16,384 pixels.</p>
+<h2 id="measured-impact">Measured Impact<a class="headerlink" href="#measured-impact" title="Permanent link">&para;</a></h2>
+<p>Full restorations through the public Python path (the plan, a fresh 3B model with the plan's
+memory profile, <code>restore_video_to_path</code> with the plan's values), synthetic 17-frame clips, seed 42,
+<code>1x</code>, SeedVR2 3B (<code>numz/SeedVR2_comfyUI</code> source weights), MLX 0.32.5, an M5 Max with 128 GB.
+Working peak is the MLX peak minus the 7.28 GB of resident weights; footprint is the process's
+physical footprint (weights, working memory and the 8 GB MLX cache of the safe profile).</p>
+<table>
+<thead>
+<tr>
+<th>Output, 17 frames</th>
+<th>Working peak, 0.40.1's VAE</th>
+<th>Working peak, 0.40.2</th>
+<th>Footprint, 0.40.1's VAE</th>
+<th>Footprint, 0.40.2</th>
+<th>Restore time, 0.40.1's VAE</th>
+<th>Restore time, 0.40.2</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>320x192</td>
+<td>17.09 GB</td>
+<td>1.93 GB</td>
+<td>23.9 GB</td>
+<td>17.0 GB</td>
+<td>5.3 s</td>
+<td>4.8 s</td>
+<td>identical</td>
+</tr>
+<tr>
+<td>480x272</td>
+<td>36.11 GB</td>
+<td>4.08 GB</td>
+<td>33.9 GB</td>
+<td>18.3 GB</td>
+<td>10.8 s</td>
+<td>9.2 s</td>
+<td>identical</td>
+</tr>
+<tr>
+<td>640x352</td>
+<td>62.49 GB</td>
+<td>7.03 GB</td>
+<td>47.5 GB</td>
+<td>21.4 GB</td>
+<td>20.5 s</td>
+<td>14.9 s</td>
+<td>identical</td>
+</tr>
+<tr>
+<td>960x528</td>
+<td>not run (estimated 138.9 GB)</td>
+<td>15.80 GB</td>
+<td>-</td>
+<td>28.5 GB</td>
+<td>-</td>
+<td>32.9 s</td>
+<td>layer-level identity</td>
+</tr>
+<tr>
+<td>1280x720</td>
+<td>not run (estimated 251.0 GB)</td>
+<td>28.72 GB</td>
+<td>-</td>
+<td>40.5 GB</td>
+<td>-</td>
+<td>60.9 s</td>
+<td>layer-level identity</td>
+</tr>
+<tr>
+<td>480x272, 97 frames in one chunk</td>
+<td>-</td>
+<td>4.22 GB</td>
+<td>-</td>
+<td>18.9 GB</td>
+<td>-</td>
+<td>47.6 s</td>
+<td>layer-level identity</td>
+</tr>
+</tbody>
+</table>
+<p>The footprint falls less than the working memory because it also holds the 7.28 GB of weights and
+up to 8 GB of MLX cache, the safe profile's cache limit. Times vary by about 20% between runs of the
+same restoration on this machine (the calibration runs of 0.40.2 took 3.4, 6.8 and 12.4 s at the
+first three sizes).</p>
+<p>The working memory no longer grows with the chunk length: at 640x352 it is 2.4 GB for one
+frame and 7.0 to 7.3 GB from 9 to 97 frames.</p>
+<h2 id="identical-output">Identical Output<a class="headerlink" href="#identical-output" title="Permanent link">&para;</a></h2>
+<p>At 320x192, 480x272 and 640x352 (17 frames, seed 42), the restored MP4s have the same SHA-256 as
+those of 0.40.1's VAE, and the float frames handed to the video writer are equal bit for bit. A
+SeedVR2 image upscale (64x64 to 128x128, seed 42) writes the same PNG bytes. End-to-end identity
+is shown where the previous code could run; at the larger sizes it rests on layer-level identity:
+every convolution SeedVR2 builds gives the same bits as the single call, checked on 6,000 cases
+at the real layer shapes, including large frames and every slice sequence. The 640x352 reference
+was run once with 0.40.1's VAE and <code>--force-unsafe-video-memory</code>, whose memory checks would
+otherwise have stopped it.</p>
+<h2 id="what-changes-for-you">What Changes For You<a class="headerlink" href="#what-changes-for-you" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Larger outputs run.</strong> Frames up to the limit below run on the safe profile, with the memory
+  checks in force: 640x352, 960x528 and 1280x720 at <code>1x</code> need no <code>--force-unsafe-video-memory</code>.</li>
+<li><strong>Temporal chunks.</strong> The plan picks the largest chunk that fits the memory budget, counting the
+  VAE. 0.40.1 left the VAE out of its estimate, so a chunk is never longer than 0.40.1 planned it;
+  with the VAE this small, long clips keep long chunks, often the whole clip (a 97-frame 480x272
+  clip runs as one chunk on a 48 GB budget, where counting 0.40.1's VAE would have cut it to 81-frame
+  chunks). Explicit <code>--temporal-chunk-size</code> and <code>--temporal-chunk-overlap</code> are kept as given.</li>
+<li><strong>No new option, no new plan field.</strong> <code>SeedVR2VideoRestorePlan</code> keeps its fields; only what it
+  admits changes.</li>
+</ul>
+<h2 id="limits">Limits<a class="headerlink" href="#limits" title="Permanent link">&para;</a></h2>
+<p>The VAE still works on whole frames. What remains grows with the frame area, little with the
+chunk length: the whole-frame activations of one temporal slice, largest in the decoder's last,
+full-resolution blocks, and each convolution's causal memory, 28 to 32 KB per output pixel from
+about 320x192 up. Smaller frames need more per pixel: under 16,384 pixels (about 128x128) the
+decoder's half-resolution layers keep MLX's single call. There the estimate uses floors fitted to
+the measurements from 64x64 to 144x112 (0.60 to 1.32 GB): 0.45 GB plus 56 KB per pixel under
+16,384 pixels, and 0.30 GB plus 25 KB per pixel from there to 320x192. On the 1 GB minimum budget
+of a small Mac this admits 64x64, 96x64 and 128x128 (measured 0.60 to 0.69 GB) and refuses 160x96,
+144x112 and 320x192 (measured 1.24 to 1.93 GB). The table is calibrated on SeedVR2 3B; the 7B variants use
+the same VAE, but their working set was not measured. The plan refuses an output frame
+whose smallest allowed chunk does not fit the budget (half of the memory available when the plan
+is made, at most 48 GB), with the reason <code>beyond_memory_profile</code>, the size that does not fit, and
+the largest output that fits with the <code>--resolution</code> to ask for.</p>
+<p>On a 48 GB budget the largest output is about 1.4 megapixels per frame (1552x880 for a 17-frame
+16:9 clip); 1280x720 is admitted and 1920x1080 (1920x1072 after cropping to a multiple of 16) is
+refused:</p>
+<div class="highlight"><pre><span></span><code>SeedVR2 video restore cannot fit a 1920x1072 output frame in this machine's video memory budget (48.0 GB): the VAE works on whole frames, so this size needs about 70.8 GB whatever the temporal chunk size. The largest output that fits is 1552x880 (1365760 pixels per frame): use --resolution 880 or smaller, or --force-unsafe-video-memory to run this size anyway.
+</code></pre></div>
+<p>The budget follows the memory available when the plan is made, so a Mac with less free memory gets
+a lower limit. Scales above <code>1x</code> remain refused on the safe profile, whatever the frame size.</p>
+<p>The per-frame sums rest on MLX 0.32's convolution dispatch. The memory table and the tap guard are
+tied to <code>SeedVR2Util.VIDEO_VAE_MEMORY_MLX_RANGE</code> (0.32.4 to below 0.33); a new MLX version needs
+the bitwise test below and the memory table re-checked before the range is widened.</p>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<p>Restore 49 frames of a 1280x720 clip at its own size. The plan is made before the model loads, so
+a frame that does not fit is refused at once:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>upscale<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>seedvr2-3b<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--video-path<span class="w"> </span>clip_720p.mp4<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--max-frames<span class="w"> </span><span class="m">49</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>clip_720p_restored.mp4
+</code></pre></div>
+<p>From Python, plan first, then pass the plan's values:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.callbacks.instances.memory_saver</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemorySaver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.common.config.model_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.seedvr2</span><span class="w"> </span><span class="kn">import</span> <span class="n">SeedVR2</span><span class="p">,</span> <span class="n">SeedVR2VideoRestorePlan</span><span class="p">,</span> <span class="n">SeedVR2VideoRestoreRefused</span>
+
+<span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="o">.</span><span class="n">seedvr2_3b</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">plan</span> <span class="o">=</span> <span class="n">SeedVR2VideoRestorePlan</span><span class="o">.</span><span class="n">for_video</span><span class="p">(</span><span class="s2">"clip_720p.mp4"</span><span class="p">,</span> <span class="n">model_config</span><span class="o">=</span><span class="n">model_config</span><span class="p">,</span> <span class="n">max_frames</span><span class="o">=</span><span class="mi">49</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">SeedVR2VideoRestoreRefused</span> <span class="k">as</span> <span class="n">refused</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">refused</span><span class="o">.</span><span class="n">reason</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">refused</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">SeedVR2</span><span class="p">(</span><span class="n">model_config</span><span class="o">=</span><span class="n">model_config</span><span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
+    <span class="n">MemorySaver</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">keep_transformer</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">keep_transformer</span><span class="p">,</span> <span class="n">cache_limit_bytes</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">cache_limit_bytes</span><span class="p">)</span>
+<span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">restore_video_to_path</span><span class="p">(</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">video_path</span><span class="o">=</span><span class="s2">"clip_720p.mp4"</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">"clip_720p_restored.mp4"</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">resolution</span><span class="p">,</span>
+    <span class="n">start_seconds</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">start_seconds</span><span class="p">,</span>
+    <span class="n">max_frames</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">max_frames</span><span class="p">,</span>
+    <span class="n">temporal_chunk_size</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">effective_chunk_size</span><span class="p">,</span>
+    <span class="n">temporal_chunk_overlap</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">effective_chunk_overlap</span><span class="p">,</span>
+    <span class="n">enforce_memory_budget</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">enforce_memory_budget</span><span class="p">,</span>
+<span class="p">)</span>
+</code></pre></div>
+<h2 id="how-it-is-validated">How It Is Validated<a class="headerlink" href="#how-it-is-validated" title="Permanent link">&para;</a></h2>
+<p>Fast tests, no weights needed:</p>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>What it checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tests/seedvr2/test_seedvr2_causal_conv3d_exact.py::test_causal_conv3d_is_bitwise_the_single_3d_convolution_across_chunks</code></td>
+<td>Across a 5-frame, a 1-frame and a 4-frame slice, in the VAE's dtype mixes (bfloat16 or float32 activations, float16 weights), output and causal memory equal the single 3D call bit for bit, and the expected path runs: the per-frame sums for the verified cases (including exactly 4096 pixels and 3 output channels), the single call for 20 output channels, a batch of 2, 3 input channels, 40x40, 60x64 and 63x65 frames, and stride 2 above 4096 pixels. It fails if a new MLX changes its algorithm switch.</td>
+</tr>
+<tr>
+<td><code>tests/seedvr2/test_seedvr2_causal_conv3d_exact.py::test_the_vae_layers_that_run_on_large_frames_take_the_taps</code></td>
+<td>Every unit-stride causal convolution of the real VAE layout with a multiple of 16 input channels takes the per-frame sums on a 64x64 frame.</td>
+</tr>
+<tr>
+<td><code>tests/seedvr2/test_seedvr2_causal_conv3d_exact.py::test_the_taps_need_a_fraction_of_the_single_call_memory</code></td>
+<td>On a 128-channel, 5-frame, 128x128 layer the per-frame sums peak at under a quarter of the single call (measured: 0.07 against 0.94 GB).</td>
+</tr>
+<tr>
+<td><code>tests/seedvr2/test_seedvr2_causal_conv3d_exact.py::test_a_slice_leaves_only_its_output_and_a_two_frame_memory_alive</code></td>
+<td>After a slice, only its output and a two-frame causal memory stay allocated.</td>
+</tr>
+<tr>
+<td><code>tests/seedvr2/test_seedvr2_causal_conv3d_exact.py::test_the_causal_memory_takes_the_dtype_of_the_next_slice</code>, <code>test_causal_conv3d_disabled_state_keeps_no_memory</code></td>
+<td>The memory is cast to the next slice's dtype; without temporal slicing the result is the same and no memory is kept.</td>
+</tr>
+<tr>
+<td><code>tests/seedvr2/test_seedvr2_causal_conv3d_exact.py::test_the_tap_guard_was_read_from_the_installed_mlx</code></td>
+<td>The installed MLX is inside the range the guard and the memory table were measured on.</td>
+</tr>
+<tr>
+<td><code>tests/seedvr2/test_seedvr2_video_vae_memory.py</code></td>
+<td>The estimate covers every measured working peak (39 points, 64x64 to 1280x720, 1 to 97 frames) and is at most 1.3 times it wherever the per-pixel term applies; the small-frame floors cover every small frame and admit the measured frames that work under 1 GB; the table is the measured one; 640x352 and 1280x720 are admitted on a 48 GB budget; 1920x1072 is refused before any model load with the largest size that fits; the run-time check uses the same estimate.</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-q<span class="w"> </span>tests/seedvr2/test_seedvr2_causal_conv3d_exact.py<span class="w"> </span>tests/seedvr2/test_seedvr2_video_vae_memory.py
+</code></pre></div>
+<p>The memory figures, timings and byte-identity results above come from full restorations on the
+real weights, as described in <a href="#measured-impact">Measured Impact</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -16,7 +16,7 @@
         <link rel="prev" href="../minimax-h3-memory/">
       
       
-        <link rel="next" href="../bernini/">
+        <link rel="next" href="../seedvr2-video-memory/">
       
       
         
@@ -621,6 +621,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../wan-text-encoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Prompt Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../minimax-h3/" class="md-nav__link">
         
   
@@ -956,6 +984,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seedvr2-video-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SeedVR2 Video Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1721,7 +1777,11 @@ silent restored MP4.</p>
 <li><code>--mlx-cache-limit-gb 8</code> is an MLX cache setting, not a total process-memory cap;</li>
 <li>the CLI uses sequential temporal chunking for video instead of the bounded in-memory direct path;</li>
 <li>enlarged video output profiles are rejected in safe mode unless you pass
-  <code>--force-unsafe-video-memory</code>.</li>
+  <code>--force-unsafe-video-memory</code>;</li>
+<li>the output frame size is limited by the VAE's memory: about 1.4 megapixels per frame on the
+  48 GB budget of a large Mac (1280x720 is admitted), less when less memory is free. A larger frame
+  is refused before the model loads, with the largest size that fits. See
+  <a href="../seedvr2-video-memory/">SeedVR2 video memory</a>.</li>
 </ul>
 <p><code>--vae-tiling</code> is for image runs only and is rejected on video input.</p>
 <h3 id="audio-copy-through">Audio Copy-Through<a class="headerlink" href="#audio-copy-through" title="Permanent link">&para;</a></h3>
@@ -2143,10 +2203,12 @@ ranks SwiftVR highest precisely because posterised edges are steep.</p>
 <li>SeedVR2-3B sits between them and, on this clip, offered no speed advantage over 7B.</li>
 </ul>
 <h3 id="known-limitation-on-seedvr2-at-larger-geometries">Known limitation on SeedVR2 at larger geometries<a class="headerlink" href="#known-limitation-on-seedvr2-at-larger-geometries" title="Permanent link">&para;</a></h3>
-<p>SeedVR2 currently cannot restore sources at 480x360 correctly. The minimum permitted 29-frame chunk
-exceeds the host-safe memory budget at that geometry, and forcing it through with
-<code>--force-unsafe-video-memory</code> produces intermittent corrupted frames - one pixel frame in every
-latent group of four. 320x240 and 384x288 are clean. This is tracked in backlog item
+<p>SeedVR2 video restoration is not validated for 480x360 sources. With 0.40.1, the minimum permitted
+29-frame chunk exceeded the host-safe memory budget at that geometry, and runs forced through with
+<code>--force-unsafe-video-memory</code> produced intermittent corrupted frames - one pixel frame in every
+latent group of four. 0.40.2 fits that chunk in the budget (see
+<a href="../seedvr2-video-memory/">SeedVR2 video memory</a>), and the geometry has not been re-validated: check
+the output before relying on it. 320x240 and 384x288 are clean. The open item is backlog
 <a href="../backlog/proposed/0115_seedvr2_video_decode_artifact_at_larger_geometries/">0115</a>. SwiftVR is
 unaffected and restores the same source at native 480x360.</p>
 <h2 id="model-sources">Model Sources<a class="headerlink" href="#model-sources" title="Permanent link">&para;</a></h2>

@@ -619,6 +619,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../wan-text-encoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Prompt Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../minimax-h3/" class="md-nav__link">
         
   
@@ -683,6 +711,34 @@
     
   
     Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seedvr2-video-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SeedVR2 Video Memory
   
 
     
@@ -1214,6 +1270,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#a-wan-result-does-not-match-one-made-with-0401" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A Wan Result Does Not Match One Made With 0.40.1
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#bernini-rejects-quantization-or-produces-weak-reference-fidelity" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1514,6 +1581,17 @@
     <span class="md-ellipsis">
       
         Wan Video Quality Looks Weak At Tiny Sizes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#a-wan-result-does-not-match-one-made-with-0401" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        A Wan Result Does Not Match One Made With 0.40.1
       
     </span>
   </a>
@@ -1872,6 +1950,14 @@ negative prompt explicitly.</p>
 <p>For T2V-A14B source/BF16 quality checks, use 1280x720 or 720x1280, 81 frames, 40 steps, <code>--guidance 4</code>, optional <code>--guidance-2 3</code>, and 16 fps. For mixed q8/BF16 packages, use the exact documented benchmark settings when comparing published measurements, and measure your target full-size profile before planning a long job. The separate I2V-A14B path requires a complete local <code>Wan-AI/Wan2.2-I2V-A14B-Diffusers</code> snapshot and one <code>--image</code> input.</p>
 <p>Wan uses frame-count control rather than a separate duration flag. Duration is <code>frames / fps</code>; at 24 fps, 121 frames is about 5.04 seconds, and at 16 fps, 81 frames is about 5.06 seconds. Frame counts are normalized to <code>4n + 1</code>, and width/height are normalized to the selected Wan model's VAE/patch multiple. TI2V-5B requires 32-pixel width/height multiples; A14B requires 16-pixel multiples. For image-to-video, MLX-Gen also preserves the source image aspect ratio and resolves the final output canvas from the input image plus the requested size target. See <a href="../faq/#what-wan-video-resolutions-should-i-use">What Wan Video Resolutions Should I Use?</a> for the full table.</p>
 <p>If Wan generation or MP4 save validation fails, the CLI writes a failure manifest next to the intended output path, for example <code>video.failure.json</code> for <code>video.mp4</code>. The manifest includes the error, tensor-health report when available, seed, prompt, dimensions, frames, steps, guidance, fps, output path, and memory-related runtime flags.</p>
+<h2 id="a-wan-result-does-not-match-one-made-with-0401">A Wan Result Does Not Match One Made With 0.40.1<a class="headerlink" href="#a-wan-result-does-not-match-one-made-with-0401" title="Permanent link">&para;</a></h2>
+<p>For a given prompt and seed, Wan output from 0.40.2 differs slightly from 0.40.1's: the prompt is
+encoded in float32, where 0.40.1 encoded it in bfloat16, so the scene and composition match and
+details differ. This is expected and does not depend on any option. To reproduce a 0.40.1 clip
+exactly, install that version (<code>python -m pip install "mlx-gen==0.40.1"</code>) and rerun the
+recorded prompt, seed and settings. For new work, keep 0.40.2. Prompt embeddings cached by
+0.40.1 are not reused, so the first run of each prompt encodes it again, in seconds. See
+<a href="../wan-text-encoder/#compatibility-with-0401-results">Wan prompt encoding</a>.</p>
 <h2 id="bernini-rejects-quantization-or-produces-weak-reference-fidelity">Bernini Rejects Quantization Or Produces Weak Reference Fidelity<a class="headerlink" href="#bernini-rejects-quantization-or-produces-weak-reference-fidelity" title="Permanent link">&para;</a></h2>
 <p>Bernini-R 1.3B is currently BF16-only. Omit <code>--quantize</code>. Generic Wan q4 was tested and produced
 invalid overexposed latent-like output; nominal q8 quantized zero Bernini transformer linear
@@ -1974,13 +2060,19 @@ name when you mean the downloaded package.</p>
 continuing without it. Download the LoRA repository or use a local <code>.safetensors</code> file path.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>RiverZ/normal-lora<span class="w"> </span>--all-files
 </code></pre></div>
-<p>If a repository contains several <code>.safetensors</code> files, specify the file:</p>
-<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--model<span class="w"> </span>&lt;compatible-model&gt;<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"&lt;prompt&gt;"</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--lora-paths<span class="w"> </span>owner/repo:adapter.safetensors<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--output<span class="w"> </span>image.png
+<p>If a repository contains several <code>.safetensors</code> files, specify the file, as in this validated
+FLUX.2 Klein 9B edit:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>dx8152/Flux2-Klein-9B-Consistency<span class="w"> </span>--all-files
+
+mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>path/to/source.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Make it a snowy evening. Keep the same subject, proportions, and camera angle."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>dx8152/Flux2-Klein-9B-Consistency:Flux2-Klein-9B-consistency-V2.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.8<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>with_lora.png
 </code></pre></div>
 <p><code>--lora-scales</code> must have exactly one value per adapter, and it cannot be used without
 <code>--lora-paths</code>.</p>

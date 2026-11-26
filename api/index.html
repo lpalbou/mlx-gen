@@ -619,6 +619,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../wan-text-encoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Prompt Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../minimax-h3/" class="md-nav__link">
         
   
@@ -683,6 +711,34 @@
     
   
     Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seedvr2-video-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SeedVR2 Video Memory
   
 
     
@@ -1211,6 +1267,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Python restoration routes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#planning-the-clis-video-profile-from-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planning the CLI's video profile from Python
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -1625,6 +1698,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Python restoration routes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#planning-the-clis-video-profile-from-python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Planning the CLI's video profile from Python
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
         
       </ul>
@@ -1821,15 +1911,22 @@ but the exact model/package has not yet passed a visible A/B validation with an 
 <p>Generation does not download LoRA files. Download LoRA repositories explicitly, then pass a local
 <code>.safetensors</code> file or a cached Hugging Face adapter id. The file part can include a subdirectory
 inside the adapter repository:</p>
-<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>lovis93/Flux-2-Multi-Angles-LoRA-v2<span class="w"> </span>--all-files
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>dx8152/Flux2-Klein-9B-Consistency<span class="w"> </span>--all-files
 
 mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--model<span class="w"> </span>&lt;compatible-model&gt;<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"&lt;prompt from the LoRA model card&gt;"</span><span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--lora-paths<span class="w"> </span>owner/repo:adapter.safetensors<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.9<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-9b-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>path/to/source.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Make it a snowy evening. Keep the same subject, proportions, and camera angle."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">1</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-paths<span class="w"> </span>dx8152/Flux2-Klein-9B-Consistency:Flux2-Klein-9B-consistency-V2.safetensors<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--lora-scales<span class="w"> </span><span class="m">0</span>.8<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--output<span class="w"> </span>with_lora.png
 </code></pre></div>
+<p>This is the validated FLUX.2 Klein 9B edit row (<code>flux2.edit</code>, profile
+<code>lora_flux2_klein9b_q8_consistency_edit_2026_06_11</code>): <code>dx8152/Flux2-Klein-9B-Consistency</code> is an
+image-to-image LoRA for <code>black-forest-labs/FLUX.2-klein-9B</code> that keeps edits consistent with the
+source, with no trigger word; 0.8 is the scale it was validated at.</p>
 <p>The adapter must match the selected model architecture. For example,
 <code>lovis93/Flux-2-Multi-Angles-LoRA-v2</code> targets <code>black-forest-labs/FLUX.2-dev</code>; MLX-Gen currently
 supports FLUX.2 Klein 4B/9B, so that adapter is rejected for Klein routes. The number of
@@ -3009,11 +3106,11 @@ and the source duration plus requested fps may resolve fewer <code>4n+1</code> f
 </tr>
 <tr>
 <td><code>--keep-text-encoder</code></td>
-<td>Keep the UMT5 text encoder resident between generations in one process (~11 GB resident RAM) instead of reloading it per prompt encode — for hosts that chain scene generations. Default: load-and-release.</td>
+<td>Keep the UMT5 text encoder between generations in one process instead of building and releasing it per new prompt. It holds only the encoder's structure and file index (a few MB); its weights are read block by block for every new prompt either way, so it saves well under a second. Default: build-and-release.</td>
 </tr>
 <tr>
 <td><code>--no-prompt-cache</code></td>
-<td>Disable the exact on-disk prompt-embed cache. By default, identical (encoder snapshot, tokenized prompt, length, precision) encodes are served from a small safetensors cache instead of reloading the text encoder.</td>
+<td>Disable the exact on-disk prompt-embed cache. By default, identical (encoder snapshot, tokenized prompt, length, precision) encodes are served from a small safetensors cache instead of running the text encoder.</td>
 </tr>
 <tr>
 <td><code>--no-validate-health</code></td>
@@ -3378,6 +3475,102 @@ materially increases the pixel dimensions.</p>
 rejects multi-chunk video profiles below 29 source frames or 8 overlap frames for the same
 temporal-continuity reason as the CLI. Source audio is preserved by default, and <code>drop_audio=True</code>
 is the explicit opt-out for intentionally silent saved output.</p>
+<h4 id="planning-the-clis-video-profile-from-python">Planning the CLI's video profile from Python<a class="headerlink" href="#planning-the-clis-video-profile-from-python" title="Permanent link">&para;</a></h4>
+<p><code>SeedVR2VideoRestorePlan.for_video(...)</code> makes the same plan <code>mlxgen upscale --video-path</code> makes,
+without loading weights: it reads the clip's first frame, sizes the temporal chunks against this
+Mac's memory, and either returns a frozen plan or raises <code>SeedVR2VideoRestoreRefused</code>, a
+<code>ValueError</code> whose message is the one the CLI prints and whose <code>reason</code> is
+<code>scale_above_safe_profile</code>, <code>beyond_memory_profile</code> or <code>below_temporal_quality_floor</code>. The CLI
+calls this function, so the two cannot drift.</p>
+<table>
+<thead>
+<tr>
+<th>Argument</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>video_path</code></td>
+<td>required</td>
+<td>Source clip.</td>
+</tr>
+<tr>
+<td><code>model_config</code>, <code>model_path</code></td>
+<td><code>ModelConfig.seedvr2_3b()</code>, <code>None</code></td>
+<td>The model the run will load; sets the variant and the resident-weight reserve.</td>
+</tr>
+<tr>
+<td><code>start_seconds</code>, <code>max_frames</code></td>
+<td><code>0.0</code>, <code>None</code></td>
+<td>Clip window, as on <code>restore_video_to_path</code>.</td>
+</tr>
+<tr>
+<td><code>resolution</code></td>
+<td><code>None</code> (<code>1x</code>)</td>
+<td>Shorter-edge pixels (<code>720</code> or <code>"720"</code>) or a scale factor (<code>"2x"</code>, <code>ScaleFactor(2)</code>).</td>
+</tr>
+<tr>
+<td><code>temporal_chunk_size</code>, <code>temporal_chunk_overlap</code></td>
+<td><code>None</code> (<code>49</code>/<code>16</code>, sized to memory)</td>
+<td>An explicit value is validated and kept, as <code>--temporal-chunk-size</code>/<code>--temporal-chunk-overlap</code>. A size below 1, a negative overlap, or an overlap not smaller than the size raises <code>ValueError</code> with the CLI's message.</td>
+</tr>
+<tr>
+<td><code>force_unsafe_memory_profile</code></td>
+<td><code>False</code></td>
+<td><code>--force-unsafe-video-memory</code>: returns a plan instead of refusing enlargement or a chunk beyond the memory profile. The temporal quality floor still refuses.</td>
+</tr>
+<tr>
+<td><code>weights_resident</code></td>
+<td><code>False</code></td>
+<td><code>True</code> when this process already holds the loaded model. The plan reads the memory available now; by default it also reserves the model's weights, which is right before a load (as in the CLI). Once they are loaded, available memory already excludes them, and reserving them again shrinks the chunks or refuses a clip the CLI runs.</td>
+</tr>
+</tbody>
+</table>
+<p>The plan carries what the call needs: <code>resolution</code>, <code>start_seconds</code>, <code>max_frames</code>,
+<code>effective_chunk_size</code>, <code>effective_chunk_overlap</code> and <code>enforce_memory_budget</code> go to
+<code>restore_video_to_path</code>; <code>low_ram_required</code>, <code>keep_transformer</code> and <code>cache_limit_bytes</code>
+(<code>8 * 1000**3</code>) describe the memory profile the CLI applies through <code>MemorySaver</code>. It also reports
+<code>requested_frames</code>, the source and target sizes, <code>audio_present</code>, <code>chunk_frame_limit</code> and
+<code>risk_level</code>. The CLI loads a fresh model for every clip and seed.</p>
+<p>The chunk size is the largest that fits the memory budget (half of the memory available when the
+plan is made, at most 48 GB), so a long clip often runs as one chunk. The VAE works on whole
+frames, which bounds the output frame size whatever the chunk: about 1.4 megapixels on a 48 GB
+budget (1280x720 is admitted). A larger frame raises <code>SeedVR2VideoRestoreRefused</code> with reason
+<code>beyond_memory_profile</code> and a message naming the largest output that fits and the <code>resolution</code> to
+ask for. The measurements behind the estimate are in
+<a href="../seedvr2-video-memory/">SeedVR2 video memory</a>.</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.callbacks.instances.memory_saver</span><span class="w"> </span><span class="kn">import</span> <span class="n">MemorySaver</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.common.config.model_config</span><span class="w"> </span><span class="kn">import</span> <span class="n">ModelConfig</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.seedvr2</span><span class="w"> </span><span class="kn">import</span> <span class="n">SeedVR2</span><span class="p">,</span> <span class="n">SeedVR2VideoRestorePlan</span><span class="p">,</span> <span class="n">SeedVR2VideoRestoreRefused</span>
+
+<span class="n">model_config</span> <span class="o">=</span> <span class="n">ModelConfig</span><span class="o">.</span><span class="n">seedvr2_3b</span><span class="p">()</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">plan</span> <span class="o">=</span> <span class="n">SeedVR2VideoRestorePlan</span><span class="o">.</span><span class="n">for_video</span><span class="p">(</span><span class="s2">"clip.mp4"</span><span class="p">,</span> <span class="n">model_config</span><span class="o">=</span><span class="n">model_config</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">SeedVR2VideoRestoreRefused</span> <span class="k">as</span> <span class="n">refused</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">SystemExit</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="n">refused</span><span class="o">.</span><span class="n">reason</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">refused</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">SeedVR2</span><span class="p">(</span><span class="n">model_config</span><span class="o">=</span><span class="n">model_config</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">plan</span><span class="o">.</span><span class="n">low_ram_required</span><span class="p">:</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">callbacks</span><span class="o">.</span><span class="n">register</span><span class="p">(</span>
+        <span class="n">MemorySaver</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">keep_transformer</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">keep_transformer</span><span class="p">,</span> <span class="n">cache_limit_bytes</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">cache_limit_bytes</span><span class="p">)</span>
+    <span class="p">)</span>
+<span class="n">model</span><span class="o">.</span><span class="n">restore_video_to_path</span><span class="p">(</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+    <span class="n">video_path</span><span class="o">=</span><span class="s2">"clip.mp4"</span><span class="p">,</span>
+    <span class="n">output_path</span><span class="o">=</span><span class="s2">"clip_restored.mp4"</span><span class="p">,</span>
+    <span class="n">resolution</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">resolution</span><span class="p">,</span>
+    <span class="n">start_seconds</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">start_seconds</span><span class="p">,</span>
+    <span class="n">max_frames</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">max_frames</span><span class="p">,</span>
+    <span class="n">temporal_chunk_size</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">effective_chunk_size</span><span class="p">,</span>
+    <span class="n">temporal_chunk_overlap</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">effective_chunk_overlap</span><span class="p">,</span>
+    <span class="n">enforce_memory_budget</span><span class="o">=</span><span class="n">plan</span><span class="o">.</span><span class="n">enforce_memory_budget</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># A second clip on the same, already loaded instance: its weights are in memory.</span>
+<span class="n">next_plan</span> <span class="o">=</span> <span class="n">SeedVR2VideoRestorePlan</span><span class="o">.</span><span class="n">for_video</span><span class="p">(</span><span class="s2">"next_clip.mp4"</span><span class="p">,</span> <span class="n">model_config</span><span class="o">=</span><span class="n">model_config</span><span class="p">,</span> <span class="n">weights_resident</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div>
 <h2 id="model-management-commands">Model Management Commands<a class="headerlink" href="#model-management-commands" title="Permanent link">&para;</a></h2>
 <p><code>mlxgen download</code> and <code>mlxgen prepare</code> are the only public MLX-Gen commands that authorize network access.</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>download<span class="w"> </span>--model<span class="w"> </span>Qwen/Qwen-Image

@@ -13,7 +13,7 @@
         <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/bernini/">
       
       
-        <link rel="prev" href="../upscaling/">
+        <link rel="prev" href="../seedvr2-video-memory/">
       
       
         <link rel="next" href="../lora/">
@@ -621,6 +621,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../wan-text-encoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Prompt Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../minimax-h3/" class="md-nav__link">
         
   
@@ -685,6 +713,34 @@
     
   
     Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seedvr2-video-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SeedVR2 Video Memory
   
 
     
@@ -1730,8 +1786,8 @@ rewrites them to the 1.3B renderer.</p>
 bernini-r-1.3b-bf16</code> after the BF16 download). Both packages preflight with 2 GiB of free-space
 headroom (17.60 GiB free for the 15.60 GiB BF16 package, 28.94 GiB free for the 26.94 GiB FP32
 source), skip sources already present at their pinned revisions, and execute identically at run
-time: text encoder and transformer in BF16 (with
-small FP32 keep-sets), VAE in FP32, so resident memory is far below the download size.</p>
+time: transformer in BF16 (with small FP32 keep-sets), the UMT5 text encoder in FP32 read one
+block at a time, VAE in FP32, so resident memory is far below the download size.</p>
 <p>On the 128 GB validation host, the bounded low-RAM profiles peaked at 9.45 GB whole-process
 physical footprint. A separate 33-frame, eight-reference 848-condition structural probe peaked at
 8.17 GB, so those tested shapes fit inside an 18 GB memory envelope. This is not a direct 18 GB
@@ -1851,9 +1907,9 @@ revisions, prompt truncation, and video health.</p>
 <a href="https://github.com/lpalbou/mlx-gen/blob/main/docs/assets/validation/bernini-r-1.3b-2026-08-11/README.md">official public parity bundle</a>
 (<code>r2v_case2_tuned</code> and <code>v2v_case3_mv2vprefix</code>).</p>
 <h2 id="precision-and-quantization">Precision And Quantization<a class="headerlink" href="#precision-and-quantization" title="Permanent link">&para;</a></h2>
-<p>Bernini runs <strong>BF16-only</strong>; omit <code>--quantize</code>. The runtime executes the transformer and UMT5 text
-encoder in BF16 with a small FP32 keep-set for precision-sensitive transformer layers, and the VAE
-in FP32. Quantized (8-bit or 4-bit) Bernini variants are not supported: no low-bit policy has
+<p>Bernini runs <strong>BF16-only</strong>; omit <code>--quantize</code>. The runtime executes the transformer in BF16 with a
+small FP32 keep-set for precision-sensitive transformer layers, the UMT5 text encoder in FP32 (its
+BF16 weights converted one block at a time, as on every Wan route), and the VAE in FP32. Quantized (8-bit or 4-bit) Bernini variants are not supported: no low-bit policy has
 passed this model's numeric and visual validation gates yet, so every <code>--quantize</code> value is
 rejected rather than silently degrading output.</p>
 <h2 id="python-api">Python API<a class="headerlink" href="#python-api" title="Permanent link">&para;</a></h2>

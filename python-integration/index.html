@@ -621,6 +621,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../wan-text-encoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Prompt Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../minimax-h3/" class="md-nav__link">
         
   
@@ -685,6 +713,34 @@
     
   
     Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seedvr2-video-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SeedVR2 Video Memory
   
 
     
@@ -1551,9 +1607,9 @@ as <code>health_check: "skipped"</code> in the video metadata) and <code>export_
 <p><code>load_generation_model(...)</code> also accepts <code>model_kwargs={...}</code>: host-provided constructor extras
 forwarded to the resolved model class (merged last, and reflected in the returned <code>cache_key</code> so
 hosts that dedupe loaded models see them as part of the identity). The current Wan options are
-<code>keep_text_encoder_resident=True</code> (keep the UMT5 text encoder resident between generations in one
-process, ~11 GB resident RAM for skipping the per-prompt reload — built for hosts that chain
-scene generations) and <code>prompt_embed_disk_cache=False</code> (opt out of the exact on-disk prompt-embed
+<code>keep_text_encoder_resident=True</code> (keep the UMT5 text encoder between generations in one process;
+it holds only the encoder's structure and file index, a few MB, since its weights are read block
+by block for every new prompt) and <code>prompt_embed_disk_cache=False</code> (opt out of the exact on-disk prompt-embed
 cache). Passing a kwarg the resolved model class does not accept raises <code>TypeError</code> at load time.</p>
 <p>Generation keywords are checked the same way. <code>generate_output(...)</code> and <code>generate_outputs(...)</code>
 refuse a keyword the route's generate call does not take, before the run starts, naming the
@@ -1569,7 +1625,9 @@ milliseconds rather than after the weights are resident.</p>
 machine-derived MLX buffer-cache limit (<code>total RAM / 8</code>, clamped to <code>[1 GiB, 8 GiB]</code>) unless a
 limit was already applied, and announces it on stderr. Hosts that call <code>mx.set_cache_limit</code>
 directly are safe: a pre-existing limit at or below half of physical RAM is recognized as
-host-managed, preserved, and announced instead of overridden. Export
+host-managed, preserved, and announced instead of overridden;
+<code>RuntimeMemory.host_managed_cache_limit_bytes()</code> (<code>mflux.utils.runtime_memory</code>) returns that limit, or <code>None</code> when the
+engine set the limit in force or none was set. Export
 <code>MFLUX_MLX_CACHE_LIMIT_GB=&lt;gb&gt;</code> to pick the cap yourself, or <code>-1</code> to keep the cache
 unlimited. Weight files loaded from HF-repo layouts are sequentially prefetched into the page
 cache at load (prepared MLX-Gen packages materialize near-sequentially on their own and are

@@ -1,0 +1,2015 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Generative image and video runtimes for Apple Silicon (MLX).">
+      
+      
+      
+        <link rel="canonical" href="https://www.lpalbou.info/mlx-gen/wan-text-encoder/">
+      
+      
+        <link rel="prev" href="../wan-video/">
+      
+      
+        <link rel="next" href="../minimax-h3/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.2">
+    
+    
+      
+        <title>Wan Prompt Encoding - MLX-Gen</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.57a0d79d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.fb2fffe2.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#wan-prompt-encoding" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="MLX-Gen" class="md-header__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            MLX-Gen
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Wan Prompt Encoding
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="MLX-Gen" class="md-nav__button md-logo" aria-label="MLX-Gen" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    MLX-Gen
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/lpalbou/mlx-gen" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    lpalbou/mlx-gen
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../documentation-index/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Documentation Index
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../previews/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Generation Previews
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../image-edit-modes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image Edit Modes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../edit-capabilities/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Edit Capabilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../masked-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Masked Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-localized-editing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Localized Editing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qwen-route-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Qwen Route Matrix
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../reframe-outpaint/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reframe & Outpaint
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../wan-video/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Video
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Prompt Encoding
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Prompt Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-text-encoder-does-in-a-wan-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What The Text Encoder Does In A Wan Run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0401-and-earlier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.40.1 And Earlier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-0402-encodes-a-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How 0.40.2 Encodes A Prompt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#measured-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured Impact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-changes-for-you" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Changes For You
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What Changes For You">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#results-for-a-given-seed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results For A Given Seed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compatibility-with-0401-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility With 0.40.1 Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-prompt-embedding-cache-starts-afresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Prompt-Embedding Cache Starts Afresh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keeping-the-encoder-between-prompts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keeping The Encoder Between Prompts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-prompt-embedding-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Prompt-Embedding Cache
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-is-validated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Is Validated
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limits
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../minimax-h3/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 Video With Audio
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../minimax-h3-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    MiniMax-H3 memory, speed and quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../upscaling/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seedvr2-video-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SeedVR2 Video Memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../bernini/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Bernini-R 1.3B
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../lora/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LoRA
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quantization/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quantization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../model-management/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Model Management
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../huggingface-publishing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HuggingFace Publishing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python-integration/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Integration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recommendations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Recommendations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../release/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Release Process
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Summary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-the-text-encoder-does-in-a-wan-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What The Text Encoder Does In A Wan Run
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#0401-and-earlier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        0.40.1 And Earlier
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-0402-encodes-a-prompt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How 0.40.2 Encodes A Prompt
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#measured-impact" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Measured Impact
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#what-changes-for-you" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Changes For You
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="What Changes For You">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#results-for-a-given-seed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Results For A Given Seed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#compatibility-with-0401-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Compatibility With 0.40.1 Results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-prompt-embedding-cache-starts-afresh" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Prompt-Embedding Cache Starts Afresh
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#keeping-the-encoder-between-prompts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Keeping The Encoder Between Prompts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-prompt-embedding-cache" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The Prompt-Embedding Cache
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#how-it-is-validated" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Is Validated
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Limits
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="wan-prompt-encoding">Wan Prompt Encoding<a class="headerlink" href="#wan-prompt-encoding" title="Permanent link">&para;</a></h1>
+<p>Every Wan run turns its prompt (and its negative prompt) into embeddings with the UMT5-XXL text
+encoder before the first denoising step. This page explains how MLX-Gen 0.40.2 runs that encoder,
+what it costs in time and memory, how faithful its result is, and what changes for you compared
+with 0.40.1 and earlier. It complements <a href="../wan-video/">Wan video</a>, which covers sizes, routes and
+commands, and <a href="../python-integration/">Python integration</a>, which covers embedding Wan in an
+application.</p>
+<h2 id="summary">Summary<a class="headerlink" href="#summary" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Routes</strong>: every route that encodes a prompt with UMT5: Wan 2.2 text-to-video,
+  image-to-video and video-to-video (<code>T2V-A14B</code>, <code>I2V-A14B</code>, <code>TI2V-5B</code>), Wan 2.1 VACE
+  (<code>wan-vace</code>), and Bernini-R (<a href="../bernini/">Bernini-R 1.3B</a>).</li>
+<li><strong>How it runs</strong>: the encoder computes in float32 on the GPU, and its weights are read from the
+  model files one transformer block at a time, so an encode holds about one block in memory
+  instead of the whole encoder.</li>
+<li><strong>Speed</strong>: a new prompt is encoded in 1.2 to 3.9 s (0.40.1 and earlier: 72 to 87 s). A VACE run
+  with a new prompt reaches its first denoising step in 20 to 22 s instead of 88 to 105 s.</li>
+<li><strong>Memory</strong>: about 1.2 GiB is added while the first prompt of a process is encoded, 0.3 to
+  0.4 GiB for later prompts, and returned within seconds. Run peaks are unchanged.</li>
+<li><strong>Fidelity</strong>: the encoder output is within 7.6e-6 of a CPU float32 computation. 0.40.1 and
+  earlier were up to 0.155 away.</li>
+<li><strong>What changes for you</strong>: for a given prompt and seed, a Wan video differs slightly from the one
+  0.40.1 produced, and prompt embeddings cached on disk by earlier versions are not reused. There
+  is no new option to set.</li>
+</ul>
+<h2 id="what-the-text-encoder-does-in-a-wan-run">What The Text Encoder Does In A Wan Run<a class="headerlink" href="#what-the-text-encoder-does-in-a-wan-run" title="Permanent link">&para;</a></h2>
+<p>The tokenizer turns the prompt into at most 512 UMT5 tokens (<code>--max-sequence-length</code>, default
+<code>512</code>; longer prompts are truncated with a warning). The encoder turns those tokens into one
+4096-value embedding per token. The denoising transformer reads these embeddings at every step, so
+the encoder runs once per new prompt, and a prompt already encoded is served from the
+<a href="#the-prompt-embedding-cache">prompt-embedding cache</a> without running the encoder.</p>
+<pre class="mermaid"><code>flowchart LR
+    P["Prompt and&lt;br/&gt;negative prompt"] --&gt; T["UMT5 tokenizer&lt;br/&gt;(up to 512 tokens)"]
+    T --&gt; K{"Prompt-embedding&lt;br/&gt;cache hit?"}
+    K -- "yes (hundredths of a second)" --&gt; E["Prompt embeddings&lt;br/&gt;(bfloat16, 512 positions)"]
+    K -- "no" --&gt; U["UMT5 encoder on the GPU, float32&lt;br/&gt;24 blocks, read from disk one at a time"]
+    U --&gt; S["Store in the cache&lt;br/&gt;(64 entries)"]
+    S --&gt; E
+    E --&gt; D["Denoising steps&lt;br/&gt;(Wan transformer)"]
+    D --&gt; V["VAE decode and MP4 save"]</code></pre>
+<p>The encoder weights are about 11.4 GB on disk (the <code>text_encoder/</code> folder of every Wan package).
+They are stored in bfloat16; the Bernini package also keeps the feed-forward output layers
+(<code>.wo.</code>) in float32.</p>
+<h2 id="0401-and-earlier">0.40.1 And Earlier<a class="headerlink" href="#0401-and-earlier" title="Permanent link">&para;</a></h2>
+<p>Up to 0.40.1, MLX-Gen loaded the whole encoder into torch on the CPU in bfloat16 and ran it on
+the prompt padded to 512 tokens. Measured on an M5 Max with 128 GB of memory:</p>
+<ul>
+<li>encoding a new prompt took 72 to 87 s;</li>
+<li>a VACE run with a new prompt reached its first denoising step after 88 to 105 s, while its eight
+  denoising steps take about 55 s, so most of the wait for a short clip was prompt encoding;</li>
+<li>a prompt already used was served from the prompt-embedding cache in a few hundredths of a
+  second;</li>
+<li>the bfloat16 computation deviated from a float32 computation of the same encoder by up to 0.155
+  (mean 0.0012) on embedding values that reach 1.65.</li>
+</ul>
+<h2 id="how-0402-encodes-a-prompt">How 0.40.2 Encodes A Prompt<a class="headerlink" href="#how-0402-encodes-a-prompt" title="Permanent link">&para;</a></h2>
+<p>The encoder is <code>WanTextEncoder</code> in
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/src/mflux/models/wan/wan_text_encoder.py"><code>src/mflux/models/wan/wan_text_encoder.py</code></a>. It
+uses the reference <code>transformers</code> UMT5 encoder's own forward pass, built without storage, and
+supplies its weights block by block:</p>
+<ol>
+<li>The encoder structure is built empty (no weights), and the safetensors files are indexed.</li>
+<li>Only the embedding rows of the tokens present in the prompt are read from the 2 GB token
+   table.</li>
+<li>Just before each of the 24 transformer blocks runs, its weights are read from the safetensors
+   files and moved to the GPU in float32; right after the block runs, they are dropped.</li>
+<li>The batch runs at the length of its longest real prompt rather than 512 tokens. Padded
+   positions receive exactly zero attention, so the real tokens' embeddings do not depend on the
+   padding; the result is padded back to 512 positions with zeros, the layout the denoiser
+   expects.</li>
+<li>After the encode, successful or not, no weight remains loaded and the GPU allocator returns its
+   staging memory to the system.</li>
+</ol>
+<pre class="mermaid"><code>flowchart TD
+    A["Embed: read only the token rows&lt;br/&gt;the prompt uses"] --&gt; B["Block i: read its weights&lt;br/&gt;from the safetensors files"]
+    B --&gt; C["Round to the package layout&lt;br/&gt;(bfloat16, .wo. kept as stored)&lt;br/&gt;and move to the GPU in float32"]
+    C --&gt; R["Run block i in float32"]
+    R --&gt; F["Drop block i's weights"]
+    F --&gt; N{"Last block?"}
+    N -- "no: i + 1" --&gt; B
+    N -- "yes" --&gt; L["Final layer norm"]
+    L --&gt; O["Embeddings for the real tokens,&lt;br/&gt;zero-padded to 512, stored in bfloat16"]</code></pre>
+<p>The computation runs on the GPU through PyTorch's Metal (MPS) device; on a machine without it, the
+same float32 computation runs on the CPU. Weights are rounded to bfloat16 exactly as the packages
+store them (every weight except the <code>.wo.</code> layers), so a float32 source repository and its
+bfloat16 package give identical embeddings. The embeddings handed to the denoiser are bfloat16, as
+in earlier versions.</p>
+<h2 id="measured-impact">Measured Impact<a class="headerlink" href="#measured-impact" title="Permanent link">&para;</a></h2>
+<p>Measured on real weights on an M5 Max with 128 GB of memory, with the encoder files in the OS file
+cache.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>0.40.1 and earlier</th>
+<th>0.40.2</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Encode a new prompt</td>
+<td>72 to 87 s</td>
+<td>1.2 to 3.9 s (2.4 s typical for the first prompt of a process, torch import included)</td>
+</tr>
+<tr>
+<td>VACE 1.3B, new prompt, 17 frames 832x480: call to first denoising step</td>
+<td>88 to 105 s</td>
+<td>20 to 22 s</td>
+</tr>
+<tr>
+<td>Wan 2.2 T2V-A14B video-to-video, new prompt: call to first denoising step</td>
+<td>not measured</td>
+<td>about 14 s</td>
+</tr>
+<tr>
+<td>Prompt already in the cache</td>
+<td>a few hundredths of a second</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Memory added while encoding</td>
+<td>about 0.5 GiB</td>
+<td>about 1.2 GiB for the first prompt, 0.3 to 0.4 GiB for later ones, returned within seconds</td>
+</tr>
+<tr>
+<td>Run peak, VACE 17 frames 832x480</td>
+<td>28.5 to 29.3 GiB</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Run peak, VACE with <code>--low-ram</code></td>
+<td>18.7 GiB</td>
+<td>unchanged</td>
+</tr>
+<tr>
+<td>Largest deviation from a CPU float32 encode</td>
+<td>0.155 (mean 0.0012, values up to 1.65)</td>
+<td>7.6e-6</td>
+</tr>
+</tbody>
+</table>
+<p>Two other ways of running the encoder were measured and not adopted:</p>
+<table>
+<thead>
+<tr>
+<th>Alternative</th>
+<th>Encode time</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Whole encoder in float32 on the GPU</td>
+<td>3.3 s</td>
+<td>holds 29 GiB while encoding</td>
+</tr>
+<tr>
+<td>Whole encoder in float16 on the GPU</td>
+<td>fast</td>
+<td>deviates by up to 3.28 from float32: unusable</td>
+</tr>
+</tbody>
+</table>
+<p>Block streaming gives the float32 result at a speed close to the whole float32 encoder's while
+holding about one block, in every mode including <code>--low-ram</code>.</p>
+<h2 id="what-changes-for-you">What Changes For You<a class="headerlink" href="#what-changes-for-you" title="Permanent link">&para;</a></h2>
+<h3 id="results-for-a-given-seed">Results For A Given Seed<a class="headerlink" href="#results-for-a-given-seed" title="Permanent link">&para;</a></h3>
+<p>For a given prompt and seed, a Wan video made with 0.40.2 differs slightly from the one 0.40.1
+made: the scene and composition are the same, and details differ, because the embeddings that
+guide the denoiser are now the float32 encoder's. Measured on one VACE clip, the two versions'
+outputs are about 25 to 27 dB PSNR apart. Within 0.40.2, results are reproducible: the CLI and the
+Python API give byte-identical videos for the same request.</p>
+<h3 id="compatibility-with-0401-results">Compatibility With 0.40.1 Results<a class="headerlink" href="#compatibility-with-0401-results" title="Permanent link">&para;</a></h3>
+<p>A clip made with 0.40.1 or earlier cannot be reproduced bit for bit with 0.40.2, whatever the
+options. If you need to reproduce such a clip exactly, install the version that made it, for
+example:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--force<span class="w"> </span><span class="s2">"mlx-gen==0.40.1"</span>
+<span class="c1"># or, in an environment</span>
+python<span class="w"> </span>-m<span class="w"> </span>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">"mlx-gen==0.40.1"</span>
+</code></pre></div>
+<p>The clip's run metadata records the prompt, seed and settings to reuse. New work is best done with
+0.40.2, whose embeddings match the reference encoder.</p>
+<h3 id="the-prompt-embedding-cache-starts-afresh">The Prompt-Embedding Cache Starts Afresh<a class="headerlink" href="#the-prompt-embedding-cache-starts-afresh" title="Permanent link">&para;</a></h3>
+<p>Cache keys include the encoding method (<code>WanTextEncoderLoader.ENCODE_POLICY_ID</code>, in
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/src/mflux/models/wan/wan_text_encoder_loader.py"><code>wan_text_encoder_loader.py</code></a>), so entries
+written by 0.40.1 and earlier never match and are never served. The first run of each prompt
+encodes it again, in seconds, and the old entries leave the cache as new prompts are stored. You do
+not need to clear anything.</p>
+<h3 id="keeping-the-encoder-between-prompts">Keeping The Encoder Between Prompts<a class="headerlink" href="#keeping-the-encoder-between-prompts" title="Permanent link">&para;</a></h3>
+<p><code>--keep-text-encoder</code> (CLI) and <code>keep_text_encoder_resident=True</code> (Python) still keep the encoder
+between generations in one process. Since the weights are read for every new prompt either way,
+the kept encoder holds only its empty structure and file index (a few MB), and the option saves
+under a second per new prompt. The default builds the encoder for each new prompt and releases it
+afterwards.</p>
+<h3 id="options">Options<a class="headerlink" href="#options" title="Permanent link">&para;</a></h3>
+<p>No option is added, removed or renamed. <code>--low-ram</code> runs need nothing: the encoder holds about one
+block in every mode.</p>
+<h2 id="the-prompt-embedding-cache">The Prompt-Embedding Cache<a class="headerlink" href="#the-prompt-embedding-cache" title="Permanent link">&para;</a></h2>
+<p>Wan stores the embeddings of each encoded prompt on disk, so a prompt already used skips the
+encoder. The store is <code>WanPromptEmbedStore</code> in
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/src/mflux/models/wan/prompt_embed_store.py"><code>src/mflux/models/wan/prompt_embed_store.py</code></a>.</p>
+<ul>
+<li><strong>Location</strong>: <code>~/Library/Caches/mflux/prompt_embeds/wan</code>, one small safetensors file per entry.</li>
+<li><strong>Size</strong>: 64 entries; the least recently used entry is removed when a new one is stored.</li>
+<li><strong>Hit</strong>: the same tokenized prompt (prompt text and tokenizer settings), sequence length and
+  precision, for the same encoder files (path, file names, sizes and modification times), the same
+  installed <code>torch</code> and <code>transformers</code> versions, and the same encoding method. Changing any of
+  these encodes the prompt again. A hit does not import torch.</li>
+<li><strong>Opt out</strong>: <code>--no-prompt-cache</code> (CLI) or <code>prompt_embed_disk_cache=False</code> (Python).</li>
+<li><strong>Clear</strong>: delete the folder; it is recreated on the next encode.</li>
+</ul>
+<div class="highlight"><pre><span></span><code>rm<span class="w"> </span>-rf<span class="w"> </span>~/Library/Caches/mflux/prompt_embeds/wan
+</code></pre></div>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<p>Prompt encoding needs no option. A Wan 2.2 TI2V-5B text-to-video run, from
+<a href="../wan-video/#command-shape">Wan video</a>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--model<span class="w"> </span>AbstractFramework/wan2.2-ti2v-5b-diffusers-8bit<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"A cinematic wide-angle movie shot of a massive futuristic starship taking off from a frozen tundra. The ship features sleek dark metallic armor. Two massive warp nacelles pulsate with intensely glowing blue plasma. Violent snow squalls and heavy blizzards whip around the hull. The swirling snow is illuminated by stark volumetric blue light from the engines. The camera slowly tilts up. The camera simulates a violent shake as the thrusters ignite. Massive clouds of pristine white snow and ice blast away from the launch pad. Photorealistic, highly detailed, dramatic lighting."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">832</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--height<span class="w"> </span><span class="m">480</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--frames<span class="w"> </span><span class="m">101</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--steps<span class="w"> </span><span class="m">25</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--guidance<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--flow-shift<span class="w"> </span><span class="m">3</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--fps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">42</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--output<span class="w"> </span>starship_takeoff_ti2v5b.mp4
+</code></pre></div>
+<p>A VACE run with a reference image and <code>--low-ram</code>, from
+<a href="../wan-video/#vace-reference-images-and-learned-mask-conditioning">Wan video</a>:</p>
+<div class="highlight"><pre><span></span><code>mlxgen-generate-wan<span class="w"> </span>--model<span class="w"> </span>Wan-AI/Wan2.1-VACE-1.3B-diffusers<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--reference-image<span class="w"> </span>ship_segmented_on_white.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"The starship from the reference image flying low over a calm turquoise ocean at golden sunset, side view, large in frame, cinematic tracking shot, photorealistic"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--negative-prompt<span class="w"> </span><span class="s2">"duplicate ships, warped hull, washed out frame, blown highlights, tiny distant object"</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--width<span class="w"> </span><span class="m">832</span><span class="w"> </span>--height<span class="w"> </span><span class="m">480</span><span class="w"> </span>--frames<span class="w"> </span><span class="m">17</span><span class="w"> </span>--fps<span class="w"> </span><span class="m">16</span><span class="w"> </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span>--guidance<span class="w"> </span><span class="m">5</span>.0<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--seed<span class="w"> </span><span class="m">4242</span><span class="w"> </span>--low-ram<span class="w"> </span>--metadata<span class="w"> </span>--output<span class="w"> </span>ship_over_ocean.mp4
+</code></pre></div>
+<p>Running either command a second time with the same prompt serves the embeddings from the cache.
+Add <code>--no-prompt-cache</code> to encode on every run, or <code>--keep-text-encoder</code> when one process chains
+many new prompts.</p>
+<p>From Python, a host that generates scene after scene with new prompts can keep the encoder
+between calls:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">mflux.models.wan.variants</span><span class="w"> </span><span class="kn">import</span> <span class="n">Wan2_2_TI2V</span>
+
+<span class="n">model</span> <span class="o">=</span> <span class="n">Wan2_2_TI2V</span><span class="p">(</span>
+    <span class="n">model_path</span><span class="o">=</span><span class="s2">"Wan-AI/Wan2.2-TI2V-5B-Diffusers"</span><span class="p">,</span>
+    <span class="n">keep_text_encoder_resident</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">prompt</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+    <span class="p">[</span>
+        <span class="s2">"A slow cinematic shot of a glass sphere floating above teal water"</span><span class="p">,</span>
+        <span class="s2">"The glass sphere sinks slowly into the teal water, light rippling across its surface"</span><span class="p">,</span>
+    <span class="p">]</span>
+<span class="p">):</span>
+    <span class="n">video</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">generate_video</span><span class="p">(</span>
+        <span class="n">seed</span><span class="o">=</span><span class="mi">321</span><span class="p">,</span>
+        <span class="n">prompt</span><span class="o">=</span><span class="n">prompt</span><span class="p">,</span>
+        <span class="n">width</span><span class="o">=</span><span class="mi">1280</span><span class="p">,</span>
+        <span class="n">height</span><span class="o">=</span><span class="mi">704</span><span class="p">,</span>
+        <span class="n">num_frames</span><span class="o">=</span><span class="mi">121</span><span class="p">,</span>
+        <span class="n">num_inference_steps</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+        <span class="n">fps</span><span class="o">=</span><span class="mi">24</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">video</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="sa">f</span><span class="s2">"sphere_</span><span class="si">{</span><span class="n">index</span><span class="si">}</span><span class="s2">.mp4"</span><span class="p">)</span>
+</code></pre></div>
+<p>Through the route-resolved runtime, pass the same option with
+<code>load_generation_model(..., model_kwargs={"keep_text_encoder_resident": True})</code>; see
+<a href="../python-integration/#runtime-planning-and-loading">Python integration</a>.</p>
+<h2 id="how-it-is-validated">How It Is Validated<a class="headerlink" href="#how-it-is-validated" title="Permanent link">&para;</a></h2>
+<p>The behaviour is covered by fast tests in
+<a href="https://github.com/lpalbou/mlx-gen/blob/main/tests/wan/test_wan_text_encoder.py"><code>tests/wan/test_wan_text_encoder.py</code></a>, which run a small
+randomly initialised UMT5 encoder of the real architecture, stored in safetensors shards the way
+Wan packages are:</p>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>What it checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>test_streamed_encode_matches_the_whole_float32_model_on_the_real_tokens</code></td>
+<td>The block-streamed encode equals the whole float32 model on the real tokens, and leaves no weight loaded.</td>
+</tr>
+<tr>
+<td><code>test_streamed_encode_is_the_whole_model_bit_for_bit_without_padding</code></td>
+<td>Without padding, the streamed encode is bit-identical to the whole float32 model.</td>
+</tr>
+<tr>
+<td><code>test_a_float32_source_encodes_exactly_as_its_package</code></td>
+<td>A float32 source and its bfloat16 package give identical embeddings.</td>
+</tr>
+<tr>
+<td><code>test_a_failed_encode_leaves_the_encoder_empty_and_reusable</code></td>
+<td>A failure inside a block leaves no weight and no hook behind, and the next encode gives the expected result.</td>
+</tr>
+<tr>
+<td><code>test_streamed_encode_on_the_gpu_matches_the_whole_float32_model</code></td>
+<td>On the Metal GPU, the encode matches the float32 model and returns all GPU memory.</td>
+</tr>
+<tr>
+<td><code>test_engine_encode_pads_to_the_sequence_length_and_releases_the_encoder</code></td>
+<td>The engine pads the embeddings to the sequence length with zeros, stores them in the model precision, and releases the encoder.</td>
+</tr>
+<tr>
+<td><code>test_resident_text_encoder_is_built_once_across_prompts</code></td>
+<td>With the resident option, the encoder is built once for several prompts.</td>
+</tr>
+<tr>
+<td><code>test_prompt_cache_key_no_longer_matches_entries_of_the_bfloat16_cpu_encoder</code></td>
+<td>The cache key differs from the one 0.40.1 computed for the same prompt.</td>
+</tr>
+</tbody>
+</table>
+<p>Run them with:</p>
+<div class="highlight"><pre><span></span><code>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-m<span class="w"> </span>pytest<span class="w"> </span>-q<span class="w"> </span>tests/wan/test_wan_text_encoder.py
+</code></pre></div>
+<p>The timings, memory figures and fidelity figures in <a href="#measured-impact">Measured Impact</a> were
+measured on the real Wan weights.</p>
+<h2 id="limits">Limits<a class="headerlink" href="#limits" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Encoding a new prompt needs <code>torch</code> and <code>transformers</code>, as before; a cache hit does not.</li>
+<li>The first new prompt of a process includes importing torch, which is why it takes longer than
+  later ones.</li>
+<li>Timings assume the encoder files are in the OS file cache; reading the 11.4 GB from disk for the
+  first time in a session adds the time that read takes on your storage.</li>
+<li>Bit-identical results hold within one installed version of MLX-Gen, MLX, <code>torch</code> and
+  <code>transformers</code>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.top", "navigation.sections", "search.suggest", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.a5f9d56c.min.js"></script>
+      
+    
+  </body>
+</html>

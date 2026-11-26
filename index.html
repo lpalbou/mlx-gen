@@ -774,6 +774,34 @@
   
   
     <li class="md-nav__item">
+      <a href="wan-text-encoder/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Wan Prompt Encoding
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="minimax-h3/" class="md-nav__link">
         
   
@@ -838,6 +866,34 @@
     
   
     Image & Video Upscaling
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="seedvr2-video-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SeedVR2 Video Memory
   
 
     
@@ -1559,6 +1615,8 @@ available route; validation reports and contact sheets describe whether an exact
 MLX-Gen optimized package passed a visual release gate. Release evidence should use true handles such as
 <code>briaai/Fibo-Edit</code> or <code>AbstractFramework/flux.2-klein-9b-8bit</code>, not short aliases.</p>
 <h2 id="install">Install<a class="headerlink" href="#install" title="Permanent link">&para;</a></h2>
+<p>MLX-Gen needs Python 3.10 or newer. On macOS it installs MLX 0.32.4 or later
+(<code>mlx&gt;=0.32.4,&lt;0.33.0</code>).</p>
 <p>Install with <code>uv</code>:</p>
 <div class="highlight"><pre><span></span><code>uv<span class="w"> </span>tool<span class="w"> </span>install<span class="w"> </span>--upgrade<span class="w"> </span>mlx-gen
 </code></pre></div>
@@ -1877,7 +1935,11 @@ progress callbacks make long runs observable.</p>
 <h2 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h2>
 <p>Release notes are in the <a href="CHANGELOG.md">changelog</a>; the 0.40 releases lower MiniMax-H3's peak
 memory to 37.0 GiB with the 8-bit package (11.1 GiB with <code>--stream-blocks --low-ram</code>), runs the released
-16-bit weights, and publishes them as <code>AbstractFramework/minimax-h3-bf16</code>.</p>
+16-bit weights, and publishes them as <code>AbstractFramework/minimax-h3-bf16</code>. 0.40.2 requires MLX
+0.32.4 or later on macOS, encodes a new Wan prompt in seconds in float32 (for a given prompt and
+seed, Wan output differs slightly from 0.40.1's; see <a href="wan-text-encoder/">Wan prompt encoding</a>),
+and runs the SeedVR2 video VAE in a fraction of the memory with identical output, up to about
+1.4 megapixels per frame on a 48 GB budget (see <a href="seedvr2-video-memory/">SeedVR2 video memory</a>).</p>
 <ul>
 <li><a href="getting-started/">Getting started</a>: installation, first runs, SeedVR2 upscaling, and Wan video.</li>
 <li><a href="api/">API and CLI</a>: command surface, router behavior, image-to-image modes, generative reframe, backend-specific outpaint, SeedVR2 sizing, Wan video sizes, capabilities, and Python entry points.</li>
