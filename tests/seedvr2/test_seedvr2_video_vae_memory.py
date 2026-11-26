@@ -93,21 +93,29 @@ def test_installed_mlx_is_the_one_the_vae_memory_model_was_measured_on():
 @pytest.mark.parametrize("width, height, frames, measured_gb", MEASURED_WORKING_SETS)
 def test_estimate_covers_every_measured_working_set_within_thirty_percent(width, height, frames, measured_gb):
     estimate = _estimate_gb(width, height, frames)
-    vae = SeedVR2Util.estimate_video_vae_working_set_bytes(frame_count=frames, height=height, width=width)
 
     assert measured_gb <= estimate
-    # Where the constant floor applies (small frames), the estimate is only required to cover the measurement.
-    if vae > SeedVR2Util.VIDEO_VAE_MEMORY_FLOOR_BYTES:
+    # Below 320x192 the per-pixel rows were not measured and the small-frame floor applies; there the estimate is
+    # only required to cover the measurement.
+    if width * height >= SeedVR2Util.VIDEO_VAE_SMALL_FRAME_FLOORS[-1][0]:
         assert estimate <= 1.3 * measured_gb
 
 
 @pytest.mark.fast
-def test_the_floor_covers_every_small_frame_including_those_below_the_tap_threshold():
+def test_the_small_frame_floors_cover_every_small_frame_and_admit_the_tiny_ones_that_fit_1_gb():
     # Below 16,384 output pixels the decoder's half-resolution layers keep MLX's single call: 160x96 and 144x112
-    # need more than 128x128.
-    small = [gb for width, height, _, gb in MEASURED_WORKING_SETS if width * height <= 128 * 128]
-    assert max(small) == 1.32
-    assert SeedVR2Util.VIDEO_VAE_MEMORY_FLOOR_BYTES / GB > max(small)
+    # need more than 128x128. The floors are fitted to these points, not a flat value: 64x64, 96x64 and 128x128
+    # work in under 1.0 GB, the minimum budget, and their estimate stays under it.
+    small = [
+        (w, h, f, gb)
+        for w, h, f, gb in MEASURED_WORKING_SETS
+        if w * h < SeedVR2Util.VIDEO_VAE_SMALL_FRAME_FLOORS[-1][0]
+    ]
+    assert {(w, h) for w, h, _, _ in small} >= {(64, 64), (96, 64), (160, 96), (144, 112), (128, 128)}
+    for width, height, frames, gb in small:
+        assert _estimate_gb(width, height, frames) >= gb
+        if gb < 0.95:
+            assert _estimate_gb(width, height, frames) <= 1.0
 
 
 @pytest.mark.fast
@@ -121,7 +129,7 @@ def test_the_memory_table_is_the_measured_one():
         (49, 30_000),
         (None, 28_000),
     )
-    assert SeedVR2Util.VIDEO_VAE_MEMORY_FLOOR_BYTES == 1_400_000_000
+    assert SeedVR2Util.VIDEO_VAE_SMALL_FRAME_FLOORS == ((16_384, 450_000_000, 56_000), (61_440, 300_000_000, 25_000))
 
 
 def _probe(width: int, height: int, frames: int) -> DecodedVideoClip:

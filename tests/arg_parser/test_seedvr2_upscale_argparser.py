@@ -33,6 +33,15 @@ def _create_seedvr2_upscale_parser() -> CommandLineParser:
     return parser
 
 
+@pytest.fixture(autouse=True)
+def _a_large_host(monkeypatch):
+    # These tests check CLI routing, not memory: the video plan they go through is made against a fixed large host
+    # (128 GB, 121 GB available, a 48 GB budget), so a small CI runner gives the same answer. A test about memory
+    # pins its own figures over these.
+    monkeypatch.setattr(SeedVR2Util, "_host_total_memory_bytes", staticmethod(lambda: 128 * (1000**3)))
+    monkeypatch.setattr(SeedVR2Util, "_host_available_memory_bytes", staticmethod(lambda: 121 * (1000**3)))
+
+
 @pytest.fixture
 def seedvr2_upscale_parser() -> CommandLineParser:
     return _create_seedvr2_upscale_parser()

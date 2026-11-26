@@ -33,12 +33,17 @@ class SeedVR2Util:
     # (`restore_video_to_path` with the plan's values) on MLX 0.32.5 with the per-frame convolution taps of
     # CausalConv3d, on SeedVR2 3B (the 7B variants use the same VAE; their working set was not measured), table and
     # fit in tests/seedvr2/test_seedvr2_video_vae_memory.py. Rows: (largest padded chunk frames, bytes per output
-    # pixel); above 49 frames the transformer terms of the estimate over-count, so the last row is lower. Where the
-    # per-pixel term is smaller, the floor applies instead (up to about 44,000 output pixels for 9 to 29 frames):
-    # under 16,384 pixels the decoder's half-resolution layers have frames under 4096 pixels and keep MLX's single
-    # call, which needs up to 1.32 GB (144x112). Re-measure before widening the MLX range.
+    # pixel), measured from 320x192 up; above 49 frames the transformer terms of the estimate over-count, so the last
+    # row is lower. Smaller frames need more per pixel: under 16,384 pixels the decoder's half-resolution layers have
+    # frames under 4096 pixels and keep MLX's single call (64x64: 0.65 GB, 144x112: 1.32 GB), and from 128x128
+    # (0.69 GB) to 320x192 the fixed part still shows. Below each limit the estimate is at least the floor
+    # (bytes + bytes per pixel) fitted to those measurements. Re-measure before widening the MLX range.
     VIDEO_VAE_MEMORY_MLX_RANGE = ((0, 32, 4), (0, 33, 0))
-    VIDEO_VAE_MEMORY_FLOOR_BYTES = 1_400_000_000
+    # (below this many output pixels, bytes, bytes per output pixel)
+    VIDEO_VAE_SMALL_FRAME_FLOORS = (
+        (16_384, 450_000_000, 56_000),
+        (61_440, 300_000_000, 25_000),
+    )
     VIDEO_VAE_MEMORY_BUCKETS = (
         (1, 12_000),
         (5, 25_000),
@@ -319,10 +324,17 @@ class SeedVR2Util:
 
     @staticmethod
     def estimate_video_vae_working_set_bytes(*, frame_count: int, height: int, width: int) -> int:
-        for max_frames, per_pixel in SeedVR2Util.VIDEO_VAE_MEMORY_BUCKETS:
-            if max_frames is None or frame_count <= max_frames:
-                return max(SeedVR2Util.VIDEO_VAE_MEMORY_FLOOR_BYTES, int(height * width * per_pixel))
-        raise AssertionError("the last VAE memory bucket has no frame limit")
+        pixels = height * width
+        per_pixel = next(
+            rate
+            for max_frames, rate in SeedVR2Util.VIDEO_VAE_MEMORY_BUCKETS
+            if max_frames is None or frame_count <= max_frames
+        )
+        estimate = pixels * per_pixel
+        for below_pixels, floor_bytes, floor_per_pixel in SeedVR2Util.VIDEO_VAE_SMALL_FRAME_FLOORS:
+            if pixels < below_pixels:
+                return int(max(estimate, floor_bytes + pixels * floor_per_pixel))
+        return int(estimate)
 
     @staticmethod
     def estimate_video_restore_total_bytes(

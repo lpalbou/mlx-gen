@@ -161,8 +161,12 @@ otherwise have stopped it.
 The VAE still works on whole frames. What remains grows with the frame area, little with the
 chunk length: the whole-frame activations of one temporal slice, largest in the decoder's last,
 full-resolution blocks, and each convolution's causal memory, 28 to 32 KB per output pixel from
-about 320x192 up. Below that the estimate uses a floor of 1.4 GB, above every small frame measured
-(0.60 to 1.32 GB from 64x64 to 144x112). The table is calibrated on SeedVR2 3B; the 7B variants use
+about 320x192 up. Smaller frames need more per pixel: under 16,384 pixels (about 128x128) the
+decoder's half-resolution layers keep MLX's single call. There the estimate uses floors fitted to
+the measurements from 64x64 to 144x112 (0.60 to 1.32 GB): 0.45 GB plus 56 KB per pixel under
+16,384 pixels, and 0.30 GB plus 25 KB per pixel from there to 320x192. On the 1 GB minimum budget
+of a small Mac this admits 64x64, 96x64 and 128x128 (measured 0.60 to 0.69 GB) and refuses 160x96,
+144x112 and 320x192 (measured 1.24 to 1.93 GB). The table is calibrated on SeedVR2 3B; the 7B variants use
 the same VAE, but their working set was not measured. The plan refuses an output frame
 whose smallest allowed chunk does not fit the budget (half of the memory available when the plan
 is made, at most 48 GB), with the reason `beyond_memory_profile`, the size that does not fit, and
@@ -239,7 +243,7 @@ Fast tests, no weights needed:
 | `tests/seedvr2/test_seedvr2_causal_conv3d_exact.py::test_a_slice_leaves_only_its_output_and_a_two_frame_memory_alive` | After a slice, only its output and a two-frame causal memory stay allocated. |
 | `tests/seedvr2/test_seedvr2_causal_conv3d_exact.py::test_the_causal_memory_takes_the_dtype_of_the_next_slice`, `test_causal_conv3d_disabled_state_keeps_no_memory` | The memory is cast to the next slice's dtype; without temporal slicing the result is the same and no memory is kept. |
 | `tests/seedvr2/test_seedvr2_causal_conv3d_exact.py::test_the_tap_guard_was_read_from_the_installed_mlx` | The installed MLX is inside the range the guard and the memory table were measured on. |
-| `tests/seedvr2/test_seedvr2_video_vae_memory.py` | The estimate covers every measured working peak (39 points, 64x64 to 1280x720, 1 to 97 frames) and is at most 1.3 times it wherever the per-pixel term applies; the 1.4 GB floor is above every small frame; the table is the measured one; 640x352 and 1280x720 are admitted on a 48 GB budget; 1920x1072 is refused before any model load with the largest size that fits; the run-time check uses the same estimate. |
+| `tests/seedvr2/test_seedvr2_video_vae_memory.py` | The estimate covers every measured working peak (39 points, 64x64 to 1280x720, 1 to 97 frames) and is at most 1.3 times it wherever the per-pixel term applies; the small-frame floors cover every small frame and admit the measured frames that work under 1 GB; the table is the measured one; 640x352 and 1280x720 are admitted on a 48 GB budget; 1920x1072 is refused before any model load with the largest size that fits; the run-time check uses the same estimate. |
 
 ```sh
 uv run python -m pytest -q tests/seedvr2/test_seedvr2_causal_conv3d_exact.py tests/seedvr2/test_seedvr2_video_vae_memory.py

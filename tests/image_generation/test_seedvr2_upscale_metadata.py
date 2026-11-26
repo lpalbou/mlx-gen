@@ -10,7 +10,16 @@ from mflux.models.common.vae.tiling_config import TilingConfig
 from mflux.models.seedvr2.seedvr2_initializer import SeedVR2Initializer
 from mflux.models.seedvr2.variants.upscale import seedvr2 as seedvr2_module
 from mflux.models.seedvr2.variants.upscale.seedvr2 import SeedVR2
+from mflux.models.seedvr2.variants.upscale.seedvr2_util import SeedVR2Util
 from mflux.utils.video_util import DecodedVideoClip
+
+
+@pytest.fixture(autouse=True)
+def _a_large_host(monkeypatch):
+    # These tests check metadata, not memory: the video memory check they pass through is made against a fixed large
+    # host (128 GB, 121 GB available, a 48 GB budget), so a small CI runner gives the same answer.
+    monkeypatch.setattr(SeedVR2Util, "_host_total_memory_bytes", staticmethod(lambda: 128 * (1000**3)))
+    monkeypatch.setattr(SeedVR2Util, "_host_available_memory_bytes", staticmethod(lambda: 121 * (1000**3)))
 
 
 @pytest.mark.fast
