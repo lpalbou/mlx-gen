@@ -29,8 +29,11 @@ incomplete local package (missing shard or index files) is skipped, not half-loa
 Identifying the model behind a name:
 
 - Catalog aliases, source repo ids, and `AbstractFramework/*` package ids are identified exactly.
-- A local folder or a custom repo id is identified only loosely from its name. The family is
-  detected when the name contains it, but the exact variant is not trusted: a folder named
+- A local folder or a custom repo id is identified only loosely from its name. For a folder that
+  is its own folder name; inside a Hugging Face cache it is `org/name` followed by the path below
+  the snapshot (`.../models--org--name/snapshots/<revision>[/<path>]`); a parent directory never counts, so
+  `~/models/qwen/my-package` names nothing. The family is detected when the name contains it,
+  but the exact variant is not trusted: a folder named
   `qwen-image-edit-2511-8bit` is treated as base Qwen Image (text and latent routes only), and a
   Z-Image Turbo folder loses its masked route.
 - A name with no recognizable family fails with "Could not infer a supported backend", and

@@ -5,6 +5,7 @@ from mlx.utils import tree_flatten
 from mflux.callbacks.callback_registry import CallbackRegistry
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.download_policy import DownloadRequiredError
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 from mflux.models.common.resolution.path_resolution import PathResolution
 from mflux.models.common.vae.tiling_config import TilingConfig
 from mflux.models.common.weights.loading.loaded_weights import LoadedWeights
@@ -130,7 +131,10 @@ class SeedVR2Initializer:
             return
 
         aliases = {alias.lower() for alias in getattr(model.model_config, "aliases", [])}
-        if "seedvr2-7b-sharp" in aliases or "seedvr2_ema_7b_sharp" in str(root_path).lower():
+        if (
+            "seedvr2-7b-sharp" in aliases
+            or "seedvr2_ema_7b_sharp" in ConfigResolution.identifying_name(str(root_path)).lower()
+        ):
             model.seedvr2_checkpoint_variant = "7b-sharp"
         elif "seedvr2-7b" in aliases:
             model.seedvr2_checkpoint_variant = "7b"

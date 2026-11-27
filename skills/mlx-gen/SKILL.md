@@ -4,7 +4,7 @@ description: Run local image and video generation on Apple Silicon with MLX thro
 license: MIT
 compatibility: macOS on Apple Silicon with MLX 0.32.4 or newer (`mlx>=0.32.4,<0.33.0`, installed with the package); Python 3.10 or newer. Runs locally from model files on disk. Network access is needed only for `mlxgen download` (and for `mlxgen prepare` when the source model is not cached). Models need from a few GiB to more than 100 GiB of disk and of unified memory.
 metadata:
-  package-version: "0.40.2"
+  package-version: "0.40.3"
 ---
 
 # mlx-gen
@@ -72,8 +72,9 @@ conversation, and stop at the first authentication failure.
 - **Model ids.** `--model` takes a catalog alias (`z-image-turbo`), a Hugging Face repo id
   (`AbstractFramework/qwen-image-8bit`), or a local folder. A repo id resolves to a complete local
   package at `./models/<repo-name>` before the Hugging Face cache. A local folder or custom repo
-  name is identified only loosely: pass `--base-model <catalog alias>` with it, or it may run as
-  another variant with fewer routes (`--family` alone does not configure an unknown name).
+  name is identified only loosely, from the folder's own name (inside a Hugging Face cache, the
+  repository id `org/name` plus the path below the snapshot), never from a parent directory: pass `--base-model <catalog alias>` with it, or it
+  may run as another variant with fewer routes (`--family` alone does not configure an unknown name).
 - **Routes.** Public tasks are `text-to-image`, `image-to-image`, `text-to-video`,
   `image-to-video`, and `video-to-video`. The model plus the inputs you pass select an internal
   mode (latent, edit-reference, multi-reference, masked, reframe, outpaint, first-frame, ...).

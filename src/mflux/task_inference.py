@@ -1089,8 +1089,9 @@ def _resolve_model_identity(
         )
 
     family_aliases = set(model_config.aliases) if model_config is not None else set()
+    identifying_name = ConfigResolution.identifying_name(model) if model is not None else None
     family_key = _model_key(
-        model_config.base_model if model_config is not None else None, *sorted(family_aliases), model
+        model_config.base_model if model_config is not None else None, *sorted(family_aliases), identifying_name
     )
     inferred_family = _infer_family(family_aliases, family_key)
     if family is not None and inferred_family is not None and family != inferred_family:
@@ -1099,6 +1100,15 @@ def _resolve_model_identity(
         )
     resolved_family = family or inferred_family
     if resolved_family is None:
+        hint = (
+            ConfigResolution.unidentified_local_path_hint(
+                model, "--base-model <alias> (base_model=<alias> from Python)"
+            )
+            if model_config is None
+            else None
+        )
+        if hint is not None:
+            raise TaskInferenceError(f"Could not infer a supported backend from model {model!r}: {hint}.")
         raise TaskInferenceError(
             f"Could not infer a supported backend from model {model!r}. "
             "Pass family='qwen', 'flux2', 'fibo', 'z-image', 'ernie-image', 'wan', 'bonsai', "
@@ -1108,7 +1118,7 @@ def _resolve_model_identity(
     trusted_identity_sources = {"catalog", "explicit_base", "official_prepared", "provided", "provided_derived"}
     aliases = family_aliases if identity_source in trusted_identity_sources else set()
     if model_config is None:
-        model_key = _model_key(model)
+        model_key = _model_key(identifying_name)
     elif identity_source in trusted_identity_sources:
         model_key = _model_key(model_config.base_model, *sorted(family_aliases))
     else:
@@ -1143,7 +1153,7 @@ def _provided_identity_source(
 
 
 def _is_unsupported_flux2_dev_model(model: str) -> bool:
-    normalized = model.lower().replace("\\", "/").replace("--", "/")
+    normalized = ConfigResolution.identifying_name(model).lower().replace("\\", "/").replace("--", "/")
     return "flux.2-dev" in normalized or "flux.2/dev" in normalized
 
 

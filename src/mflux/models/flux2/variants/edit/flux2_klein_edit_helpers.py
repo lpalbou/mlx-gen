@@ -5,6 +5,7 @@ import numpy as np
 from PIL import Image
 
 from mflux.models.common.latent_creator.latent_creator import LatentCreator
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 from mflux.models.flux2.latent_creator.flux2_latent_creator import Flux2LatentCreator
 from mflux.models.flux2.model.flux2_text_encoder.prompt_encoder import Flux2PromptEncoder
 from mflux.models.flux2.model.flux2_text_encoder.qwen3_text_encoder import Qwen3TextEncoder
@@ -18,7 +19,7 @@ class _Flux2KleinEditHelpers:
 
     @staticmethod
     def is_base_model(model_config) -> bool:
-        model_name_lower = model_config.model_name.lower()
+        model_name_lower = ConfigResolution.identifying_name(model_config.model_name).lower()
         base_model_lower = (model_config.base_model or "").lower()
         return "klein-base" in model_name_lower or "klein-base" in base_model_lower
 

@@ -13,6 +13,7 @@ from mflux.cli.output_paths import resolve_output_path
 from mflux.cli.parser.parsers import CommandLineParser
 from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.models.common.config import ModelConfig
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 from mflux.models.flux2.latent_creator.flux2_latent_creator import Flux2LatentCreator
 from mflux.models.flux2.variants import Flux2KleinEdit
 from mflux.models.flux2.variants.edit.flux2_klein_edit_helpers import _Flux2KleinEditHelpers
@@ -106,7 +107,7 @@ def main():
             f"{exc} For new integrations, call `mlxgen generate --model <flux2-model> --image <path> ...` "
             "instead of `mflux-generate-flux2-edit`."
         )
-    model_name_lower = model_config.model_name.lower()
+    model_name_lower = ConfigResolution.identifying_name(model_config.model_name).lower()
     base_model_lower = (model_config.base_model or "").lower()
     is_flux2 = any(
         identifier in model_name_lower or identifier in base_model_lower for identifier in ("flux.2", "flux2")

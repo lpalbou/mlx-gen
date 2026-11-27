@@ -6689,6 +6689,14 @@ def test_download_command_uses_pinned_factored_bernini_sources(monkeypatch):
         calls.append((repo_id, allow_patterns, revision, downloads_enabled()))
         return f"/tmp/hf-cache/{repo_id.split('/')[-1]}"
 
+    # A cold cache on a disk with room for it: neither this Mac's cache nor its free space decides the route.
+    # The refusal on a disk that is too small is test_download_command_rejects_cold_bernini_install_without_headroom.
+    disk_usage = type("DiskUsage", (), {"free": 1024 * 1024**3})()
+    monkeypatch.setattr(
+        "mflux.models.common.resolution.path_resolution.PathResolution._find_complete_cached_snapshot",
+        staticmethod(lambda *args, **kwargs: None),
+    )
+    monkeypatch.setattr(mlx_gen.shutil, "disk_usage", lambda path: disk_usage)
     monkeypatch.setattr("huggingface_hub.snapshot_download", fake_snapshot_download)
 
     mlx_gen._download_model(["--model", "bernini-r-1.3b"])

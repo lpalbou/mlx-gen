@@ -27,11 +27,16 @@ alias or the repository id.
 ## Local Path Cannot Be Classified
 
 A local folder or custom repository name that contains no catalog model name cannot be identified.
+Only the folder's own name counts (inside a Hugging Face cache, the repository id `org/name` and the
+path below the snapshot), never a parent directory: `~/models/qwen-image/my-package` names nothing,
+and since 0.40.3 stops here, with a message that names the folder and asks for `--base-model`,
+instead of running as the model its parent names.
 `mlxgen generate` and `mlxgen capabilities` stop with one of these usage errors:
 
 | Message starts with | Fix |
 | --- | --- |
 | `Could not infer a supported backend from model '<name>'.` | Add `--base-model <alias>`. The message lists family names, but a family alone does not identify the model. |
+| `Could not infer a supported backend from model '<path>': a local folder is identified by its own name` | Add `--base-model <alias>`, or rename the folder after its model. |
 | `family='<family>' is not enough to configure model '<name>'.` | Keep or drop `--family`, and add `--base-model <alias>`. |
 
 ```sh
@@ -300,7 +305,7 @@ For a given prompt and seed, Wan output from 0.40.2 differs slightly from 0.40.1
 encoded in float32, where 0.40.1 encoded it in bfloat16, so the scene and composition match and
 details differ. This is expected and does not depend on any option. To reproduce a 0.40.1 clip
 exactly, install that version (`python -m pip install "mlx-gen==0.40.1"`) and rerun the
-recorded prompt, seed and settings. For new work, keep 0.40.2. Prompt embeddings cached by
+recorded prompt, seed and settings. For new work, keep 0.40.2 or later. Prompt embeddings cached by
 0.40.1 are not reused, so the first run of each prompt encodes it again, in seconds. See
 [Wan prompt encoding](wan-text-encoder.md#compatibility-with-0401-results).
 

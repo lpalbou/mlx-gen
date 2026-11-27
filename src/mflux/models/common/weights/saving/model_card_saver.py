@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import Any
 
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 from mflux.utils.version_util import VersionUtil
 
 
@@ -936,7 +937,7 @@ class ModelCardSaver:
     def _model_terms(model: Any) -> str:
         model_config = getattr(model, "model_config", None)
         values = [
-            getattr(model_config, "model_name", ""),
+            ConfigResolution.identifying_name(str(getattr(model_config, "model_name", "") or "")),
             getattr(model_config, "base_model", ""),
             model.__class__.__name__,
         ]
@@ -995,16 +996,16 @@ class ModelCardSaver:
 
     @staticmethod
     def _is_flux2_9b(model_name: str, terms: str) -> bool:
-        normalized = f"{model_name} {terms}".lower()
+        normalized = f"{ConfigResolution.identifying_name(model_name)} {terms}".lower()
         return "flux.2-klein" in normalized and "9b" in normalized
 
     @staticmethod
     def _is_minimax_h3(model_name: str, terms: str) -> bool:
-        return "minimax-h3" in f"{model_name} {terms}".lower()
+        return "minimax-h3" in f"{ConfigResolution.identifying_name(model_name)} {terms}".lower()
 
     @staticmethod
     def _is_fibo_model(model_name: str, terms: str) -> bool:
-        normalized = f"{model_name} {terms}".lower()
+        normalized = f"{ConfigResolution.identifying_name(model_name)} {terms}".lower()
         return "fibo" in normalized
 
     @staticmethod
@@ -1021,7 +1022,7 @@ class ModelCardSaver:
 
     @staticmethod
     def _is_apache_model(model_name: str, terms: str) -> bool:
-        normalized = f"{model_name} {terms}".lower()
+        normalized = f"{ConfigResolution.identifying_name(model_name)} {terms}".lower()
         return (
             "qwen" in normalized
             or "z-image" in normalized
