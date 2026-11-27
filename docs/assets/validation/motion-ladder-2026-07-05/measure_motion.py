@@ -1,6 +1,6 @@
 """Motion-fidelity measurement for the Wan V2V strength ladder.
 
-Reproduces the adversarial-forensics methodology: per-frame-pair motion energy (mean absolute
+Reproduces the forensic methodology: per-frame-pair motion energy (mean absolute
 grayscale difference at 120 px width) split by person/background region, gesture-window
 retention ratio and Pearson correlation against the source, plus warm-start sigma computed from
 the real scheduler.

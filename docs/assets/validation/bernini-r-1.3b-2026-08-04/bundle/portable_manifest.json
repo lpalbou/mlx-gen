@@ -12,8 +12,8 @@
     },
     {
       "path": "bernini_proof_report.json",
-      "sha256": "dabb36c1f084d209ebd32645ddc7ca24fe9e170739c1e0897037351ab2d35606",
-      "size_bytes": 4027327
+      "sha256": "1cf9fc725ff4574676e1f93b8669a4c4ed2dba8a5c3f03fd03e6bf6d5a844902",
+      "size_bytes": 4027320
     },
     {
       "path": "bernini_proof_report.md",
@@ -1147,8 +1147,8 @@
     },
     {
       "path": "visual_review.json",
-      "sha256": "66757041ddf65bebed9a5c79adadbcf9b8da1cfeba4e4d0e49afabd70f8653a1",
-      "size_bytes": 10165
+      "sha256": "f7139c98514bd5ec8c4de1beb205e9af7282860a9ec49866924a3d609b776e63",
+      "size_bytes": 10158
     },
     {
       "path": "visual_review.md",

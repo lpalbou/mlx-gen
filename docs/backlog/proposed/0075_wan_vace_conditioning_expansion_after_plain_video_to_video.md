@@ -84,7 +84,7 @@ only if the base route and host-memory profile are already trustworthy.
   evidence.
 - Do not treat reference-pipeline success as automatic native MLX-Gen readiness.
 
-## Guidance for future agents
+## Implementation notes
 
 Treat this as a distinct second milestone. If a proposed conditioning role cannot be named clearly
 for users and tested clearly for machines, it is not ready for promotion.

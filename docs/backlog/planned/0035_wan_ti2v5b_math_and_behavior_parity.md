@@ -45,8 +45,8 @@ implementation and the Hugging Face Diffusers/Transformers ports.
   - `/Users/albou/projects/gh/diffusers/`
   - `/Users/albou/projects/gh/transformers/`
 - No obvious official Wan checkout was found under `/Users/albou/projects/gh/` by a shallow
-  `*wan*` directory search during item creation. The implementing agent should locate, clone, or
-  otherwise identify the official Wan2.2 source before claiming official-code parity.
+  `*wan*` directory search during item creation. The official Wan2.2 source must be located, cloned, or
+  otherwise identified before claiming official-code parity.
 - Official Wan2.2 source was checked from `https://github.com/Wan-Video/Wan2.2` at commit
   `42bf4cfaa384bc21833865abc2f9e6c0e67233dc` under `/private/tmp/Wan2.2-official`.
 - Practical comparison MP4 assets are tracked under
@@ -185,7 +185,7 @@ mismatch, users will waste long video runs and may draw the wrong conclusion abo
 
 ## 2026-06-10 Findings
 
-- User-provided TI2V-5B clips under `vidgen/wan*` show a consistent practical
+- Reference TI2V-5B clips show a consistent practical
   pattern: very small outputs such as `448x256` and `480x256` are not useful for quality assessment,
   while `832x480` and `1280x704` can produce coherent scenes but weak main-subject translation for
   the starship-takeoff prompt.
@@ -233,7 +233,7 @@ mismatch, users will waste long video runs and may draw the wrong conclusion abo
 - [x] Patch and test any confirmed mismatch.
 - [x] Update backlog/docs with evidence-based conclusions.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Treat this as a porting/parity task, not prompt tuning. Keep edits small and evidence-driven.
 Export tensors from the reference implementation when possible, then replay them through MLX.

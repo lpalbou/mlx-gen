@@ -15,7 +15,7 @@
 
 ## Context
 
-The user asked whether MLX-Gen can add LoRA support to the currently served Bonsai model family.
+The question is whether MLX-Gen can add LoRA support to the currently served Bonsai model family.
 Unlike ERNIE, Bonsai does not run on a normal transformer made of replaceable MLX linear modules.
 It serves packed low-bit checkpoints through a fused FLUX.2 Klein megakernel path.
 
@@ -81,7 +81,7 @@ different to treat this as a small patch.
 - Do not add a hidden unpacked fallback when a user selects the packed Bonsai model.
 - Do not claim packed Bonsai LoRA support from SDXL-style or otherwise unrelated adapters.
 
-## Guidance for future agents
+## Implementation notes
 
 Start with architecture, not adapter loading. The blocker is the execution boundary, not just file
 parsing.

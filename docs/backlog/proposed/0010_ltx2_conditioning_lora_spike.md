@@ -95,7 +95,7 @@ cleanly without inheriting an audio-video contract too early.
 - Do not represent the LTX family as Apache unless the current model card/license says so; it uses
   its own LTX license terms.
 
-## Guidance for future agents
+## Implementation notes
 
 Treat LTX as a video platform, not a single model id. Start with upstream Diffusers behavior and
 write a small ADR if the port requires new public concepts such as audio latents, temporal

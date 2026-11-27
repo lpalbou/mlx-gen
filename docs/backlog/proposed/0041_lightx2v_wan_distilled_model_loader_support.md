@@ -136,7 +136,7 @@ existing Wan route.
   package without the base Wan assets.
 - Do not broaden this into Wan VACE or generic second-family video acceleration work.
 
-## Guidance for future agents
+## Implementation notes
 
 Treat this as a scheduler-plus-loader audit, not just a filename audit. The existence of a
 `WanModel` config and public weights is encouraging, but current evidence already shows three

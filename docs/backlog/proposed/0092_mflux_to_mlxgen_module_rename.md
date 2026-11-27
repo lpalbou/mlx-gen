@@ -42,7 +42,7 @@ host and script.
 
 ## Why it might matter
 
-Hosts embedding the Python runtime (the audit's BlackPixel host chief among
+Hosts embedding the Python runtime (the audited host application chief among
 them) currently document two names for one dependency; every new integration
 pays the confusion once.
 
@@ -57,7 +57,7 @@ shipped so the rename does not collide with in-flight feature branches.
 Renaming the GitHub repository or the PyPI distribution (already `mlx-gen`);
 changing any generation behavior.
 
-## Guidance for future agents
+## Implementation notes
 
 Do the rename as a mechanical, single-commit move plus shim; never mix it
 with behavior changes. Grep for `mflux` in metadata readers before dropping

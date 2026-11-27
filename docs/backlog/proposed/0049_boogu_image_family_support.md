@@ -125,7 +125,7 @@ priority.
 - Do not let this item jump ahead of the active Qwen, Z-Image, and Wan backlog unless the
   evidence changes materially.
 
-## Guidance for future agents
+## Implementation notes
 
 Re-check current public evidence before promotion. If Boogu is still mostly supported by vendor
 benchmarks and anecdotal community reviews, leave it proposed. If it starts winning on independent

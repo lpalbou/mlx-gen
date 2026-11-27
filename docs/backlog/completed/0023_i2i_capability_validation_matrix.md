@@ -201,7 +201,7 @@ narrow plain one-image unmasked `fibo-edit` route after q8 and default-weight un
 The historical FIBO failures in this item remain useful evidence for why masked FIBO Edit and RMBG
 are still not public unified capabilities.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Do not equate "route exists" with "model works." The deliverable is the evidence table: model,
 capability, source image(s), prompt, result image, and status. Keep unsuccessful attempts visible

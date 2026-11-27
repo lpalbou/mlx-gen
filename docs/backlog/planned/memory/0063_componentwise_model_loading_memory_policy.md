@@ -73,7 +73,7 @@ family or add a guarded helper path before broad migration.
 - [ ] Migrate at least one safe family or leave a tested primitive with explicit follow-up. Split
   to proposed item [0065](../../proposed/0065_componentwise_weight_streaming_migration.md).
 
-## Guidance for the implementing agent
+## Implementation notes
 Do not trade a startup-memory win for silent quantization or validation drift. This item is
 architecture-sensitive and can be completed incrementally only if the primitive is real and tested.
 

@@ -547,7 +547,7 @@ The remaining work is:
 - [ ] Update generated model-card guidance if prepared-package cards should mention reframe.
 - [ ] Decide whether ADR 0002 needs a task-taxonomy addendum before closure.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Re-check the code first because routing has been changing quickly. Keep the public contract simple:
 media direction is the task, implementation is a backend mode. Prefer explicit errors over silent

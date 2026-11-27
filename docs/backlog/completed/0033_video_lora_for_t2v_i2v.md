@@ -245,7 +245,7 @@ belongs in separate items:
 - broader q4/package proof coverage;
 - richer validation-registry or `mlxgen validation` integration for LoRA-specific profiles.
 
-## Guidance for future agents
+## Implementation notes
 
 Start with rejection tests and capability metadata. Then compare upstream adapter naming against
 MLX-Gen Wan weights before touching model execution. A successful implementation needs both a

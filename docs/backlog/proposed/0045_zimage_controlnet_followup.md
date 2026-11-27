@@ -144,7 +144,7 @@ strong structured-control family next to Qwen.
 - Do not assume Qwen control semantics and Z-Image control semantics are identical.
 - Do not create implicit auto-preprocessors from this item alone.
 
-## Guidance for future agents
+## Implementation notes
 
 Treat this as a narrow family-adjacent follow-up. If control-image preprocessing becomes the real
 user pain point, split that into a separate item instead of hiding it inside the model port.

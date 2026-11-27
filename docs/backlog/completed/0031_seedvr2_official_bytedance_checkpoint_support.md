@@ -139,7 +139,7 @@ be prepared from the upstream model rather than from an intermediate conversion.
 - [x] Validate prepared q8/q4 packages.
 - [x] Update docs and completion report.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Prefer targeted loader and saver extensions local to SeedVR2. Do not silently switch model identity:
 the alias source, resolved package path, and metadata should make the selected model clear.

@@ -119,7 +119,7 @@ proportions is a basic correctness expectation for both CLI users and Python cal
 - [x] Update core docs and LLM index.
 - [x] Move this item to completed with evidence.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Prefer a single model-layer rule over CLI-only behavior. Do not introduce a border/crop mode as a
 shortcut. If exact source aspect ratio is impossible under model spatial multiples at the requested

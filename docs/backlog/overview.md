@@ -22,13 +22,13 @@ Counts are item files (recounted 2026-11-26 after proposed item 0132 was filed; 
 item 0101 to completed/), including topic-track items under
 `planned/memory/`; the completed `planned/runtime_contracts/` track holds only its index.
 Item 0107 was added on 2026-08-10 for the larger Bernini-model capacity/scope gate.
-Items 0086-0090 came from a 2026-07-22 adversarial performance audit of the
-BlackPixel embedding host traced end-to-end against the 0.23.1 release.
+Items 0086-0090 came from a 2026-07-22 performance audit of a
+host application built on mlx-gen, traced end-to-end against the 0.23.1 release.
 Items 0093-0095 came from the 2026-07-23 follow-up audit of image-to-image
-latency in the same host (BlackPixel backlog 0069 holds the full record).
+latency in the same host (the host application's backlog 0069 holds the full record).
 Items 0097-0100 came from the 2026-07-25 storyboard cross-scene-consistency
-investigation (three agents; verification + fixed-seed generation A/Bs; the
-full record lives in BlackPixel backlog
+investigation (verification + fixed-seed generation A/Bs; the
+full record lives in the host application's backlog
 `proposed/storyboard_consistency_2026_07/`).
 
 ## Completed runtime contract hardening band
@@ -72,7 +72,7 @@ promote richer VACE conditioning into the public runtime yet.
    so the current CLI, docs, and ADR surfaces agree that prompt-guided source-video editing
    belongs to `mlxgen generate` and starts with plain `video-to-video`.
 2. Finished [Wan VACE reference validation harness and bounded source cases](completed/0073_wan_vace_reference_validation_harness_and_bounded_source_cases.md)
-   so future agents have preserved local artifacts, wall time, and memory evidence instead of
+   so later work has preserved local artifacts, wall time, and memory evidence instead of
    generic “VACE exists upstream” claims. The bounded portrait and ship cases ran, but they did
    not pass a release-quality visual bar on this host.
 3. Finished [Wan plain generative video-to-video route](completed/0074_wan_plain_generative_video_to_video_route.md)
@@ -118,7 +118,7 @@ promote richer VACE conditioning into the public runtime yet.
 
 ## Completed masked-edit expansion band
 
-The 2026-07-15 masked-edit surface audit (one adversarial subagent) identified base-Qwen native
+The 2026-07-15 masked-edit surface audit identified base-Qwen native
 inpaint as the strongest unsurfaced route and the Z-Image non-turbo gate as proof-blocked.
 Both shipped the same day with a consolidated canonical docs page.
 
@@ -151,7 +151,7 @@ command and Python API.
    so the new `flux2.inpaint` capability composites unmasked latents from the re-noised
    clean source every step while the clean source rides along as conditioning tokens
    (t=10, references at t=20+), with torch-parity bilinear mask downsampling onto the
-   packed latent grid, adversarial-subagent review (one major guidance-default finding
+   packed latent grid, independent verification (one major guidance-default defect
    fixed pre-smoke), and model-backed q8 smoke proofs (distilled 4-step guidance-1, base
    8-step CFG guidance-4, and a reference-conditioned plaid-fill case) preserved locally in
    `validation_outputs/flux2-klein-inpaint-smoke/`. Published visual-QA proof rows remain a
@@ -159,7 +159,7 @@ command and Python API.
 
 ## Completed audit hardening band
 
-The 2026-06-27 code-only audit and two adversarial confirmation passes inserted a new hardening
+The 2026-06-27 code-only audit and two confirmation passes inserted a new hardening
 band ahead of model-expansion work. Items 0051-0057 are now completed. The residual architecture
 follow-up remains proposed as item 0058. Items 0059-0061 are now quantitatively completed; items
 0062-0064 remain planned until exact-quality SeedVR2 video, startup, and retention memory
@@ -182,7 +182,7 @@ statistics prove completion.
 
 ## Active memory validation band
 
-The 2026-06-27 adversarial memory pass implemented several concrete memory changes. Items 0059-0061
+The 2026-06-27 memory pass implemented several concrete memory changes. Items 0059-0061
 are now completed with real process-isolated quantitative evidence. Items 0062-0064 are still
 planned because the available reports did not prove a quality-preserving SeedVR2 video memory
 reduction, startup/first-step peak reduction, or retention memory reduction.
@@ -363,8 +363,8 @@ memory follow-up state.
    performance work
    ([0119](proposed/0119_minimax_h3_adaln_precompute_and_long_sequence_performance.md)). The
    quantized packages shipped with 0.39.0 as completed item
-   [0128](completed/0128_minimax_h3_quantized_packages.md), published as gated repositories by the
-   owner's decision on the license. The joint audio-video contract ADR is still owed.
+   [0128](completed/0128_minimax_h3_quantized_packages.md), published as gated repositories following the
+   decision on the license. The joint audio-video contract ADR is still owed.
 22. Run [item 0126](planned/0126_wan_q8_keep_8bit_at_runtime.md) before the full-size Wan q8 work in
    item 0013. Wan q8 packages are converted to BF16 at load since 2026-06-12 and use BF16-class
    memory; the failure behind that conversion was the MLX `quantized_matmul` fault above 32,767
@@ -415,10 +415,10 @@ memory follow-up state.
 | 0089 | [Wan memory defaults: streamed decode, per-item transformer release](proposed/0089_wan_memory_defaults.md) | Video, memory, defaults | Promote when A14B batch usage is real or a smaller-RAM user reports pressure; needs the AGENTS.md whole-process RSS harness. |
 | 0090 | [Step-loop performance experiments (batched CFG, Wan compile, step caching)](proposed/0090_step_loop_performance_experiments.md) | Performance, step loop, quality gates | Promote per-experiment once a reproducible benchmark harness exists and quality-mode workloads are demonstrated. |
 | 0092 | [Rename the Python module from `mflux` to `mlxgen`](proposed/0092_mflux_to_mlxgen_module_rename.md) | Packaging, public API naming, embedding hosts | Promote when a release window can absorb the breaking import path (with shim), an ADR fixes the deprecation policy, and the 0.25-track wave has shipped. |
-| 0096 | [Outpaint capability expansion beyond Qwen edit and Klein Base](proposed/0096_outpaint_capability_expansion.md) | Image edit, outpaint, capability registry, embedding hosts | Owner-requested (2026-07-23): survey which families can truthfully outpaint (existing mask routes + source-locked denoising math); evidence-gated per ADR 0001. |
+| 0096 | [Outpaint capability expansion beyond Qwen edit and Klein Base](proposed/0096_outpaint_capability_expansion.md) | Image edit, outpaint, capability registry, embedding hosts | Requested 2026-07-23: survey which families can truthfully outpaint (existing mask routes + source-locked denoising math); evidence-gated per ADR 0001. |
 | 0100 | [VACE identity-anchor recipe documentation](proposed/0100_wan_vace_identity_anchor_recipe.md) | Wan VACE, subject reference, draft/repair tier | Conditional: decide after 0097's A/B (supersession gate); recipe is wireable today with no code changes. |
-| 0102 | [Wan A14B i2v multi-frame context head conditioning](proposed/0102_wan_context_frame_head_conditioning.md) | Wan video, storyboard continue seams, momentum carry | Implemented 2026-07-27 (EXPERIMENTAL, unreleased): `--context-frames`/`--context-noise` extend the i2v conditioned head to K in {5,9,13} frames (the 0097 non-goal, now gated per the BlackPixel frame-consistency blueprint); zero-shot probe measured momentum carry (K=5 seam magnitude ratio 0.90 vs single-frame 1.90) with a mild boundary flare; capabilities `schema_version` 6 adds `supports_context_frames`. |
-| 0103 | [Wan A14B i2v SVI 2.0 Pro conditioning](proposed/0103_wan_svi_pro_conditioning.md) | Wan video, storyboard chains, identity anchor + latent motion handover | Implemented 2026-07-27 (EXPERIMENTAL, unreleased): `--svi-anchor-image`/`--svi-motion-latent`/`--svi-lora-high`/`--svi-lora-low` port Stable Video Infinity 2.0 Pro chain conditioning (`[anchor, motion latent, zero-latents]` + error-recycling LoRA pair under a strict `unmatched_key_count == 0` contract, 800/800 verified) to the A14B i2v route per the BlackPixel consistency-redo doctrine (mechanism 4, probe-gated); capabilities `schema_version` 7 adds `supports_svi`. |
+| 0102 | [Wan A14B i2v multi-frame context head conditioning](proposed/0102_wan_context_frame_head_conditioning.md) | Wan video, storyboard continue seams, momentum carry | Implemented 2026-07-27 (EXPERIMENTAL, unreleased): `--context-frames`/`--context-noise` extend the i2v conditioned head to K in {5,9,13} frames (the 0097 non-goal, now gated per the host application's frame-consistency blueprint); zero-shot probe measured momentum carry (K=5 seam magnitude ratio 0.90 vs single-frame 1.90) with a mild boundary flare; capabilities `schema_version` 6 adds `supports_context_frames`. |
+| 0103 | [Wan A14B i2v SVI 2.0 Pro conditioning](proposed/0103_wan_svi_pro_conditioning.md) | Wan video, storyboard chains, identity anchor + latent motion handover | Implemented 2026-07-27 (EXPERIMENTAL, unreleased): `--svi-anchor-image`/`--svi-motion-latent`/`--svi-lora-high`/`--svi-lora-low` port Stable Video Infinity 2.0 Pro chain conditioning (`[anchor, motion latent, zero-latents]` + error-recycling LoRA pair under a strict `unmatched_key_count == 0` contract, 800/800 verified) to the A14B i2v route per the host application's consistency-redo doctrine (mechanism 4, probe-gated); capabilities `schema_version` 7 adds `supports_svi`. |
 | 0108 | [Bernini-R 1.3B selective 8-bit package](proposed/0108_bernini_selective_8bit_package.md) | Bernini, quantization, published packages | Promote after a selective q8 policy passes the step-0 tensor probe, same-seed reduced comparison, and full-profile contact-sheet gates against the BF16 baseline. |
 | 0109 | [Bernini task-type and guidance-mode CLI exposure](proposed/0109_bernini_task_type_cli_exposure.md) | Bernini, CLI surface | Promote when the mv2v structure-changing recipe should be CLI-reachable; low risk, surfaces existing runtime parameters. |
 | 0110 | [Bernini-R 1.3B promotion policy decision](proposed/0110_bernini_promotion_policy_decision.md) | Bernini, release policy, ADR | Promote when the team is ready to decide the tuned-recipe promotion standard; requires an ADR and reconciling backlog 0106. |
@@ -503,12 +503,12 @@ memory follow-up state.
 | 0098 | [Warn on silent UMT5 prompt truncation](completed/0098_wan_prompt_truncation_warning.md) | Wan video, prompt contract truthfulness | 2026-07-25 (released in 0.25.0) | Wan encoding measures real token counts, prints one stderr warning per truncated prompt naming the counts, and records `prompt_tokens`/`prompt_truncated` (plus the negative-prompt pair when CFG encodes it) in metadata; the 0101 smoke exercised the rewritten path end to end with bitwise-identical output. |
 | 0099 | [Wan step-distill scheduler mode (`denoising_step_list`)](completed/0099_wan_step_distill_scheduler_mode.md) | Wan video, sampling parity, drift-vs-cost | 2026-07-25 (released in 0.25.0) | `--denoising-step-list` runs exact distill timestep grids on both unipc and euler solvers, mutually exclusive with `--steps`/`--flow-shift`, rejected on video-to-video and VACE, recorded in metadata and replayed by `--config-from-metadata`; the grid-honest Lightning-vs-base chain A/B stays open in the item (loader question stays in 0041). |
 | 0101 | [Release 0.25.0 (performance + Wan consistency waves)](completed/0101_release_0_25_0.md) | Release execution, smoke evidence | 2026-07-25 | v0.25.0 published to PyPI + GitHub Release from `2452f0c` (workflow 30162410505; first attempt hit a transient PyPI-probe network reset, green on rerun); ships 0093-0095 + 0097-0099; same-seed TI2V-5B raw-YUV output bitwise identical to 0.24.0 under identical locked deps (both runs `--no-prompt-cache`). |
-| 0081 | [FLUX.2 Klein masked edit / inpaint](completed/0081_flux2_klein_masked_edit.md) | Image edit, FLUX.2 Klein, mask-based inpaint | 2026-07-15 | Ported the diffusers `Flux2KleinInpaintPipeline` semantics onto the Klein family: new `flux2.inpaint` capability with per-step source compositing and clean-source conditioning tokens, torch-parity bilinear mask downsampling, optional masked-area reference images on the backend/Python surface, adversarial review, and local q8 smoke proofs (published visual-QA rows remain follow-up). |
+| 0081 | [FLUX.2 Klein masked edit / inpaint](completed/0081_flux2_klein_masked_edit.md) | Image edit, FLUX.2 Klein, mask-based inpaint | 2026-07-15 | Ported the diffusers `Flux2KleinInpaintPipeline` semantics onto the Klein family: new `flux2.inpaint` capability with per-step source compositing and clean-source conditioning tokens, torch-parity bilinear mask downsampling, optional masked-area reference images on the backend/Python surface, independent verification, and local q8 smoke proofs (published visual-QA rows remain follow-up). |
 | 0082 | [Masked edit expansion: native base-Qwen and Z-Image non-turbo](completed/0082_masked_edit_expansion_qwen_zimage.md) | Image edit, Qwen base, Z-Image, mask routing | 2026-07-15 | Shipped native `qwen.base-inpaint` (diffusers `QwenImageInpaintPipeline` port, internal 0.85 warm start, `effective_steps` metadata, one masked route per row) and non-turbo `z-image.inpaint`, plan-time maskless rejection, the canonical `docs/masked-editing.md` page, and a published visual-smoke proof bundle with preservation measurements. |
 | 0105 | [Bernini-R 1.3B renderer integration](completed/0105_bernini_r_1_3b_renderer_integration.md) | Video generation/editing, reference roles, factored sources, proof | 2026-08-04 | Shipped the exact BF16 renderer-only R2V/RV2V/V2V runtime and factored-source contracts. Post-completion audit withdrew the quality claim: every required visual row fails, the registry is `FAIL`, and item 0106 owns the blocking trajectory/quality work. |
 | 0117 | [MiniMax-H3 text-to-video-with-audio runtime and Turbo adapters](completed/0117_minimax_h3_text_to_video_audio_runtime.md) | Video with audio, MiniMax-H3, streaming q8 loading, generated-audio contract | 2026-09-04 | Ported the diffusers modular pipeline natively (layout, schedulers, transformer, Qwen3-VL conditioner, video and audio VAEs) with component parity at fp32 noise, shipped `minimax-h3`, `minimax-h3-turbo` and `minimax-h3-turbo-544p` with lightx2v adapters, generated stereo AAC audio in the MP4, and the first model-backed clips. First-frame conditioning is item 0118. |
 | 0118 | [MiniMax-H3 first-frame conditioning through the Qwen3-VL vision tower](completed/0118_minimax_h3_first_frame_conditioning_vision_tower.md) | MiniMax-H3 image-to-video, Qwen3-VL vision tower, DeepStack | 2026-09-05 | Ported the vision tower, processor, rope index and DeepStack injection (exact vs transformers, real weights 1e-5), shipped `--image-path` first-frame conditioning with the reference's keyframe canvas, presentation and condition-latent recipe, and the `minimax-h3.first-frame` capability row. |
-| 0120 | [MiniMax-H3 embedding-host contract](completed/0120_minimax_h3_embedding_host_contract.md) | Capability schema 13, progress events, duration bounds, host integration | 2026-09-06 | From a BlackPixel feature request, adversarially verified first. Fixed progress never reaching the callback registry, the `denoising`/duplicate-`complete` phase vocabulary, a documented maximum frame count (362) that always raised, duplicate prompt sections, the duplicate Turbo label, unvalidated Python-runtime keywords, health validation running before the audio mux, and a sidecar that could overwrite. Published the audio, duration, sampling and per-entry-default fields plus `prompt_sections` descriptors at `schema_version` 13. Follow-ups 0121-0123. |
+| 0120 | [MiniMax-H3 embedding-host contract](completed/0120_minimax_h3_embedding_host_contract.md) | Capability schema 13, progress events, duration bounds, host integration | 2026-09-06 | From a host application's feature request, independently verified first. Fixed progress never reaching the callback registry, the `denoising`/duplicate-`complete` phase vocabulary, a documented maximum frame count (362) that always raised, duplicate prompt sections, the duplicate Turbo label, unvalidated Python-runtime keywords, health validation running before the audio mux, and a sidecar that could overwrite. Published the audio, duration, sampling and per-entry-default fields plus `prompt_sections` descriptors at `schema_version` 13. Follow-ups 0121-0123. |
 | 0128 | [MiniMax-H3 quantized packages on Hugging Face](completed/0128_minimax_h3_quantized_packages.md) | MiniMax-H3, quantization policy, packaging, Hugging Face, release 0.39.0 | 2026-11-23 | Published `minimax-h3-8bit` (64.3 GiB) and the mixed-width `minimax-h3-4bit` (44.9 GiB: 4-bit conditioner, 6-bit transformer) as gated repositories. The policy is measured: no transformer family tolerates 4-bit better than another, the AdaLN projections quantize like any linear (the earlier failure was an input cast), and the vision tower stays unquantized. Fixed cache resolution of downloaded packages, package tokenizers, the model card, and the loader's refusal of mismatched packages. The 8-bit package runs on 96 GB and the 4-bit one on 64 GB with `--low-ram`, both tested with RAM locked away. |
 | 0130 | [MiniMax-H3 staged loading, block streaming, re-indexed 8-bit weights and the 16-bit package](completed/0130_minimax_h3_staged_loading_and_reindexed_8bit.md) | MiniMax-H3, memory, block streaming, quantization, packaging, capability schema 17, release 0.40.0 | 2026-11-23 | The conditioner is read from disk for the length of an encode, the AdaLN projections become per-schedule modulation tables, the VAEs are read at first use, and `--stream-blocks` reads each transformer block for the length of its call. Peak at `960x544`, 124 frames: 37.0 GiB with the 8-bit package (26.3 GiB with `--low-ram`, 11.1 GiB streamed) and 54.4 GiB with the released 16-bit weights (44.0 GiB, 11.7 GiB), byte-identical clips in every mode. Locked-RAM runs completed at 48 / 36 / 24 GB (8-bit), 96 / 64 / 32 GB (16-bit) and 32 GB (mixed 4-bit). 8-bit levels are chosen on the stored grid; `minimax-h3-8bit` was rebuilt and `minimax-h3-bf16` (115 GiB) published. `mlxgen prepare` writes one component at a time. Follow-up 0131. |
 
@@ -517,7 +517,7 @@ memory follow-up state.
 | ID | Item | Deprecated | Reason |
 | --- | --- | --- | --- |
 | 0047 | [SeedVR2 7B quality and safe video scale revalidation](deprecated/0047_seedvr2_7b_quality_and_safe_video_scale_revalidation.md) | 2026-06-21 | Release `0.18.20` closed the bounded 7B quality revalidation through completed item 0032; the only remaining question was split into proposed item 0048. |
-| 0104 | [MiniMax H3 joint audio-video license-blocked watch](deprecated/0104_minimax_h3_joint_audio_video_watch.md) | 2026-09-04 | Superseded by the owner's decision to port MiniMax-H3 (completed item 0117); the license analysis stays the reference for the policy decision still owed. |
+| 0104 | [MiniMax H3 joint audio-video license-blocked watch](deprecated/0104_minimax_h3_joint_audio_video_watch.md) | 2026-09-04 | Superseded by the decision to port MiniMax-H3 (completed item 0117); the license analysis stays the reference for the policy decision still owed. |
 
 ## Recurrent ledger
 
@@ -543,7 +543,7 @@ memory follow-up state.
 ## Planning notes
 
 - Completed 2026-08-04 Bernini-R 1.3B after five architecture, parity, framework, model-backed,
-  and closure cycles with two adversarial reviewers. The accepted claim is renderer-only BF16 at
+  and closure cycles with two independent audits. The accepted claim is renderer-only BF16 at
   bounded profiles: 9.45 GB maximum measured physical footprint on the 128 GB host, 18.36 GiB cold
   selective-download preflight including headroom, and explicit retained quality limitations.
 - Added 2026-08-03 MiniMax H3 license-blocked watch item after re-reading the formal license and
@@ -564,7 +564,7 @@ memory follow-up state.
   future MLX spike, but its custom Krea 2 Community License is materially restrictive
   (revenue-capped, revocable, redistribution-constrained), so the item stays proposed and low
   priority.
-- Added 2026-06-27 code-only audit hardening band after two adversarial subagents confirmed the
+- Added 2026-06-27 code-only audit hardening band after two independent confirmation passes confirmed the
   unsafe Torch checkpoint loader, fail-open local release path, prepare class/config split, step
   validation/default drift, low-RAM repeat-generation hazard, Wan/VLM/BF16 performance issues, and
   package hygiene follow-ups.
@@ -634,26 +634,26 @@ memory follow-up state.
   public LoRA docs were refreshed, and planned item 0042 now tracks the GitHub Actions Node 20
   deprecation warning observed in release run `27440684820` before the Node 24 default switch.
 - Added 2026-07-25 storyboard consistency follow-ups (items 0097-0100) after
-  the three-agent cross-scene investigation of the BlackPixel storyboard film
+  the cross-scene investigation of a host application's storyboard film
   (mountains washed out, ship identity lost, tone drifting cartoonish across
   four chained Lightning i2v scenes). Source facts verified in this repo's
   code: single-VAE-frame conditioning; negatives never encoded under
   guidance==1.0 (both A14B experts) while still recorded in metadata;
   silent 512-token truncation; diffusers-layout `last_image` bracket ~30
-  lines away. Fixed-seed chain A/Bs (BlackPixel side) measured a 33-token
+  lines away. Fixed-seed chain A/Bs (host side) measured a 33-token
   world anchor keeping upper-band structure at 672 vs 62 Laplacian-variance
   edge energy at the critical handoff, and a sharpest-of-last-24 handoff
   frame carrying 5x sharper conditioning (149 vs 30) into the next scene.
-  Full record: BlackPixel backlog `proposed/storyboard_consistency_2026_07/`.
+  Full record: the host application's backlog `proposed/storyboard_consistency_2026_07/`.
 - Added 2026-07-23 i2i latency audit follow-ups (items 0093-0095) after the
-  three-agent BlackPixel image-to-image audit reconciled the owner's
-  minutes-per-image report: the flux2 path itself was healthy (no Wan-style
+  host application's image-to-image audit reconciled a reported
+  minutes-per-image slowdown: the flux2 path itself was healthy (no Wan-style
   per-prompt TE reload; the Klein Qwen3 TE loads once and stays resident),
   but page-cold lazy-mmap fault-in cost ~100 s of a 165 s cold q8 run
   (0093), the MLX buffer cache grew unbounded to 32.9 GB in two Python-API
   generations (0094), and flux2's prompt_cache is written but never read
   while 4-seed host clicks re-encode the same prompt 4x (0095). Measured
-  verification: 54.1 s/step at the owner's real 944x1680 edit geometry with
+  verification: 54.1 s/step at the host's real 944x1680 edit geometry with
   two rank-64 LoRAs (q8, idle machine), vs the 10.5 s/step 1024x768 no-LoRA
   baseline — LoRA wrappers add runtime matmuls per step (not load-time
   fusion), bounded 1.4-2.3x pending a clean isolation run.
@@ -739,7 +739,7 @@ memory follow-up state.
   `mlxgen capabilities`, `--i2i-mode`, metadata-aware latent route replay, local-path
   `--base-model` handling, early option rejection, image edit progress labeling, docs, and
   lightweight route-plan artifacts. Focused resolver/router/progress validation passed with 86
-  tests, then reviewer-driven metadata/base-model/mask/family-conflict coverage expanded the
+  tests, then added metadata/base-model/mask/family-conflict coverage expanded the
   focused suite to 91 passing tests.
 - Updated 2026-06-04 pre-0.18.10 backlog release state: current code has the taskless/capability
   planner in completed items 0018 and 0020, with docs now explicitly distinguishing latent

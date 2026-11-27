@@ -362,7 +362,7 @@ localizing the MFSWA delta), and a negative control confirming the 15-key allow-
 - Do not start with 4K: the paper's own limitation is 13.84 FPS at 60.91 GB on an H100.
 - Do not attempt to reproduce the training. No training code or evaluation harness is released.
 
-## Guidance for future agents
+## Implementation notes
 
 The temptation is that the release quality is unusually good - Apache-2.0 code, Apache-2.0 ungated
 weights, a backbone we already implement, and a config byte-identical to stock Wan2.2-TI2V-5B. All

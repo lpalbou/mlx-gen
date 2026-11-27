@@ -89,6 +89,6 @@ image-token vectorization, and BF16 loader policy. Start with the lowest-risk is
 - [x] Vectorize VLM image-token replacement.
 - [x] Make BF16 loader policy explicit.
 
-## Guidance for the implementing agent
+## Implementation notes
 Do not bundle all optimizations into one risky patch. Preserve existing output metadata and health
 gates while reducing memory pressure.

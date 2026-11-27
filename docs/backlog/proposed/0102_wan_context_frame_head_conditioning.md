@@ -18,9 +18,9 @@
 
 ## Context (investigation provenance)
 
-The 2026-07-27 BlackPixel storyboard blueprint
-(`blackpixel/docs/backlog/proposed/storyboard_frame_consistency_2026_07/`,
-validated by its R4 forensics + probe wave) confirmed on the owner's failed
+The 2026-07-27 storyboard blueprint of a host application
+(its backlog `proposed/storyboard_frame_consistency_2026_07/`,
+validated by its R4 forensics + probe wave) confirmed on a failed
 4-scene film that chaining scenes by seeding scene N+1 from ONE still frame of
 scene N resets motion at every boundary — one frame carries no velocity. The
 motion-carry literature (SkyReels-V2 overlap, SVI 5-frame handover, VACE
@@ -155,7 +155,7 @@ HERE because scene A's within-clip reference is exceptionally smooth
 (max 1.15). `context_noise` does not move it (3.1-3.6 flat across 0/20/60/
 100), so the knob defaults to OFF and exists for adapter recipes.
 
-Visual verdict (labeled review, not blinded — single-agent probe): all arms
+Visual verdict (labeled review, not blinded — single probe): all arms
 keep the shuttle identity and continue the climb; k1 arms read as a speed
 jump at the cut, k5/k9 read continuous with a subtle flame brighten at the
 boundary. No structural regression in any arm.
@@ -230,7 +230,7 @@ continue-seam default with these numbers on the table, and Phase 2's SVI
 LoRA (trained FOR multi-frame conditioning; expected to remove both the
 flare and the loose head reproduction) reuses this exact surface unchanged.
 Recommended host default given the evidence: K=5, context_noise off — the
-K=1 double-speed restart is the owner's reported, always-visible failure;
+K=1 double-speed restart is the reported, always-visible failure;
 the K=5 flare is 1-2 frames, mild, and masked by any non-static content.
 
 Probe artifacts preserved in `untracked/context_probe_2026_07_27/`

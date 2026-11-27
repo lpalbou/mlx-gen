@@ -77,6 +77,6 @@ appropriate optional dependency extra and ensure release checks still install it
 - [x] Move release-only dependency.
 - [x] Verify build artifact inspection.
 
-## Guidance for the implementing agent
+## Implementation notes
 Keep this behind the confirmed blockers. Packaging hygiene matters most when preparing a release or
 when `make build` is a gate.

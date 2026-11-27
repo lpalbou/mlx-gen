@@ -86,7 +86,7 @@ drift.
 - [x] Add focused tests that do not stub away the failing behavior.
 - [x] Re-run the real control-inpaint proof one run at a time and preserve the artifact.
 
-## Guidance for the implementing agent
+## Implementation notes
 Keep the fix route-local and explicit. The current failure is already concrete enough that a small
 patch is preferable to a broad Qwen loader or metadata abstraction rewrite.
 

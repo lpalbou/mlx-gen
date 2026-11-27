@@ -111,7 +111,7 @@ family just to get video editing primitives.
   abstraction from this proposal alone.
 - Do not silently absorb `Wan2.2-Animate-14B` or `Wan2.2-S2V-14B` into this item.
 
-## Guidance for future agents
+## Implementation notes
 
 Do not use this item to reopen the first-route decision. The execution path is already split:
 

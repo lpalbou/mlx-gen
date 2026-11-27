@@ -12,7 +12,7 @@
 ## Context
 The first confirmed spoof probe showed that a custom local path whose name merely contained
 `qwen-image-8bit` could incorrectly advertise base Qwen control and control-inpaint support when
-combined with `--base-model qwen-image --family qwen`. A broader adversarial review then confirmed
+combined with `--base-model qwen-image --family qwen`. A broader audit then confirmed
 the same raw-path poisoning pattern on Qwen edit, Z-Image Turbo, FLUX.2 Klein base, and FIBO Edit
 variant predicates, plus a second authority leak where shared `family=` overrides can lie about a
 known canonical model family.
@@ -100,7 +100,7 @@ as `qwen.control*` on a narrow allowlist.
 - [x] Add spoof and supported-identity regression coverage across affected families.
 - [x] Re-run public capabilities proofs one case at a time.
 
-## Guidance for the implementing agent
+## Implementation notes
 Prefer the narrowest truthful identity rule that can be defended from current code reality. Keep
 broader registry authority work in item 0058 unless this fix proves it is unavoidable.
 

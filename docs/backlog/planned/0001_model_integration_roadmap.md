@@ -259,7 +259,7 @@ Related focused items:
 - [ ] Draft video backend/API ADR before expanding Wan or implementing CogVideoX.
 - [ ] Keep docs and generated model cards synchronized with every integrated family.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Re-check current code and local cache before implementation. Prefer small, independently releasable
 changes: diagnostics first, supported-family validation second, new architecture ports third. If a

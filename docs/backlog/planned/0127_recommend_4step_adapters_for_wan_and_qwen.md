@@ -32,7 +32,7 @@ Pairs already validated and documented (4 steps, guidance 1):
 Not yet validated by MLX-Gen:
 
 - Wan2.2 TI2V-5B: `Kijai/WanVideo_comfy:FastWan/Wan2_2_5B_FastWanFullAttn_lora_rank_128_bf16.safetensors`
-  (FastWan, 4 steps, guidance 1). BlackPixel ships it as its default for this model and measured
+  (FastWan, 4 steps, guidance 1). A host application ships it as its default for this model and measured
   it on 2026-10-04; MLX-Gen has no proof of its own, and the adapter's page states no license.
 - Qwen-Image-2512: no 4-step pair is recorded in the docs.
 - `lightx2v/Wan2.2-Distill-Loras` is listed in item 0040 as a secondary compatibility set only.
@@ -47,7 +47,7 @@ Engine fault found on 2026-10-04 while installing these pairs from an empty cach
 - Effect: `repo:file` adapters from one repository cannot be installed one after the other. The
   second file of a Wan A14B pair fails, then the other A14B model's pair, and a second
   MiniMax-H3 schedule's `turbo_lora` through `mlxgen download`.
-- BlackPixel 0.9.3 works around it in its download process by replacing
+- A host application (its release 0.9.3) works around it in its download process by replacing
   `_load_collection_from_cache`.
 
 ## What we want to do

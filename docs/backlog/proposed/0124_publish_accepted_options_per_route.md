@@ -14,7 +14,7 @@
 ## Context
 
 The capability schema declares some options and not others, so an embedding host still needs
-per-family knowledge to know which flags a route accepts. Raised twice by the BlackPixel host: a
+per-family knowledge to know which flags a route accepts. Raised twice by a host application: a
 "Low RAM mode" toggle sent `--low-ram` to MiniMax-H3, which rejected it at argparse. Item 0120
 closed that specific case by accepting `--low-ram` on that route, but the general problem stands for
 `--solver` (Wan-only) and for every option nobody has thought about yet.

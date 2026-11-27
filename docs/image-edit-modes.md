@@ -350,8 +350,8 @@ distilled and base alike — you choose it with `--outpaint-fill`:
 Two practical rules follow from that:
 
 - **Match the fill to the padding depth.** Edge fill continues a texture; it does not invent one.
-  For a small border it is the better canvas. For a lot of new space — revealing a full body from a
-  head-and-shoulders portrait, say — a blank canvas plus a descriptive prompt is what generates new
+  For a small border it is the better canvas. For a lot of new space — continuing a scene well beyond
+  the source frame, say — a blank canvas plus a descriptive prompt is what generates new
   subject matter, and `auto` switches to it on its own.
 - **Extend in steps rather than in one jump.** Outpaint cost scales with the expanded canvas and
   attention cost grows faster than canvas area, so two moderate passes are cheaper and generally
@@ -363,10 +363,10 @@ Naming the mode explicitly:
 ```sh
 mlxgen generate \
   --model AbstractFramework/flux.2-klein-base-4b-8bit \
-  --image portrait.png \
+  --image photo.png \
   --outpaint-padding "0%,10%,100%,10%" \
   --outpaint-fill neutral \
-  --prompt "Extend this portrait downward to reveal the lower part of the body: the same subject in the same clothing, same lighting, same background." \
+  --prompt "Extend this photo downward: the same scene continues, same lighting, same background." \
   --steps 20 \
   --guidance 4 \
   --seed 1234 \

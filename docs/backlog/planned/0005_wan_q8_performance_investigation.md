@@ -152,7 +152,7 @@ local video generation.
 - [ ] Inspect quantized Wan hot-path kernels.
 - [x] Update docs/model-card guidance based on A14B T2V quality and timing evidence.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Start with measurement. Do not assume q8 should be faster until the hot path is profiled, but treat
 the current 2.3x slowdown as suspicious enough to investigate seriously.

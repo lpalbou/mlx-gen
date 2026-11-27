@@ -17,9 +17,9 @@
 
 ## Request
 
-The owner asked on 2026-11-23 for a hybrid of a 16-bit conditioner with the 8-bit transformer, and
-for an adversarial review of every route that lowers MiniMax-H3's memory at 8-bit or better quality.
-Later the same day: publish any better variant that still runs on 128 GB, document the work in a
+Requested on 2026-11-23: a hybrid of a 16-bit conditioner with the 8-bit transformer, and an
+assessment of every route that lowers MiniMax-H3's memory at 8-bit or better quality.
+Added the same day: publish any better variant that still runs on 128 GB, document the work in a
 dedicated page, and replace the published 8-bit package if the rebuilt one is an improvement.
 
 ## What shipped (release 0.40.0)
@@ -72,21 +72,21 @@ Peak process footprint, `960x544`, 124 frames, 8 steps, Apple M5 Max 128 GB:
   conditioner's median token error by about 9%, and the transformer's video error in isolation in 9
   of 9 inputs; for the complete package the mean video error is 6.23% against 6.30%, and the fox
   clip sits at 28.2 dB against 28.4 dB. It ships because it is never further from the released
-  weights at the same size and keeps the package equal to load-time quantization. The owner
-  approved the replacement on those terms.
+  weights at the same size and keeps the package equal to load-time quantization. The replacement
+  was approved on those terms.
 
-## Adversarial review
+## Verification
 
-One reviewer, three rounds: the byte budget and the hypotheses; the measurement method and the
-prototype; the engine diff. Findings applied: tables keyed through the model's own row-timestep
+Three checks: the byte budget and the hypotheses; the measurement method and the
+prototype; the engine diff. Changes applied: tables keyed through the model's own row-timestep
 function, a noise-floor baseline, `--stream-blocks` as its own option instead of a meaning of
 `--low-ram`, the file-change guard, the table cache surviving a transformer reload, one public
 loader surface instead of private cross-class calls, and the tests listed in
-`tests/minimax_h3/test_h3_staged_loading.py`. Findings recorded as follow-ups:
+`tests/minimax_h3/test_h3_staged_loading.py`. Items recorded as follow-ups:
 [0131](../proposed/0131_minimax_h3_memory_followups.md).
 
 ## Follow-ups
 
 [0131](../proposed/0131_minimax_h3_memory_followups.md): several blocks resident while streaming
-(owner's suggestion, not required), re-indexing the other families' 8-bit packages, the request
+(suggested, not required), re-indexing the other families' 8-bit packages, the request
 preflight, working memory, source-snapshot quantization per encode, and the host application.

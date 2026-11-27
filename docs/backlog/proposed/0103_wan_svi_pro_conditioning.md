@@ -20,8 +20,8 @@
 
 ## Context (doctrine provenance)
 
-The 2026-07-27 BlackPixel storyboard-consistency REDO doctrine
-(`blackpixel/docs/backlog/proposed/storyboard_consistency_redo_2026_07/`)
+The 2026-07-27 storyboard-consistency REDO doctrine of a host application
+(its backlog `proposed/storyboard_consistency_redo_2026_07/`)
 ranks SVI 2.0 Pro (Stable Video Infinity, ICLR'26 Oral; arxiv 2510.09212;
 `svi_wan22` branch, Dec 2025) as mechanism 4: the engine-side
 identity/anti-drift layer for chains of 3+ scenes, behind a loud-fail probe
@@ -114,8 +114,8 @@ across arms), one anchor still (z-image-turbo drone over geyser field):
 - Arm C — no-SVI Lightning baseline (lightx2v 1.0/1.0), single-frame
   handoff (scene N+1 seeded from scene N's last frame).
 
-Results (full scoreboard + stills:
-`blackpixel/untracked/svi_probe_cycle1/PROBE_REPORT.md`): **PASS — SVI is
+Results (full scoreboard + stills in the host application's
+`untracked/svi_probe_cycle1/PROBE_REPORT.md`): **PASS — SVI is
 usable on MLX.** The SVI+Lightning arm held THE SAME drone across all 3
 chained clips (anchor re-injection visibly re-normalized scale and
 composition per clip) while the no-SVI baseline reinvented the subject
@@ -130,7 +130,7 @@ scenario, one seed set, 480x240. Recommended dispatch: SVI 1.0/1.0 +
 lightx2v HIGH 0.6 / LOW 1.0, steps 4, guidance 1.0/1.0, flow_shift 5.0,
 unique seed per clip, trim 5 frames per continuation at assembly.
 
-## Cycle-2 tuning probe (2026-07-28, `blackpixel/untracked/svi_probe_cycle2/`)
+## Cycle-2 tuning probe (2026-07-28, host application `untracked/svi_probe_cycle2/`)
 
 - lightx2v HIGH 0.5 vs 0.6: visually equivalent on a prompted-action
   continuation (same seed) — 0.5 does NOT recover the anchor-dampened
@@ -150,7 +150,7 @@ unique seed per clip, trim 5 frames per continuation at assembly.
 
 ## Follow-ups / open items
 
-- Cycle-3: SVI app-wiring (agent C dispatch integration per the cycle-1
+- Cycle-3: SVI app-wiring (dispatch integration per the cycle-1
   contract; settings now stable: 0.6/1.0, count 1, trim 5).
 - Mixed chains (SVI continuation from a non-SVI predecessor latent) are
   mechanically possible (same latent space) but unprobed; the export is

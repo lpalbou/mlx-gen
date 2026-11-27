@@ -47,7 +47,7 @@ Both mechanisms already existed in `VideoUtil` for the SeedVR2 restore surface.
 
 ## Validation
 
-- Two adversarial subagents: a design review (approved with corrections that were all
+- Two checks: a design check (approved with corrections that were all
   adopted: `sampled_fps` default, drift-based skip tolerance, upsample warning, mux placement
   inside the save functions to cover `--low-ram`, exception-catching best-effort wrapper,
   duration-based probe slack) and a code verification (SHIP; all attack vectors passed, two

@@ -75,6 +75,6 @@ Then consider a richer precompute path later.
 - [x] Add early rejection or prompt precompute support.
 - [x] Cover prompt-file and multi-seed behavior.
 
-## Guidance for the implementing agent
+## Implementation notes
 Prefer fail-closed validation before a complex lifecycle change. Keep the memory-saving contract
 explicit for users.

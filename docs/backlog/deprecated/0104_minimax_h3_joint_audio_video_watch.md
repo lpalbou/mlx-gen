@@ -8,7 +8,7 @@
 
 ## Deprecation note - 2026-09-04
 
-Superseded by the owner's decision to port MiniMax-H3 despite the license territory exclusion
+Superseded by the decision to port MiniMax-H3 despite the license territory exclusion
 recorded below; the runtime shipped as completed item
 [0117](../completed/0117_minimax_h3_text_to_video_audio_runtime.md), first-frame conditioning is
 planned item [0118](../planned/0118_minimax_h3_first_frame_conditioning_vision_tower.md), and
@@ -119,7 +119,7 @@ sparse-attention kernels or a new streaming decode path are required.
 ## Promotion criteria
 
 - The formal public license permits the intended EU development, execution, output, and
-  distribution scope, or the owner has obtained equivalent written permission.
+  distribution scope, or equivalent written permission has been obtained.
 - Stable official upstream code or merged Diffusers support fixes component names, schedulers,
   prompt processing, audio/video latent timing, and decode/mux semantics.
 - A target-Mac profile defines an acceptable full-process physical memory ceiling and per-step or
@@ -154,7 +154,7 @@ sparse-attention kernels or a new streaming decode path are required.
   the concrete contract.
 - Do not hide H3 behind an existing silent T2V route or silently discard generated audio.
 
-## Guidance for future agents
+## Implementation notes
 
 Read the then-current formal license and the official license Q&A together before doing any model
 work. If the exclusion remains, update only public-source research and leave this item proposed.

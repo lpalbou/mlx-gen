@@ -3,7 +3,7 @@
 - Status: completed (2026-07-05)
 - Scope: `mlxgen generate` router, shell completions, Wan runtime structure, user-mask loading,
   metadata sidecar contract
-- Validation: 2 adversarial design reviews + 2 adversarial code verifications (both SHIP),
+- Validation: 2 design checks + 2 code verifications (both SHIP),
   full no-weights band green (1275 passed), lint clean
 
 ## Problem
@@ -28,7 +28,7 @@ Three structural debts, all sources of shipped bugs or consumer gaps:
 2. Live bugs found and fixed by the process:
    - `mlxgen generate --debug` was silently dropped (third instance of the class); Wan CLI
      gained `--debug` wired to LoRA debug logging so the flag is safe on every route (verified
-     per-route by the adversarial verifier).
+     per route).
    - Metadata-sourced `video_strength` was validated only after the multi-minute weight load;
      the router now backfills + re-emits it so the backend parser rejects invalid values at
      parse time.
@@ -45,8 +45,8 @@ Three structural debts, all sources of shipped bugs or consumer gaps:
    mutates scheduler state via `set_begin_index`); the twin metadata blocks collapsed into
    `_to_video_shared_kwargs` with per-branch `generation_time` evaluation and absent-by-default
    decode extras. Verified byte-identical metadata; `eq=False` on the request (mx.array field).
-4. `MaskUtil.load_binary_mask` centralizes the four user-mask loaders. Policy corrected by the
-   adversarial design review: the NEAREST/BOX difference is NOT drift - Qwen's NEAREST matches
+4. `MaskUtil.load_binary_mask` centralizes the four user-mask loaders. Policy corrected at design
+   time: the NEAREST/BOX difference is NOT drift - Qwen's NEAREST matches
    its diffusers reference; the shipped policy is "reference-ported surfaces keep the
    reference's resampling; in-house surfaces default to BOX + 0.5". Pixel behavior unchanged
    (verified empirically byte-identical); alpha-channel warning unified across surfaces; the

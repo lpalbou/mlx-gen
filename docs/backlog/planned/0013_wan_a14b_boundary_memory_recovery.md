@@ -108,7 +108,7 @@ keep tens of gigabytes of no-longer-needed weights alive in a single-output run.
 - A single-seed A14B CLI run can free the high-noise denoiser before low-noise denoising.
 - Low-RAM mode has transformer-block and denoise-loop cleanup paths instead of only decode-time
   cleanup.
-- A future agent has a precise full-size validation command and knows what evidence remains
+- The item records a precise full-size validation command and what evidence remains
   missing.
 - The item can close only after the full-size I2V retry captures memory, exit-code, metadata, and
   MP4 health evidence.
@@ -134,7 +134,7 @@ keep tens of gigabytes of no-longer-needed weights alive in a single-output run.
 - [x] Add focused tests.
 - [ ] Retry full-size A14B I2V with memory/exit-code capture.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Treat a full-size retry as expensive. Use a unique output path, avoid trailing spaces after shell
 continuation backslashes, capture stdout/stderr and exit code, and inspect the output with

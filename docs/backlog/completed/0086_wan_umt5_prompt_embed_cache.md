@@ -15,7 +15,7 @@
 
 ## Context
 
-A 2026-07-22 adversarial performance audit of BlackPixel (an embedding host) traced
+A 2026-07-22 performance audit of a host application built on mlx-gen traced
 Wan generation end-to-end. The single largest fixed cost after weight loading is
 prompt encoding: `Wan2_2_TI2V._load_t5_prompt_embeds` constructs
 `UMT5EncoderModel.from_pretrained(...)` in torch on CPU, runs one bf16 forward, and
@@ -84,7 +84,7 @@ Wan TI2V/A14B/VACE prompt encoding paths.
 
 ## Dependencies and related tasks
 
-- BlackPixel planned item 0051 (warm video worker) consumes this.
+- The host application's planned item 0051 (warm video worker) consumes this.
 - Related: planned/memory/0063 component-wise loading policy.
 
 ## Expected outcomes
@@ -116,10 +116,9 @@ torch component when the cache hits.
 - [ ] Progress event phases (encode-cached vs encode) — DEFERRED: public
       callback schema change; cli_print lines carry the honesty for now
 - [x] docs/python-integration.md mention of model_kwargs + the two Wan options
-      (added in cycle 1; cycle-2 review confirmed at python-integration.md
-      ~171-183)
+      (see python-integration.md ~171-183)
 
-## Release caveat (cycle-2 review, 2026-07-22)
+## Release caveat (2026-07-22)
 On exactly-64 GB machines, weight residency (28 GB A14B) plus UMT5 residency
 (11 GB) plus activations approaches the Metal working-set budget. When an
 embedding host enables residency by machine class, recommend disk-cache-only

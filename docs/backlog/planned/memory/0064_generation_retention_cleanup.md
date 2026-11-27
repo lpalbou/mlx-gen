@@ -72,7 +72,7 @@ composite.
 - [x] Reduce StepwiseHandler retained objects.
 - [x] Add focused tests.
 
-## Guidance for the implementing agent
+## Implementation notes
 Prefer surgical changes. Broad cache eviction policy should be proposed separately if it creates
 repeat-generation UX tradeoffs.
 

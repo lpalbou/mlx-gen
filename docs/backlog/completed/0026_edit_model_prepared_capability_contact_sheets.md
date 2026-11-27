@@ -193,7 +193,7 @@ Post-review correction:
   tensor-level Diffusers parity, then re-preparing FIBO Edit BF16/q8 folders only if the corrected
   source route passes release-quality visual validation.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Do not accept alias commands, runtime quantization, or a single style-transfer proof as release
 evidence. The evidence must let a reviewer inspect each advertised edit mode for each model and

@@ -63,7 +63,7 @@ expert is dropped before `release_inactive_denoiser` frees it so the closure
 does not retain the weights. Metadata extra records `compile_transformer: true`
 on compiled runs. Parity, eligibility-notice, and CLI wiring are test-pinned.
 
-Real-checkpoint validation (owner): fixed-seed A/B wall-time on TI2V-5B and
+Real-checkpoint validation (approved compute only): fixed-seed A/B wall-time on TI2V-5B and
 A14B per the validation ideas below - the ~2-6% figure comes from the review's
 probe, not from a full-quality run in this change.
 
@@ -83,7 +83,7 @@ is seed-safe. Cached-vs-fresh embeds are bitwise identical (test-pinned), and a
 compiled-fn probe confirmed eager/compiled parity across shape changes (the
 cache populates at trace time; replays never re-enter Python).
 
-Memory accounting (cycle-3 adversarial review): one grid pair is ~114 MB f32 at
+Memory accounting (cycle 3): one grid pair is ~114 MB f32 at
 A14B 121f@1280x720 (111,600 tokens x 128 dims x cos+sin), and A14B holds one
 embed instance PER expert, so the per-run working set is ~229 MB that was
 previously transient. The eviction bound was reduced from 4 to 2 grids in that
@@ -111,11 +111,11 @@ both TI2V-5B and A14B, 480p and 720p.
 
 Changing any default without measurement; touching distilled/Lightning paths.
 
-## Guidance for future agents
+## Implementation notes
 
 Do not stack experiments in one measurement run; attribute wins individually.
 
-## Deferral blueprints (2026-07-22 adversarial prioritization — preserved so
+## Deferral blueprints (2026-07-22 prioritization — preserved so
 ## a future implementer starts from evidence, not scratch)
 
 **Batched CFG (d11), deferred.** Probe-verified on a tiny random-weight
@@ -123,7 +123,7 @@ WanTransformer: batch=2 [cond;uncond] vs two sequential forwards diverges
 max ~9e-4 (scalar-timestep A14B convention; 0.0 on expanded 5B) — works
 mechanically, NOT bitwise, must never be a silent default. RoPE broadcasts
 fine; Wan has no attention masks; the A14B expert boundary is per-timestep,
-so batching within one step never crosses experts. Adversarial arithmetic at
+so batching within one step never crosses experts. Worst-case arithmetic at
 storyboard sizes (A14B, 832x480x49f, 20,280 tokens): per-linear activation
 traffic ~208 MB vs ~26 MB weight read — batching halves only the weight term
 => ~3-8%, diluted further by attention FLOPs; Qwen-Image (~4k tokens) could

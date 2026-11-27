@@ -123,7 +123,7 @@ That makes it more interesting than a random checkpoint clone, even if it stays 
 - Do not let this item outrank current Wan, Qwen, FLUX.2, or Z-Image work unless the license and
   product-value picture changes materially.
 
-## Guidance for future agents
+## Implementation notes
 
 Re-read the current Krea license before doing anything beyond watchlist triage. If the license
 terms remain revocable, revenue-capped, and redistribution-restrictive, keep the item proposed

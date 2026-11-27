@@ -72,7 +72,7 @@ small subset.
 - [x] Update ERNIE prompt path.
 - [x] Add focused tests.
 
-## Guidance for the implementing agent
+## Implementation notes
 This should be a no-quality-change optimization. If a proposed materialization changes output
 values, revert the materialization point and document the family-specific reason.
 

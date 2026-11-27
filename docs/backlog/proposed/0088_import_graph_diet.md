@@ -84,7 +84,7 @@ install footprint.
 ## Promotion criteria
 
 Promote when an embedding host measurably depends on cold-dispatch latency (the
-BlackPixel warm-worker work reduces urgency; capability probes remain).
+host application's warm-worker work reduces urgency; capability probes remain).
 
 ## Validation ideas
 
@@ -95,7 +95,7 @@ matrix (with/without concept extra).
 
 Rewriting the CLI router; changing public import surfaces.
 
-## Guidance for future agents
+## Implementation notes
 
 Watch for tokenizers/transformers creeping into module scope with new model
 families — the budget gate should catch it.

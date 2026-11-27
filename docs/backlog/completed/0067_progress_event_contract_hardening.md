@@ -10,7 +10,7 @@
 - ADR impact: None
 
 ## Context
-The 2026-06-29 serial adversarial validation pass found multiple shipped progress-contract failures.
+The 2026-06-29 serial validation pass found multiple shipped progress-contract failures.
 Masked image routes emitted the wrong public task, and a real Qwen control-inpaint run emitted a
 `complete` progress event before the generation later failed during image finalization.
 
@@ -101,7 +101,7 @@ methods that enforce terminal exclusivity after artifact materialization succeed
 - [x] Add focused tests for masked image, video restore, and failure-after-loop cases.
 - [x] Regenerate serial event proofs one run at a time.
 
-## Guidance for the implementing agent
+## Implementation notes
 Preserve backwards compatibility where possible, but treat false-complete behavior as a contract
 bug rather than a subscriber convenience.
 

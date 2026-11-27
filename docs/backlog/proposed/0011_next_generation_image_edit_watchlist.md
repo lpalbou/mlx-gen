@@ -123,7 +123,7 @@ becomes available without interrupting current release-critical work.
   verified.
 - Do not publish derivatives of gated or non-commercial models without matching upstream terms.
 
-## Guidance for future agents
+## Implementation notes
 
 Re-run the online and local-cache check before promotion. If a model needs a fundamentally
 different runtime shape, create an ADR or a dedicated planned item rather than forcing it into the

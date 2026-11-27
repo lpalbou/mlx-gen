@@ -4,7 +4,7 @@
 Completed
 
 ## Purpose
-Preserve the completed 2026-06-29 adversarial validation band for runtime correctness, progress
+Preserve the completed 2026-06-29 validation band for runtime correctness, progress
 semantics, capability truthfulness, and quality-sensitive model math.
 
 ## Items
@@ -34,7 +34,7 @@ quality-preserving validation tied to the confirmed 2026-06-29 probes.
 Do not broaden this track into generic memory-reduction work, model-family expansion, or speculative
 quality tuning unrelated to the confirmed bugs.
 
-## Notes for future agents
+## Implementation notes
 Use the real validation artifacts under `validation_outputs/runtime_contracts_2026_06_29/` and the
 written report at `docs/assets/validation/runtime-contracts-2026-06-29/runtime_contracts_report.md`
 as the baseline evidence for this band.

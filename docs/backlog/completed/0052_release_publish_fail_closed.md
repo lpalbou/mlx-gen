@@ -77,6 +77,6 @@ For all other caught errors, raise `RuntimeError` or re-raise with context.
 - [x] Cover ReleaseManager fail-closed propagation.
 - [x] Align GitHub Actions publish ordering with the fail-closed release graph.
 
-## Guidance for the implementing agent
+## Implementation notes
 Keep the release graph conservative. If the package upload state is uncertain, force explicit human
 recovery instead of silently advancing release state.

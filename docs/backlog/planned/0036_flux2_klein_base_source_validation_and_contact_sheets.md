@@ -131,7 +131,7 @@ those packages.
 - [ ] Run the same starship profile on prepared base q8/q4 packages before treating those package
       rows as passed.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Do not collapse source-model proof and prepared-package proof into one claim. Keep the source base
 story honest now, and keep package-level release evidence pending until it exists.

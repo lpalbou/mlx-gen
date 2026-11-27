@@ -64,7 +64,7 @@ loader question (which stays in 0041):
 
 - [0041](0041_lightx2v_wan_distilled_model_loader_support.md) (parent audit;
   keep it for the loader/checkpoint question).
-- BlackPixel companion track `proposed/storyboard_consistency_2026_07/`
+- Host application companion track `proposed/storyboard_consistency_2026_07/`
   (consumes the drift-vs-cost verdict for its per-scene quality dial).
 
 ## Validation
@@ -128,7 +128,7 @@ loader question (which stays in 0041):
   boundary; test-pinned), so a separate index knob would duplicate authority.
   The native distilled-checkpoint loader stays in 0041.
 
-## Cycle-2 adversarial review (2026-07-25)
+## Cycle-2 verification (2026-07-25)
 
 - Sigma-skew bound verified numerically: feeding each count schedule's int
   timesteps back as a grid, max |sigma_count - sigma_grid| = 9.9897e-4
@@ -148,7 +148,7 @@ loader question (which stays in 0041):
   numeric flow_shift (no real run records that combination) replays the grid
   and forwards flow_shift=None — pinned by a CLI test; explicit `--steps` on
   argv still beats a recorded grid (already pinned).
-- BlackPixel compat confirmed READ-ONLY: the worker forwards video kwargs by
+- Host application compat confirmed READ-ONLY: the worker forwards video kwargs by
   name (config-derived step defaults, no signature-default introspection),
   its signature filter applies to `generate_image` only, and the runtime
   wrapper passes `generate_video` kwargs through unmodified — the

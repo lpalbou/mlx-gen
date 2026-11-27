@@ -84,7 +84,7 @@ documented safe public profile. That narrower follow-up is now tracked separatel
 This item is deprecated instead of completed because its original mixed scope no longer matches the
 remaining work.
 
-## Guidance for future agents
+## Implementation notes
 
 Do not reopen this item. Use completed item 0032 for the accepted bounded proof history, use
 completed item 0046 for the shipped audio copy-through follow-up, and use proposed item 0048 for

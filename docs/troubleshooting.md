@@ -205,10 +205,10 @@ so the model generates instead of continuing a texture:
 ```sh
 mlxgen generate \
   --model AbstractFramework/flux.2-klein-base-4b-8bit \
-  --image portrait.png \
+  --image photo.png \
   --outpaint-padding "0%,10%,100%,10%" \
   --outpaint-fill neutral \
-  --prompt "Extend this portrait downward to reveal the lower part of the body: the same subject in the same clothing, same lighting, same background." \
+  --prompt "Extend this photo downward: the same scene continues, same lighting, same background." \
   --steps 20 \
   --guidance 4 \
   --seed 1234 \

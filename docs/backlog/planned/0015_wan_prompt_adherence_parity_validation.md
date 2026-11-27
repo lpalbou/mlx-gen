@@ -153,7 +153,7 @@ implementation and any prepared-model layout.
 - [ ] Extract frames, contact sheets, metrics, and metadata.
 - [ ] Update docs/model cards/backlog conclusions.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Re-check current code before running anything. Keep the first validation batch small enough to be
 practical but large enough to show motion and prompt response. If current code or docs disagree

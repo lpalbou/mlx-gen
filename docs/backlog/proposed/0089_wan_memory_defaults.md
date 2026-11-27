@@ -62,7 +62,7 @@ A14B runs — the difference between fitting and swapping on 36-48 GB machines.
   VAE decode, which runs at save).
 - The per-item A14B transformer release (review item e4) remains OPEN.
 
-## e4 implementation design (2026-07-22 adversarial prioritization — for the
+## e4 implementation design (2026-07-22 prioritization — for the
 ## implementer)
 Store a reload spec at init (root_path, weight_definition, quantize arg,
 per-role LoRA paths/scales — all already on the model from WanInitializer);
@@ -80,7 +80,7 @@ with an opt-out kwarg/flag. Reload cost reasoned: q8 mmap page-cache-warm
 GATE runtime-quantize users OUT of auto-release (a --quantize-over-bf16
 reload re-quantizes 14B per item, tens of seconds) — auto only for
 disk-prequantized checkpoints. PRIMARY RISK: LoRA re-application on reload
-(the owner's Lightning storyboard runs LoRAs on BOTH experts) — needs a
+(the Lightning storyboard workflow runs LoRAs on BOTH experts) — needs a
 dedicated tiny-weights reload test (reuse test_wan_lora_mapping's
 _TinyWanTransformer) before any default change. Interaction with the d12
 compile flag: the compiled-callable cache must drop the high expert's entry
@@ -114,7 +114,7 @@ Implemented per the design above; decisions and deviations:
   AND the reload spec exists). The CLI forwards explicit user intent from
   `--release-inactive-denoiser` / `--no-release-inactive-denoiser`; when no
   flag is given, SINGLE-seed dual-expert CLI runs forward True (the pre-0089
-  rule restored by the cycle-2 review — the process exits after one item, so
+  rule — the process exits after one item, so
   releasing costs nothing regardless of quantization) and multi-seed runs
   forward None (model-owned auto). bf16-on-disk packages are gated out of
   auto (28 GB re-read per reload), not only runtime-quantize — opt in
@@ -132,7 +132,7 @@ Implemented per the design above; decisions and deviations:
   explicit "Reloading Wan high-noise transformer..." line so the pause is
   attributable.
 
-NEEDS REAL-CHECKPOINT VALIDATION (owner, per AGENTS.md):
+NEEDS REAL-CHECKPOINT VALIDATION (approved compute only, per AGENTS.md):
 
 1. One multi-seed A14B run (2+ seeds, disk-prequantized q8 package) with
    whole-process peak-RSS measurement, plus the observed per-item reload wall
@@ -181,7 +181,7 @@ threshold-identical outputs; reload-cost timing for the per-item release.
 
 Changing low-ram semantics; touching image-family decode paths.
 
-## Guidance for future agents
+## Implementation notes
 
 Follow AGENTS.md: physical process memory for user-facing claims; distinguish
 storage vs runtime improvements.

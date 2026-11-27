@@ -94,7 +94,7 @@ As of Wednesday, August 12, 2026:
     (`exp_r2v_case2_full_refg6_s43/`)
 
 No open row is attributable to an mlx-gen implementation defect. The one
-real divergence found by adversarial code review (reference-video canvas
+real divergence found by code review (reference-video canvas
 sizing) was fixed on 2026-08-12 and directly repaired `ads2v`.
 
 ### MV2V acceptance caveats (all three are part of the acceptance)

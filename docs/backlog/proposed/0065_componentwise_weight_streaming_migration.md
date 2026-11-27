@@ -40,7 +40,7 @@ Design and prove an incremental component-wise migration path for non-Wan famili
 changing quantization semantics, validation checks, prepared package layout, or generated quality.
 
 ## Why
-The memory audit found this as a real issue, but the adversarial pass also found that a naive broad
+The memory audit found this as a real issue, but the follow-up verification also found that a naive broad
 helper is risky: Qwen, Flux, FIBO, ERNIE, Z-Image, and SeedVR2 each have family-specific
 construction, validation, and quantization assumptions.
 

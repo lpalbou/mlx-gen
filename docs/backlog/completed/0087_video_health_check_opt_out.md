@@ -17,7 +17,7 @@
 
 `GeneratedVideo` runs a full-file re-decode health check in a spawned child process
 after every save (`src/mflux/utils/video_health.py` ~152-216; `validate_health=True`
-default in `generated_video.py` ~101-137). A 2026-07-22 audit of BlackPixel showed
+default in `generated_video.py` ~101-137). A 2026-07-22 audit of a host application showed
 the host then probes the file again for metadata/poster and (for storyboards)
 extracts a last frame. Cycle-2 measurement corrected the cost taxonomy: the health
 check is the one real full decode (~0.3-0.8 s at storyboard size, larger for
@@ -61,7 +61,7 @@ Video save path (Wan families, SeedVR2 video restore).
 
 ## Dependencies and related tasks
 
-- BlackPixel planned item 0052 consumes this (single-decode completion path).
+- The host application's planned item 0052 consumes this (single-decode completion path).
 
 ## Expected outcomes
 

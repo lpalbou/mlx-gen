@@ -1,7 +1,7 @@
 {
   "schema_version": 3,
   "reviewed_at": "2026-08-04T06:22:34+02:00",
-  "reviewer": "Codex all-frame visual inspection with two adversarial reviews",
+  "reviewer": "All-frame visual inspection with two independent checks",
   "scope": "Every MLX output frame was inspected at original detail through the all-frame 5K sheets and the MP4s. Every official comparison frame, every exact conditioned source frame, and each clip's five highest-MAE transitions are also rendered. Dispositions are bound to each reviewed MP4, every per-case sheet, the overview sheets, and the sheet manifest by SHA-256. Evidence completeness is separate from the required visual-quality gate.",
   "summary_contact_sheet_sha256": "5ce299ce5eea339ffe3ba3a765c3678eec4f9c8cfb572228b6be35ae202bd1be",
   "role_control_contact_sheet_sha256": "ae94b90b880f3525fc366f8639defd1d8ada750b23cf8d21db96d37c89f27605",

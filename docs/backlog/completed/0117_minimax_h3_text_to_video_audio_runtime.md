@@ -14,7 +14,7 @@
 - ADR impact: two follow-ups are owed and not yet written. (1) A generated joint audio-video
   contract ADR (`GeneratedAudio`, `GeneratedVideo.audio`, the AAC mux, the `audio_*` metadata
   fields, the sidecar-WAV fallback). (2) The license decision: the MiniMax H3 Community License
-  excludes the EU development territory; the owner decided on 2026-09-04 to implement anyway and
+  excludes the EU development territory; the decision of 2026-09-04 is to implement anyway and
   revisit the policy separately. Proposed item 0104 recorded the opposite gate and is deprecated
   as superseded by that decision. Until an ADR exists, this item is the decision of record.
 
@@ -73,4 +73,4 @@ repository ships no inference code).
   `M - 32768` rows collapse to ~0); the 768p canvas packs 37,851 rows. `h3_precision.rowwise` applies
   the block's q8 linears in row chunks; any other q8 route that crosses 32768 tokens needs the same
   guard (Wan 1280x704x121 is ~30k tokens).
-- Adversarial verification artifacts and MLX precision probes live in `untracked/h3_verify/`.
+- Verification artifacts and MLX precision probes live in `untracked/h3_verify/`.

@@ -16,7 +16,7 @@
 Every route built on the shared CLI parser accepts `--config-from-metadata`, which reloads a saved
 run's settings from its metadata JSON and regenerates it. MiniMax-H3 declares its own parser and does
 not, so an H3 clip is the one video artifact in the catalog that cannot be replayed from its own
-sidecar. Raised by the BlackPixel host contract review (item 0120) as a missed issue.
+sidecar. Raised by the host application's contract review (item 0120) as a missed issue.
 
 ## Current code reality
 

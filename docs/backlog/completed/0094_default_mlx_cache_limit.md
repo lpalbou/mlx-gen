@@ -26,13 +26,13 @@ never gets ANY cache limit. Measured 2026-07-23: after two Klein 9B q8 edit
 generations at 1024x768 in one process, the MLX buffer cache had grown to
 32.9 GB and stays there — memory that competes with other processes' page
 cache (including the model weights themselves), recreating the cold fault-in
-tax system-wide and feeding the within-batch slowdown the BlackPixel audit
+tax system-wide and feeding the within-batch slowdown the host-application audit
 measured (218 -> 310 s/image across one warm 4-seed batch at 944x1680).
 
 Precedents already in the ecosystem: low-RAM mode defaults to 1 GB here, and
-BlackPixel's worker (its backlog 0054-A) now sets 8 GiB on >=64 GB machines
-and 1 GiB below — but that only covers BlackPixel's worker path at its HEAD;
-bare API users, `mlxgen` CLI runs, and BlackPixel's own cold-CLI jobs
+a host application's worker (its backlog 0054-A) now sets 8 GiB on >=64 GB machines
+and 1 GiB below — but that only covers that worker path at its HEAD;
+bare API users, `mlxgen` CLI runs, and the host's own cold-CLI jobs
 (masked/outpaint) still run uncapped.
 
 ## Proposal
@@ -71,13 +71,13 @@ clamped to `[1 GiB, 8 GiB]`, resolved by
 `RuntimeMemory.default_cache_limit_bytes()` (pure, injectable RAM size for
 tests). Justification of the numbers:
 
-- 8 GiB ceiling: the BlackPixel WorkerCachePolicy number for >=64 GB
+- 8 GiB ceiling: the host application's WorkerCachePolicy number for >=64 GB
   machines, chosen there to cover "the transient buffer working set of the
   largest supported generations (Wan A14B video scenes)" — i.e. the 8 GiB
   precedent was already sized for video, not just images, and pool-rebuild
   churn below it was measured at ~0.5-2 s/scene in that work.
 - 1 GiB floor: mirrors the long-standing low-RAM default (1 GB decimal;
-  that constant is untouched) and the BlackPixel small-machine bound.
+  that constant is untouched) and the host application's small-machine bound.
 - The smooth RAM/8 ladder lands exactly on both precedents (128 GB -> 8 GiB
   via ceiling, 64 GB -> 8 GiB, 32 GB -> 4 GiB, 16 GB -> 2 GiB) instead of a
   two-step function, so mid-size machines get proportionate caps.
@@ -106,19 +106,19 @@ low-RAM 1 GB default > machine ladder. `-1` (flag or env) is the explicit
   memory-bounded by contract).
 
 Coordination note for hosts that call `mx.set_cache_limit` directly
-(BlackPixel WorkerCachePolicy): mlx-gen cannot detect a limit set outside
+(such as a host application's WorkerCachePolicy): mlx-gen cannot detect a limit set outside
 its own seams, so the load-time default would override it (to a practically
 identical value on both their ladder rungs). Such hosts should export
 `MFLUX_MLX_CACHE_LIMIT_GB` (their value, or `-1`) — flagged to the
-BlackPixel-side sibling working this wave.
+host application's maintainers during this wave.
 
-### Cycle-2 fix (2026-07-23, adversarial review): host-managed limits are detected and preserved
+### Cycle-2 fix (2026-07-23): host-managed limits are detected and preserved
 
 The coordination note above understated the problem: the stomp was real and
 demonstrated live (host sets 2 GiB via `mx.set_cache_limit`, then the first
 `WeightLoader.load` silently raised it to the 8 GiB ladder value). On
-128 GB machines both BlackPixel rungs coincide with the ladder (8 GiB) so
-the bug was masked; on <64 GB machines BlackPixel's deliberate 1 GiB cap
+128 GB machines both host rungs coincide with the ladder (8 GiB) so
+the bug was masked; on <64 GB machines the host's deliberate 1 GiB cap
 would have been raised to 2-8 GiB behind the worker's back.
 
 Fix: MLX 0.31.0 exposes no cache-limit getter, but `mx.set_cache_limit`
@@ -148,7 +148,7 @@ untouched-default ladder, explicit-override-wins).
   memory pressure that produces the 0093 fault-in regime system-wide.
 - Perf-neutrality of the cap on same-shape repeats: not re-benchmarked
   tonight (the 0090 harness run is the promotion gate); the claim rests on
-  `mx.set_cache_limit` semantics (free-cache-only) plus the BlackPixel
+  `mx.set_cache_limit` semantics (free-cache-only) plus the host-application
   precedent that shipped the same 8 GiB bound for the same workloads
   without measured per-scene regression. The 512x512 q8 bench runs tonight
   executed under the new default cap (8 GiB) with second-generation times of

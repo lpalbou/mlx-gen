@@ -114,7 +114,7 @@ kernel gap blocks the larger rows.
   evidence.
 - Do not use larger models to retroactively claim the 1.3B row is validated.
 
-## Guidance for future agents
+## Implementation notes
 
 If the 1.3B official-example matrix is still incomplete, update that matrix first and leave this
 item proposed. If the 1.3B matrix is complete and the blocked rows are clearly model-scope or

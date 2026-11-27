@@ -15,21 +15,21 @@
 
 Plain video-to-video re-synthesizes every latent token, so background high-frequency content
 (banner text, logos, posters) drifts even when the prompt demands preservation. This was measured
-and adversarially confirmed as structural, not a bug. The fix is spatial selectivity: lock
+and confirmed as structural, not a bug. The fix is spatial selectivity: lock
 everything outside a user mask to the source video.
 
-## Design (four adversarial reviews, decisions recorded)
+## Design decisions
 
-- Reviewer A (math): input/output compositing equivalent up to loop rotation; binarize the mask
+- Math: input/output compositing equivalent up to loop rotation; binarize the mask
   at 0.5 (float feathers re-inject unhealable ghost bands); explicit sigma indexing.
-- Reviewer B (contract): `--video-mask-path` (new flag, not `--mask-path` reuse), white = model
+- Contract: `--video-mask-path` (new flag, not `--mask-path` reuse), white = model
   may change, strength unchanged and applies inside the mask, no mechanism label in metadata,
   all-black masks error pre-load, 18-point integration checklist.
-- Reviewer C (implementation): the UniPC corrector rebuilds each step from `last_sample` and the
+- Implementation: the UniPC corrector rebuilds each step from `last_sample` and the
   x0 history and uses the incoming sample only for dtype, so scheduler state must be composited
   too (`last_sample` at the previous sigma, `model_outputs[-1]` with clean source latents);
   `z_src` already cached; no sigma off-by-one; use `vae.spatial_scale`, not a literal 8.
-- Reviewer D (proof): pass bars defined before the run, ceiling measured through the real
+- Proof: pass bars defined before the run, ceiling measured through the real
   pipeline including H.264; the two existing 2-tuple `_prepare_video_to_video_latents`
   monkeypatch tests must be updated in the same commit.
 

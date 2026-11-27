@@ -313,7 +313,7 @@ baseline until proposed item 0041 settles the scheduler question.
 - [x] Decide whether a profile-aware paired-file guard is needed.
 - [x] Document the fast-path examples and promote only the exact rows that passed.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Treat this as a bounded A14B acceleration task, not a general Wan redesign. Start from the exact
 LightX2V settings, keep the role assignment explicit, and produce proof assets before discussing

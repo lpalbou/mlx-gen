@@ -18,7 +18,7 @@
 ## Context
 
 Completed item 0105 delivered the renderer-only BF16 runtime, but its original visual pass was
-wrong. Full-frame 5K review and two adversarial audits found that every required visual-quality
+wrong. Full-frame 5K review and two independent audits found that every required visual-quality
 case fails. The schema-v3 bundle now truthfully records `machine_contract_passed=true`,
 `visual_review_complete=true`, `visual_quality_passed=false`, and `passed=false`; the release
 registry reports `FAIL`.

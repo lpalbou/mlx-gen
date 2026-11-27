@@ -129,12 +129,12 @@ upscale.
 - [x] Update core documentation.
 - [x] Move this item to completed with completion evidence.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Re-check current code before editing. Keep the implementation explicit and mode-aware: ordinary I2I
 preserves aspect by default, while fill/outpaint/upscale remain exact-canvas workflows.
 
-## Adversarial design reports
+## Design checks
 
 - API contract review: keep public tasks as media directions and expose canvas behavior through
   capability fields. The default for ordinary I2I should be `source-aspect`; `exact-resize` must be

@@ -28,13 +28,13 @@
   transformer. `--quantize 4` selects this mixed policy.
 - Both store the Qwen3-VL vision tower, the fp32 heads and timestep MLP, the final modulation and
   the two VAEs as released, and carry the source tokenizer files, `LICENSE`, `NOTICE` and the
-  scheduler configs. Both repositories are gated; the owner chose gated publication on 2026-11-22
-  after reading the license's territory clause.
+  scheduler configs. Both repositories are gated; gated publication was decided on 2026-11-22
+  in view of the license's territory clause.
 - Release 0.39.0, which the packages require.
 
 ### Why the small package is not a 4-bit/8-bit mix
 
-The owner expected the usual recipe: 4-bit with the sensitive layers at 8-bit. The measurement
+The usual recipe was the starting assumption: 4-bit with the sensitive layers at 8-bit. The measurement
 (`tools/minimax_h3_quant_probe.py`, five real transformer inputs, error of the predicted velocity
 against the BF16 weights) shows MiniMax-H3 has no sensitive family to protect:
 
@@ -62,8 +62,7 @@ fidelity to the released weights at equal size, not visible breakage. The condit
 - **The vision tower must not be quantized.** At any width a few very-high-norm image tokens flip.
   With an 8-bit tower the 90th-percentile per-token error of an image-conditioned sequence is 26.6%
   against 2.1% with the tower as released, and the image-to-video velocity error is 6.2% against
-  3.5%. The tower is 0.6B parameters. This came from the adversarial review, which asked for the
-  variant that isolates it.
+  3.5%. The tower is 0.6B parameters. The variant that isolates the tower established this.
 
 ### Defects found on the way, all fixed with tests
 
@@ -77,7 +76,7 @@ fidelity to the released weights at equal size, not visible breakage. The condit
 - The LoRA wrapper derived a quantized layer's input width as `columns * (32 // bits)`, wrong at 3,
   5 and 6 bits.
 - The generated model card described a text-to-image checkpoint.
-- From the review: the loader accepted a package missing a module, with a tensor of another shape,
+- The loader accepted a package missing a module, with a tensor of another shape,
   or written at another group size; the memory preflight was wrong for `--quantize 4` and for
   packages; `prepare` only warned about a missing `LICENSE`, and would bake a Turbo adapter into a
   package described as base weights.
@@ -117,4 +116,4 @@ fidelity to the released weights at equal size, not visible breakage. The condit
   precompute now frees 12.9 GiB at 8-bit rather than 26 GB, which changes its priority.
 - The license policy decision recorded in
   [0104](../deprecated/0104_minimax_h3_joint_audio_video_watch.md) is settled for distribution by
-  the owner's choice of gated repositories; the joint audio-video contract ADR is still owed.
+  the decision to publish gated repositories; the joint audio-video contract ADR is still owed.

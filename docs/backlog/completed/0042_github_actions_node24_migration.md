@@ -121,7 +121,7 @@ automation become flaky or fail under the next runner default.
 - [x] Run and inspect CI.
 - [x] Close the backlog item with the exact run ids and residual risk.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Treat this as urgent maintenance because the published GitHub deadline is close. Keep the patch
 small, verify the actual workflows, and avoid folding unrelated CI opinions into the same change.

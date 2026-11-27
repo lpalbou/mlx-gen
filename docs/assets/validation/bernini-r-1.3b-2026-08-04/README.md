@@ -170,5 +170,5 @@ fresh portable manifest.
 4. Model-backed review generated eight clips plus two structural smokes, then full-frame inspection
    rejected the initial visual pass because motion, fidelity, cadence, and tail integrity failed.
 5. Final review raised every proof sheet to 5K, paged long timelines, hash-bound every disposition,
-   added controlled 33/40-step diagnostics, and kept the registry fail-closed after two adversarial
+   added controlled 33/40-step diagnostics, and kept the registry fail-closed after two independent
    audits.

@@ -95,7 +95,7 @@ Promote after:
 - Do not change the public safe profile silently.
 - Do not broaden this into generic SeedVR2 performance tuning or full-length movie restoration.
 
-## Guidance for future agents
+## Implementation notes
 
 Start from the current accepted June 21 public bundle and the live CLI guardrails, not from older
 June 18/19/20 experiments. The goal here is not "find another better-looking clip"; it is

@@ -137,7 +137,7 @@ Other facts that constrain the change:
 - `docs/faq.md` ("Why Can q8 Show The Same Physical Peak As BF16?"), `docs/quantization.md`
   ("Wan q8", both corrections dated 2026-07-05) and `docs/recommendations.md` (A14B rows and the
   64 GB tier) describe Wan q8 as BF16-class at runtime.
-- BlackPixel 0.9.3 keeps the three Wan2.2 q8 packages 8-bit on every run that goes through its
+- A host application (its release 0.9.3) keeps the three Wan2.2 q8 packages 8-bit on every run that goes through its
   Low RAM mode, by replacing `_normalize_runtime_sensitive_q8_paths` and
   `_is_q8_sensitive_transformer_path` in its generation process, and slices large quantized calls
   itself on MLX before 0.32.0 (`runtime_entry.py`). It ships MLX 0.31.2. Renaming or removing
@@ -295,7 +295,7 @@ conversion as the default and correct the published memory numbers.
    [item 0122](../proposed/0122_declare_metadata_keys_in_metadata_schema.md).
 6. Update `docs/quantization.md`, `docs/faq.md`, `docs/recommendations.md`, the package cards if
    they quote runtime memory, `CHANGELOG.md` and the `llms` files with the re-measured numbers.
-7. Tell the BlackPixel host which release makes its process-level replacement unnecessary.
+7. Tell the host application which release makes its process-level replacement unnecessary.
 
 ## Scope
 
@@ -342,7 +342,7 @@ conversion as the default and correct the published memory numbers.
 - Wan q8 runs at 1280x720 and at 81 frames complete with healthy tensors and track the BF16
   package.
 - The docs' memory tables and Mac tiers describe the 8-bit runtime.
-- BlackPixel drops its replacement of private functions.
+- The host application drops its replacement of private functions.
 
 ## Validation
 
@@ -395,9 +395,9 @@ record what failed here.
 - [ ] `docs/quantization.md`, `docs/faq.md`, `docs/recommendations.md`, `CHANGELOG.md`, `llms`
       files updated with re-measured numbers.
 - [ ] Dated note appended to item 0040; follow-up audit item filed for other quantized families.
-- [ ] BlackPixel told which release retires its replacement.
+- [ ] Host application told which release retires its replacement.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 - Reproduce the fault with a bare layer before touching Wan. It takes seconds and needs no model:
 

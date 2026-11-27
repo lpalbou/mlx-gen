@@ -6,10 +6,10 @@
 - Proof: `docs/assets/validation/motion-ladder-2026-07-05/` (committed mirror: README, metrics
   JSONs incl. anchors, measurement scripts, person mask, contact sheets, face crops); full mp4
   bundle preserved locally in `validation_outputs/motion_fidelity_ladder_2026_07_05/`
-- Validation: 5 adversarial subagents - experiment-design attack (pre-GPU), metrics/command
+- Validation: 5 checks - experiment-design check (pre-GPU), metrics/command
   verification (pre-GPU, GO), independent results recomputation (all numbers reproduced within
-  0.01; conclusions SUPPORTED), user-standpoint judge, and evidence-standard judge (both
-  verdicts' fix lists fully applied)
+  0.01; conclusions SUPPORTED), user-standpoint check, and evidence-standard check (both
+  fix lists fully applied)
 
 ## Problem
 

@@ -50,7 +50,7 @@ that three 121-frame, 50-step videos generated at 1280x704 felt too static.
   95.48 seconds; the prepared q8 run took 217.4 seconds. The q8 output stayed visually close in
   the contact sheet, but this run shows no speed win. Runtime peak memory was not captured by the
   Wan CLI/metadata path.
-- Three user-provided 1280x704 reference videos were inspected at 121 frames, 24 fps, and about
+- Three 1280x704 reference videos were inspected at 121 frames, 24 fps, and about
   5.04 seconds each. Analysis artifacts live in `validation_outputs/wan/user_video_analysis/`.
 - On 2026-06-02, `Wan-AI/Wan2.2-T2V-A14B-Diffusers` mixed q8 prepare succeeded at
   `models/wan2.2-t2v-a14b-diffusers-8bit`. The prepared folder is about 39.5 GiB: `transformer`
@@ -176,7 +176,7 @@ clear guidance before uploading or depending on quantized Wan checkpoints.
 ## Expected outcomes
 
 - Wan q8 prepare and reload are no longer blocked by the LoRA argument bug.
-- A future agent can see which Wan quantization levels are verified, which are only smoke-tested,
+- The record shows which Wan quantization levels are verified, which are only smoke-tested,
   and which remain unsafe to publish.
 - Static or low-motion Wan outputs are evaluated against objective frame metrics and Diffusers
   parity instead of by impression alone.
@@ -214,7 +214,7 @@ clear guidance before uploading or depending on quantized Wan checkpoints.
 - [x] Run a clean TI2V-5B source/BF16/q8 comparison at 1280x704, 17 frames, 20 steps,
       guidance 5, fps 24, seed 321, with `--negative-prompt ""`, and publish the MP4/contact-sheet
       evidence in `docs/assets/quantization/wan-ti2v5b-clean/`.
-- [x] Generate contact sheets and motion metrics for the three user-provided videos.
+- [x] Generate contact sheets and motion metrics for the three reference videos.
 - [x] Validate T2V-A14B mixed q8 against BF16/source with a contact sheet and frame metrics.
 - [x] Add a documented TI2V-5B runtime memory profile with full-process Darwin physical footprint,
       max RSS, MLX allocator peak, logical model bytes, generation time, MP4 health, and decoded
@@ -234,7 +234,7 @@ clear guidance before uploading or depending on quantized Wan checkpoints.
 - [x] Update generated Wan q8 model cards and public docs for the mixed q8/BF16 policy.
 - [ ] Validate I2V-A14B mixed q8 with source-image conditioning before publishing an I2V repo.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Re-check free disk before preparing more Wan folders. The prepared q8 folder consumed about 17 GiB
 and only about 29 GiB remained afterward. Preserve user videos and generated model folders unless

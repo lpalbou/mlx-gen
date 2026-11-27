@@ -17,12 +17,12 @@
 
 Item [0130](../completed/0130_minimax_h3_staged_loading_and_reindexed_8bit.md) took the conditioner,
 the AdaLN projections and the VAEs out of resident memory, added `--stream-blocks`, and re-indexed
-the 8-bit weights. The items below were found during that work and its three adversarial reviews
+the 8-bit weights. The items below were found during that work and its three verification passes
 and were left out because none of them is needed for the shipped behavior.
 
 ## Candidates
 
-1. **Keep several blocks in memory while streaming (owner's suggestion, 2026-11-23; not
+1. **Keep several blocks in memory while streaming (suggested 2026-11-23; not
    required).** `--stream-blocks` holds one block and reads every block from disk at every step. A
    setting for how many blocks stay resident (or a memory budget the engine fills with blocks)
    would trade memory for fewer reads. It is not needed on the hardware MLX-Gen targets: every
@@ -52,7 +52,7 @@ and were left out because none of them is needed for the shipped behavior.
    RAM** were not measured.
 8. **Physical machines.** The 24 to 96 GB results come from one 128 GB Mac with RAM locked; a run
    on a real Mac of each size has not been done.
-9. **Hosts.** BlackPixel bundles mlx-gen 0.37, hard-codes a 93 GB peak for MiniMax-H3 and sends
+9. **Hosts.** A host application bundles mlx-gen 0.37, hard-codes a 93 GB peak for MiniMax-H3 and sends
    `--quantize 8`; it needs its own change to use the new figures, `--stream-blocks` and the
    16-bit weights.
 

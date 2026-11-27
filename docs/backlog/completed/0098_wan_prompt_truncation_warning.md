@@ -49,7 +49,7 @@ anchors, subject sheets, and long action text can reach the cap).
 
 ## Dependencies and related tasks
 
-- BlackPixel companion track `proposed/storyboard_consistency_2026_07/`
+- Host application companion track `proposed/storyboard_consistency_2026_07/`
   (anchor prepending is what consumes budget).
 
 ## Validation
@@ -81,13 +81,13 @@ anchors, subject sheets, and long action text can reach the cap).
   phase-based progress shared across families; there is no per-run
   prompt-facts event to ride, and adding a Wan-only field to every progress
   event would violate the "lightweight shared events" contract. The metadata
-  sidecar is the host-facing record (BlackPixel reads it).
+  sidecar is the host-facing record (the host application reads it).
 - Tests: `tests/wan/test_wan_prompt_truncation.py` (8 tests, fake tokenizer —
   the logic under test is the overflow accounting, not the HF tokenizer):
   over/under budget, exact-fit boundary, negative-prompt gating under CFG,
   cleaned-text parity, and the metadata merge in generate_video.
 
-## Cycle-2 adversarial review (2026-07-25, no defects found)
+## Cycle-2 verification (2026-07-25, no defects found)
 
 - Verified the uncapped probe counts the SAME `_prompt_clean`ed text the
   capped encode tokenizes, runs before (and independent of) both the

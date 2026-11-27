@@ -103,7 +103,7 @@ supported. The supported bits are 2, 3, 4, 5, 6 and 8.`
 - This proposal does not authorize depending on Prism's MLX fork without a separate ADR.
 - This proposal does not authorize uploading modified binary weights.
 
-## Guidance for future agents
+## Implementation notes
 
 Treat 1-bit as a runtime capability question first, not a model-routing problem. If the kernel is
 not available, keep the user error short and actionable.

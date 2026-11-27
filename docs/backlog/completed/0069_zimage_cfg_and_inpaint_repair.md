@@ -80,7 +80,7 @@ regression test plus one-at-a-time real native inpaint reruns using the existing
 - [x] Re-run native inpaint one case at a time and preserve the proof artifact.
 - [x] Compare the refreshed output and metadata against the pre-fix proof.
 
-## Guidance for the implementing agent
+## Implementation notes
 Treat this as quality-sensitive math repair. The real proof matters because a mathematically correct
 fix that still produces visibly weak output needs to be reported honestly rather than silently
 declared solved.

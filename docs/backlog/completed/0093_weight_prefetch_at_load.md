@@ -25,9 +25,9 @@ encode, and the ~9.5 GB transformer added ~28 s inside denoise step 1 —
 ~100 s of a 164.7 s cold generation was disk-wait disguised as compute. A
 sequential prefetch of the same bytes would take ~2-4 s.
 
-The embedding-host impact is larger than the CLI case: BlackPixel's worker
+The embedding-host impact is larger than the CLI case: the host application's worker
 reloads the model on every task-mode flip (t2i <-> edit have different
-handlers) and after every cancel/displacement kill, and the owner's setup
+handlers) and after every cancel/displacement kill, and the measured setup
 runs the bf16 repo (~35 GB TE+transformer — roughly double the q8 bytes).
 The measured cold click was 447 s vs ~250 s warm at the same settings; the
 difference is dominated by exactly this fault-in tax.
@@ -54,9 +54,9 @@ Ship as default-on with an opt-out flag if any host prefers lazy behavior
 ## Expected impact (from measured numbers)
 
 - Cold CLI generation at 1024x768 q8: ~165 s -> ~70 s.
-- BlackPixel cold click / post-kill reload at bf16: ~200 s of fault-in
+- Host-application cold click / post-kill reload at bf16: ~200 s of fault-in
   compressed to ~10-20 s of sequential read (~447 s -> ~270 s for the
-  owner's measured cold case).
+  measured cold case).
 
 ## Promotion criteria
 
@@ -84,7 +84,7 @@ and 3 rejected:
   error). Files >= 97% resident are skipped, so warm reloads pay only the
   probe (~0.03 s/GB measured) and re-read zero bytes. This matters because a
   16-35 GB package would otherwise pay a 2-5 s page-cache-speed re-read on
-  every warm reload (BlackPixel reloads on every task flip).
+  every warm reload (the host application reloads on every task flip).
 - Gate 2 — RAM headroom: prefetch is skipped when the selected files exceed
   half of physical RAM (or when RAM size is unknown). This is the
   general-purpose low-RAM protection — the loader has no `--low-ram`
@@ -99,7 +99,7 @@ and 3 rejected:
   being loaded. Reads are 64 MiB `readinto` chunks on an unbuffered handle;
   interruptible-safe (read-only, no state).
 
-### Measured numbers (M5 Max 128 GB, BlackPixel idle at 0.0% CPU, serialized)
+### Measured numbers (M5 Max 128 GB, host application idle at 0.0% CPU, serialized)
 
 Eviction methodology: no sudo purge available; eviction = streaming ~161 GB
 of OTHER model blobs through the page cache (~14.5 s at ~11 GB/s), then
@@ -126,20 +126,20 @@ q8 package (17.85 GB) from the HF cache.
   that path are consumed near-sequentially at apply/eval time, so the page
   cache warms itself. The disease regime (random-order faulting at
   ~150 MB/s) was reproduced tonight only at the mechanism level.
-- The audit's in-situ ~100 s tax was measured under the BlackPixel worker
+- The audit's in-situ ~100 s tax was measured under the host application's worker
   with system memory pressure (32.9 GB MLX cache resident — see 0094) and
-  the owner's bf16 repo, whose non-quantized apply path stays lazy through
+  the bf16 repo, whose non-quantized apply path stays lazy through
   first compute. The local bf16 BFL snapshot is incomplete (active ref lacks
   the transformer shards), so the bf16 end-to-end leg could not be run
   offline tonight.
 - Decision under that evidence: ship default-on (bounded worst case
   ~0.11 s/GB cold + ~0.03 s/GB warm probe) as insurance against the measured
   in-situ regime; hosts that only ever load prepared-q8 packages on idle
-  machines can set `MFLUX_NO_WEIGHT_PREFETCH=1`. Cycle-2 / BlackPixel-side
+  machines can set `MFLUX_NO_WEIGHT_PREFETCH=1`. Cycle-2 / host-side
   validation should re-measure in situ (worker process, real pressure) and
   may flip the default if the q8-path regression dominates in practice.
 
-### Cycle-2 ruling (2026-07-23, adversarial review): skip prefetch on prepared packages
+### Cycle-2 ruling (2026-07-23): skip prefetch on prepared packages
 
 The net-regression-on-q8 was independently reproduced and the default was
 narrowed: `_try_load_mflux_format` (the prepared-package path) no longer
@@ -147,7 +147,7 @@ prefetches; every HF-repo loading mode keeps the default-on prefetch.
 
 Reproduction (same eviction methodology: stream 150 GiB of other blobs,
 verify 0.000 residency on every target shard via the mincore probe;
-BlackPixel idle at 0.1% CPU; Klein 9B q8 package, 16.6 GiB, 512x512,
+host application idle at 0.1% CPU; Klein 9B q8 package, 16.6 GiB, 512x512,
 2 steps, fresh process per leg):
 
 | Leg | construct | gen1 | gen2 | total |
@@ -176,7 +176,7 @@ incomplete, so that leg remains unmeasured end-to-end.
 
 Residual risk (cycle 3): the audit's in-situ ~100 s tax on this same q8
 package was recorded under the pre-0094 pressure regime (32.9 GB uncapped
-MLX cache). 0094 removed that cause; if BlackPixel-side validation still
+MLX cache). 0094 removed that cause; if host-side validation still
 sees slow cold loads on prepared packages under real pressure, prefetch for
 prepared packages under a pressure signal is the follow-up, not a blanket
 re-enable. Regression test:

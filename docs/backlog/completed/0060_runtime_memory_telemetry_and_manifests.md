@@ -76,7 +76,7 @@ SeedVR2, and generated metadata helpers.
 - [x] Update memory saver output.
 - [x] Add focused tests.
 
-## Guidance for the implementing agent
+## Implementation notes
 Keep MLX metrics and process metrics separate. `mx.clear_cache()` does not free live tensors, and
 RSS/physical footprint are the user-facing memory pressure signals.
 

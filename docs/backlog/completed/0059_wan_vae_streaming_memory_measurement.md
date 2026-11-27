@@ -78,7 +78,7 @@ to frame batches during save. Use it for Wan low-RAM single-seed runs after deno
 - [x] Route Wan low-RAM single-seed runs through streamed decode.
 - [x] Add metadata and tests.
 
-## Guidance for the implementing agent
+## Implementation notes
 Preserve Wan generation quality first. If causal decode streaming cannot preserve output semantics,
 stop and record the limitation rather than faking streaming.
 

@@ -307,7 +307,7 @@ quality comparison for this clip and shows `7B` slightly ahead of `3B`.
 
 Local limitation check:
 
-- a bounded q8 run on `SF.mp4` completed successfully but over-smoothed the
+- a bounded q8 run on a reference clip completed successfully but over-smoothed the
   already-clean modern source. The public docs now describe this as a fit limitation instead of a
   proof row.
 

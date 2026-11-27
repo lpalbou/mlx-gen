@@ -74,8 +74,8 @@ Padding is the single biggest factor in outpaint quality. Two guidelines:
 - **Watch the canvas size.** Outpaint conditioning tokens scale with the canvas, and attention cost
   grows faster than area. A 1.4 MP canvas costs substantially more per step than a 0.3 MP one.
 
-For revealing a subject the source crop never showed — a full body from a head-and-shoulders
-portrait, for example — `neutral` fill with a descriptive prompt is the route that generates new
+For revealing content the source crop never showed — the rest of a scene beyond a tight frame,
+for example — `neutral` fill with a descriptive prompt is the route that generates new
 subject matter. A blank canvas gives the model room to invent but little guidance on where the
 subject continues, so at very deep padding the new content can sit away from the source edge. The
 outpaint adapter in [LoRA](lora.md) is the recommended configuration for this case and holds the
@@ -327,16 +327,16 @@ A request that pads both axes deeply runs as two single-axis passes by default; 
 `--outpaint-passes 1` to force one canvas or `--outpaint-passes 2` to split any two-axis request.
 See [Deep Padding On Two Axes](#deep-padding-on-two-axes).
 
-To add a lot of space on one side — extending a portrait downward to reveal more of the subject —
+To add a lot of space on one side — extending a photo downward to reveal more of the scene —
 pass the padding on that side and let `auto` pick the blank canvas, or name it explicitly:
 
 ```sh
 mlxgen generate \
   --model AbstractFramework/flux.2-klein-base-4b-8bit \
-  --image portrait.png \
+  --image photo.png \
   --outpaint-padding "0%,10%,100%,10%" \
   --outpaint-fill neutral \
-  --prompt "Extend this portrait downward to reveal the lower part of the body: the same subject in the same clothing, same lighting, same background." \
+  --prompt "Extend this photo downward: the same scene continues, same lighting, same background." \
   --steps 20 \
   --guidance 4 \
   --seed 1234 \

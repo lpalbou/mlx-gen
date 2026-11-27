@@ -45,7 +45,7 @@ conditioning is already proven or already belongs in the runtime contract.
 
 ## Post-completion hardening (2026-07-04)
 
-Three independent adversarial audits (upstream-parity, contract truthfulness, production readiness)
+Three independent audits (upstream-parity, contract truthfulness, production readiness)
 confirmed the scheduler/latent math matches the Diffusers reference and surfaced these defects,
 which are now fixed:
 

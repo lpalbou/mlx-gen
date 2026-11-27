@@ -165,7 +165,7 @@ unvalidated generation settings.
   with source-aspect output resolution, saved MP4, metadata health report, and contact sheet.
 - [x] Copy targeted release artifacts into `docs/assets/quantization/wan-a14b-q8-release/`.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Treat future Wan q8 claims as profile-specific. Prefer targeted unit tests and small model-backed
 probes before longer production profiles.

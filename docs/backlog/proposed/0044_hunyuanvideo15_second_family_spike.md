@@ -74,7 +74,7 @@ large audio-video platforms as the next obvious step.
 - Do not treat HunyuanVideo as chosen over LTX or Wan-family extensions without a comparison pass.
 - Do not fold this into Wan VACE or SeedVR2; those are different product directions.
 
-## Guidance for future agents
+## Implementation notes
 
 Start with upstream Diffusers and a license review. If the bounded smoke is not practical on the
 target Apple Silicon machine, keep this item proposed rather than inflating the roadmap.

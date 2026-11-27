@@ -79,6 +79,6 @@ that current saved tensor/state-dict fixtures still load.
 - [x] Add a focused assertion for the safe load flag.
 - [x] Reject empty and mixed non-tensor checkpoint payloads.
 
-## Guidance for the implementing agent
+## Implementation notes
 Treat this as a security boundary. If a checkpoint fails after the safe-load change, do not restore
 unsafe pickle loading without an explicit trusted-path design.

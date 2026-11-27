@@ -24,7 +24,7 @@ passes its cache through. The flux2 attribute is dead state — verified by
 grep across `src/mflux/models/flux2/` on 2026-07-23 (writes only, no reads).
 
 Marginal cost is ~0.8-1.1 s per encode (q8, warm). It compounds in the
-embedding-host pattern: BlackPixel sends num_images=4 per click, and the
+embedding-host pattern: a host application sends num_images=4 per click, and the
 runtime wrapper loops seeds through generate_image — the SAME prompt is
 re-encoded 4x per click (~3-4 s wasted), on every click.
 
@@ -47,16 +47,16 @@ across calls on one resident instance where inputs shapes are unchanged.
 
 ## Expected impact
 
-~3-5 s per 4-seed BlackPixel click (measured encode cost x repeated seeds,
+~3-5 s per 4-seed host click (measured encode cost x repeated seeds,
 plus compile reuse); a few percent of a small-canvas batch, negligible at
 944x1680 — this is hygiene, not the headline fix (those are 0093/0094 and
-the BlackPixel-side items in that repo's backlog 0069).
+the host-side items in the host application's backlog 0069).
 
 ## Non-goals / nuance recorded from the audit
 
 flux2.latent LoRA for Klein 9B stays deny-listed in
 `lora_validation_registry._UNSUPPORTED_RECORDS` (hard-rejected at plan time,
-verified). If a validated klein-9b latent LoRA row ever lands, BlackPixel
+verified). If a validated klein-9b latent LoRA row ever lands, a host
 could route LoRA global-restyles through latent i2i (shares the t2i handler
 -> no worker reload on task flips, and image_strength skips steps); until
 then that routing idea is blocked and lives only as context here.
@@ -143,7 +143,7 @@ retry produced bitwise-identical decoded latents to an uninterrupted run,
 with the prompt cache and compiled predict intact (embeds are materialized
 before the loop; per-call state lives in `Config`/`GenerationContext`).
 
-### Cycle-2 review additions (2026-07-23, adversarial review)
+### Cycle-2 additions (2026-07-23)
 
 Invalidation-completeness audit: every in-place transformer mutation site in
 the repo was enumerated (`load_and_apply_lora*`, `apply_and_quantize*`,
@@ -185,5 +185,5 @@ in a swallowing try/except, the abort-safety test fails as intended
 Cycle-1: `make lint` clean; fast suite 1457 passed / 7 skipped (baseline
 1413/7). Cycle-2 (after the assistant-scale hardening and low-RAM
 interaction pinning): `make lint` clean; fast suite 1465 passed /
-7 skipped; BlackPixel geometry passthrough suite 12 passed against this
+7 skipped; the host application's geometry passthrough suite 12 passed against this
 tree via `uv run --project`.

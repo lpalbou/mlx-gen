@@ -16,10 +16,10 @@
 
 ## Origin
 
-A feature request from BlackPixel, an embedding host that drives the runtime through
+A feature request from a host application that drives the runtime through
 `mlxgen generate`, `mlxgen capabilities` and `mflux.load_generation_model`, filed against 0.34.0
-(`0eb1409`). It listed four defects and a proposed capability contract. An adversarial pass
-(`untracked/h3_verify/agent4/`) verified every claim against the released commit and corrected three
+(`0eb1409`). It listed four defects and a proposed capability contract. An independent verification
+checked every claim against the released commit and corrected three
 of them before implementation.
 
 ## Completion report - 2026-09-06
@@ -69,7 +69,7 @@ All fields additive with falsy/None defaults, so older hosts are unaffected and 
 `output_fps`, and the per-entry `default_steps` / `default_width` / `default_height` /
 `default_frames` / `default_video_shift` / `default_audio_shift`.
 
-Three proposals were dropped on the adversarial pass's advice: `supports_audio_toggle` (definitionally
+Three proposals were dropped after that verification: `supports_audio_toggle` (definitionally
 equal to `generates_audio` for every current and plausible route), `canvas_multiple` (duplicates the
 published `dimension_multiple`), and a row-level `supports_guidance` (near-redundant with the
 published `supports_negative_prompt` for a guidance-distilled route). `audio_prompt_sections` as a
@@ -97,8 +97,8 @@ advertised as `supports_text_encoder_release`.
 
 ## Addendum - 2026-09-06: four follow-up asks
 
-BlackPixel filed four more asks after reviewing 0.35.0. A second adversarial pass
-(`untracked/h3_verify/agent5/`) settled each.
+The host application filed four more asks after reviewing 0.35.0. A second independent verification
+settled each.
 
 - **`recommended_quantize` (their highest-value item): implemented, reshaped.** The claim is
   correct - unquantized the loaded shards are 125 GiB, 97% of a 128 GiB machine, so q8 is required
@@ -135,9 +135,9 @@ successes) and was not acted on; it is not reproducible from the evidence availa
 
 ## Second addendum - 2026-09-06: a naming defect of our own
 
-BlackPixel reported that they had aliased our `supports_video_shift` onto their generic flow-shift
-flag and silently stopped sending Wan its `--flow-shift`. They called it their bug. A third
-adversarial pass (`untracked/h3_verify/agent6/`) found it was ours.
+The host application reported that it had aliased our `supports_video_shift` onto its generic flow-shift
+flag and silently stopped sending Wan its `--flow-shift`. Its maintainers called it their bug. A third
+independent verification found it was ours.
 
 The mechanism is one: the sigma transform in `minimax_h3_scheduler.py:58` and
 `wan_euler_scheduler.py:52` is identical, MiniMax-H3's own help string calls its option a "video flow
@@ -191,7 +191,7 @@ accepted/required/forced rather than a boolean.
 
 ## Fourth addendum - 2026-09-06: the peak model, measured
 
-BlackPixel corrected the reasoning recorded above, and they were right. This item said "the peak
+The host application's maintainers corrected the reasoning recorded above, and they were right. This item said "the peak
 scales about 2.75x across the allowed frame range". That is the latent-frame ratio (37 at 124 frames
 to 102 at 345), not the peak ratio. Two independent recomputations agree. The conclusion to publish a
 measurement with its geometry rather than a scalar was still correct, but for the opposite reason:

@@ -247,7 +247,7 @@ treated as FIBO masked, RMBG, or multi-reference evidence.
 - Manual visual inspection of the full and step contact sheets.
 - `git diff --check`
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Do not reuse arbitrary older outputs as passing proof unless they match the standardized source,
 inputs, prompt, dimensions, seed policy, and command contract. A capability is release-proven only

@@ -72,7 +72,7 @@ requested slices to MLX arrays during chunk processing.
 - [x] Add cleanup and metadata.
 - [x] Add focused tests.
 
-## Guidance for the implementing agent
+## Implementation notes
 Do not use independent per-chunk random seeds as a shortcut; overlap consistency is part of output
 quality.
 
@@ -203,7 +203,7 @@ quality.
   restoration path must not reduce output quality. The bounded `absolute_latent_frame` path changes
   restored pixels for the same source, seed, frame count, and chunking, so it cannot count as a
   quality-preserving memory optimization.
-- Adversarial review findings: the 3B same-job A/B changed output
+- Verification findings: the 3B same-job A/B changed output
   (`mae=6.8291`, `rmse=11.626`, `max_abs=207`, `psnr=26.8616 dB`), while the 7B closure evidence
   used a `53f -> 101f` scaling run rather than a normal same-video 1:1 baseline/candidate test.
   Scaling evidence can show memory growth behavior, but it does not prove quality preservation for
@@ -275,12 +275,12 @@ quality.
 
 - Date: 2026-06-28
 - Reason: The normal 1:1 repair evidence above still used unsafe temporal profiles: 3B used
-  `25/8`, while 7B used `13/4` and produced 19 chunks. Adversarial review found that this could
+  `25/8`, while 7B used `13/4` and produced 19 chunks. Verification found that this could
   preserve frame count while creating object-continuity distortions, especially on 7B.
 - Code correction: SeedVR2 video restore now rejects production multi-chunk profiles below
   29 frames or below 8 frames of overlap from both the CLI planner and the public Python
   `restore_video_to_path()` API. The temporary internal `seedvr2_tiny_temporal_chunks` bypass was
-  removed from production code after adversarial review, so user-set environment variables cannot
+  removed from production code after verification, so user-set environment variables cannot
   reopen the unsafe path. `_aligned_chunk_overlap()` now returns stride-aligned overlap values only,
   so the previous invalid effective overlap `3` cannot be passed to the chunk planner; explicit
   CLI overlap values are either honored or rejected, not silently capped downward.

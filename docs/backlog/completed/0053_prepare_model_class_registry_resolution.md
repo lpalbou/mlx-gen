@@ -77,6 +77,6 @@ class for instantiation.
 - [x] Cover explicit-base custom path routing.
 - [x] Fail closed for ambiguous custom/local prepare paths.
 
-## Guidance for the implementing agent
+## Implementation notes
 Prefer a narrow selector over a broad registry refactor. Preserve current behavior where the
 resolved family is unambiguous.

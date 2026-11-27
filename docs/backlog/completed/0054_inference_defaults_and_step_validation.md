@@ -82,6 +82,6 @@ separate, focused pass.
 - [x] Add focused tests.
 - [x] Follow up on direct API default consolidation for confirmed drift points.
 
-## Guidance for the implementing agent
+## Implementation notes
 Split validation from broad default rewrites. Clear early errors are the urgent part; complete
 default unification can land safely after the blockers.

@@ -9,7 +9,7 @@
 ## Post-completion correction — 2026-08-04
 
 This item is complete as a **functional runtime integration**, not as a release-quality model
-validation. The original visual disposition was wrong. Full-frame 5K review plus two adversarial
+validation. The original visual disposition was wrong. Full-frame 5K review plus two independent
 audits found all five required quality cases fail; the validation registry is now `FAIL` and the
 runtime is experimental. The corrected schema-v3 report records machine contract `true`, complete
 hash-bound review `true`, visual quality `false`, and overall pass `false`.
@@ -36,7 +36,7 @@ memory, while the target deployment envelope is about 18 GB. The official monoli
 is about 28.9 GB, but the renderer transformer is about 5.7 GB and its tokenizer, UMT5, and VAE
 are compatible with explicitly pinned Wan components.
 
-Two adversarial reviewers rejected treating Bernini as stock Wan or VACE. Its exact semantics add
+Bernini cannot be treated as stock Wan or VACE. Its exact semantics add
 source-ID rotary phase, heterogeneous packed latent segments, target-only extraction, and
 task-specific three-/four-pass guidance.
 
@@ -94,7 +94,7 @@ task-specific three-/four-pass guidance.
 
 ## Five completed engineering phases
 
-- [x] Cycle 1: architecture, disk, official-source, framework, ADR, and adversarial review.
+- [x] Cycle 1: architecture, disk, official-source, framework, and ADR review.
 - [x] Cycle 2: numeric core, component sources, deterministic parity, and initialization smoke.
 - [x] Cycle 3: runtime, role-aware CLI/Python integration, metadata, and contract tests.
 - [x] Cycle 4: real R2V/RV2V/V2V generations, controls, contact sheets, and fixes.

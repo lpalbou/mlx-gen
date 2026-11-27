@@ -3,7 +3,7 @@
 ## Metadata
 
 - Created: 2026-07-23
-- Status: Proposed (owner-requested investigation, 2026-07-23)
+- Status: Proposed (requested investigation, 2026-07-23)
 - Completed: N/A
 - Effort: M (investigation) + M-L per family (implementation)
 
@@ -14,9 +14,9 @@
   capability row ships), [ADR 0002](../adr/0002_no_silent_automatic_fallbacks.md)
 - ADR impact: None yet (investigation first).
 
-## Context (owner request, verbatim intent)
+## Context
 
-The embedding host (BlackPixel) now surfaces only outpaint-capable models in
+A host application built on mlx-gen now surfaces only outpaint-capable models in
 its Outpaint selector, driven by this repo's capability registry. Today that
 set is exactly two families:
 
@@ -26,9 +26,9 @@ set is exactly two families:
   with a narrow latent transition band); distilled Klein advertises
   `flux2.reframe` instead.
 
-The owner asks: "should other models be capable to do outpaint, including if
-we have to implement some low level math? or are those the only 2 models that
-can (would find that surprising)?"
+The question: should other models be able to outpaint, including where that
+requires implementing low-level math, or are those really the only two models
+that can?
 
 ## Working hypothesis
 
@@ -65,7 +65,7 @@ plus per-step source compositing can, in principle, outpaint. In this repo:
    existing starship outpaint matrices) before any capability row flips
    `supports_outpaint=True`.
 4. Ship rows additively; the host's selector consumes them automatically at
-   the next pin bump (see the BlackPixel companion item).
+   the next pin bump (see the host application's companion item).
 
 ## Non-goals
 
@@ -76,7 +76,7 @@ plus per-step source compositing can, in principle, outpaint. In this repo:
 
 ## Dependencies and related tasks
 
-- BlackPixel backlog 0070 (selector adoption when this expands).
+- Host application backlog 0070 (selector adoption when this expands).
 - Existing proof tooling: docs/reframe-outpaint.md matrices, validation
   profile machinery.
 

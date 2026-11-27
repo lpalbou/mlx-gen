@@ -15,8 +15,8 @@
 ## Summary
 
 The unpublished tree materially improves route authority and Python-side progress semantics, but it
-still does not give CLI consumers a structured runtime/event contract. That means apps like
-BlackPixel still have to parse human stdout, infer phases, and guess terminal state from backend
+still does not give CLI consumers a structured runtime/event contract. That means host
+applications still have to parse human stdout, infer phases, and guess terminal state from backend
 logs.
 
 This is the main remaining ownership gap between `mlx-gen` and embedding apps.

@@ -149,7 +149,7 @@ task/mode/option combinations before model load.
 - [x] Run tests and review.
 - [x] Move this item to completed with evidence.
 
-## Guidance for the implementing agent
+## Implementation notes
 
 Keep the public task contract small and stable. Treat `image_strength` as a latent-img2img-only
 control. Prefer explicit `GenerationPlan` fields over hidden family heuristics, and preserve enough

@@ -279,10 +279,10 @@ loaded = load_generation_model(
 )
 results = run_outpaint(
     loaded=loaded,
-    source_image="portrait.png",  # a 768x766 source, for the printed value below
+    source_image="photo.png",  # a 768x766 source, for the printed value below
     padding="0%,10%,100%,10%",
     seeds=[1234],
-    prompt="Extend this portrait downward to reveal the lower part of the body.",
+    prompt="Extend this photo downward: the same scene continues.",
     guidance=4.0,
     num_inference_steps=20,
     output="extended.png",
@@ -322,7 +322,7 @@ from mlxgen import load_generation_model, prepare_outpaint
 model_name = "AbstractFramework/flux.2-klein-base-4b-8bit"
 
 with prepare_outpaint(
-    source_image="portrait.png",  # a 768x766 source, for the printed values below
+    source_image="photo.png",  # a 768x766 source, for the printed values below
     padding="0%,10%,100%,10%",
     model=model_name,
 ) as session:
@@ -336,7 +336,7 @@ with prepare_outpaint(
     generated = session.generate(
         loaded.model,
         seed=1234,
-        prompt="Extend this portrait downward to reveal the lower part of the body.",
+        prompt="Extend this photo downward: the same scene continues.",
         guidance=4.0,
         num_inference_steps=20,
     )

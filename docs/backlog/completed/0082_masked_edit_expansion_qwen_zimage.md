@@ -10,8 +10,8 @@
 - Governing ADRs: [ADR 0001](../../adr/0001_runtime_smoke_validation_for_model_routes.md)
   (model-backed proofs below), [ADR 0002](../../adr/0002_no_silent_automatic_fallbacks.md)
   (one masked route per row, fail-closed gating, plan-time maskless rejection)
-- Validation: one Fable 5 adversarial subagent ran two rounds (pre-implementation design
-  attack, post-implementation code audit); focused suites green (task inference, router 266,
+- Validation: a pre-implementation design check and a post-implementation code
+  audit; focused suites green (task inference, router 266,
   masked routes, arg parser; full fast band 633), lint clean; visual-smoke proof bundle in
   `docs/assets/validation/masked-edit-2026-07-15/`
 

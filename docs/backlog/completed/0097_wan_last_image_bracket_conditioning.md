@@ -21,7 +21,7 @@
 
 ## Context (investigation provenance)
 
-The 2026-07-25 three-agent storyboard consistency investigation (BlackPixel
+The 2026-07-25 storyboard consistency investigation (host application
 backlog `proposed/storyboard_consistency_2026_07/`) traced why chained
 storyboard scenes lose subject identity: each scene conditions on exactly ONE
 VAE-encoded frame (the predecessor's last frame), which is systematically the
@@ -87,7 +87,7 @@ VACE 1.3B reference route, see 0100).
 
 ## Dependencies and related tasks
 
-- BlackPixel companion: `proposed/storyboard_consistency_2026_07/` (handoff
+- Host application companion: `proposed/storyboard_consistency_2026_07/` (handoff
   frame picker is the host-side half of the same failure).
 - Related here: 0099 (step-grid scheduler parity for honest Lightning A/Bs),
   0100 (VACE identity-anchor recipe, the draft-tier alternative).
@@ -174,7 +174,7 @@ ships as EXPERIMENTAL with these numbers quoted in docs; item 0100's
 supersession decision (VACE recipe) can now be taken against a measured
 result.
 
-## Cycle-2 adversarial review (2026-07-25, no code defects found)
+## Cycle-2 verification (2026-07-25, no code defects found)
 
 - Packing re-verified line-for-line against the diffusers reference
   (`pipeline_wan_i2v.py` `prepare_latents`), including the
@@ -194,7 +194,7 @@ result.
 - One convention fix: `supports_last_image` shipped without the additive-field
   capabilities `schema_version` bump the `supports_video_mask` precedent
   established; bumped 4 -> 5 (no host reads the version today — verified
-  BlackPixel never consumes it).
+  the host application never consumes it).
 - New regression pins: condition-cache FIFO eviction order with plain +
   bracketed pairs, and resize_mode reaching the LAST anchor through the same
   geometry as the first frame (pad letterbox vs stretch discriminates).

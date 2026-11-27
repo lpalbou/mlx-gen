@@ -94,7 +94,7 @@ into audio/video abstractions or memory behavior that the current Wan work has n
 - Wan2.2 A14B T2V/I2V moved out of this proposal into planned item 0012 on 2026-05-30.
 - This proposal does not include closed/API-only models except as AbstractVision provider ideas.
 
-## Guidance for future agents
+## Implementation notes
 
 Do the selection pass as documentation and measurements first. If a candidate wins, create a
 separate planned item for the actual port with current code reality, model size, license, expected

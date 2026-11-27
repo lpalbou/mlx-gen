@@ -11,7 +11,7 @@
 - Upstream confirmation: the Klein models support masked inpainting without new weights -
   diffusers merged `Flux2KleinInpaintPipeline` in April 2026 with clean-source conditioning
   tokens plus per-step latent compositing; ComfyUI workflows ship the same technique
-- Validation: adversarial subagent review (design + code + parity attack; one major finding
+- Validation: design, code and parity verification (one major defect
   fixed - see below), focused test suites green (masked routes, router 193, task inference,
   python runtime; full fast band 633 passed), lint clean, and model-backed smoke runs on the
   exact cached q8 packages
@@ -31,8 +31,7 @@
    pixel resolution (LANCZOS resize, >= 0.5 threshold) and then bilinear-interpolates it
    directly onto the packed latent grid; `MaskUtil.interpolate_bilinear` implements torch
    `F.interpolate(mode="bilinear", align_corners=False)` semantics in numpy (verified
-   against torch across 32->2, 64->4, 48->3, 100->7 and upsampling shapes by the
-   adversarial reviewer). `prepare_inpaint_source_conditioning` builds the source
+   against torch across 32->2, 64->4, 48->3, 100->7 and upsampling shapes). `prepare_inpaint_source_conditioning` builds the source
    conditioning ids without re-encoding; `prepare_reference_image_conditioning` gained
    `t_coord_start` so masked-area references land at t=20+ without colliding with the
    source tokens; the outpaint route's preserved-latent blend moved into the shared helper
@@ -54,15 +53,15 @@
    backend forwarding (distilled defaults and base CFG default), capability gating, and
    the runtime definition.
 
-## Adversarial review
+## Verification
 
-One adversarial subagent attacked the reference parity, mask math, contracts, and repo
-conventions after implementation. Verdict: no critical findings; one major finding fixed
+The reference parity, mask math, contracts, and repo conventions were checked after
+implementation. Result: no critical defects; one major defect fixed
 before the smoke run (the Python API guidance default silently disabled CFG for base
-models; now `guidance=None` resolves per model class in one place). Minor findings fixed:
+models; now `guidance=None` resolves per model class in one place). Minor defects fixed:
 LANCZOS pixel-resolution mask resize per the documented ported-surface policy, removal of a
 dummy-tensor ids construction, centralized klein-base guidance helpers instead of a
-cross-class private call. The reviewer numerically verified `interpolate_bilinear` against
+cross-class private call. `interpolate_bilinear` was numerically verified against
 `torch.nn.functional.interpolate` (max deviation 4.1e-6) and confirmed the outpaint refactor
 is behavior-preserving.
 

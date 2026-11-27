@@ -76,7 +76,7 @@ I2V under-responds to motion prompts, users will see correct wiring but poor cre
 - This proposal does not block short smoke tests; it only prevents treating them as quality
   evidence.
 
-## Guidance for future agents
+## Implementation notes
 
 Start from planned items 0002 and 0015. Promote this proposal only if 0015 shows an I2V-specific
 prompt or motion weakness that remains unexplained after the broader Wan parity work.

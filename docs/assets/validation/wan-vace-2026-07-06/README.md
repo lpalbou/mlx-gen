@@ -27,7 +27,7 @@ a new stack.
 
 `validation_outputs/wan_vace_parity/`: diffusers CPU fp32 reference tensors
 (`tools/wan_vace_parity_export.py`) compared stage-by-stage against the MLX port
-(`tools/wan_vace_parity_compare.py`). Results (adversarially verified, including an
+(`tools/wan_vace_parity_compare.py`). Results (independently verified, including an
 independent rerun and a noise-floor sensitivity probe):
 
 - mask-channel preparation: bit-exact (0.0), including random time-varying masks x 0/1/2
@@ -74,7 +74,7 @@ flag), mirrored next to this README as `parity_compare_bf16.json` /
   `masked_region_mode`); replaying it via `--config-from-metadata` requires adding
   `--vace-masked-region repaint` explicitly, since the runtime default is now `generate`.
 
-### Root cause of the earlier failures (kept for the record; adversarially diagnosed)
+### Root cause of the earlier failures (kept for the record)
 
 Two earlier published attempts did NOT satisfy the request, both correctly rejected in
 review:

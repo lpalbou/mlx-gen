@@ -13,8 +13,8 @@
 
 ## Context
 
-During an iterative image-editing session on a 614x512 portrait (2026-08-13, source
-`d1.png`), the instruction "change tie color to red" also changed the suit color
+During an iterative image-editing session on a 614x512 portrait reference image
+(2026-08-13), the instruction "change tie color to red" also changed the suit color
 that a previous instruction had set to blue — the edit's effect leaked beyond its instructed
 scope. Observed alongside (but distinct from) the aspect-compression/drift defect tracked and
 fixed separately; scope leakage persists as its own behavior.

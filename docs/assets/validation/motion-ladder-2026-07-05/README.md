@@ -73,7 +73,7 @@ generated 2026-07-04 on 0.18.24. Its sidecar predates `metadata_schema_version` 
 0.18.24 had a router bug that silently dropped `--video-strength`, and 14 = floor(20 x 0.7)
 clears it). Decode-path equivalence with today's tree is test-pinned (matching fps =
 passthrough); generation-path equivalence across the intervening refactors is ASSUMED, not
-re-proven - the refactors were adversarially verified behavior-preserving, but no cross-check
+re-proven - the refactors were independently verified behavior-preserving, but no cross-check
 rerun of this row exists.
 
 ## Reproduce

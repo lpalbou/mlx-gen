@@ -43,7 +43,7 @@ for users who need to repair a single drifted scene.
    tier stated up front.
 2. One preserved proof case on the storyboard ship (reference = clean S1
    frame; repair the drifted S4) with reader-first clips.
-3. A pointer from the BlackPixel companion track so the host's storyboard
+3. A pointer from the host application's companion track so the host's storyboard
    docs can link it as the "repair a broken scene" path.
 
 ## Condition for shipping
@@ -64,7 +64,7 @@ Decide AFTER 0097's A/B.
 - [0039](0039_wan_vace_video_editing_and_control.md) /
   [0075](0075_wan_vace_conditioning_expansion_after_plain_video_to_video.md)
   (the broader VACE conditioning tracks).
-- BlackPixel companion track `proposed/storyboard_consistency_2026_07/`.
+- Host application companion track `proposed/storyboard_consistency_2026_07/`.
 
 ## Validation
 

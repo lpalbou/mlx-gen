@@ -19,7 +19,7 @@ key a run writes - the `audio_*` block MiniMax-H3 added, `video_health`, `runtim
 its write site. A host consuming metadata has no declared surface to read against, and no way to tell
 a key that is part of the contract from one that happens to be present.
 
-Raised by the BlackPixel host contract review (item 0120), which noted the `audio_*` keys
+Raised by the host application's contract review (item 0120), which noted the `audio_*` keys
 specifically. Declaring only those would be inconsistent, since nothing else is declared either;
 this item is the general version.
 
