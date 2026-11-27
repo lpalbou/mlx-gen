@@ -1370,10 +1370,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for the implementing agent
+        Implementation notes
       
     </span>
   </a>
@@ -1426,7 +1426,7 @@
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
 <p>The first confirmed spoof probe showed that a custom local path whose name merely contained
 <code>qwen-image-8bit</code> could incorrectly advertise base Qwen control and control-inpaint support when
-combined with <code>--base-model qwen-image --family qwen</code>. A broader adversarial review then confirmed
+combined with <code>--base-model qwen-image --family qwen</code>. A broader audit then confirmed
 the same raw-path poisoning pattern on Qwen edit, Z-Image Turbo, FLUX.2 Klein base, and FIBO Edit
 variant predicates, plus a second authority leak where shared <code>family=</code> overrides can lie about a
 known canonical model family.</p>
@@ -1517,7 +1517,7 @@ as <code>qwen.control*</code> on a narrow allowlist.</p>
 <li>[x] Add spoof and supported-identity regression coverage across affected families.</li>
 <li>[x] Re-run public capabilities proofs one case at a time.</li>
 </ul>
-<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-notes">Implementation notes<a class="headerlink" href="#implementation-notes" title="Permanent link">&para;</a></h2>
 <p>Prefer the narrowest truthful identity rule that can be defended from current code reality. Keep
 broader registry authority work in item 0058 unless this fix proves it is unavoidable.</p>
 <h2 id="completion-report">Completion report<a class="headerlink" href="#completion-report" title="Permanent link">&para;</a></h2>

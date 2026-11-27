@@ -1370,10 +1370,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for the implementing agent
+        Implementation notes
       
     </span>
   </a>
@@ -1545,7 +1545,7 @@ local video generation.</p>
 <li>[ ] Inspect quantized Wan hot-path kernels.</li>
 <li>[x] Update docs/model-card guidance based on A14B T2V quality and timing evidence.</li>
 </ul>
-<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-notes">Implementation notes<a class="headerlink" href="#implementation-notes" title="Permanent link">&para;</a></h2>
 <p>Start with measurement. Do not assume q8 should be faster until the hot path is profiled, but treat
 the current 2.3x slowdown as suspicious enough to investigate seriously.</p>
 

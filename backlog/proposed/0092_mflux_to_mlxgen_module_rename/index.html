@@ -1293,10 +1293,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-future-agents" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for future agents
+        Implementation notes
       
     </span>
   </a>
@@ -1361,7 +1361,7 @@ host and script.</p>
   shim.</li>
 </ul>
 <h2 id="why-it-might-matter">Why it might matter<a class="headerlink" href="#why-it-might-matter" title="Permanent link">&para;</a></h2>
-<p>Hosts embedding the Python runtime (the audit's BlackPixel host chief among
+<p>Hosts embedding the Python runtime (the audited host application chief among
 them) currently document two names for one dependency; every new integration
 pays the confusion once.</p>
 <h2 id="promotion-criteria">Promotion criteria<a class="headerlink" href="#promotion-criteria" title="Permanent link">&para;</a></h2>
@@ -1371,7 +1371,7 @@ shipped so the rename does not collide with in-flight feature branches.</p>
 <h2 id="non-goals">Non-goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
 <p>Renaming the GitHub repository or the PyPI distribution (already <code>mlx-gen</code>);
 changing any generation behavior.</p>
-<h2 id="guidance-for-future-agents">Guidance for future agents<a class="headerlink" href="#guidance-for-future-agents" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-notes">Implementation notes<a class="headerlink" href="#implementation-notes" title="Permanent link">&para;</a></h2>
 <p>Do the rename as a mechanical, single-commit move plus shim; never mix it
 with behavior changes. Grep for <code>mflux</code> in metadata readers before dropping
 the legacy <code>mflux_version</code> key: <code>--config-from-metadata</code> must keep replaying

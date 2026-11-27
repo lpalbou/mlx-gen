@@ -1368,12 +1368,12 @@
   transformer. <code>--quantize 4</code> selects this mixed policy.</li>
 <li>Both store the Qwen3-VL vision tower, the fp32 heads and timestep MLP, the final modulation and
   the two VAEs as released, and carry the source tokenizer files, <code>LICENSE</code>, <code>NOTICE</code> and the
-  scheduler configs. Both repositories are gated; the owner chose gated publication on 2026-11-22
-  after reading the license's territory clause.</li>
+  scheduler configs. Both repositories are gated; gated publication was decided on 2026-11-22
+  in view of the license's territory clause.</li>
 <li>Release 0.39.0, which the packages require.</li>
 </ul>
 <h3 id="why-the-small-package-is-not-a-4-bit8-bit-mix">Why the small package is not a 4-bit/8-bit mix<a class="headerlink" href="#why-the-small-package-is-not-a-4-bit8-bit-mix" title="Permanent link">&para;</a></h3>
-<p>The owner expected the usual recipe: 4-bit with the sensitive layers at 8-bit. The measurement
+<p>The usual recipe was the starting assumption: 4-bit with the sensitive layers at 8-bit. The measurement
 (<code>tools/minimax_h3_quant_probe.py</code>, five real transformer inputs, error of the predicted velocity
 against the BF16 weights) shows MiniMax-H3 has no sensitive family to protect:</p>
 <ul>
@@ -1400,8 +1400,7 @@ fidelity to the released weights at equal size, not visible breakage. The condit
 <li><strong>The vision tower must not be quantized.</strong> At any width a few very-high-norm image tokens flip.
   With an 8-bit tower the 90th-percentile per-token error of an image-conditioned sequence is 26.6%
   against 2.1% with the tower as released, and the image-to-video velocity error is 6.2% against
-  3.5%. The tower is 0.6B parameters. This came from the adversarial review, which asked for the
-  variant that isolates it.</li>
+  3.5%. The tower is 0.6B parameters. The variant that isolates the tower established this.</li>
 </ul>
 <h3 id="defects-found-on-the-way-all-fixed-with-tests">Defects found on the way, all fixed with tests<a class="headerlink" href="#defects-found-on-the-way-all-fixed-with-tests" title="Permanent link">&para;</a></h3>
 <ul>
@@ -1415,7 +1414,7 @@ fidelity to the released weights at equal size, not visible breakage. The condit
 <li>The LoRA wrapper derived a quantized layer's input width as <code>columns * (32 // bits)</code>, wrong at 3,
   5 and 6 bits.</li>
 <li>The generated model card described a text-to-image checkpoint.</li>
-<li>From the review: the loader accepted a package missing a module, with a tensor of another shape,
+<li>The loader accepted a package missing a module, with a tensor of another shape,
   or written at another group size; the memory preflight was wrong for <code>--quantize 4</code> and for
   packages; <code>prepare</code> only warned about a missing <code>LICENSE</code>, and would bake a Turbo adapter into a
   package described as base weights.</li>
@@ -1455,7 +1454,7 @@ fidelity to the released weights at equal size, not visible breakage. The condit
   precompute now frees 12.9 GiB at 8-bit rather than 26 GB, which changes its priority.</li>
 <li>The license policy decision recorded in
   <a href="../../deprecated/0104_minimax_h3_joint_audio_video_watch/">0104</a> is settled for distribution by
-  the owner's choice of gated repositories; the joint audio-video contract ADR is still owed.</li>
+  the decision to publish gated repositories; the joint audio-video contract ADR is still owed.</li>
 </ul>
 
 

@@ -1396,7 +1396,7 @@ reduction after the pre-construction cache policy fix.</p>
 <p>Design and prove an incremental component-wise migration path for non-Wan families without
 changing quantization semantics, validation checks, prepared package layout, or generated quality.</p>
 <h2 id="why">Why<a class="headerlink" href="#why" title="Permanent link">&para;</a></h2>
-<p>The memory audit found this as a real issue, but the adversarial pass also found that a naive broad
+<p>The memory audit found this as a real issue, but the follow-up verification also found that a naive broad
 helper is risky: Qwen, Flux, FIBO, ERNIE, Z-Image, and SeedVR2 each have family-specific
 construction, validation, and quantization assumptions.</p>
 <h2 id="requirements">Requirements<a class="headerlink" href="#requirements" title="Permanent link">&para;</a></h2>

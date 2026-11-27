@@ -1370,10 +1370,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for the implementing agent
+        Implementation notes
       
     </span>
   </a>
@@ -1501,7 +1501,7 @@ keep tens of gigabytes of no-longer-needed weights alive in a single-output run.
 <li>A single-seed A14B CLI run can free the high-noise denoiser before low-noise denoising.</li>
 <li>Low-RAM mode has transformer-block and denoise-loop cleanup paths instead of only decode-time
   cleanup.</li>
-<li>A future agent has a precise full-size validation command and knows what evidence remains
+<li>The item records a precise full-size validation command and what evidence remains
   missing.</li>
 <li>The item can close only after the full-size I2V retry captures memory, exit-code, metadata, and
   MP4 health evidence.</li>
@@ -1527,7 +1527,7 @@ keep tens of gigabytes of no-longer-needed weights alive in a single-output run.
 <li>[x] Add focused tests.</li>
 <li>[ ] Retry full-size A14B I2V with memory/exit-code capture.</li>
 </ul>
-<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-notes">Implementation notes<a class="headerlink" href="#implementation-notes" title="Permanent link">&para;</a></h2>
 <p>Treat a full-size retry as expensive. Use a unique output path, avoid trailing spaces after shell
 continuation backslashes, capture stdout/stderr and exit code, and inspect the output with
 <code>ffprobe</code> before declaring the issue fixed.</p>

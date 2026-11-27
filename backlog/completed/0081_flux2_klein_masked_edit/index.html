@@ -1216,10 +1216,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adversarial-review" class="md-nav__link">
+  <a href="#verification" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adversarial review
+        Verification
       
     </span>
   </a>
@@ -1270,7 +1270,7 @@
 <li>Upstream confirmation: the Klein models support masked inpainting without new weights -
   diffusers merged <code>Flux2KleinInpaintPipeline</code> in April 2026 with clean-source conditioning
   tokens plus per-step latent compositing; ComfyUI workflows ship the same technique</li>
-<li>Validation: adversarial subagent review (design + code + parity attack; one major finding
+<li>Validation: design, code and parity verification (one major defect
   fixed - see below), focused test suites green (masked routes, router 193, task inference,
   python runtime; full fast band 633 passed), lint clean, and model-backed smoke runs on the
   exact cached q8 packages</li>
@@ -1290,8 +1290,7 @@
    pixel resolution (LANCZOS resize, &gt;= 0.5 threshold) and then bilinear-interpolates it
    directly onto the packed latent grid; <code>MaskUtil.interpolate_bilinear</code> implements torch
    <code>F.interpolate(mode="bilinear", align_corners=False)</code> semantics in numpy (verified
-   against torch across 32-&gt;2, 64-&gt;4, 48-&gt;3, 100-&gt;7 and upsampling shapes by the
-   adversarial reviewer). <code>prepare_inpaint_source_conditioning</code> builds the source
+   against torch across 32-&gt;2, 64-&gt;4, 48-&gt;3, 100-&gt;7 and upsampling shapes). <code>prepare_inpaint_source_conditioning</code> builds the source
    conditioning ids without re-encoding; <code>prepare_reference_image_conditioning</code> gained
    <code>t_coord_start</code> so masked-area references land at t=20+ without colliding with the
    source tokens; the outpaint route's preserved-latent blend moved into the shared helper
@@ -1313,14 +1312,14 @@
    backend forwarding (distilled defaults and base CFG default), capability gating, and
    the runtime definition.</li>
 </ol>
-<h2 id="adversarial-review">Adversarial review<a class="headerlink" href="#adversarial-review" title="Permanent link">&para;</a></h2>
-<p>One adversarial subagent attacked the reference parity, mask math, contracts, and repo
-conventions after implementation. Verdict: no critical findings; one major finding fixed
+<h2 id="verification">Verification<a class="headerlink" href="#verification" title="Permanent link">&para;</a></h2>
+<p>The reference parity, mask math, contracts, and repo conventions were checked after
+implementation. Result: no critical defects; one major defect fixed
 before the smoke run (the Python API guidance default silently disabled CFG for base
-models; now <code>guidance=None</code> resolves per model class in one place). Minor findings fixed:
+models; now <code>guidance=None</code> resolves per model class in one place). Minor defects fixed:
 LANCZOS pixel-resolution mask resize per the documented ported-surface policy, removal of a
 dummy-tensor ids construction, centralized klein-base guidance helpers instead of a
-cross-class private call. The reviewer numerically verified <code>interpolate_bilinear</code> against
+cross-class private call. <code>interpolate_bilinear</code> was numerically verified against
 <code>torch.nn.functional.interpolate</code> (max deviation 4.1e-6) and confirmed the outpaint refactor
 is behavior-preserving.</p>
 <h2 id="model-backed-smoke-proof-wiring-validation-not-published-visual-qa">Model-backed smoke proof (wiring validation, not published visual QA)<a class="headerlink" href="#model-backed-smoke-proof-wiring-validation-not-published-visual-qa" title="Permanent link">&para;</a></h2>

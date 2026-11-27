@@ -1294,10 +1294,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#measured-numbers-m5-max-128-gb-blackpixel-idle-at-00-cpu-serialized" class="md-nav__link">
+  <a href="#measured-numbers-m5-max-128-gb-host-application-idle-at-00-cpu-serialized" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Measured numbers (M5 Max 128 GB, BlackPixel idle at 0.0% CPU, serialized)
+        Measured numbers (M5 Max 128 GB, host application idle at 0.0% CPU, serialized)
       
     </span>
   </a>
@@ -1316,10 +1316,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cycle-2-ruling-2026-07-23-adversarial-review-skip-prefetch-on-prepared-packages" class="md-nav__link">
+  <a href="#cycle-2-ruling-2026-07-23-skip-prefetch-on-prepared-packages" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cycle-2 ruling (2026-07-23, adversarial review): skip prefetch on prepared packages
+        Cycle-2 ruling (2026-07-23): skip prefetch on prepared packages
       
     </span>
   </a>
@@ -1397,9 +1397,9 @@ compute), while the same SSD sustains ~12.6 GB/s sequential. Concretely: the
 encode, and the ~9.5 GB transformer added ~28 s inside denoise step 1 —
 ~100 s of a 164.7 s cold generation was disk-wait disguised as compute. A
 sequential prefetch of the same bytes would take ~2-4 s.</p>
-<p>The embedding-host impact is larger than the CLI case: BlackPixel's worker
+<p>The embedding-host impact is larger than the CLI case: the host application's worker
 reloads the model on every task-mode flip (t2i &lt;-&gt; edit have different
-handlers) and after every cancel/displacement kill, and the owner's setup
+handlers) and after every cancel/displacement kill, and the measured setup
 runs the bf16 repo (~35 GB TE+transformer — roughly double the q8 bytes).
 The measured cold click was 447 s vs ~250 s warm at the same settings; the
 difference is dominated by exactly this fault-in tax.</p>
@@ -1423,9 +1423,9 @@ evaluate:</p>
 <h2 id="expected-impact-from-measured-numbers">Expected impact (from measured numbers)<a class="headerlink" href="#expected-impact-from-measured-numbers" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Cold CLI generation at 1024x768 q8: ~165 s -&gt; ~70 s.</li>
-<li>BlackPixel cold click / post-kill reload at bf16: ~200 s of fault-in
+<li>Host-application cold click / post-kill reload at bf16: ~200 s of fault-in
   compressed to ~10-20 s of sequential read (~447 s -&gt; ~270 s for the
-  owner's measured cold case).</li>
+  measured cold case).</li>
 </ul>
 <h2 id="promotion-criteria">Promotion criteria<a class="headerlink" href="#promotion-criteria" title="Permanent link">&para;</a></h2>
 <p>Promote when a bounded prototype shows (a) page-cold end-to-end time drops
@@ -1449,7 +1449,7 @@ and 3 rejected:</p>
   error). Files &gt;= 97% resident are skipped, so warm reloads pay only the
   probe (~0.03 s/GB measured) and re-read zero bytes. This matters because a
   16-35 GB package would otherwise pay a 2-5 s page-cache-speed re-read on
-  every warm reload (BlackPixel reloads on every task flip).</li>
+  every warm reload (the host application reloads on every task flip).</li>
 <li>Gate 2 — RAM headroom: prefetch is skipped when the selected files exceed
   half of physical RAM (or when RAM size is unknown). This is the
   general-purpose low-RAM protection — the loader has no <code>--low-ram</code>
@@ -1464,7 +1464,7 @@ and 3 rejected:</p>
   being loaded. Reads are 64 MiB <code>readinto</code> chunks on an unbuffered handle;
   interruptible-safe (read-only, no state).</li>
 </ul>
-<h3 id="measured-numbers-m5-max-128-gb-blackpixel-idle-at-00-cpu-serialized">Measured numbers (M5 Max 128 GB, BlackPixel idle at 0.0% CPU, serialized)<a class="headerlink" href="#measured-numbers-m5-max-128-gb-blackpixel-idle-at-00-cpu-serialized" title="Permanent link">&para;</a></h3>
+<h3 id="measured-numbers-m5-max-128-gb-host-application-idle-at-00-cpu-serialized">Measured numbers (M5 Max 128 GB, host application idle at 0.0% CPU, serialized)<a class="headerlink" href="#measured-numbers-m5-max-128-gb-host-application-idle-at-00-cpu-serialized" title="Permanent link">&para;</a></h3>
 <p>Eviction methodology: no sudo purge available; eviction = streaming ~161 GB
 of OTHER model blobs through the page cache (~14.5 s at ~11 GB/s), then
 verifying the target's residency via the mincore probe. Residency reached
@@ -1513,26 +1513,26 @@ q8 package (17.85 GB) from the HF cache.</p>
   that path are consumed near-sequentially at apply/eval time, so the page
   cache warms itself. The disease regime (random-order faulting at
   ~150 MB/s) was reproduced tonight only at the mechanism level.</li>
-<li>The audit's in-situ ~100 s tax was measured under the BlackPixel worker
+<li>The audit's in-situ ~100 s tax was measured under the host application's worker
   with system memory pressure (32.9 GB MLX cache resident — see 0094) and
-  the owner's bf16 repo, whose non-quantized apply path stays lazy through
+  the bf16 repo, whose non-quantized apply path stays lazy through
   first compute. The local bf16 BFL snapshot is incomplete (active ref lacks
   the transformer shards), so the bf16 end-to-end leg could not be run
   offline tonight.</li>
 <li>Decision under that evidence: ship default-on (bounded worst case
   ~0.11 s/GB cold + ~0.03 s/GB warm probe) as insurance against the measured
   in-situ regime; hosts that only ever load prepared-q8 packages on idle
-  machines can set <code>MFLUX_NO_WEIGHT_PREFETCH=1</code>. Cycle-2 / BlackPixel-side
+  machines can set <code>MFLUX_NO_WEIGHT_PREFETCH=1</code>. Cycle-2 / host-side
   validation should re-measure in situ (worker process, real pressure) and
   may flip the default if the q8-path regression dominates in practice.</li>
 </ul>
-<h3 id="cycle-2-ruling-2026-07-23-adversarial-review-skip-prefetch-on-prepared-packages">Cycle-2 ruling (2026-07-23, adversarial review): skip prefetch on prepared packages<a class="headerlink" href="#cycle-2-ruling-2026-07-23-adversarial-review-skip-prefetch-on-prepared-packages" title="Permanent link">&para;</a></h3>
+<h3 id="cycle-2-ruling-2026-07-23-skip-prefetch-on-prepared-packages">Cycle-2 ruling (2026-07-23): skip prefetch on prepared packages<a class="headerlink" href="#cycle-2-ruling-2026-07-23-skip-prefetch-on-prepared-packages" title="Permanent link">&para;</a></h3>
 <p>The net-regression-on-q8 was independently reproduced and the default was
 narrowed: <code>_try_load_mflux_format</code> (the prepared-package path) no longer
 prefetches; every HF-repo loading mode keeps the default-on prefetch.</p>
 <p>Reproduction (same eviction methodology: stream 150 GiB of other blobs,
 verify 0.000 residency on every target shard via the mincore probe;
-BlackPixel idle at 0.1% CPU; Klein 9B q8 package, 16.6 GiB, 512x512,
+host application idle at 0.1% CPU; Klein 9B q8 package, 16.6 GiB, 512x512,
 2 steps, fresh process per leg):</p>
 <table>
 <thead>
@@ -1592,7 +1592,7 @@ the prefetch as bounded insurance; the local bf16 BFL snapshot is still
 incomplete, so that leg remains unmeasured end-to-end.</p>
 <p>Residual risk (cycle 3): the audit's in-situ ~100 s tax on this same q8
 package was recorded under the pre-0094 pressure regime (32.9 GB uncapped
-MLX cache). 0094 removed that cause; if BlackPixel-side validation still
+MLX cache). 0094 removed that cause; if host-side validation still
 sees slow cold loads on prepared packages under real pressure, prefetch for
 prepared packages under a pressure signal is the follow-up, not a blanket
 re-enable. Regression test:

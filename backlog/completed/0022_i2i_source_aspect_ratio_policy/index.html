@@ -1370,10 +1370,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for the implementing agent
+        Implementation notes
       
     </span>
   </a>
@@ -1381,10 +1381,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#adversarial-design-reports" class="md-nav__link">
+  <a href="#design-checks" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Adversarial design reports
+        Design checks
       
     </span>
   </a>
@@ -1579,10 +1579,10 @@ upscale.</p>
 <li>[x] Update core documentation.</li>
 <li>[x] Move this item to completed with completion evidence.</li>
 </ul>
-<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-notes">Implementation notes<a class="headerlink" href="#implementation-notes" title="Permanent link">&para;</a></h2>
 <p>Re-check current code before editing. Keep the implementation explicit and mode-aware: ordinary I2I
 preserves aspect by default, while fill/outpaint/upscale remain exact-canvas workflows.</p>
-<h2 id="adversarial-design-reports">Adversarial design reports<a class="headerlink" href="#adversarial-design-reports" title="Permanent link">&para;</a></h2>
+<h2 id="design-checks">Design checks<a class="headerlink" href="#design-checks" title="Permanent link">&para;</a></h2>
 <ul>
 <li>API contract review: keep public tasks as media directions and expose canvas behavior through
   capability fields. The default for ordinary I2I should be <code>source-aspect</code>; <code>exact-resize</code> must be

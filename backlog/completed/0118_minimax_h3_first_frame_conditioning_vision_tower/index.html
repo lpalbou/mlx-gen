@@ -1337,7 +1337,7 @@
   <code>minimax-h3-turbo-544p</code>, frame 0 at PSNR 32.3 dB to the keyframe, prompted motion follows, 735 s.
   Tests: <code>tests/minimax_h3/test_h3_vision.py</code>, image-to-video tiny pipeline test, capability test.</li>
 <li>Non-goals kept: Ref2VA and the <code>last_image</code> closing keyframe (cover-crop path) remain unported.</li>
-<li>Adversarial pass (independent scripts under <code>untracked/h3_verify/agent2/</code>): vision tower and
+<li>Independent verification: vision tower and
   processor exact vs transformers (tiny 5e-7, real fp32 1.3e-5), presentation/rope positions
   bit-exact, condition latents deterministic part 1.9e-5 (the remaining 3.7e-2 is the irreproducible
   torch posterior draw, measured at exactly sqrt(2) of a single draw), layout and per-row timesteps
@@ -1365,7 +1365,7 @@
   silently ran as the base entry (50 steps at <code>1344x768</code>, hours instead of minutes). Router and CLI
   tests pin the forwarding and the resolution (<code>_resolve_model</code>), and the CLI announces which entry a
   package or repo id runs as.</li>
-<li>Second adversarial pass (2026-09-05, <code>untracked/h3_verify/agent3/</code>) on a laptop lid that changed
+<li>Second independent verification (2026-09-05) on a laptop lid that changed
   orientation over four frames in a first-person image-to-video clip: verdict model behavior. Frame
   order and timestamps monotone; the video VAE's temporal chunk assembly (5-token chunks, overlap 2,
   five-frame cross-fade) reproduced against the reference with a mock decoder to 0.0; packed layout,

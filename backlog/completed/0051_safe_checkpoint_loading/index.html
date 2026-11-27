@@ -1381,10 +1381,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for the implementing agent
+        Implementation notes
       
     </span>
   </a>
@@ -1497,7 +1497,7 @@ that current saved tensor/state-dict fixtures still load.</p>
 <li>[x] Add a focused assertion for the safe load flag.</li>
 <li>[x] Reject empty and mixed non-tensor checkpoint payloads.</li>
 </ul>
-<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-notes">Implementation notes<a class="headerlink" href="#implementation-notes" title="Permanent link">&para;</a></h2>
 <p>Treat this as a security boundary. If a checkpoint fails after the safe-load change, do not restore
 unsafe pickle loading without an explicit trusted-path design.</p>
 

@@ -1599,8 +1599,8 @@ and the validated envelope are published on the capability record. See
 <li><strong>Watch the canvas size.</strong> Outpaint conditioning tokens scale with the canvas, and attention cost
   grows faster than area. A 1.4 MP canvas costs substantially more per step than a 0.3 MP one.</li>
 </ul>
-<p>For revealing a subject the source crop never showed — a full body from a head-and-shoulders
-portrait, for example — <code>neutral</code> fill with a descriptive prompt is the route that generates new
+<p>For revealing content the source crop never showed — the rest of a scene beyond a tight frame,
+for example — <code>neutral</code> fill with a descriptive prompt is the route that generates new
 subject matter. A blank canvas gives the model room to invent but little guidance on where the
 subject continues, so at very deep padding the new content can sit away from the source edge. The
 outpaint adapter in <a href="../lora/">LoRA</a> is the recommended configuration for this case and holds the
@@ -1936,14 +1936,14 @@ before the weights load.</p>
 <p>A request that pads both axes deeply runs as two single-axis passes by default; pass
 <code>--outpaint-passes 1</code> to force one canvas or <code>--outpaint-passes 2</code> to split any two-axis request.
 See <a href="#deep-padding-on-two-axes">Deep Padding On Two Axes</a>.</p>
-<p>To add a lot of space on one side — extending a portrait downward to reveal more of the subject —
+<p>To add a lot of space on one side — extending a photo downward to reveal more of the scene —
 pass the padding on that side and let <code>auto</code> pick the blank canvas, or name it explicitly:</p>
 <div class="highlight"><pre><span></span><code>mlxgen<span class="w"> </span>generate<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--model<span class="w"> </span>AbstractFramework/flux.2-klein-base-4b-8bit<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--image<span class="w"> </span>portrait.png<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--image<span class="w"> </span>photo.png<span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--outpaint-padding<span class="w"> </span><span class="s2">"0%,10%,100%,10%"</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--outpaint-fill<span class="w"> </span>neutral<span class="w"> </span><span class="se">\</span>
-<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Extend this portrait downward to reveal the lower part of the body: the same subject in the same clothing, same lighting, same background."</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--prompt<span class="w"> </span><span class="s2">"Extend this photo downward: the same scene continues, same lighting, same background."</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--steps<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--guidance<span class="w"> </span><span class="m">4</span><span class="w"> </span><span class="se">\</span>
 <span class="w">  </span>--seed<span class="w"> </span><span class="m">1234</span><span class="w"> </span><span class="se">\</span>

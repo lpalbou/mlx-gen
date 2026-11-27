@@ -1304,10 +1304,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cycle-2-adversarial-review-2026-07-25-no-defects-found" class="md-nav__link">
+  <a href="#cycle-2-verification-2026-07-25-no-defects-found" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cycle-2 adversarial review (2026-07-25, no defects found)
+        Cycle-2 verification (2026-07-25, no defects found)
       
     </span>
   </a>
@@ -1381,7 +1381,7 @@ anchors, subject sheets, and long action text can reach the cap).</p>
 </ul>
 <h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
 <ul>
-<li>BlackPixel companion track <code>proposed/storyboard_consistency_2026_07/</code>
+<li>Host application companion track <code>proposed/storyboard_consistency_2026_07/</code>
   (anchor prepending is what consumes budget).</li>
 </ul>
 <h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
@@ -1413,13 +1413,13 @@ anchors, subject sheets, and long action text can reach the cap).</p>
   phase-based progress shared across families; there is no per-run
   prompt-facts event to ride, and adding a Wan-only field to every progress
   event would violate the "lightweight shared events" contract. The metadata
-  sidecar is the host-facing record (BlackPixel reads it).</li>
+  sidecar is the host-facing record (the host application reads it).</li>
 <li>Tests: <code>tests/wan/test_wan_prompt_truncation.py</code> (8 tests, fake tokenizer —
   the logic under test is the overflow accounting, not the HF tokenizer):
   over/under budget, exact-fit boundary, negative-prompt gating under CFG,
   cleaned-text parity, and the metadata merge in generate_video.</li>
 </ul>
-<h2 id="cycle-2-adversarial-review-2026-07-25-no-defects-found">Cycle-2 adversarial review (2026-07-25, no defects found)<a class="headerlink" href="#cycle-2-adversarial-review-2026-07-25-no-defects-found" title="Permanent link">&para;</a></h2>
+<h2 id="cycle-2-verification-2026-07-25-no-defects-found">Cycle-2 verification (2026-07-25, no defects found)<a class="headerlink" href="#cycle-2-verification-2026-07-25-no-defects-found" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Verified the uncapped probe counts the SAME <code>_prompt_clean</code>ed text the
   capped encode tokenizes, runs before (and independent of) both the

@@ -1395,7 +1395,7 @@
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
 <p><code>GeneratedVideo</code> runs a full-file re-decode health check in a spawned child process
 after every save (<code>src/mflux/utils/video_health.py</code> ~152-216; <code>validate_health=True</code>
-default in <code>generated_video.py</code> ~101-137). A 2026-07-22 audit of BlackPixel showed
+default in <code>generated_video.py</code> ~101-137). A 2026-07-22 audit of a host application showed
 the host then probes the file again for metadata/poster and (for storyboards)
 extracts a last frame. Cycle-2 measurement corrected the cost taxonomy: the health
 check is the one real full decode (~0.3-0.8 s at storyboard size, larger for
@@ -1430,7 +1430,7 @@ the default truthfulness contract.</p>
 </ul>
 <h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
 <ul>
-<li>BlackPixel planned item 0052 consumes this (single-decode completion path).</li>
+<li>The host application's planned item 0052 consumes this (single-decode completion path).</li>
 </ul>
 <h2 id="expected-outcomes">Expected outcomes<a class="headerlink" href="#expected-outcomes" title="Permanent link">&para;</a></h2>
 <p>Hosts opting out save one full decode per clip; <code>--json-events</code> save event carries

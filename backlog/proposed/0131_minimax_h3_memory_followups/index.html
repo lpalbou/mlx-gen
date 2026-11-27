@@ -1296,11 +1296,11 @@
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
 <p>Item <a href="../../completed/0130_minimax_h3_staged_loading_and_reindexed_8bit/">0130</a> took the conditioner,
 the AdaLN projections and the VAEs out of resident memory, added <code>--stream-blocks</code>, and re-indexed
-the 8-bit weights. The items below were found during that work and its three adversarial reviews
+the 8-bit weights. The items below were found during that work and its three verification passes
 and were left out because none of them is needed for the shipped behavior.</p>
 <h2 id="candidates">Candidates<a class="headerlink" href="#candidates" title="Permanent link">&para;</a></h2>
 <ol>
-<li><strong>Keep several blocks in memory while streaming (owner's suggestion, 2026-11-23; not
+<li><strong>Keep several blocks in memory while streaming (suggested 2026-11-23; not
    required).</strong> <code>--stream-blocks</code> holds one block and reads every block from disk at every step. A
    setting for how many blocks stay resident (or a memory budget the engine fills with blocks)
    would trade memory for fewer reads. It is not needed on the hardware MLX-Gen targets: every
@@ -1330,7 +1330,7 @@ and were left out because none of them is needed for the shipped behavior.</p>
    RAM</strong> were not measured.</li>
 <li><strong>Physical machines.</strong> The 24 to 96 GB results come from one 128 GB Mac with RAM locked; a run
    on a real Mac of each size has not been done.</li>
-<li><strong>Hosts.</strong> BlackPixel bundles mlx-gen 0.37, hard-codes a 93 GB peak for MiniMax-H3 and sends
+<li><strong>Hosts.</strong> A host application bundles mlx-gen 0.37, hard-codes a 93 GB peak for MiniMax-H3 and sends
    <code>--quantize 8</code>; it needs its own change to use the new figures, <code>--stream-blocks</code> and the
    16-bit weights.</li>
 </ol>

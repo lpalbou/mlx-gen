@@ -1337,10 +1337,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#cycle-2-adversarial-review-2026-07-25-no-code-defects-found" class="md-nav__link">
+  <a href="#cycle-2-verification-2026-07-25-no-code-defects-found" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cycle-2 adversarial review (2026-07-25, no code defects found)
+        Cycle-2 verification (2026-07-25, no code defects found)
       
     </span>
   </a>
@@ -1388,7 +1388,7 @@
 <li>ADR impact: None until the route ships.</li>
 </ul>
 <h2 id="context-investigation-provenance">Context (investigation provenance)<a class="headerlink" href="#context-investigation-provenance" title="Permanent link">&para;</a></h2>
-<p>The 2026-07-25 three-agent storyboard consistency investigation (BlackPixel
+<p>The 2026-07-25 storyboard consistency investigation (host application
 backlog <code>proposed/storyboard_consistency_2026_07/</code>) traced why chained
 storyboard scenes lose subject identity: each scene conditions on exactly ONE
 VAE-encoded frame (the predecessor's last frame), which is systematically the
@@ -1450,7 +1450,7 @@ VACE 1.3B reference route, see 0100).</p>
 </ul>
 <h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
 <ul>
-<li>BlackPixel companion: <code>proposed/storyboard_consistency_2026_07/</code> (handoff
+<li>Host application companion: <code>proposed/storyboard_consistency_2026_07/</code> (handoff
   frame picker is the host-side half of the same failure).</li>
 <li>Related here: 0099 (step-grid scheduler parity for honest Lightning A/Bs),
   0100 (VACE identity-anchor recipe, the draft-tier alternative).</li>
@@ -1557,7 +1557,7 @@ exceeded this wave's GPU budget (~2 short runs used of 4). The flag therefore
 ships as EXPERIMENTAL with these numbers quoted in docs; item 0100's
 supersession decision (VACE recipe) can now be taken against a measured
 result.</p>
-<h2 id="cycle-2-adversarial-review-2026-07-25-no-code-defects-found">Cycle-2 adversarial review (2026-07-25, no code defects found)<a class="headerlink" href="#cycle-2-adversarial-review-2026-07-25-no-code-defects-found" title="Permanent link">&para;</a></h2>
+<h2 id="cycle-2-verification-2026-07-25-no-code-defects-found">Cycle-2 verification (2026-07-25, no code defects found)<a class="headerlink" href="#cycle-2-verification-2026-07-25-no-code-defects-found" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Packing re-verified line-for-line against the diffusers reference
   (<code>pipeline_wan_i2v.py</code> <code>prepare_latents</code>), including the
@@ -1577,7 +1577,7 @@ result.</p>
 <li>One convention fix: <code>supports_last_image</code> shipped without the additive-field
   capabilities <code>schema_version</code> bump the <code>supports_video_mask</code> precedent
   established; bumped 4 -&gt; 5 (no host reads the version today — verified
-  BlackPixel never consumes it).</li>
+  the host application never consumes it).</li>
 <li>New regression pins: condition-cache FIFO eviction order with plain +
   bracketed pairs, and resize_mode reaching the LAST anchor through the same
   geometry as the first frame (pad letterbox vs stretch discriminates).</li>

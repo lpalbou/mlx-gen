@@ -1263,12 +1263,12 @@
   mode - corrected-case MP4s + sidecars, masks/references, bf16 + fp32 parity comparison
   JSONs); working bundle in <code>validation_outputs/wan_vace_mlx_2026_07_06/</code> and parity tensors
   in <code>validation_outputs/wan_vace_parity/</code></li>
-<li>Validation: 4 adversarial subagents - design attack (pre-implementation; caught a
+<li>Validation: 4 checks - design check (pre-implementation; caught a
   planner-crashing task value, the strength auto-injection, and the multi-ref ordering
   reversal), parity verification (verdict: parity PROVEN - mask preparation and UniPC
   scheduler bit-exact vs diffusers, transformer deltas at the model's measured intrinsic
   fp32 noise floor via a noise-injection probe, CFG-loop amplification matching the analytic
-  model), code verification, and a result-quality judge; full no-weights band green
+  model), code verification, and a result-quality check; full no-weights band green
   (1289 passed), lint clean</li>
 </ul>
 <h2 id="what-shipped">What shipped<a class="headerlink" href="#what-shipped" title="Permanent link">&para;</a></h2>
@@ -1300,11 +1300,11 @@
    48x80x9f case with one reference) + <code>tools/wan_vace_parity_compare.py</code> (MLX side).
    The mask-channel math is additionally pinned bit-exact in <code>tests/wan/test_wan_vace.py</code>
    across random time-varying masks x 0/1/2 references.</li>
-<li>Measured proof cases (corrected twice - 2026-07-07 - after adversarial vision review
-   rejected the first attempts; six subagents ran the second cycle):</li>
+<li>Measured proof cases (corrected twice - 2026-07-07 - after visual inspection
+   rejected the first attempts; the second cycle was rerun in full):</li>
 <li>Masked edit, GENERATE mode (the fix): a vision judge ruled every earlier output
      "repaint-only" (silhouette IoU 0.73-0.88 vs ~0.39 for real geometry change); the
-     engineer agent traced the root cause to the official VACE inpainting convention -
+     root cause was traced to the official VACE inpainting convention -
      ali-vilab gray-fills the editable region before encoding (UserGuide "gray areas
      represent missing video part"; maintainer-confirmed in issue #107), while we fed the
      source pixels into the reactive branch, which the model reads as "repaint". Runtime now

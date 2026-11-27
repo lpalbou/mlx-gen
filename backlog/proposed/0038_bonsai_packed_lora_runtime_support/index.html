@@ -1315,10 +1315,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-future-agents" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for future agents
+        Implementation notes
       
     </span>
   </a>
@@ -1360,7 +1360,7 @@
   LoRA injection path.</li>
 </ul>
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
-<p>The user asked whether MLX-Gen can add LoRA support to the currently served Bonsai model family.
+<p>The question is whether MLX-Gen can add LoRA support to the currently served Bonsai model family.
 Unlike ERNIE, Bonsai does not run on a normal transformer made of replaceable MLX linear modules.
 It serves packed low-bit checkpoints through a fused FLUX.2 Klein megakernel path.</p>
 <p>This is explicitly lower priority than finishing the remaining image-family LoRA proofs and any
@@ -1419,7 +1419,7 @@ different to treat this as a small patch.</p>
 <li>Do not add a hidden unpacked fallback when a user selects the packed Bonsai model.</li>
 <li>Do not claim packed Bonsai LoRA support from SDXL-style or otherwise unrelated adapters.</li>
 </ul>
-<h2 id="guidance-for-future-agents">Guidance for future agents<a class="headerlink" href="#guidance-for-future-agents" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-notes">Implementation notes<a class="headerlink" href="#implementation-notes" title="Permanent link">&para;</a></h2>
 <p>Start with architecture, not adapter loading. The blocker is the execution boundary, not just file
 parsing.</p>
 

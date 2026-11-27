@@ -1381,10 +1381,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for the implementing agent
+        Implementation notes
       
     </span>
   </a>
@@ -1604,7 +1604,7 @@ for a fault that has an exact, cheap repair.</p>
 <li><code>docs/faq.md</code> ("Why Can q8 Show The Same Physical Peak As BF16?"), <code>docs/quantization.md</code>
   ("Wan q8", both corrections dated 2026-07-05) and <code>docs/recommendations.md</code> (A14B rows and the
   64 GB tier) describe Wan q8 as BF16-class at runtime.</li>
-<li>BlackPixel 0.9.3 keeps the three Wan2.2 q8 packages 8-bit on every run that goes through its
+<li>A host application (its release 0.9.3) keeps the three Wan2.2 q8 packages 8-bit on every run that goes through its
   Low RAM mode, by replacing <code>_normalize_runtime_sensitive_q8_paths</code> and
   <code>_is_q8_sensitive_transformer_path</code> in its generation process, and slices large quantized calls
   itself on MLX before 0.32.0 (<code>runtime_entry.py</code>). It ships MLX 0.31.2. Renaming or removing
@@ -1830,7 +1830,7 @@ conversion as the default and correct the published memory numbers.</p>
    <a href="../../proposed/0122_declare_metadata_keys_in_metadata_schema/">item 0122</a>.
 6. Update <code>docs/quantization.md</code>, <code>docs/faq.md</code>, <code>docs/recommendations.md</code>, the package cards if
    they quote runtime memory, <code>CHANGELOG.md</code> and the <code>llms</code> files with the re-measured numbers.
-7. Tell the BlackPixel host which release makes its process-level replacement unnecessary.</p>
+7. Tell the host application which release makes its process-level replacement unnecessary.</p>
 <h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Wan2.2 T2V-A14B, I2V-A14B and TI2V-5B q8 packages, and every route that loads them through
@@ -1876,7 +1876,7 @@ conversion as the default and correct the published memory numbers.</p>
 <li>Wan q8 runs at 1280x720 and at 81 frames complete with healthy tensors and track the BF16
   package.</li>
 <li>The docs' memory tables and Mac tiers describe the 8-bit runtime.</li>
-<li>BlackPixel drops its replacement of private functions.</li>
+<li>The host application drops its replacement of private functions.</li>
 </ul>
 <h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
 <p>Unit level:</p>
@@ -1927,9 +1927,9 @@ record what failed here.</p>
 <li>[ ] <code>docs/quantization.md</code>, <code>docs/faq.md</code>, <code>docs/recommendations.md</code>, <code>CHANGELOG.md</code>, <code>llms</code>
       files updated with re-measured numbers.</li>
 <li>[ ] Dated note appended to item 0040; follow-up audit item filed for other quantized families.</li>
-<li>[ ] BlackPixel told which release retires its replacement.</li>
+<li>[ ] Host application told which release retires its replacement.</li>
 </ul>
-<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-notes">Implementation notes<a class="headerlink" href="#implementation-notes" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Reproduce the fault with a bare layer before touching Wan. It takes seconds and needs no model:</li>
 </ul>

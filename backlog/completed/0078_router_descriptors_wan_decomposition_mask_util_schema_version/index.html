@@ -1262,7 +1262,7 @@
 <li>Status: completed (2026-07-05)</li>
 <li>Scope: <code>mlxgen generate</code> router, shell completions, Wan runtime structure, user-mask loading,
   metadata sidecar contract</li>
-<li>Validation: 2 adversarial design reviews + 2 adversarial code verifications (both SHIP),
+<li>Validation: 2 design checks + 2 code verifications (both SHIP),
   full no-weights band green (1275 passed), lint clean</li>
 </ul>
 <h2 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h2>
@@ -1286,7 +1286,7 @@
 <li>Live bugs found and fixed by the process:</li>
 <li><code>mlxgen generate --debug</code> was silently dropped (third instance of the class); Wan CLI
      gained <code>--debug</code> wired to LoRA debug logging so the flag is safe on every route (verified
-     per-route by the adversarial verifier).</li>
+     per route).</li>
 <li>Metadata-sourced <code>video_strength</code> was validated only after the multi-minute weight load;
      the router now backfills + re-emits it so the backend parser rejects invalid values at
      parse time.</li>
@@ -1303,8 +1303,8 @@
    mutates scheduler state via <code>set_begin_index</code>); the twin metadata blocks collapsed into
    <code>_to_video_shared_kwargs</code> with per-branch <code>generation_time</code> evaluation and absent-by-default
    decode extras. Verified byte-identical metadata; <code>eq=False</code> on the request (mx.array field).</li>
-<li><code>MaskUtil.load_binary_mask</code> centralizes the four user-mask loaders. Policy corrected by the
-   adversarial design review: the NEAREST/BOX difference is NOT drift - Qwen's NEAREST matches
+<li><code>MaskUtil.load_binary_mask</code> centralizes the four user-mask loaders. Policy corrected at design
+   time: the NEAREST/BOX difference is NOT drift - Qwen's NEAREST matches
    its diffusers reference; the shipped policy is "reference-ported surfaces keep the
    reference's resampling; in-house surfaces default to BOX + 0.5". Pixel behavior unchanged
    (verified empirically byte-identical); alpha-channel warning unified across surfaces; the

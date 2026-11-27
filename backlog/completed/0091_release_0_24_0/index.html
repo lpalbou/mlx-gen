@@ -1271,10 +1271,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#requirements-release-checklist-from-the-cycle-2-review" class="md-nav__link">
+  <a href="#requirements-release-checklist" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Requirements (release checklist, from the cycle-2 review)
+        Requirements (release checklist)
       
     </span>
   </a>
@@ -1282,10 +1282,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#candidates-to-ride-this-wave-cycle-3-review-2026-07-22" class="md-nav__link">
+  <a href="#candidates-to-ride-this-wave-2026-07-22" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Candidates to ride this wave (cycle-3 review, 2026-07-22)
+        Candidates to ride this wave (2026-07-22)
       
     </span>
   </a>
@@ -1348,10 +1348,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#release-cut-process-hazard-cycle-2-review-2026-07-22-superseded-2026-07-23" class="md-nav__link">
+  <a href="#release-cut-process-hazard-2026-07-22-superseded-2026-07-23" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Release-cut process hazard (cycle-2 review, 2026-07-22 — superseded 2026-07-23)
+        Release-cut process hazard (2026-07-22, superseded 2026-07-23)
       
     </span>
   </a>
@@ -1416,9 +1416,9 @@
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
 <p>Backlog 0086 (Wan UMT5 prompt-embed disk cache + residency + <code>model_kwargs</code>
 passthrough) and 0087 (<code>--no-validate-health</code> + enriched save events) are
-implemented and adversarially reviewed (three-cycle review, 2026-07-22) but sit
+implemented and verified (three verification cycles, 2026-07-22) but sit
 UNCOMMITTED in the working tree with <code>pyproject.toml</code> still at 0.23.1. The
-BlackPixel host's warm video worker requests residency through <code>model_kwargs</code>
+host application's warm video worker requests residency through <code>model_kwargs</code>
 and degrades gracefully on 0.23.1 — the dominant per-scene cost (UMT5 reload,
 tens of seconds + ~11 GB transient) stays live until this release ships and the
 host pin moves.</p>
@@ -1437,10 +1437,10 @@ ADR 0001's enforcement clause requires real-checkpoint smoke evidence before
 release claims.</p>
 <h2 id="what-we-want-to-do">What we want to do<a class="headerlink" href="#what-we-want-to-do" title="Permanent link">&para;</a></h2>
 <p>Cut 0.24.0 through the standard release flow with the smoke evidence recorded.</p>
-<h2 id="requirements-release-checklist-from-the-cycle-2-review">Requirements (release checklist, from the cycle-2 review)<a class="headerlink" href="#requirements-release-checklist-from-the-cycle-2-review" title="Permanent link">&para;</a></h2>
+<h2 id="requirements-release-checklist">Requirements (release checklist)<a class="headerlink" href="#requirements-release-checklist" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Real-checkpoint smoke evidence (small frame counts; A14B long runs need
-   owner approval per AGENTS.md):</li>
+   explicit approval per AGENTS.md):</li>
 <li>(a) cache-miss embeds/output identical to 0.23.1 same-seed baseline;</li>
 <li>(b) disk-cache-hit run bit-identical to its own miss run;</li>
 <li>(c) <code>--no-validate-health</code> writes a healthy file with the
@@ -1458,22 +1458,22 @@ release claims.</p>
 <li>Gates: make lint / make check / make test-fast + full CI selection; commit;
    tag via GitHub Actions release workflow (never locally).</li>
 <li>Post-release: recurrent hygiene — move 0086/0087 (and this item) to
-   completed/ with evidence links; notify the BlackPixel pin-bump item
-   (blackpixel backlog 0064).</li>
+   completed/ with evidence links; notify the host application's pin-bump item
+   (its backlog 0064).</li>
 </ol>
-<h2 id="candidates-to-ride-this-wave-cycle-3-review-2026-07-22">Candidates to ride this wave (cycle-3 review, 2026-07-22)<a class="headerlink" href="#candidates-to-ride-this-wave-cycle-3-review-2026-07-22" title="Permanent link">&para;</a></h2>
+<h2 id="candidates-to-ride-this-wave-2026-07-22">Candidates to ride this wave (2026-07-22)<a class="headerlink" href="#candidates-to-ride-this-wave-2026-07-22" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Resolve <code>None</code> video params to MODEL-CONFIG defaults inside
   <code>generate_video</code>/<code>generate_outputs</code> (or export a
   <code>ModelConfig.resolve_video_defaults()</code> helper). Today only the CLI's
-  <code>_apply_model_defaults</code> does this, so the BlackPixel worker had to mirror
+  <code>_apply_model_defaults</code> does this, so the host application's worker had to mirror
   the param-&gt;config-key mapping (<code>apply_wan_video_model_defaults</code>) — a
   two-repo copy of the mapping table that strains the "defaults in one
   source of truth" rule. Landing it here lets the host delete its copy.</li>
 <li>Export the validated LightX2V sampling recipe (steps 4 / guidance 1.0 /
   guidance_2 1.0 / flow_shift 5.0) next to the profile IDs in
   <code>lora_validation_registry.py</code>, so hosts consume instead of transcribing
-  (BlackPixel currently hardcodes <code>WAN_A14B_LIGHTX2V_PROFILE_RECIPE</code>).</li>
+  (the host application currently hardcodes <code>WAN_A14B_LIGHTX2V_PROFILE_RECIPE</code>).</li>
 </ul>
 <h2 id="scope">Scope<a class="headerlink" href="#scope" title="Permanent link">&para;</a></h2>
 <p>Release execution only (the candidates above are optional riders — decide at
@@ -1483,19 +1483,19 @@ release-prep time, do not block on them).</p>
 <h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
 <ul>
 <li>0086, 0087 (implemented, this releases them).</li>
-<li>BlackPixel backlog 0064 (pin bump) consumes this release.</li>
+<li>The host application's backlog 0064 (pin bump) consumes this release.</li>
 </ul>
 <h2 id="expected-outcomes">Expected outcomes<a class="headerlink" href="#expected-outcomes" title="Permanent link">&para;</a></h2>
-<p>0.24.0 on PyPI with smoke evidence; BlackPixel unblocked to bump its pin.</p>
+<p>0.24.0 on PyPI with smoke evidence; the host application unblocked to bump its pin.</p>
 <h2 id="validation">Validation<a class="headerlink" href="#validation" title="Permanent link">&para;</a></h2>
 <p>The checklist above IS the validation; each item records its evidence path.</p>
-<h2 id="release-cut-process-hazard-cycle-2-review-2026-07-22-superseded-2026-07-23">Release-cut process hazard (cycle-2 review, 2026-07-22 — superseded 2026-07-23)<a class="headerlink" href="#release-cut-process-hazard-cycle-2-review-2026-07-22-superseded-2026-07-23" title="Permanent link">&para;</a></h2>
+<h2 id="release-cut-process-hazard-2026-07-22-superseded-2026-07-23">Release-cut process hazard (2026-07-22, superseded 2026-07-23)<a class="headerlink" href="#release-cut-process-hazard-2026-07-22-superseded-2026-07-23" title="Permanent link">&para;</a></h2>
 <p>The original hazard note prescribed cutting 0.24.0 strictly from a clean
 <code>step1</code> checkout because the second wave (0088/0089/0090 + geometry contract)
 was uncommitted and UNREVIEWED at the time. That precondition no longer holds:
-the wave subsequently passed three adversarial review cycles plus a final
+the wave subsequently passed three verification cycles plus a final
 verification gate (1413 tests, lint clean, cross-repo passthrough re-verified),
-and the owner directed that all work from this cycle ship together. Decision:
+and all work from this cycle was set to ship together. Decision:
 <strong>0.24.0 ships the full tree (step1 + step2 + the reviewed working-tree
 wave).</strong> Consequences of the fold, addressed deliberately:
 1. matplotlib moving to the <code>concept</code> extra ships in 0.24.0 as a documented
@@ -1520,7 +1520,7 @@ wave).</strong> Consequences of the fold, addressed deliberately:
       (macOS no-weights band, ruff, build, twine, trusted publishing);
       PyPI <code>mlx-gen==0.24.0</code> + GitHub Release verified with wheel + sdist</li>
 <li>[x] Post-release hygiene — 0086/0087/this item moved to completed/ with
-      evidence; BlackPixel pin bump executed the same night (blackpixel
+      evidence; the host application's pin bump executed the same night (its
       backlog 0064: pins, --no-validate-health wiring, 96 GiB residency
       threshold, worker width/height parity, geometry passthrough 8/8 on
       the shipped package)</li>

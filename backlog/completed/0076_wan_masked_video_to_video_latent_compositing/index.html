@@ -1238,10 +1238,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#design-four-adversarial-reviews-decisions-recorded" class="md-nav__link">
+  <a href="#design-decisions" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Design (four adversarial reviews, decisions recorded)
+        Design decisions
       
     </span>
   </a>
@@ -1318,20 +1318,20 @@
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
 <p>Plain video-to-video re-synthesizes every latent token, so background high-frequency content
 (banner text, logos, posters) drifts even when the prompt demands preservation. This was measured
-and adversarially confirmed as structural, not a bug. The fix is spatial selectivity: lock
+and confirmed as structural, not a bug. The fix is spatial selectivity: lock
 everything outside a user mask to the source video.</p>
-<h2 id="design-four-adversarial-reviews-decisions-recorded">Design (four adversarial reviews, decisions recorded)<a class="headerlink" href="#design-four-adversarial-reviews-decisions-recorded" title="Permanent link">&para;</a></h2>
+<h2 id="design-decisions">Design decisions<a class="headerlink" href="#design-decisions" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Reviewer A (math): input/output compositing equivalent up to loop rotation; binarize the mask
+<li>Math: input/output compositing equivalent up to loop rotation; binarize the mask
   at 0.5 (float feathers re-inject unhealable ghost bands); explicit sigma indexing.</li>
-<li>Reviewer B (contract): <code>--video-mask-path</code> (new flag, not <code>--mask-path</code> reuse), white = model
+<li>Contract: <code>--video-mask-path</code> (new flag, not <code>--mask-path</code> reuse), white = model
   may change, strength unchanged and applies inside the mask, no mechanism label in metadata,
   all-black masks error pre-load, 18-point integration checklist.</li>
-<li>Reviewer C (implementation): the UniPC corrector rebuilds each step from <code>last_sample</code> and the
+<li>Implementation: the UniPC corrector rebuilds each step from <code>last_sample</code> and the
   x0 history and uses the incoming sample only for dtype, so scheduler state must be composited
   too (<code>last_sample</code> at the previous sigma, <code>model_outputs[-1]</code> with clean source latents);
   <code>z_src</code> already cached; no sigma off-by-one; use <code>vae.spatial_scale</code>, not a literal 8.</li>
-<li>Reviewer D (proof): pass bars defined before the run, ceiling measured through the real
+<li>Proof: pass bars defined before the run, ceiling measured through the real
   pipeline including H.264; the two existing 2-tuple <code>_prepare_video_to_video_latents</code>
   monkeypatch tests must be updated in the same commit.</li>
 </ul>

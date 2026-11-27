@@ -1227,10 +1227,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#context-owner-request-verbatim-intent" class="md-nav__link">
+  <a href="#context" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Context (owner request, verbatim intent)
+        Context
       
     </span>
   </a>
@@ -1338,7 +1338,7 @@
 <h2 id="metadata">Metadata<a class="headerlink" href="#metadata" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Created: 2026-07-23</li>
-<li>Status: Proposed (owner-requested investigation, 2026-07-23)</li>
+<li>Status: Proposed (requested investigation, 2026-07-23)</li>
 <li>Completed: N/A</li>
 <li>Effort: M (investigation) + M-L per family (implementation)</li>
 </ul>
@@ -1349,8 +1349,8 @@
   capability row ships), <a href="../adr/0002_no_silent_automatic_fallbacks.md">ADR 0002</a></li>
 <li>ADR impact: None yet (investigation first).</li>
 </ul>
-<h2 id="context-owner-request-verbatim-intent">Context (owner request, verbatim intent)<a class="headerlink" href="#context-owner-request-verbatim-intent" title="Permanent link">&para;</a></h2>
-<p>The embedding host (BlackPixel) now surfaces only outpaint-capable models in
+<h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
+<p>A host application built on mlx-gen now surfaces only outpaint-capable models in
 its Outpaint selector, driven by this repo's capability registry. Today that
 set is exactly two families:</p>
 <ul>
@@ -1360,9 +1360,9 @@ set is exactly two families:</p>
   with a narrow latent transition band); distilled Klein advertises
   <code>flux2.reframe</code> instead.</li>
 </ul>
-<p>The owner asks: "should other models be capable to do outpaint, including if
-we have to implement some low level math? or are those the only 2 models that
-can (would find that surprising)?"</p>
+<p>The question: should other models be able to outpaint, including where that
+requires implementing low-level math, or are those really the only two models
+that can?</p>
 <h2 id="working-hypothesis">Working hypothesis<a class="headerlink" href="#working-hypothesis" title="Permanent link">&para;</a></h2>
 <p>The two-family limit is an EVIDENCE policy, not a technical ceiling.
 Outpainting is structurally inpainting at an expanded canvas border: any
@@ -1397,7 +1397,7 @@ plus per-step source compositing can, in principle, outpaint. In this repo:</p>
    existing starship outpaint matrices) before any capability row flips
    <code>supports_outpaint=True</code>.</li>
 <li>Ship rows additively; the host's selector consumes them automatically at
-   the next pin bump (see the BlackPixel companion item).</li>
+   the next pin bump (see the host application's companion item).</li>
 </ol>
 <h2 id="non-goals">Non-goals<a class="headerlink" href="#non-goals" title="Permanent link">&para;</a></h2>
 <ul>
@@ -1408,7 +1408,7 @@ plus per-step source compositing can, in principle, outpaint. In this repo:</p>
 </ul>
 <h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
 <ul>
-<li>BlackPixel backlog 0070 (selector adoption when this expands).</li>
+<li>Host application backlog 0070 (selector adoption when this expands).</li>
 <li>Existing proof tooling: docs/reframe-outpaint.md matrices, validation
   profile machinery.</li>
 </ul>

@@ -1370,10 +1370,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#release-caveat-cycle-2-review-2026-07-22" class="md-nav__link">
+  <a href="#release-caveat-2026-07-22" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Release caveat (cycle-2 review, 2026-07-22)
+        Release caveat (2026-07-22)
       
     </span>
   </a>
@@ -1426,7 +1426,7 @@
   note only if approximate reuse is ever proposed.</li>
 </ul>
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
-<p>A 2026-07-22 adversarial performance audit of BlackPixel (an embedding host) traced
+<p>A 2026-07-22 performance audit of a host application built on mlx-gen traced
 Wan generation end-to-end. The single largest fixed cost after weight loading is
 prompt encoding: <code>Wan2_2_TI2V._load_t5_prompt_embeds</code> constructs
 <code>UMT5EncoderModel.from_pretrained(...)</code> in torch on CPU, runs one bf16 forward, and
@@ -1482,7 +1482,7 @@ phase ("encode-cached" vs "encode") so hosts can show honest progress.</p>
 </ul>
 <h2 id="dependencies-and-related-tasks">Dependencies and related tasks<a class="headerlink" href="#dependencies-and-related-tasks" title="Permanent link">&para;</a></h2>
 <ul>
-<li>BlackPixel planned item 0051 (warm video worker) consumes this.</li>
+<li>The host application's planned item 0051 (warm video worker) consumes this.</li>
 <li>Related: planned/memory/0063 component-wise loading policy.</li>
 </ul>
 <h2 id="expected-outcomes">Expected outcomes<a class="headerlink" href="#expected-outcomes" title="Permanent link">&para;</a></h2>
@@ -1512,10 +1512,9 @@ torch component when the cache hits.</p>
 <li>[ ] Progress event phases (encode-cached vs encode) — DEFERRED: public
       callback schema change; cli_print lines carry the honesty for now</li>
 <li>[x] docs/python-integration.md mention of model_kwargs + the two Wan options
-      (added in cycle 1; cycle-2 review confirmed at python-integration.md
-      ~171-183)</li>
+      (see python-integration.md ~171-183)</li>
 </ul>
-<h2 id="release-caveat-cycle-2-review-2026-07-22">Release caveat (cycle-2 review, 2026-07-22)<a class="headerlink" href="#release-caveat-cycle-2-review-2026-07-22" title="Permanent link">&para;</a></h2>
+<h2 id="release-caveat-2026-07-22">Release caveat (2026-07-22)<a class="headerlink" href="#release-caveat-2026-07-22" title="Permanent link">&para;</a></h2>
 <p>On exactly-64 GB machines, weight residency (28 GB A14B) plus UMT5 residency
 (11 GB) plus activations approaches the Metal working-set budget. When an
 embedding host enables residency by machine class, recommend disk-cache-only

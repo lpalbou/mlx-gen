@@ -1370,10 +1370,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for the implementing agent
+        Implementation notes
       
     </span>
   </a>
@@ -1424,7 +1424,7 @@
 <li>ADR impact: None</li>
 </ul>
 <h2 id="context">Context<a class="headerlink" href="#context" title="Permanent link">&para;</a></h2>
-<p>The 2026-06-29 serial adversarial validation pass found multiple shipped progress-contract failures.
+<p>The 2026-06-29 serial validation pass found multiple shipped progress-contract failures.
 Masked image routes emitted the wrong public task, and a real Qwen control-inpaint run emitted a
 <code>complete</code> progress event before the generation later failed during image finalization.</p>
 <h2 id="historical-pre-fix-reality">Historical pre-fix reality<a class="headerlink" href="#historical-pre-fix-reality" title="Permanent link">&para;</a></h2>
@@ -1518,7 +1518,7 @@ methods that enforce terminal exclusivity after artifact materialization succeed
 <li>[x] Add focused tests for masked image, video restore, and failure-after-loop cases.</li>
 <li>[x] Regenerate serial event proofs one run at a time.</li>
 </ul>
-<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-notes">Implementation notes<a class="headerlink" href="#implementation-notes" title="Permanent link">&para;</a></h2>
 <p>Preserve backwards compatibility where possible, but treat false-complete behavior as a contract
 bug rather than a subscriber convenience.</p>
 <h2 id="completion-report">Completion report<a class="headerlink" href="#completion-report" title="Permanent link">&para;</a></h2>

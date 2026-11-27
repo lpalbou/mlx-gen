@@ -1381,10 +1381,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for the implementing agent
+        Implementation notes
       
     </span>
   </a>
@@ -1495,7 +1495,7 @@ For all other caught errors, raise <code>RuntimeError</code> or re-raise with co
 <li>[x] Cover ReleaseManager fail-closed propagation.</li>
 <li>[x] Align GitHub Actions publish ordering with the fail-closed release graph.</li>
 </ul>
-<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-notes">Implementation notes<a class="headerlink" href="#implementation-notes" title="Permanent link">&para;</a></h2>
 <p>Keep the release graph conservative. If the package upload state is uncertain, force explicit human
 recovery instead of silently advancing release state.</p>
 

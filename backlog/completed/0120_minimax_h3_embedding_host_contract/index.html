@@ -1378,10 +1378,10 @@
   rather than changing it.</li>
 </ul>
 <h2 id="origin">Origin<a class="headerlink" href="#origin" title="Permanent link">&para;</a></h2>
-<p>A feature request from BlackPixel, an embedding host that drives the runtime through
+<p>A feature request from a host application that drives the runtime through
 <code>mlxgen generate</code>, <code>mlxgen capabilities</code> and <code>mflux.load_generation_model</code>, filed against 0.34.0
-(<code>0eb1409</code>). It listed four defects and a proposed capability contract. An adversarial pass
-(<code>untracked/h3_verify/agent4/</code>) verified every claim against the released commit and corrected three
+(<code>0eb1409</code>). It listed four defects and a proposed capability contract. An independent verification
+checked every claim against the released commit and corrected three
 of them before implementation.</p>
 <h2 id="completion-report-2026-09-06">Completion report - 2026-09-06<a class="headerlink" href="#completion-report-2026-09-06" title="Permanent link">&para;</a></h2>
 <h3 id="defects-fixed">Defects fixed<a class="headerlink" href="#defects-fixed" title="Permanent link">&para;</a></h3>
@@ -1427,7 +1427,7 @@ of them before implementation.</p>
 <code>prompt_sections</code>, <code>min_frames</code>, <code>max_frames</code>, <code>frame_multiple</code>, <code>frame_remainder</code>, <code>frame_rounding</code>,
 <code>output_fps</code>, and the per-entry <code>default_steps</code> / <code>default_width</code> / <code>default_height</code> /
 <code>default_frames</code> / <code>default_video_shift</code> / <code>default_audio_shift</code>.</p>
-<p>Three proposals were dropped on the adversarial pass's advice: <code>supports_audio_toggle</code> (definitionally
+<p>Three proposals were dropped after that verification: <code>supports_audio_toggle</code> (definitionally
 equal to <code>generates_audio</code> for every current and plausible route), <code>canvas_multiple</code> (duplicates the
 published <code>dimension_multiple</code>), and a row-level <code>supports_guidance</code> (near-redundant with the
 published <code>supports_negative_prompt</code> for a guidance-distilled route). <code>audio_prompt_sections</code> as a
@@ -1452,8 +1452,8 @@ advertised as <code>supports_text_encoder_release</code>.</p>
   block describing the muxed file.</li>
 </ul>
 <h2 id="addendum-2026-09-06-four-follow-up-asks">Addendum - 2026-09-06: four follow-up asks<a class="headerlink" href="#addendum-2026-09-06-four-follow-up-asks" title="Permanent link">&para;</a></h2>
-<p>BlackPixel filed four more asks after reviewing 0.35.0. A second adversarial pass
-(<code>untracked/h3_verify/agent5/</code>) settled each.</p>
+<p>The host application filed four more asks after reviewing 0.35.0. A second independent verification
+settled each.</p>
 <ul>
 <li><strong><code>recommended_quantize</code> (their highest-value item): implemented, reshaped.</strong> The claim is
   correct - unquantized the loaded shards are 125 GiB, 97% of a 128 GiB machine, so q8 is required
@@ -1487,9 +1487,9 @@ which the process footprint.</p>
 <p>Their cache-limit companion ask was self-flagged as low confidence (one failure against two
 successes) and was not acted on; it is not reproducible from the evidence available.</p>
 <h2 id="second-addendum-2026-09-06-a-naming-defect-of-our-own">Second addendum - 2026-09-06: a naming defect of our own<a class="headerlink" href="#second-addendum-2026-09-06-a-naming-defect-of-our-own" title="Permanent link">&para;</a></h2>
-<p>BlackPixel reported that they had aliased our <code>supports_video_shift</code> onto their generic flow-shift
-flag and silently stopped sending Wan its <code>--flow-shift</code>. They called it their bug. A third
-adversarial pass (<code>untracked/h3_verify/agent6/</code>) found it was ours.</p>
+<p>The host application reported that it had aliased our <code>supports_video_shift</code> onto its generic flow-shift
+flag and silently stopped sending Wan its <code>--flow-shift</code>. Its maintainers called it their bug. A third
+independent verification found it was ours.</p>
 <p>The mechanism is one: the sigma transform in <code>minimax_h3_scheduler.py:58</code> and
 <code>wan_euler_scheduler.py:52</code> is identical, MiniMax-H3's own help string calls its option a "video flow
 shift", and both families write the shared <code>flow_shift</code> metadata key. A shared row field named after
@@ -1535,7 +1535,7 @@ the accretion that produced this defect in the first place.</p>
 SwiftVR forces it and SeedVR2 video requires it, so a future per-route field should carry
 accepted/required/forced rather than a boolean.</p>
 <h2 id="fourth-addendum-2026-09-06-the-peak-model-measured">Fourth addendum - 2026-09-06: the peak model, measured<a class="headerlink" href="#fourth-addendum-2026-09-06-the-peak-model-measured" title="Permanent link">&para;</a></h2>
-<p>BlackPixel corrected the reasoning recorded above, and they were right. This item said "the peak
+<p>The host application's maintainers corrected the reasoning recorded above, and they were right. This item said "the peak
 scales about 2.75x across the allowed frame range". That is the latent-frame ratio (37 at 124 frames
 to 102 at 345), not the peak ratio. Two independent recomputations agree. The conclusion to publish a
 measurement with its geometry rather than a scalar was still correct, but for the opposite reason:

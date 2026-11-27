@@ -1365,7 +1365,7 @@
 </ul>
 <h2 id="post-completion-correction-2026-08-04">Post-completion correction — 2026-08-04<a class="headerlink" href="#post-completion-correction-2026-08-04" title="Permanent link">&para;</a></h2>
 <p>This item is complete as a <strong>functional runtime integration</strong>, not as a release-quality model
-validation. The original visual disposition was wrong. Full-frame 5K review plus two adversarial
+validation. The original visual disposition was wrong. Full-frame 5K review plus two independent
 audits found all five required quality cases fail; the validation registry is now <code>FAIL</code> and the
 runtime is experimental. The corrected schema-v3 report records machine contract <code>true</code>, complete
 hash-bound review <code>true</code>, visual quality <code>false</code>, and overall pass <code>false</code>.</p>
@@ -1388,7 +1388,7 @@ reference-to-video and reference-guided video editing. The development host has 
 memory, while the target deployment envelope is about 18 GB. The official monolithic repository
 is about 28.9 GB, but the renderer transformer is about 5.7 GB and its tokenizer, UMT5, and VAE
 are compatible with explicitly pinned Wan components.</p>
-<p>Two adversarial reviewers rejected treating Bernini as stock Wan or VACE. Its exact semantics add
+<p>Bernini cannot be treated as stock Wan or VACE. Its exact semantics add
 source-ID rotary phase, heterogeneous packed latent segments, target-only extraction, and
 task-specific three-/four-pass guidance.</p>
 <h2 id="shipped-code-reality">Shipped code reality<a class="headerlink" href="#shipped-code-reality" title="Permanent link">&para;</a></h2>
@@ -1445,7 +1445,7 @@ task-specific three-/four-pass guidance.</p>
 </ol>
 <h2 id="five-completed-engineering-phases">Five completed engineering phases<a class="headerlink" href="#five-completed-engineering-phases" title="Permanent link">&para;</a></h2>
 <ul>
-<li>[x] Cycle 1: architecture, disk, official-source, framework, ADR, and adversarial review.</li>
+<li>[x] Cycle 1: architecture, disk, official-source, framework, and ADR review.</li>
 <li>[x] Cycle 2: numeric core, component sources, deterministic parity, and initialization smoke.</li>
 <li>[x] Cycle 3: runtime, role-aware CLI/Python integration, metadata, and contract tests.</li>
 <li>[x] Cycle 4: real R2V/RV2V/V2V generations, controls, contact sheets, and fixes.</li>

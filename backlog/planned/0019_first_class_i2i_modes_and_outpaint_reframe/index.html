@@ -1403,10 +1403,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#guidance-for-the-implementing-agent" class="md-nav__link">
+  <a href="#implementation-notes" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Guidance for the implementing agent
+        Implementation notes
       
     </span>
   </a>
@@ -2055,7 +2055,7 @@ one source, with timings and source drift).</p>
 <li>[ ] Update generated model-card guidance if prepared-package cards should mention reframe.</li>
 <li>[ ] Decide whether ADR 0002 needs a task-taxonomy addendum before closure.</li>
 </ul>
-<h2 id="guidance-for-the-implementing-agent">Guidance for the implementing agent<a class="headerlink" href="#guidance-for-the-implementing-agent" title="Permanent link">&para;</a></h2>
+<h2 id="implementation-notes">Implementation notes<a class="headerlink" href="#implementation-notes" title="Permanent link">&para;</a></h2>
 <p>Re-check the code first because routing has been changing quickly. Keep the public contract simple:
 media direction is the task, implementation is a backend mode. Prefer explicit errors over silent
 model swaps. Do not claim outpaint support for a model unless the route publishes a concrete

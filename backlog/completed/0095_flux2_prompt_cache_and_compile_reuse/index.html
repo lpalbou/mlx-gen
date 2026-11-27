@@ -1338,10 +1338,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#cycle-2-review-additions-2026-07-23-adversarial-review" class="md-nav__link">
+  <a href="#cycle-2-additions-2026-07-23" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Cycle-2 review additions (2026-07-23, adversarial review)
+        Cycle-2 additions (2026-07-23)
       
     </span>
   </a>
@@ -1407,7 +1407,7 @@ whose <code>PromptEncoder</code> checks <code>prompt_cache</code> before encodin
 passes its cache through. The flux2 attribute is dead state — verified by
 grep across <code>src/mflux/models/flux2/</code> on 2026-07-23 (writes only, no reads).</p>
 <p>Marginal cost is ~0.8-1.1 s per encode (q8, warm). It compounds in the
-embedding-host pattern: BlackPixel sends num_images=4 per click, and the
+embedding-host pattern: a host application sends num_images=4 per click, and the
 runtime wrapper loops seeds through generate_image — the SAME prompt is
 re-encoded 4x per click (~3-4 s wasted), on every click.</p>
 <p>Same shape of waste, second instance: per-call <code>mx.compile</code> of the step
@@ -1427,14 +1427,14 @@ across calls on one resident instance where inputs shapes are unchanged.</p>
    MLX already reuses traces effectively at this call pattern.</li>
 </ol>
 <h2 id="expected-impact">Expected impact<a class="headerlink" href="#expected-impact" title="Permanent link">&para;</a></h2>
-<p>~3-5 s per 4-seed BlackPixel click (measured encode cost x repeated seeds,
+<p>~3-5 s per 4-seed host click (measured encode cost x repeated seeds,
 plus compile reuse); a few percent of a small-canvas batch, negligible at
 944x1680 — this is hygiene, not the headline fix (those are 0093/0094 and
-the BlackPixel-side items in that repo's backlog 0069).</p>
+the host-side items in the host application's backlog 0069).</p>
 <h2 id="non-goals-nuance-recorded-from-the-audit">Non-goals / nuance recorded from the audit<a class="headerlink" href="#non-goals-nuance-recorded-from-the-audit" title="Permanent link">&para;</a></h2>
 <p>flux2.latent LoRA for Klein 9B stays deny-listed in
 <code>lora_validation_registry._UNSUPPORTED_RECORDS</code> (hard-rejected at plan time,
-verified). If a validated klein-9b latent LoRA row ever lands, BlackPixel
+verified). If a validated klein-9b latent LoRA row ever lands, a host
 could route LoRA global-restyles through latent i2i (shares the t2i handler
 -&gt; no worker reload on task flips, and image_strength skips steps); until
 then that routing idea is blocked and lives only as context here.</p>
@@ -1515,7 +1515,7 @@ to <code>StopImageGenerationException</code>), and the instance stays reusable �
 retry produced bitwise-identical decoded latents to an uninterrupted run,
 with the prompt cache and compiled predict intact (embeds are materialized
 before the loop; per-call state lives in <code>Config</code>/<code>GenerationContext</code>).</p>
-<h3 id="cycle-2-review-additions-2026-07-23-adversarial-review">Cycle-2 review additions (2026-07-23, adversarial review)<a class="headerlink" href="#cycle-2-review-additions-2026-07-23-adversarial-review" title="Permanent link">&para;</a></h3>
+<h3 id="cycle-2-additions-2026-07-23">Cycle-2 additions (2026-07-23)<a class="headerlink" href="#cycle-2-additions-2026-07-23" title="Permanent link">&para;</a></h3>
 <p>Invalidation-completeness audit: every in-place transformer mutation site in
 the repo was enumerated (<code>load_and_apply_lora*</code>, <code>apply_and_quantize*</code>,
 <code>nn.quantize</code>, <code>bake_and_strip_lora</code>, runtime dequant, concept-attention).
@@ -1551,7 +1551,7 @@ in a swallowing try/except, the abort-safety test fails as intended
 <p>Cycle-1: <code>make lint</code> clean; fast suite 1457 passed / 7 skipped (baseline
 1413/7). Cycle-2 (after the assistant-scale hardening and low-RAM
 interaction pinning): <code>make lint</code> clean; fast suite 1465 passed /
-7 skipped; BlackPixel geometry passthrough suite 12 passed against this
+7 skipped; the host application's geometry passthrough suite 12 passed against this
 tree via <code>uv run --project</code>.</p>
 
 
