@@ -19,6 +19,7 @@ from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.cli.seed_values import resolve_seed_values
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.lora.mapping.lora_loader import LoRALoader
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 from mflux.models.wan.variants import BerniniRenderer, Wan2_2_TI2V, WanVace
 from mflux.utils.dimension_resolver import (
     CANVAS_POLICY_CHOICES,
@@ -1120,7 +1121,7 @@ def _resolve_model(model: str) -> tuple[ModelConfig, str | None]:
     try:
         model_config = ModelConfig.from_name(model)
     except ModelConfigError as exc:
-        if "wan" in model.lower():
+        if "wan" in ConfigResolution.identifying_name(model).lower():
             raise ModelConfigError(
                 f"Cannot infer a supported Wan model config from {model}. "
                 "Use an exact supported Wan repo or a local prepared folder whose name includes a specific Wan alias."
@@ -1138,7 +1139,7 @@ def _resolve_model(model: str) -> tuple[ModelConfig, str | None]:
 def _uses_only_generic_wan_alias(model: str, model_config: ModelConfig) -> bool:
     if model_config.base_model is None:
         return False
-    model_key = model.lower().replace("_", "-")
+    model_key = ConfigResolution.identifying_name(model).lower().replace("_", "-")
     specific_aliases = [alias for alias in model_config.aliases if alias not in GENERIC_WAN_ALIASES]
     return not any(alias.lower() in model_key for alias in specific_aliases)
 

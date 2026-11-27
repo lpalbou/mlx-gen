@@ -113,6 +113,15 @@ mlxgen generate \
   name it contains. MLX-Gen trusts only the model family from such a name, so the routes it
   publishes can be narrower than the model's own. A folder named `qwen-image-edit-2511-8bit`
   resolves to the Qwen family with the text-to-image and latent image-to-image routes only.
+- For a local path, the name is its last component: the folder's (or file's) own name. Inside a
+  Hugging Face cache (`.../models--org--name/snapshots/<revision>[/<path>]`) it is the repository id
+  `org/name`, followed by the path below the snapshot when there is one
+  (`numz/SeedVR2_comfyUI/seedvr2_ema_7b_fp16.safetensors`); the revision never counts. A parent
+  directory never identifies the model: `~/models/qwen/flux2-klein-4b` is FLUX.2 Klein 4B, and
+  `~/models/qwen-image/my-package` names nothing and needs `--base-model`. A local path is a text
+  that starts with `/`, `./`, `../` or `~`, is `.` or `..`, or exists on disk; any other text, such
+  as `org/name/transformer`, is read as a repository id. Up to 0.40.2 any part of the path could
+  decide.
 
 Pass `--base-model <alias>` to state the model exactly. It is accepted by `mlxgen generate`,
 `mlxgen capabilities`, and `mlxgen prepare`, and it is required when the name contains no catalog

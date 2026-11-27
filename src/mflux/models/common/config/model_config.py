@@ -334,9 +334,10 @@ class ModelConfig:
         return AVAILABLE_MODELS["swiftvr"]
 
     def x_embedder_input_dim(self) -> int:
-        if "Fill" in self.model_name:
+        own_name = ConfigResolution.identifying_name(self.model_name)
+        if "Fill" in own_name:
             return 384
-        if "Depth" in self.model_name:
+        if "Depth" in own_name:
             return 128
         else:
             return 64

@@ -19,6 +19,7 @@ from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print, emit_cli_
 from mflux.models.common.cli.restore_dispatch import resolve_restore_family
 from mflux.models.common.config.model_config import ModelConfig
 from mflux.models.common.download_policy import DownloadRequiredError, is_huggingface_repo_id
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 from mflux.models.common.vae.tiling_config import TilingConfig
 from mflux.models.seedvr2.latent_creator.seedvr2_latent_creator import SeedVR2LatentCreator
 from mflux.models.seedvr2.variants.upscale.seedvr2 import SeedVR2
@@ -152,9 +153,11 @@ def _resolve_seedvr2_model(model_arg: str | None, model_path: str | None) -> tup
     requested_model_path = model_path
     if requested_model_path is None and Path(model_arg).expanduser().exists():
         requested_model_path = model_arg
+    own_name = ConfigResolution.identifying_name(model_arg).lower()
 
     if requested_model_path is not None:
         path = Path(requested_model_path).expanduser()
+        path_name = ConfigResolution.identifying_name(requested_model_path).lower()
         if path.is_dir():
             has_3b = (path / "seedvr2_ema_3b_fp16.safetensors").exists()
             has_official_3b = (path / "seedvr2_ema_3b.pth").exists()
@@ -164,19 +167,15 @@ def _resolve_seedvr2_model(model_arg: str | None, model_path: str | None) -> tup
             if has_official_7b_sharp and not (has_3b or has_official_3b or has_7b or has_official_7b):
                 return ModelConfig.seedvr2_7b_sharp(), requested_model_path
             if (has_7b or has_official_7b or has_official_7b_sharp) and not (has_3b or has_official_3b):
-                if has_official_7b_sharp and ("seedvr2-7b-sharp" in normalized or not (has_7b or has_official_7b)):
+                if has_official_7b_sharp and ("seedvr2-7b-sharp" in own_name or not (has_7b or has_official_7b)):
                     return ModelConfig.seedvr2_7b_sharp(), requested_model_path
                 return ModelConfig.seedvr2_7b(), requested_model_path
             if (has_3b or has_official_3b) and not (has_7b or has_official_7b):
                 return ModelConfig.seedvr2_3b(), requested_model_path
             if (path / "transformer" / "model.safetensors.index.json").exists():
-                if (
-                    "seedvr2-7b-sharp" in normalized
-                    or "7b-sharp" in path.name.lower()
-                    or "7b_sharp" in path.name.lower()
-                ):
+                if "seedvr2-7b-sharp" in own_name or "7b-sharp" in path_name or "7b_sharp" in path_name:
                     return ModelConfig.seedvr2_7b_sharp(), requested_model_path
-                if "seedvr2-7b" in normalized or "7b" in path.name.lower():
+                if "seedvr2-7b" in own_name or "7b" in path_name:
                     return ModelConfig.seedvr2_7b(), requested_model_path
                 return ModelConfig.seedvr2_3b(), requested_model_path
 
@@ -190,7 +189,7 @@ def _resolve_seedvr2_model(model_arg: str | None, model_path: str | None) -> tup
             "or an explicit local SeedVR2 path."
         )
 
-    source = (requested_model_path or model_arg).lower()
+    source = ConfigResolution.identifying_name(requested_model_path or model_arg).lower()
     if "seedvr2_ema_7b_sharp" in source or "seedvr2-7b-sharp" in source or "seedvr2_7b_sharp" in source:
         return ModelConfig.seedvr2_7b_sharp(), requested_model_path
     if "seedvr2_ema_7b" in source or "seedvr2-7b" in source:

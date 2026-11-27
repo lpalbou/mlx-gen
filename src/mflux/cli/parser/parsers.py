@@ -11,6 +11,7 @@ from mflux.cli.seed_values import resolve_seed_values, validate_auto_seed_count
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.config.inference_defaults import default_inference_steps
 from mflux.models.common.lora.mapping.lora_loader import LoRALoader
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 from mflux.models.common.resolution.lora_resolution import LoraResolution
 from mflux.models.flux.variants.in_context.utils.in_context_loras import LORA_NAME_MAP
 from mflux.task_inference import (
@@ -713,7 +714,7 @@ class CommandLineParser(argparse.ArgumentParser):
                     token.lower()
                     for token in (
                         *((model_config.aliases if model_config is not None else ()) or ()),
-                        model_config.model_name if model_config is not None else None,
+                        ConfigResolution.identifying_name(model_config.model_name) if model_config is not None else None,
                         model_config.base_model if model_config is not None else None,
                     )
                     if token is not None

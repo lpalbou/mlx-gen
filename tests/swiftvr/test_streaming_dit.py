@@ -13,6 +13,7 @@ checkpoint, which is tests/swiftvr/parity's job.
 """
 
 import mlx.core as mx
+import numpy as np
 import pytest
 
 from mflux.models.swiftvr.model.swiftvr_transformer.swiftvr_transformer import SwiftVRTransformer
@@ -61,6 +62,23 @@ def _prompt() -> mx.array:
 def _max_difference(first: mx.array, second: mx.array) -> float:
     mx.eval(first, second)
     return float(mx.max(mx.abs(first - second)))
+
+
+def _matmul_relative_error() -> float:
+    # The float32 matmul precision of the default device, measured against a float64 product. Apple's
+    # M1 to M4 GPUs and the CPU round at about 3e-7; an M5 GPU returns float32 products at about 8e-4.
+    a = np.random.default_rng(0).standard_normal((64, 96))
+    b = np.random.default_rng(1).standard_normal((96, 48))
+    exact = np.einsum("ik,kj->ij", a, b)  # float64, without the BLAS path that warns spuriously on this chip
+    product = np.array(mx.matmul(mx.array(a, dtype=mx.float32), mx.array(b, dtype=mx.float32)), dtype=np.float64)
+    return float(np.max(np.abs(product - exact)) / np.max(np.abs(exact)))
+
+
+def _offset_tolerance() -> float:
+    # A uniform offset cancels exactly in the math, so what is left is rounding: 9e-8 of the output on the CPU,
+    # 6.5e-5 on an M5 GPU, where the matmul error is 8e-4 (ratio 0.08). 1e-5 is the bound that held on M1-M4
+    # GPUs; four times the device's matmul error keeps the same margin where the device rounds coarser.
+    return max(1e-5, 4 * _matmul_relative_error())
 
 
 class TestOneStepRestoration:
@@ -147,7 +165,7 @@ class TestTemporalOffset:
         later.latent_offset = 7
         shifted = later.denoise(latents, _prompt())
         magnitude = float(mx.max(mx.abs(first)))
-        assert _max_difference(first, shifted) < 1e-5 * magnitude
+        assert _max_difference(first, shifted) < _offset_tolerance() * magnitude
 
     def test_reset_returns_the_driver_to_the_start_of_a_clip(self):
         dit = StreamingDiT(_transformer(), clear_cache_each_block=False)

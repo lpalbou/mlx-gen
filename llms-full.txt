@@ -29,7 +29,7 @@
 - `docs/bernini.md`: experimental Bernini-R 1.3B reference-to-video and video-edit routes, pinned BF16 runtime setup and download sizes, the committed official public parity bundle with full prompts and contact sheets per upstream example row, and task-specific recipes for many-reference binding and structure-changing edits.
 - `docs/recommendations.md`: conservative model recommendations for `18 GB`, `24 GB`, `32 GB`, `64 GB`, and `128+ GB` Macs based on published MLX-Gen memory measurements, including MiniMax-H3 video with sound from `24 GB`.
 - `docs/examples/spaceship-snow.md`: complete model-backed workflow across T2I, I2I edit, multi-reference I2I, T2V A14B, and I2V A14B.
-- `docs/model-management.md`: explicit `download` and `prepare`, local packages, factored Bernini setup and disk preflight, matching Hugging Face handle resolution, and `DownloadRequiredError`.
+- `docs/model-management.md`: explicit `download` and `prepare`, local packages, how a local path is identified (its own folder name, never a parent directory), factored Bernini setup and disk preflight, matching Hugging Face handle resolution, and `DownloadRequiredError`.
 - `docs/quantization.md`: published package matrix, model-specific q8/q4/BF16 policies, the measured MiniMax-H3 packages (16-bit; 8-bit; mixed 4-bit with a 6-bit transformer; memory by mode and machine size), Wan storage/runtime behavior, Bernini's BF16-only gate, and Bonsai ternary support.
 - `docs/huggingface-publishing.md`: generated model cards and AbstractFramework Hugging Face upload guidance.
 - `docs/python-integration.md`: embedding MLX-Gen, route-resolved runtime loading, `model_kwargs` constructor passthrough (resident text encoder, prompt-cache opt-out), runtime memory defaults for hosts (`MFLUX_MLX_CACHE_LIMIT_GB`, `-1` unlimited opt-out, host-managed `mx.set_cache_limit` detection, `MFLUX_NO_WEIGHT_PREFETCH`), Wan `last_image_path`, `context_image_paths`/`context_noise`, and `denoising_step_list` generation kwargs, `save_kwargs` including `validate_health=False`, serial multi-output reuse for unified `mlxgen generate` families, overwrite/collision behavior, the outpaint/reframe pipeline (`run_outpaint`, `prepare_outpaint`, `prepare_reframe`, and the `post_process` before-save hook on `generate_outputs`), SeedVR2's direct-model boundary, progress callbacks, AbstractVision/AbstractCore integration, and threading behavior.
@@ -102,6 +102,11 @@ A complete local MLX-Gen package under `./models/<repo-name>` can satisfy a matc
 For example, `./models/wan2.2-i2v-a14b-diffusers-8bit` can be used when generation is requested as
 `AbstractFramework/wan2.2-i2v-a14b-diffusers-8bit`, as long as the folder contains all required
 indexes and shard files.
+
+A local `--model` path is identified by its own folder (or file) name, or, inside a Hugging Face
+cache (`.../models--org--name/snapshots/<revision>[/<path>]`), by the repository id `org/name`
+followed by the path below the snapshot; the revision and parent directories never decide (up to 0.40.2 any part of the path could). A folder whose own name contains
+no catalog model name needs `--base-model <alias>`.
 
 ---
 

@@ -1,6 +1,7 @@
 from mflux.cli.parser.parsers import CommandLineParser
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.download_policy import allow_downloads
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 from mflux.models.ernie_image.variants import ErnieImageTurbo
 from mflux.models.fibo.variants.edit.fibo_edit import FIBOEdit
 from mflux.models.fibo.variants.txt2img.fibo import FIBO
@@ -19,7 +20,7 @@ def _model_class_for_config(model_config: ModelConfig):
         token.lower()
         for token in (
             *model_config.aliases,
-            model_config.model_name,
+            ConfigResolution.identifying_name(model_config.model_name),
             model_config.base_model,
         )
         if token is not None
@@ -87,7 +88,7 @@ def main():
                     "q4/q8 Bernini packages are not supported."
                 )
             if "swiftvr" in {alias.lower() for alias in model_config.aliases} or (
-                "swiftvr" in model_config.model_name.lower()
+                "swiftvr" in ConfigResolution.identifying_name(model_config.model_name).lower()
             ):
                 parser.error(
                     "SwiftVR currently supports only its bf16 source route. Use "

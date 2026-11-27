@@ -1,4 +1,5 @@
 import logging
+import os
 from dataclasses import dataclass
 from functools import lru_cache
 from pathlib import Path
@@ -66,6 +67,37 @@ class ConfigResolution:
         raise ValueError(f"No rule matched for model_name: {model_name}")
 
     @staticmethod
+    def identifying_name(model_name: str) -> str:
+        # The one rule shared with AbstractVision (local-model-name spec): a local path is named by its own last
+        # component, or, inside a Hugging Face cache, by the repository id followed by the path below the snapshot
+        # root. A parent directory never names it; aliases, repository ids and empty text pass through unchanged.
+        if not isinstance(model_name, str) or not model_name.strip():
+            return model_name
+        if not ConfigResolution._is_local_path(model_name):
+            return model_name
+        parts = Path(os.path.abspath(os.path.expanduser(model_name))).parts
+        for index in range(len(parts) - 1, -1, -1):
+            if not parts[index].startswith("models--"):
+                continue
+            org, _, name = parts[index].removeprefix("models--").partition("--")
+            repo_id = f"{org}/{name}" if name else org
+            below = parts[index + 1 :]
+            if not below:
+                return repo_id
+            if below[0] == "snapshots" and len(below) >= 2:
+                return "/".join((repo_id, *below[2:]))
+        return parts[-1]
+
+    @staticmethod
+    def unidentified_local_path_hint(model_name: str, option: str) -> str | None:
+        if not isinstance(model_name, str) or not model_name.strip() or not ConfigResolution._is_local_path(model_name):
+            return None
+        return (
+            f"a local folder is identified by its own name ({ConfigResolution.identifying_name(model_name)!r}), "
+            f"not by a parent directory: pass {option}"
+        )
+
+    @staticmethod
     def _check(check: str, ctx: dict) -> bool:
         if check == "is_exact_match":
             model_name = ctx["model_name"]
@@ -76,7 +108,7 @@ class ConfigResolution:
         if check == "has_explicit_base":
             return ctx["base_model"] is not None
         if check == "can_infer_substring":
-            model_name_lower = ctx["model_name"].lower()
+            model_name_lower = ConfigResolution.identifying_name(ctx["model_name"]).lower()
             for base in ctx["base_models"]:
                 for alias in base.inference_aliases:
                     if alias and alias.lower() in model_name_lower:
@@ -117,7 +149,7 @@ class ConfigResolution:
             )
 
         if action == ConfigAction.INFER_SUBSTRING:
-            model_name_lower = model_name.lower()
+            model_name_lower = ConfigResolution.identifying_name(model_name).lower()
             matching_bases = [
                 (b, alias)
                 for b in base_models
@@ -125,18 +157,20 @@ class ConfigResolution:
                 if alias and alias.lower() in model_name_lower
             ]
             if not matching_bases:
-                raise ModelConfigError(f"Cannot infer base_model from {model_name}")
+                raise ModelConfigError(ConfigResolution._cannot_infer_message(model_name))
 
             default_base = sorted(matching_bases, key=lambda x: (-len(x[1]), x[0].priority))[0][0]
             return ResolvedModelConfig(
                 model_config=ConfigResolution._create_config(model_name, default_base),
                 identity_source=(
-                    "official_prepared" if ConfigResolution._is_official_prepared_repo_id(model_name) else "infer_substring"
+                    "official_prepared"
+                    if ConfigResolution._is_official_prepared_repo_id(model_name)
+                    else "infer_substring"
                 ),
             )
 
         if action == ConfigAction.ERROR:
-            raise ModelConfigError(f"Cannot infer base_model from {model_name}")
+            raise ModelConfigError(ConfigResolution._cannot_infer_message(model_name))
 
         raise ValueError(f"Unknown action: {action}")
 
@@ -167,8 +201,20 @@ class ConfigResolution:
 
     @staticmethod
     def _is_unsupported_flux2_dev(model_name: str) -> bool:
-        normalized = model_name.lower().replace("\\", "/").replace("--", "/")
+        normalized = ConfigResolution.identifying_name(model_name).lower().replace("\\", "/").replace("--", "/")
         return "flux.2-dev" in normalized or "flux.2/dev" in normalized
+
+    @staticmethod
+    def _cannot_infer_message(model_name: str) -> str:
+        hint = ConfigResolution.unidentified_local_path_hint(model_name, "base_model=<alias>")
+        return f"Cannot infer base_model from {model_name}" + (f": {hint}" if hint else "")
+
+    @staticmethod
+    def _is_local_path(model_name: str) -> bool:
+        # A relative text that is not on disk is a repository id, an alias or a spec, however many `/` it has.
+        if model_name.startswith(("/", "./", "../", "~")) or model_name in (".", ".."):
+            return True
+        return os.path.exists(model_name)
 
     @staticmethod
     def _is_official_prepared_repo_id(model_name: str) -> bool:

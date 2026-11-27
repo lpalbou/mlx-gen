@@ -63,6 +63,7 @@ from mflux.models.common.cli.restore_dispatch import (
     is_seedvr2_handle,
 )
 from mflux.models.common.config.model_config import ModelConfig
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 
 # Bumped when a field is added, renamed or given a new meaning. Mirrors the additive
 # convention `task_inference.CAPABILITIES_SCHEMA_VERSION` documents for the generate side.
@@ -348,7 +349,7 @@ def _seedvr2_variant(model: str | None) -> str:
     to ``"3b"``, the resolver's own default, which is a label difference and never a
     capability difference: all three variants declare identical rows.
     """
-    normalized = model.strip().lower() if model else ""
+    normalized = ConfigResolution.identifying_name(model.strip()).lower() if model else ""
     if "7b-sharp" in normalized or "7b_sharp" in normalized:
         return "7b-sharp"
     if "7b" in normalized:

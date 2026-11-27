@@ -5,6 +5,7 @@ from mflux.cli.output_paths import resolve_output_path
 from mflux.cli.parser.parsers import CommandLineParser
 from mflux.cli.runtime_events import CliRuntimeEventStream, cli_print
 from mflux.models.common.config import ModelConfig
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 from mflux.models.flux2.latent_creator.flux2_latent_creator import Flux2LatentCreator
 from mflux.models.flux2.variants import Flux2Klein
 from mflux.models.flux2.variants.edit.flux2_klein_edit_helpers import _Flux2KleinEditHelpers
@@ -43,7 +44,7 @@ def main():
     model_name = args.model or "flux2-klein-4b"
     model_config = ModelConfig.from_name(model_name=model_name, base_model=args.base_model)
 
-    is_distilled = "base" not in model_config.model_name.lower()
+    is_distilled = "base" not in ConfigResolution.identifying_name(model_config.model_name).lower()
     negative_prompt = PromptUtil.read_negative_prompt(args)
     if args.guidance is None:
         # A negative prompt on base weights asks for the guidance branch, which only runs above

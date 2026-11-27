@@ -3,6 +3,7 @@ from pathlib import Path
 from mflux.cli.defaults.defaults import MFLUX_LORA_CACHE_DIR
 from mflux.models.common.config import ModelConfig
 from mflux.models.common.lora.mapping.lora_loader import LoRAApplicationError
+from mflux.models.common.resolution.config_resolution import ConfigResolution
 from mflux.models.common.resolution.lora_resolution import LoraResolution
 
 
@@ -71,7 +72,11 @@ class LoRACompatibility:
         if selected_class is None or not adapter_base_models:
             return
 
-        known_pairs = [(base_model, adapter_class) for base_model, adapter_class in zip(adapter_base_models, adapter_classes) if adapter_class is not None]
+        known_pairs = [
+            (base_model, adapter_class)
+            for base_model, adapter_class in zip(adapter_base_models, adapter_classes)
+            if adapter_class is not None
+        ]
         if not known_pairs:
             return
 
@@ -149,7 +154,7 @@ class LoRACompatibility:
     def _model_class(model_name: str | None) -> str | None:
         if model_name is None:
             return None
-        normalized = model_name.lower()
+        normalized = ConfigResolution.identifying_name(model_name).lower()
         checks = (
             ("black-forest-labs/flux.2-dev", "flux2-dev"),
             ("flux.2-dev", "flux2-dev"),
