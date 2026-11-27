@@ -1735,6 +1735,10 @@ mlxgen<span class="w"> </span>generate<span class="w"> </span>--model<span class
 alias or the repository id.</p>
 <h2 id="local-path-cannot-be-classified">Local Path Cannot Be Classified<a class="headerlink" href="#local-path-cannot-be-classified" title="Permanent link">&para;</a></h2>
 <p>A local folder or custom repository name that contains no catalog model name cannot be identified.
+Only the folder's own name counts (inside a Hugging Face cache, the repository id <code>org/name</code> and the
+path below the snapshot), never a parent directory: <code>~/models/qwen-image/my-package</code> names nothing,
+and since 0.40.3 stops here, with a message that names the folder and asks for <code>--base-model</code>,
+instead of running as the model its parent names.
 <code>mlxgen generate</code> and <code>mlxgen capabilities</code> stop with one of these usage errors:</p>
 <table>
 <thead>
@@ -1747,6 +1751,10 @@ alias or the repository id.</p>
 <tr>
 <td><code>Could not infer a supported backend from model '&lt;name&gt;'.</code></td>
 <td>Add <code>--base-model &lt;alias&gt;</code>. The message lists family names, but a family alone does not identify the model.</td>
+</tr>
+<tr>
+<td><code>Could not infer a supported backend from model '&lt;path&gt;': a local folder is identified by its own name</code></td>
+<td>Add <code>--base-model &lt;alias&gt;</code>, or rename the folder after its model.</td>
 </tr>
 <tr>
 <td><code>family='&lt;family&gt;' is not enough to configure model '&lt;name&gt;'.</code></td>
@@ -1955,7 +1963,7 @@ negative prompt explicitly.</p>
 encoded in float32, where 0.40.1 encoded it in bfloat16, so the scene and composition match and
 details differ. This is expected and does not depend on any option. To reproduce a 0.40.1 clip
 exactly, install that version (<code>python -m pip install "mlx-gen==0.40.1"</code>) and rerun the
-recorded prompt, seed and settings. For new work, keep 0.40.2. Prompt embeddings cached by
+recorded prompt, seed and settings. For new work, keep 0.40.2 or later. Prompt embeddings cached by
 0.40.1 are not reused, so the first run of each prompt encodes it again, in seconds. See
 <a href="../wan-text-encoder/#compatibility-with-0401-results">Wan prompt encoding</a>.</p>
 <h2 id="bernini-rejects-quantization-or-produces-weak-reference-fidelity">Bernini Rejects Quantization Or Produces Weak Reference Fidelity<a class="headerlink" href="#bernini-rejects-quantization-or-produces-weak-reference-fidelity" title="Permanent link">&para;</a></h2>

@@ -1565,6 +1565,15 @@ card into that package. The card records the <code>mlx-gen</code> version that g
   name it contains. MLX-Gen trusts only the model family from such a name, so the routes it
   publishes can be narrower than the model's own. A folder named <code>qwen-image-edit-2511-8bit</code>
   resolves to the Qwen family with the text-to-image and latent image-to-image routes only.</li>
+<li>For a local path, the name is its last component: the folder's (or file's) own name. Inside a
+  Hugging Face cache (<code>.../models--org--name/snapshots/&lt;revision&gt;[/&lt;path&gt;]</code>) it is the repository id
+  <code>org/name</code>, followed by the path below the snapshot when there is one
+  (<code>numz/SeedVR2_comfyUI/seedvr2_ema_7b_fp16.safetensors</code>); the revision never counts. A parent
+  directory never identifies the model: <code>~/models/qwen/flux2-klein-4b</code> is FLUX.2 Klein 4B, and
+  <code>~/models/qwen-image/my-package</code> names nothing and needs <code>--base-model</code>. A local path is a text
+  that starts with <code>/</code>, <code>./</code>, <code>../</code> or <code>~</code>, is <code>.</code> or <code>..</code>, or exists on disk; any other text, such
+  as <code>org/name/transformer</code>, is read as a repository id. Up to 0.40.2 any part of the path could
+  decide.</li>
 </ul>
 <p>Pass <code>--base-model &lt;alias&gt;</code> to state the model exactly. It is accepted by <code>mlxgen generate</code>,
 <code>mlxgen capabilities</code>, and <code>mlxgen prepare</code>, and it is required when the name contains no catalog
